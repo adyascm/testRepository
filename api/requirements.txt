@@ -1,0 +1,8 @@
+boto3
+apiclient
+oauth2client
+google-api-python-client
+pymysql
+requests
+passlib
+enum
