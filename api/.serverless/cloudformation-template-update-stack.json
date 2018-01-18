@@ -97,7 +97,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/adya/dev/1516121265679-2018-01-16T16:47:45.679Z/adya.zip"
+          "S3Key": "serverless/adya/dev/1516266965001-2018-01-18T09:16:05.001Z/adya.zip"
         },
         "FunctionName": "adya-dev-login",
         "Handler": "services.lambda.auth.handler.login",
@@ -116,14 +116,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "LoginLambdaVersionmIf3XPbbJdf5lmwiDlo0wbcVU8bA49aEiH5j0OyU": {
+    "LoginLambdaVersiony8ce6sCtJVDqVzEg8DUbnAdzKIRrMxCufK0t8uCM0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "LoginLambdaFunction"
         },
-        "CodeSha256": "MyFztB1y3kB3JWZk/NKtwN06W5iTY8PxDxOPoPX0+CI="
+        "CodeSha256": "Pbx3Dfwgf5kfdxvAiFUVMk7/7z0/rdkT2WV4fsJMtcE="
       }
     },
     "ApiGatewayRestApi": {
@@ -203,7 +203,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1516121265686": {
+    "ApiGatewayDeployment1516266965217": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -258,7 +258,7 @@
     "LoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "LoginLambdaVersionmIf3XPbbJdf5lmwiDlo0wbcVU8bA49aEiH5j0OyU"
+        "Ref": "LoginLambdaVersiony8ce6sCtJVDqVzEg8DUbnAdzKIRrMxCufK0t8uCM0"
       }
     },
     "ServiceEndpoint": {

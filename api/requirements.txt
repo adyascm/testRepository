@@ -1,8 +1,13 @@
-boto3
-apiclient
 oauth2client
 google-api-python-client
-pymysql
+google-auth
+six 
+google-auth-oauthlib
+google-auth-httplib2
 requests
+pymysql
+boto3
+apiclient
 passlib
 enum
+flask-restful
