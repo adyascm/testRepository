@@ -23,6 +23,8 @@ provider:
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
   region: ${self:custom.stages.${self:provider.stage}.region}
+  environment:
+    API_HOST: ${self:custom.stages.${self:provider.stage}.apiHost}
 
 custom:
   defaultStage: dev
@@ -31,14 +33,17 @@ custom:
       awsProfile: devProfile
       dbName: "dev"
       region: ap-south-1
+      apiHost: "https://dev.adya.io/api"
     staging: 
       awsProfile: stagingProfile
       dbName: "staging"
       region: us-east-1
+      apiHost: "https://staging.adya.io/api"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
+      apiHost: "https://prod.adya.io/api"
 
 
 # you can add packaging information here
@@ -51,11 +56,18 @@ custom:
 #    - exclude-me-dir/**
 
 functions:
-  login:
-    handler: services.lambda.auth.handler.login
+  googleoauthlogin:
+    handler: services.lambda.auth.handler.googleoauthlogin
     events:
       - http:
-          path: auth/login
+          path: googleoauthlogin
+          method: get
+
+  googleoauthcallback:
+    handler: services.lambda.auth.handler.googleoauthcallback
+    events:
+      - http:
+          path: googleoauthcallback
           method: post
 
 #    The following are a few example events you can configure
