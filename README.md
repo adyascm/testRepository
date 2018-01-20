@@ -15,3 +15,4 @@ python flaskapp.py
 
 It should start the server at http://localhost:5000
 
+Testing the trigger
