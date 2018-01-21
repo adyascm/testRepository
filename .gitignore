@@ -107,3 +107,4 @@ client_secrets.json
 
 #Serverless
 .serverless/*
+api/.serverless/*

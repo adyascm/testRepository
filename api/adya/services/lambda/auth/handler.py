@@ -1,7 +1,7 @@
 from __future__ import print_function
 import json
 
-from api.adya.datasources.google import authProvider
+from adya.datasources.google import authProvider
 
 def googleoauthlogin(event, context):
     print("Starting the login")
