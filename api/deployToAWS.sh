@@ -12,5 +12,5 @@ mv lib/lib/python2.7/site-packages/* target/dist/adyaapp
 cp serverless.yml target/dist/adyaapp/
 cd target/dist/adyaapp
 
-echo "Deploying using serverless"
+echo "Deploying using serverless with dev profile"
 sls deploy
