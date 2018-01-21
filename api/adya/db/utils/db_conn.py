@@ -1,8 +1,8 @@
 import sqlalchemy
 from sqlalchemy import MetaData, Table
 
-from api.adya.db.utils import db_config
-from api.flaskapp import app
+from adya.db.utils import db_config
+from flaskapp import app
 
 
 class db_connection:
