@@ -67,14 +67,14 @@ custom:
 
 functions:
   googleoauthlogin:
-    handler: api.adya.services.lambda.auth.handler.googleoauthlogin
+    handler: adya.services.lambda.auth.handler.googleoauthlogin
     events:
       - http:
           path: googleoauthlogin
           method: get
 
   googleoauthcallback:
-    handler: api.adya.services.lambda.auth.handler.googleoauthcallback
+    handler: adya.services.lambda.auth.handler.googleoauthcallback
     events:
       - http:
           path: googleoauthcallback
