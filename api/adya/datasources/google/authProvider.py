@@ -4,7 +4,7 @@ import google.oauth2.credentials
 
 import googleapiclient.discovery
 
-from api.adya.common import constants
+from adya.common import constants
 
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
