@@ -8,8 +8,10 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 app = Flask(__name__)
 api = Api(app)
 
+#Add all routes here
 api.add_resource(googleoauthlogin, '/api/googleoauthlogin')
 api.add_resource(googleoauthcallback, '/api/googleoauthcallback')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
