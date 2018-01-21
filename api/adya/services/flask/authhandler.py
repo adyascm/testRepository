@@ -1,5 +1,5 @@
 from flask_restful import Resource,reqparse,request
-from api.adya.datasources.google import authProvider
+from adya.datasources.google import authProvider
 
 class googleoauthlogin(Resource):
     def get(self):
