@@ -1,0 +1,82 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: adya
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: python2.7
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
+  region: ${self:custom.stages.${self:provider.stage}.region}
+  environment:
+    API_HOST: ${self:custom.stages.${self:provider.stage}.apiHost}
+
+#plugins:
+#  - serverless-domain-manager
+
+custom:
+  defaultStage: dev
+  stages:
+    dev: 
+      awsProfile: devProfile
+      dbName: "dev"
+      region: ap-south-1
+      apiHost: "https://dev.adya.io/api"
+    staging: 
+      awsProfile: stagingProfile
+      dbName: "staging"
+      region: us-east-1
+      apiHost: "https://staging.adya.io/api"
+    prod: 
+      awsProfile: prodProfile
+      dbName: "prod"
+      region: us-east-1
+      apiHost: "https://prod.adya.io/api"
+
+#  customDomain:
+#    domainName: api.adyatest.com
+#    basePath: ''
+#    stage: ${self:provider.stage}
+#    createRoute53Record: true
+#    endpointType: regional
+
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.py
+#    - api/datasources/**
+#  exclude:
+#    - lib/**
+#    - exclude-me-dir/**
+
+functions:
+  googleoauthlogin:
+    handler: api.adya.services.lambda.auth.handler.googleoauthlogin
+    events:
+      - http:
+          path: googleoauthlogin
+          method: get
+
+  googleoauthcallback:
+    handler: api.adya.services.lambda.auth.handler.googleoauthcallback
+    events:
+      - http:
+          path: googleoauthcallback
+          method: get
+

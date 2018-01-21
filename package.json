@@ -1,0 +1,23 @@
+{
+  "name": "adyaapp",
+  "version": "1.0.0",
+  "description": "Adya app v2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adyascm/adyaapp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adyascm/adyaapp/issues"
+  },
+  "homepage": "https://github.com/adyascm/adyaapp#readme",
+  "devDependencies": {
+    "serverless-domain-manager": "^2.2.1"
+  }
+}

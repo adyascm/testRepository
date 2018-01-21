@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from flask_restful import Api
-from services.flask.authhandler import googleoauthlogin,googleoauthcallback
+from api.adya.services.flask.authhandler import googleoauthlogin,googleoauthcallback
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 

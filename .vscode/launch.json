@@ -81,7 +81,7 @@
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceFolder}/api/lib/bin/flask",
-            "cwd": "${workspaceFolder}/api",
+            "cwd": "${workspaceFolder}/api/adya",
             "env": {
                 "FLASK_APP": "${workspaceFolder}/api/flaskapp.py"
             },

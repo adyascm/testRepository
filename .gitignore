@@ -87,7 +87,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
-adya/api/lib/
+api/lib/
 
 # Spyder project settings
 .spyderproject
@@ -104,3 +104,6 @@ adya/api/lib/
 
 #Secret
 client_secrets.json
+
+#Serverless
+.serverless/*
