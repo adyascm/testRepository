@@ -26,8 +26,8 @@ provider:
   environment:
     API_HOST: ${self:custom.stages.${self:provider.stage}.apiHost}
 
-#plugins:
-#  - serverless-domain-manager
+plugins:
+  - serverless-domain-manager
 
 custom:
   defaultStage: dev
@@ -36,24 +36,24 @@ custom:
       awsProfile: devProfile
       dbName: "dev"
       region: ap-south-1
-      apiHost: "https://dev.adya.io/api"
+      apiHost: "https://api.adyatest.com"
     staging: 
       awsProfile: stagingProfile
       dbName: "staging"
       region: us-east-1
-      apiHost: "https://staging.adya.io/api"
+      apiHost: "https://staging.adya.io"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
-      apiHost: "https://prod.adya.io/api"
+      apiHost: "https://prod.adya.io"
 
-#  customDomain:
-#    domainName: api.adyatest.com
-#    basePath: ''
-#    stage: ${self:provider.stage}
-#    createRoute53Record: true
-#    endpointType: regional
+  customDomain:
+    domainName: api.adyatest.com
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    endpointType: regional
 
 
 # you can add packaging information here

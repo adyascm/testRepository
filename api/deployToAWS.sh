@@ -13,4 +13,5 @@ cp serverless.yml target/dist/adyaapp/
 cd target/dist/adyaapp
 
 echo "Deploying using serverless with dev profile"
+sls create_domain
 sls deploy
