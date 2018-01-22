@@ -7,8 +7,8 @@ import {
   radii,
   typography
 } from '../designTokens';
-import { rem } from '../lib/styleUnitHelpers';
-import { ms } from '../lib/modularScaleHelpers';
+import { rem } from '../Helpers/styleUnitHelpers';
+import { ms } from '../Helpers/modularScaleHelpers';
 import { allCaps } from '../commonStyles';
 
 /* eslint-disable no-script-url */

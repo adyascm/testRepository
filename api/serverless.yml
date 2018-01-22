@@ -24,7 +24,7 @@ provider:
   profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
   region: ${self:custom.stages.${self:provider.stage}.region}
   environment:
-    API_HOST: ${self:custom.stages.${self:provider.stage}.apiHost}
+    API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
 
 plugins:
   - serverless-domain-manager
@@ -36,20 +36,15 @@ custom:
       awsProfile: devProfile
       dbName: "dev"
       region: ap-south-1
-      apiHost: "https://api.adyatest.com"
-    staging: 
-      awsProfile: stagingProfile
-      dbName: "staging"
-      region: us-east-1
-      apiHost: "https://staging.adya.io"
+      apiHost: "api-dev.adyatest.com"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
-      apiHost: "https://prod.adya.io"
+      apiHost: "api.adya.io"
 
   customDomain:
-    domainName: api.adyatest.com
+    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
     basePath: ''
     stage: ${self:provider.stage}
     createRoute53Record: true

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react';
 import { StyleSheet, css } from 'aphrodite/no-important';
-import { ms } from '../lib/modularScaleHelpers';
+import { ms } from '../Helpers/modularScaleHelpers';
 import {
   border,
   colors,

@@ -7,7 +7,7 @@ import {
   spaces,
   typography
 } from '../designTokens';
-import { ms } from '../lib/modularScaleHelpers';
+import { ms } from '../Helpers/modularScaleHelpers';
 import { allCaps, smoothScrollOnTouch } from '../commonStyles';
 
 const commonStyles = {

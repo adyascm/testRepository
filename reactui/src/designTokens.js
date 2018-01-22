@@ -8,8 +8,8 @@ import {
   BASE_LINE_HEIGHT_PX
 } from './designConstants';
 
-import { em, rem } from './lib/styleUnitHelpers';
-import { generateColorVariants } from './lib/colorHelpers';
+import { em, rem } from './Helpers/styleUnitHelpers';
+import { generateColorVariants } from './Helpers/colorHelpers';
 
 // Colors
 const baseColors = {

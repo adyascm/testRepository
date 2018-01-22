@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, css } from 'aphrodite/no-important';
 import { components } from '../designTokens';
-import { em } from '../lib/styleUnitHelpers';
+import { em } from '../Helpers/styleUnitHelpers';
 
 import SvgSymbol from '../SvgSymbol';
 

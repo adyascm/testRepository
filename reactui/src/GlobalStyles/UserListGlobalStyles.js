@@ -9,8 +9,8 @@
 
 import { StyleSheet } from 'aphrodite';
 import {colors } from '../designTokens';
-//import { ms } from '../lib/modularScaleHelpers';
-//import { em } from '../lib/styleUnitHelpers';
+//import { ms } from '../Helpers/modularScaleHelpers';
+//import { em } from '../Helpers/styleUnitHelpers';
 //import { antialiase } from '../commonStyles';
 
 const GLOBALS = '__USER_LIST_GLOBAL_STYLES__';
