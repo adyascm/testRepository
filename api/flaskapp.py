@@ -9,8 +9,8 @@ app = Flask(__name__)
 api = Api(app)
 
 #Add all routes here
-api.add_resource(googleoauthlogin, '/api/googleoauthlogin')
-api.add_resource(googleoauthcallback, '/api/googleoauthcallback')
+api.add_resource(googleoauthlogin, '/googleoauthlogin')
+api.add_resource(googleoauthcallback, '/googleoauthcallback')
 
 
 if __name__ == '__main__':
