@@ -11,4 +11,3 @@ passlib
 enum
 flask-restful
 sqlalchemy
-PyMySQL
