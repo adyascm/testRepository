@@ -2,7 +2,7 @@ import sqlalchemy
 from sqlalchemy import MetaData, Table
 
 from adya.db.utils import db_config
-from flaskapp import app
+
 
 
 class db_connection:
@@ -17,16 +17,13 @@ class db_connection:
 
 
 
-        except:
-            app.logger.error("Error:  Could not connect to MySql instance")
+
+        except Exception as e:
+            print e
             exit()
 
         return metadata
 
-    def end_conn(self, connection):
-        if connection:
-            connection.close()
 
 
-conn = db_connection()
-conn.start_conn()
+
