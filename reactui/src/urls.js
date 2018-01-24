@@ -2,7 +2,7 @@ const env = process.env.REACT_APP_ADYA_ENV || 'dev';
 
 const DEV_URL = 'https://dev-api.adya.io'
 const STAGING_URL = 'https://staging-api.adya.io'
-const PROD_URL = 'https://prod-api.adya.io'
+const PROD_URL = 'https://api.adya.io'
 
 let envurl;
 switch (env) {
@@ -19,9 +19,6 @@ switch (env) {
     envurl = DEV_URL
 }
 
-export const geturl = `${envurl}/get-api/${env}/v1`;
-export const posturl = `${envurl}/post-api/${env}/v1`;
-export const puturl = `${envurl}/put-api/${env}/v1`;
 export const login = () => `${envurl}/login-api/${env}/v1/login`;
 export const signup = () => `${envurl}/signup-api/${env}/v1/signup`;
 //export const getScanStatus = () => geturl + `/dev/v1/scan@scanadya.io?authToken=29fde6a8-162c-4715-85af-cba1f9f9e6f3&env=dev&createAccount=`;

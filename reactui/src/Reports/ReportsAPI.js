@@ -1,5 +1,4 @@
 import * as urls from '../urls.js';
-const env = process.env.REACT_APP_ADYA_ENV || 'dev';
 
 const headers = {
   'Accept': 'application/json'
