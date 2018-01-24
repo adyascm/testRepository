@@ -14,8 +14,7 @@ import os
 # from adya.db import accounts
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-# CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
-CLIENT_SECRETS_FILE = "/Users/rashmi/workspace/adyaapp/api/client_secrets.json"
+CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 
 API_SERVICE_NAME = "drive"
 API_VERSION = 'v2'
