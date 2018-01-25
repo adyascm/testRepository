@@ -13,15 +13,13 @@ class accounts:
         session.add(Account(**data_json))
         session.commit()
 
-    def get_account(self, login_email):
+    def get_account(self, domain_id):
         session = db_connection().get_session()
-        query = session\
-                        .query(Account)\
-                        .filter_by(domain_id = login_email)
+        query = session \
+            .query(Account) \
+            .filter_by(domain_id=domain_id)
         results = query.all()
-        return len(results)>0
-
-
+        return len(results) > 0
 
 
 class login:
@@ -30,4 +28,10 @@ class login:
         session.add(LoginUser(**data_json))
         session.commit()
 
-
+    def get_login(self, login_email):
+        session = db_connection().get_session()
+        query = session \
+            .query(LoginUser) \
+            .filter_by(email=login_email)
+        results = query.all()
+        return results

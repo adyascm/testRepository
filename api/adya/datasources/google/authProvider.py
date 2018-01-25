@@ -9,7 +9,6 @@ from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
-
 from adya.common import constants
 from adya.db import accounts
 import os
@@ -21,14 +20,13 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
-
 API_SERVICE_NAME = "drive"
 API_VERSION = 'v2'
 
-SCOPES = ['https://www.googleapis.com/auth/drive ' 
-          'https://www.googleapis.com/auth/admin.directory.user ' 
-          'https://www.googleapis.com/auth/admin.directory.group ' 
-          'https://www.googleapis.com/auth/admin.reports.audit.readonly ' 
+SCOPES = ['https://www.googleapis.com/auth/drive '
+          'https://www.googleapis.com/auth/admin.directory.user '
+          'https://www.googleapis.com/auth/admin.directory.group '
+          'https://www.googleapis.com/auth/admin.reports.audit.readonly '
           'https://www.googleapis.com/auth/drive ']
 
 SCOPES_VIEW_PROFILE = ['https://www.googleapis.com/auth/drive.readonly']
@@ -78,7 +76,11 @@ def login_callback(auth_code, error):
     domain_id = login_email.split('@')[1]
     account_exists = accounts.accounts().get_account(domain_id)
     if account_exists:
-        redirect_url = constants.REDIRECT_STATUS + "/AccountExist"
+        account_info = accounts.login().get_login(login_email)
+        for account in account_info:
+            authtoken = account.authtoken
+        authtoken = authtoken
+        redirect_url = constants.REDIRECT_STATUS + "/AccountExist?email={}&authtoken={}".format(login_email,authtoken)
     else:
 
         domain_name = domain_id.split('.')[0]
@@ -94,20 +96,21 @@ def login_callback(auth_code, error):
                 'domain_id': domain_id, 'domain_name': domain_name, 'create_time': created_time
             }
         else:
-             domain_data_json = {
-                'domain_id': login_email, 'domain_name':domain_name, 'create_time':created_time
+            domain_data_json = {
+                'domain_id': login_email, 'domain_name': domain_name, 'create_time': created_time
             }
 
         login_users_data_json = {
-            'email': login_email, 'first_name':login_users_first_name, 'last_name':login_users_last_name,
-            'authtoken':authtoken, 'domain_id':domain_id, 'refreshtoken':refresh_token, 'created_time': created_time,
+            'email': login_email, 'first_name': login_users_first_name, 'last_name': login_users_last_name,
+            'authtoken': authtoken, 'domain_id': domain_id, 'refreshtoken': refresh_token, 'created_time': created_time,
             'last_login_time': created_time
         }
 
         accounts.accounts().create_account(domain_data_json)
         accounts.login().create_login(login_users_data_json)
 
-        redirect_url = constants.REDIRECT_STATUS + "/AccountCreated"
+        redirect_url = constants.REDIRECT_STATUS + "/AccountCreated?email={}&authtoken={}".format(login_email,authtoken)
+
 
     return redirect_url
 
