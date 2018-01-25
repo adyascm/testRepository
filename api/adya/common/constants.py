@@ -8,3 +8,7 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'adya')
 
+NEXT_CALL_FROM_FILE_ID = 4*60
+PROCESS_RESOURCES_URL = API_HOST + "/processresources"
+GDRIVE_SCAN_URL = API_HOST + "/gdrivescan"
+GET_PERMISSION_URL = API_HOST +"/permisssions"

@@ -1,7 +1,6 @@
 import os
 
 import sqlalchemy
-from sqlalchemy import MetaData, Table
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import sessionmaker
 
