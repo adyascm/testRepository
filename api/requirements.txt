@@ -1,7 +1,7 @@
 oauth2client
 google-api-python-client
 google-auth
-six 
+six
 google-auth-oauthlib
 google-auth-httplib2
 requests
@@ -11,3 +11,4 @@ passlib
 enum
 flask-restful
 sqlalchemy
+requests_futures

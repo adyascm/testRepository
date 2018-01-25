@@ -28,8 +28,8 @@ CREATE TABLE `resource` (
   `resource_id` varchar(40) NOT NULL,
   `resource_name` varchar(260) NOT NULL,
   `resource_type` varchar(50) NOT NULL,
-  `resource_size` bigint(20) NOT NULL,
-  `resource_owner_id` varchar(320) NOT NULL,
+  `resource_size` bigint(20) DEFAULT NULL,
+  `resource_owner_id` varchar(320) DEFAULT NULL,
   `last_modified_time` datetime DEFAULT NULL,
   `creation_time` datetime DEFAULT NULL,
   `exposure_type` varchar(10) DEFAULT NULL,
@@ -46,4 +46,4 @@ CREATE TABLE `resource` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-23 18:39:57
+-- Dump completed on 2018-01-25 19:19:08
