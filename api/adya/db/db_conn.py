@@ -3,28 +3,21 @@ import os
 import sqlalchemy
 from sqlalchemy import MetaData, Table
 from sqlalchemy.pool import QueuePool
+from sqlalchemy.orm import sessionmaker
 
-DB_DIALECT = "mysql"
-DB_DRIVER = "pymysql"
-DB_USERNAME = os.environ.get('USERNAME', "root")
-DB_PASSWORD = os.environ.get('PASSWORD', "root")
-DB_HOST = os.environ.get('DBHOST', "127.0.0.1")
-DB_PORT = os.environ.get('DBPORT', "3306")
-DB_NAME = os.environ.get('DBNAME', "dev")
-
+from adya.common import constants
+from adya.db.dbschema.models import Base
 
 class db_connection(object):
-    _conn = None
+    _engine = None
 
     def __init__(self):
-        if db_connection._conn is None:
-            engine = sqlalchemy.create_engine(
-                DB_DIALECT + "+" + DB_DRIVER + "://" + DB_USERNAME +
-                ":" + DB_PASSWORD + '@' + DB_HOST + ":" + DB_PORT +
-                "/" + DB_NAME, poolclass=QueuePool)
+        if db_connection._engine is None:
+            self._engine = sqlalchemy.create_engine("mysql+pymysql://" + constants.DB_USERNAME +
+                ":" + constants.DB_PWD + '@' + constants.DB_URL +
+                "/" + constants.DB_NAME, poolclass=QueuePool)
+            Base.metadata.create_all(self._engine)
 
-            metadata = MetaData(bind=engine)
-            self._conn = metadata
-
-    def get_conn(self):
-        return self._conn
+    def get_session(self):
+        create_session = sessionmaker(bind=self._engine)
+        return create_session()

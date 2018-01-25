@@ -76,8 +76,8 @@ def login_callback(auth_code, error):
 
     login_email = profile_info['user']['emailAddress']
     domain_id = login_email.split('@')[1]
-    db_account = accounts.accounts().get_account(domain_id)
-    if db_account:
+    account_exists = accounts.accounts().get_account(domain_id)
+    if account_exists:
         redirect_url = constants.REDIRECT_STATUS + "/AccountExist"
     else:
 
