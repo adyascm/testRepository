@@ -32,6 +32,7 @@ def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token
                             "domainId":domain_id,
                             "nextPageToken": next_page_token}
                     session.post(constants.GDRIVE_SCAN_URL,data)
+                    break
             else:
                 break
         except Exception as ex:
@@ -66,7 +67,6 @@ def process_resource_data(resources, domain_id, datasource_id):
         requestdata = {"fileIds": batch_request_file_id_list, "domainId": domain_id}
         session.post(constants.GET_PERMISSION_URL, json.dumps(requestdata))
 
-
 ## this class is use to get permisson for drive resources
 class GetPermission():
     domain_id =""
@@ -88,7 +88,6 @@ class GetPermission():
         batch = drive_service.new_batch_http_request(callback=self.resource_permissioncallback)
 
         for fileid in self.fileIds:
-            print fileid
             permisssionData = drive_service.permissions().list(fileId=fileid, fields="permissions(id, emailAddress, role, displayName), nextPageToken",
                                                        pageSize=100,pageToken = None)
             batch.add(permisssionData)
