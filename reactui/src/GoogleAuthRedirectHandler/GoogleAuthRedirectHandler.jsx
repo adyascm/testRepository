@@ -1,7 +1,19 @@
 import React, { Component } from 'react';
 import { StyleSheet, css } from 'aphrodite/no-important';
 import Button from '../Button';
+import {connect} from 'react-redux';
+import { selectors } from '../AuthContainer/reducer';
 import { colors, sizes, spaces } from '../designTokens';
+import {SET_GOOGLELOGININFO as setLoginInfo } from '../AuthContainer/actions';
+
+
+const mapStateToProps = (state) => ({
+  getGoogleLoginInfo: () => selectors.getGoogleLoginInfo(state)
+});
+
+const mapDispatchToProps = {
+  setLoginInfo
+}
 
 const styles = StyleSheet.create({
   messageContainer: {
@@ -17,13 +29,18 @@ const styles = StyleSheet.create({
 class GoogleAuthRedirectHandler extends Component {
   componentDidMount() {
     if (window.opener) {
+      console.log("....this.props. : ", this.props.location.query)
+      var authToken = this.props.location.query.authtoken
+      var email = this.props.location.query.email
+      var profile = {'email':email, 'authToken':authToken}
+      this.props.setLoginInfo(profile)
       window.opener.postMessage(this.props.params.status, '*');
     }
   }
 
   render() {
     let messageElt;
-    if (this.props.params.status === 'success') {
+    if (this.props.params.status === 'AccountExist') {
       messageElt = <p>Successfully added data source.</p>;
     } else {
       messageElt = (
@@ -38,4 +55,4 @@ class GoogleAuthRedirectHandler extends Component {
   }
 }
 
-export default GoogleAuthRedirectHandler;
+export default connect(mapStateToProps, mapDispatchToProps)(GoogleAuthRedirectHandler);

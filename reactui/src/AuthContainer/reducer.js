@@ -1,5 +1,6 @@
 import { handleActions } from 'redux-actions';
 import u from 'updeep';
+import * as actions from './actions';
 import { REHYDRATE } from 'redux-persist/constants';
 import { POST_LOGIN, RECEIVE_LOGIN, POST_SIGNUP, RECEIVE_SIGNUP, LOGOUT } from './actions';
 
@@ -17,12 +18,16 @@ export default handleActions({
     profile: action.payload.auth && action.payload.auth.profile,
     isRehydrated: true
   }, state),
-  
+
+  [actions.SET_GOOGLELOGININFO]: (state, action) => u({
+    profile: u.constant(action.payload.profile)
+  }, state),
+
   [POST_LOGIN]: (state, action) => u({
     isLoggingIn: true,
     loginError: null
   }, state),
-  
+
   [RECEIVE_LOGIN]: (state, action) => {
     if (action.error) {
       return u({
@@ -30,18 +35,18 @@ export default handleActions({
         loginError: action.payload.message
       }, state);
     }
-    
+
     return u({
       isLoggingIn: false,
       profile: action.payload
     }, state)
   },
-  
+
   [POST_SIGNUP]: (state, action) => u({
     isSigningUp: true,
     signupError: null
   }, state),
-  
+
   [RECEIVE_SIGNUP]: (state, action) => {
     if (action.error) {
       return u({
@@ -49,7 +54,7 @@ export default handleActions({
         signupError: action.payload.message
       }, state);
     }
-    
+
     return u({
       isSigningUp: false,
       profile: action.payload
@@ -66,5 +71,6 @@ export const selectors = {
   getIsLoggingIn: state => state.isLoggingIn,
   getIsSigningUp: state => state.isSigningUp,
   getIsRehydrated: state => state.isRehydrated,
-  getProfile: state => state.profile
+  getProfile: state => state.profile,
+  getGoogleLoginInfo: state => state.profile
 };

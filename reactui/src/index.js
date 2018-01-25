@@ -61,7 +61,7 @@ const history = syncHistoryWithStore(browserHistory, store);
 ReactDOM.render(
   <Provider store={store}>
     <Router history={history}>
-      <Route path="/googleAuth/:status" component={GoogleAuthRedirectHandler} />
+      <Route path="/success/:status" component={GoogleAuthRedirectHandler} />
       <Route path="/" component={PermissionsAppContainer}>
         <IndexRoute component={AuthWrapper(Dashboard)} />
         <Route path="/datasources" component={AuthWrapper(SettingsContainer)} />

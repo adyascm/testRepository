@@ -1,6 +1,6 @@
 const env = process.env.REACT_APP_ADYA_ENV || 'dev';
 
-const DEV_URL = 'https://dev-api.adya.io'
+const DEV_URL = 'http://localhost:5000'
 const STAGING_URL = 'https://staging-api.adya.io'
 const PROD_URL = 'https://api.adya.io'
 
@@ -18,6 +18,10 @@ switch (env) {
   default:
     envurl = DEV_URL
 }
+
+export const geturl = `${envurl}/get-api/${env}/v1`;
+export const posturl = `${envurl}/post-api/${env}/v1`;
+export const puturl = `${envurl}/put-api/${env}/v1`;
 
 export const login = () => `${envurl}/login-api/${env}/v1/login`;
 export const signup = () => `${envurl}/signup-api/${env}/v1/signup`;
@@ -48,6 +52,9 @@ ${dataSourceId}&widget_internal_name=${widgetInternalName}`;
 export const getUsersource = (email,authToken) => geturl + `/get_usersources/${email}?authToken=${authToken}`;
 export const emailForgotPassword = envurl+`/email_forgot_password/${env}/v1`;
 // export const changePassword = (email,authToken) => puturl;
+
+export const googleLogin = `${envurl}/googleoauthlogin`;
+
 
 export const userGroupemailNameMap = (email,authToken) => geturl +`/getuser_group_email_map/${email}?authToken=${authToken}`;
 export const userSouceDataSourceIdMap = (email,authToken) => geturl +`/get_us_ds_id_map/${email}?authToken=${authToken}`;

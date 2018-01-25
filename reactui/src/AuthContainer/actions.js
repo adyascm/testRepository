@@ -50,6 +50,7 @@ export const loginWorkflow = (email, password) => (dispatch, getState) => {
 
 export const POST_SIGNUP = createAction('permissions/AuthContainer/POST_SIGNUP');
 export const RECEIVE_SIGNUP = createAction('permissions/AuthContainer/RECEIVE_SIGNUP', profile => profile);
+export const SET_GOOGLELOGININFO = createAction('permissions/AuthContainer/SET_GOOGLELOGININFO', profile => profile);
 
 export const signupWorkflow = account => (dispatch, getState) => {
   const state = getState();
