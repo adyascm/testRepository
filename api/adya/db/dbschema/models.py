@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class Account(Base):
     __tablename__ = 'account'
     domain_id = Column(String(255), primary_key=True)
@@ -27,3 +28,15 @@ class Resource(Base):
 
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
+
+class LoginUser(Base):
+    __tablename__ = 'login_user'
+    email = Column(String(320), primary_key=True)
+    first_name = Column(String(35))
+    last_name = Column(String(35))
+    authtoken = Column(String(36))
+    domain_id = Column(String(255))
+    refreshtoken = Column(String(255))
+    created_time = Column(DateTime)
+    last_login_time = Column(DateTime)
+

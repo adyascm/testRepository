@@ -1,11 +1,14 @@
 import datetime
 import uuid
 
+import httplib2
 import requests
 import google_auth_oauthlib.flow
 import google.oauth2.credentials
-
+from google.oauth2 import service_account
 import googleapiclient.discovery
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 from adya.common import constants
 from adya.db import accounts
@@ -14,7 +17,10 @@ import os
 # from adya.db import accounts
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
+SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
+
 
 API_SERVICE_NAME = "drive"
 API_VERSION = 'v2'
@@ -26,6 +32,7 @@ SCOPES = ['https://www.googleapis.com/auth/drive '
           'https://www.googleapis.com/auth/drive ']
 
 SCOPES_VIEW_PROFILE = ['https://www.googleapis.com/auth/drive.readonly']
+SERVICE_SCOPE = 'https://www.googleapis.com/auth/drive'
 
 
 def login_request():
@@ -69,8 +76,8 @@ def login_callback(auth_code, error):
 
     login_email = profile_info['user']['emailAddress']
     domain_id = login_email.split('@')[1]
-    db_account = accounts.accounts().get_account(domain_id)
-    if db_account:
+    account_exists = accounts.accounts().get_account(domain_id)
+    if account_exists:
         redirect_url = constants.REDIRECT_STATUS + "/AccountExist"
     else:
 
@@ -82,9 +89,14 @@ def login_callback(auth_code, error):
         login_users_last_name = login_users_name[1]
         authtoken = str(uuid.uuid4())
 
-        domain_data_json = {
-            'domain_id': login_email, 'domain_name':domain_name, 'create_time':created_time
-        }
+        if check_for_GSuite(login_email):
+            domain_data_json = {
+                'domain_id': domain_id, 'domain_name': domain_name, 'create_time': created_time
+            }
+        else:
+             domain_data_json = {
+                'domain_id': login_email, 'domain_name':domain_name, 'create_time':created_time
+            }
 
         login_users_data_json = {
             'email': login_email, 'first_name':login_users_first_name, 'last_name':login_users_last_name,
@@ -98,3 +110,18 @@ def login_callback(auth_code, error):
         redirect_url = constants.REDIRECT_STATUS + "/AccountCreated"
 
     return redirect_url
+
+
+def check_for_GSuite(emailid):
+    profile_info = None
+    service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SERVICE_SCOPE)
+
+    credentials = service_obj.create_delegated(emailid)
+    http_auth = credentials.authorize(httplib2.Http())
+    try:
+        drive = googleapiclient.discovery.build('drive', 'v3', credentials=credentials)
+        profile_info = drive.about().get(fields="user").execute()
+    except Exception as e:
+        print e
+
+    return profile_info
