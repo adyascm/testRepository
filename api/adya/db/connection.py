@@ -5,7 +5,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import sessionmaker
 
 from adya.common import constants
-from adya.db.dbschema.models import Base
+from adya.db.models import Base
 
 class db_connection(object):
     _engine = None

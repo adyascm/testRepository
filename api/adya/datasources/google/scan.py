@@ -2,8 +2,8 @@ from adya.datasources.google import gutils
 from adya.common import constants
 from requests_futures.sessions import FuturesSession
 import requests,json,time
-from adya.db.db_conn import db_connection
-from adya.db.dbschema.models import Resource
+from adya.db.connection import db_connection
+from adya.db.models import Resource
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token = None):

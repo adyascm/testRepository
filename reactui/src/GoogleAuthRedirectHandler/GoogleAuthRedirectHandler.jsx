@@ -40,7 +40,7 @@ class GoogleAuthRedirectHandler extends Component {
 
   render() {
     let messageElt;
-    if (this.props.params.status === 'AccountExist') {
+    if (this.props.params.status === 'success') {
       messageElt = <p>Successfully added data source.</p>;
     } else {
       messageElt = (

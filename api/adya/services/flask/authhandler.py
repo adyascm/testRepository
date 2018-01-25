@@ -15,10 +15,6 @@ class googleoauthcallback(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('error', type=str, help='Error if oauth failed')
         args = parser.parse_args()
-        print "url ", req.url
-        # parsed = urlparse.urlparse(req.url)
-        # code = urlparse.parse_qs(parsed.query)['code']
-        # print "code ", code
         url = authProvider.login_callback(req.url, args['error'])
         if not url:
             return {'message': 'Not authenticated'}, 401

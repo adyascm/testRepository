@@ -10,7 +10,8 @@ import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
 from adya.common import constants
-from adya.db import accounts
+from adya.db.models import Domain, LoginUser
+from adya.db.connection import db_connection
 import os
 
 # from adya.db import accounts
@@ -36,7 +37,7 @@ SERVICE_SCOPE = 'https://www.googleapis.com/auth/drive'
 def login_request():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE, scopes=SCOPES_VIEW_PROFILE)
-    flow.redirect_uri = constants.API_HOST + "/googleoauthcallback"
+    flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without
         # re-prompting the user for permission. Recommended for web server apps.
@@ -50,77 +51,76 @@ def login_request():
 
 
 def login_callback(auth_code, error):
+    redirect_url = ""
     if error or not auth_code:
-        return ""
+        return redirect_url
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE, scopes=SCOPES_VIEW_PROFILE)
-    flow.redirect_uri = constants.API_HOST + "/googleoauthcallback"
+    flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
     flow.fetch_token(authorization_response=auth_code)
 
-    # Store credentials in the session.
-    # ACTION ITEM: In a production app, you likely want to save these
-    #              credentials in a persistent database instead.
     credentials = flow.credentials
     if not credentials:
-        return ""
+        return redirect_url
 
     token = credentials.token
     refresh_token = credentials.refresh_token
-
+    
     drive = googleapiclient.discovery.build('drive', 'v3', credentials=credentials)
     profile_info = drive.about().get(fields="user").execute()
 
-    login_email = profile_info['user']['emailAddress']
-    domain_id = login_email.split('@')[1]
-    account_exists = accounts.accounts().get_account(domain_id)
-    if account_exists:
-        account_info = accounts.login().get_login(login_email)
-        for account in account_info:
-            authtoken = account.authtoken
-        authtoken = authtoken
-        redirect_url = constants.REDIRECT_STATUS + "/AccountExist?email={}&authtoken={}".format(login_email,authtoken)
+    login_email = profile_info['user']['emailAddress'].lower()
+    domain_id = login_email
+    session = db_connection().get_session()
+
+    existing_user = session.query(LoginUser).filter(LoginUser.email == login_email).first()
+    if existing_user:
+        auth_token = existing_user.auth_token
+        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,auth_token)
     else:
 
         domain_name = domain_id.split('.')[0]
-        created_time = datetime.datetime.utcnow().isoformat()
+        creation_time = datetime.datetime.utcnow().isoformat()
+        auth_token = str(uuid.uuid4())
+        is_enterprise_user = False
 
+        if check_for_enterprise_user(login_email):
+            domain_id = login_email.split('@')[1]
+            is_enterprise_user = True
+
+        domain = Domain()
+        domain.domain_id = domain_id
+        domain.domain_name = domain_name
+        domain.creation_time = creation_time
+
+        login_user = LoginUser()
+        login_user.email = login_email
         login_users_name = profile_info['user']['displayName'].split(" ")
-        login_users_first_name = login_users_name[0]
-        login_users_last_name = login_users_name[1]
-        authtoken = str(uuid.uuid4())
+        login_user.first_name = login_users_name[0]
+        login_user.last_name = login_users_name[1]
+        login_user.auth_token = auth_token
+        login_user.domain = domain
+        login_user.refresh_token = refresh_token
+        login_user.is_enterprise_user = is_enterprise_user
+        login_user.creation_time = creation_time
+        login_user.last_login_time = creation_time
+        
+        
+        session.add(domain)
+        session.add(login_user)
+        session.commit()
 
-        if check_for_GSuite(login_email):
-            domain_data_json = {
-                'domain_id': domain_id, 'domain_name': domain_name, 'create_time': created_time
-            }
-        else:
-            domain_data_json = {
-                'domain_id': login_email, 'domain_name': domain_name, 'create_time': created_time
-            }
-
-        login_users_data_json = {
-            'email': login_email, 'first_name': login_users_first_name, 'last_name': login_users_last_name,
-            'authtoken': authtoken, 'domain_id': domain_id, 'refreshtoken': refresh_token, 'created_time': created_time,
-            'last_login_time': created_time
-        }
-
-        accounts.accounts().create_account(domain_data_json)
-        accounts.login().create_login(login_users_data_json)
-
-        redirect_url = constants.REDIRECT_STATUS + "/AccountCreated?email={}&authtoken={}".format(login_email,authtoken)
-
-
+        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,auth_token)
     return redirect_url
 
 
-def check_for_GSuite(emailid):
+def check_for_enterprise_user(emailid):
     profile_info = None
     service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SERVICE_SCOPE)
 
     credentials = service_obj.create_delegated(emailid)
-    http_auth = credentials.authorize(httplib2.Http())
     try:
         drive = googleapiclient.discovery.build('drive', 'v3', credentials=credentials)
         profile_info = drive.about().get(fields="user").execute()

@@ -90,7 +90,7 @@ class LoginForm extends Component {
 
       console.log("message : ", message)
       window.removeEventListener('message', this.onGoogleAuthResult);
-      if (message.data === 'AccountExist' || message.data === 'AccountCreated') {
+      if (message.data === 'success') {
         this.googleAuthWindow.close();
 
       }

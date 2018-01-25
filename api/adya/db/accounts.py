@@ -3,8 +3,8 @@ import sqlalchemy
 from sqlalchemy import MetaData, Table
 
 from adya.db import db_conn
-from adya.db.db_conn import db_connection
-from adya.db.dbschema.models import Account, LoginUser
+from adya.db.connection import db_connection
+from adya.db.models import Account, LoginUser
 
 
 class accounts:
