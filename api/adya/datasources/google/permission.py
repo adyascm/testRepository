@@ -18,7 +18,7 @@ class GetPermission():
     def resource_permissioncallback(self,request_id, response, exception):
             resource_id = self.resources[int(request_id) - 1]
             if response:
-                self.update_permission_data_for_resource(resource_id,response)
+                self.update_permission_data_for_resource(resource_id,response['permissions'])
 
     # getting permissison for 100 resourceId
     def get_permission(self):
@@ -44,16 +44,14 @@ class GetPermission():
         resource.domain_id = self.domain_id
         resource.resource_id = resource_id
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
-        db_session = db_connection().get_session()
-        resource_permission ={}
         for permission in permissions:
             permission_type = constants.PermissionType.READ
-            permission_id = permissions.get('id')
+            permission_id = permission.get('id')
             role = permission['role']
             if role == "owner" or role == "writer":
                 permission_type = constants.PermissionType.WRITE
             email_address = permission.get('emailAddress')
-            display_name = permissions.get('displayName')
+            display_name = permission.get('displayName')
             if email_address:
                 resource_exposure_type = constants.ResourceExposureType.INTERNAL
                 if gutils.get_domain_name_from_email(email_address) != self.domain_id:
@@ -64,6 +62,7 @@ class GetPermission():
             else:
                 resource_exposure_type = constants.ResourceExposureType.PUBLIC
                 email_address = constants.ResourceExposureType.PUBLIC
+            resource_permission = {}
             resource_permission['domain_id'] = self.domain_id
             resource_permission['resource_id'] = resource_id
             resource_permission['email'] = email_address
@@ -71,6 +70,7 @@ class GetPermission():
             resource_permission['permission_type'] = permission_type
             data_for_permission_table.append(resource_permission)
 
+        db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
         db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.domain_id== self.domain_id))\
             .update({'exposure_type': resource_exposure_type})
