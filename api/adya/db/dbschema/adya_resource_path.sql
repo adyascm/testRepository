@@ -24,12 +24,21 @@ DROP TABLE IF EXISTS `resource_path`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `resource_path` (
   `domain_id` varchar(255) NOT NULL,
-  `resource_id` varchar(40) NOT NULL,
+  `resource_id` varchar(100) NOT NULL,
   `email` varchar(320) NOT NULL,
   `path` text,
   PRIMARY KEY (`resource_id`,`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `resource_path`
+--
+
+LOCK TABLES `resource_path` WRITE;
+/*!40000 ALTER TABLE `resource_path` DISABLE KEYS */;
+/*!40000 ALTER TABLE `resource_path` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -40,4 +49,4 @@ CREATE TABLE `resource_path` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-25 19:19:09
+-- Dump completed on 2018-01-27  8:49:52

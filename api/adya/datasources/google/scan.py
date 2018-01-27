@@ -43,22 +43,24 @@ def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token
 def process_resource_data(resources, domain_id, datasource_id):
 
     batch_request_file_id_list =[]
-    resource_datalist =[]
+    resourceList =[]
     session = FuturesSession()
+    db_session = db_connection().get_session()
     for resourcedata in resources:
-
-        resouce_id = resourcedata['id']
-        resouce_name = resourcedata['name']
-        resouce_mymeType = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        resouce_parent = resourcedata.get('parents')
-        resouce_owner = resourcedata['owners'][0].get('emailAddress')
-        resouce_size = resourcedata.get('size')
-        resouce_createdtime = resourcedata['createdTime']
-        resouce_modifiedtime = resourcedata['modifiedTime']
-        data = [domain_id,datasource_id,resouce_id,resouce_name,resouce_mymeType,resouce_owner,resouce_size,resouce_createdtime,resouce_modifiedtime]
-        resource_datalist.append(data)
-        batch_request_file_id_list.append(resouce_id)
-
+        resource = {}
+        resource["domain_id"] = domain_id
+        resource["datasource_id"] = datasource_id
+        resource["resource_id"] = resourcedata['id']
+        resource["resource_name"] = resourcedata['name']
+        resource["resource_type"] = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
+        # resource.resouce_parent = resourcedata.get('parents')
+        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
+        resource["resource_size"] = resourcedata.get('size')
+        resource["creation_time"] = resourcedata['createdTime'][:-1]
+        resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
+        resource["exposure_type"] = constants.ResourceExposureType.PRIVATE
+        resourceList.append(resource)
+        batch_request_file_id_list.append(resourcedata['id'])
         if(len(batch_request_file_id_list)==100):
             requestdata = {"fileIds":batch_request_file_id_list,"domainId":domain_id}
             session.post(constants.GET_PERMISSION_URL,json.dumps(requestdata))
@@ -66,29 +68,8 @@ def process_resource_data(resources, domain_id, datasource_id):
     if (len(batch_request_file_id_list) > 0):
         requestdata = {"fileIds": batch_request_file_id_list, "domainId": domain_id}
         session.post(constants.GET_PERMISSION_URL, json.dumps(requestdata))
-
-## this class is use to get permisson for drive resources
-class GetPermission():
-    domain_id =""
-
-    def __init__(self, domain_id,fileIds):
-        self.domain_id = domain_id
-        self.fileIds = fileIds
-
-    # callback will be called for each fileId, here request_id will be in same order we have created the request
-    def resource_permissioncallback(self,request_id, response, exception):
-            fileid = self.fileIds[int(request_id)-1]
-            if response:
-                print ("Got Permission Input", request_id, fileid,response.get('permissions'))
-            print("domain_id",self.domain_id)
-
-    # getting permissison for 100 resourceId
-    def get_permission(self):
-        drive_service = gutils.get_gdrive_service()
-        batch = drive_service.new_batch_http_request(callback=self.resource_permissioncallback)
-
-        for fileid in self.fileIds:
-            permisssionData = drive_service.permissions().list(fileId=fileid, fields="permissions(id, emailAddress, role, displayName), nextPageToken",
-                                                       pageSize=100,pageToken = None)
-            batch.add(permisssionData)
-        batch.execute()
+    try:
+        db_session.bulk_insert_mappings(Resource,resourceList)
+        db_session.commit()
+    except Exception as ex:
+        print("Resource_update failes", ex)

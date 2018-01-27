@@ -8,6 +8,7 @@ import google.oauth2.credentials
 from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
+from adya.datasources.google import gutils
 
 from adya.common import constants
 from adya.db.models import Domain, LoginUser
@@ -65,7 +66,6 @@ def login_callback(auth_code, error):
     if not credentials:
         return redirect_url
 
-    token = credentials.token
     refresh_token = credentials.refresh_token
     
     drive = googleapiclient.discovery.build('drive', 'v3', credentials=credentials)
@@ -122,7 +122,7 @@ def check_for_enterprise_user(emailid):
 
     credentials = service_obj.create_delegated(emailid)
     try:
-        drive = googleapiclient.discovery.build('drive', 'v3', credentials=credentials)
+        drive = gutils.get_gdrive_service(credentials)
         profile_info = drive.about().get(fields="user").execute()
     except Exception as e:
         print e

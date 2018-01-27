@@ -16,30 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `domain_user`
+-- Table structure for table `domain`
 --
 
-DROP TABLE IF EXISTS `domain_user`;
+DROP TABLE IF EXISTS `domain`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `domain_user` (
+CREATE TABLE `domain` (
   `domain_id` varchar(255) NOT NULL,
-  `datasource_id` varchar(36) NOT NULL,
-  `email` varchar(320) NOT NULL,
-  `first_name` varchar(35) NOT NULL,
-  `last_name` varchar(35) NOT NULL,
-  `member_type` varchar(6) DEFAULT NULL,
-  PRIMARY KEY (`domain_id`,`datasource_id`)
+  `domain_name` varchar(255) DEFAULT NULL,
+  `creation_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`domain_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `domain_user`
+-- Dumping data for table `domain`
 --
 
-LOCK TABLES `domain_user` WRITE;
-/*!40000 ALTER TABLE `domain_user` DISABLE KEYS */;
-/*!40000 ALTER TABLE `domain_user` ENABLE KEYS */;
+LOCK TABLES `domain` WRITE;
+/*!40000 ALTER TABLE `domain` DISABLE KEYS */;
+/*!40000 ALTER TABLE `domain` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -51,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-27  8:49:52
+-- Dump completed on 2018-01-27  8:49:51

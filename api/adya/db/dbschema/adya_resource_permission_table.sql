@@ -24,12 +24,22 @@ DROP TABLE IF EXISTS `resource_permission_table`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `resource_permission_table` (
   `domain_id` varchar(255) NOT NULL,
-  `resource_id` varchar(40) NOT NULL,
+  `resource_id` varchar(100) NOT NULL,
   `email` varchar(320) NOT NULL,
-  `permission` varchar(10) DEFAULT NULL,
+  `permission_id` varchar(100) NOT NULL,
+  `permission_type` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`resource_id`,`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `resource_permission_table`
+--
+
+LOCK TABLES `resource_permission_table` WRITE;
+/*!40000 ALTER TABLE `resource_permission_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `resource_permission_table` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -40,4 +50,4 @@ CREATE TABLE `resource_permission_table` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-25 19:19:09
+-- Dump completed on 2018-01-27  8:49:51

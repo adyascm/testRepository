@@ -16,30 +16,31 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `domain_user`
+-- Table structure for table `data_source`
 --
 
-DROP TABLE IF EXISTS `domain_user`;
+DROP TABLE IF EXISTS `data_source`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `domain_user` (
-  `domain_id` varchar(255) NOT NULL,
-  `datasource_id` varchar(36) NOT NULL,
-  `email` varchar(320) NOT NULL,
-  `first_name` varchar(35) NOT NULL,
-  `last_name` varchar(35) NOT NULL,
-  `member_type` varchar(6) DEFAULT NULL,
-  PRIMARY KEY (`domain_id`,`datasource_id`)
+CREATE TABLE `data_source` (
+  `domain_id` varchar(255) DEFAULT NULL,
+  `datasource_id` varchar(255) NOT NULL,
+  `display_name` varchar(255) DEFAULT NULL,
+  `datasource_type` varchar(50) DEFAULT NULL,
+  `creation_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`datasource_id`),
+  KEY `domain_id` (`domain_id`),
+  CONSTRAINT `data_source_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain` (`domain_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `domain_user`
+-- Dumping data for table `data_source`
 --
 
-LOCK TABLES `domain_user` WRITE;
-/*!40000 ALTER TABLE `domain_user` DISABLE KEYS */;
-/*!40000 ALTER TABLE `domain_user` ENABLE KEYS */;
+LOCK TABLES `data_source` WRITE;
+/*!40000 ALTER TABLE `data_source` DISABLE KEYS */;
+/*!40000 ALTER TABLE `data_source` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -51,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-27  8:49:52
+-- Dump completed on 2018-01-27  8:49:51

@@ -17,9 +17,9 @@ class Domain(Base):
 
 class Resource(Base):
     __tablename__ = 'resource'
-    domain_id = Column(String(255), primary_key=True,nullable=False)
-    datasource_id = Column(String(36),primary_key=True,nullable=False)
-    resource_id = Column(String(40),nullable=False)
+    domain_id = Column(String(255))
+    datasource_id = Column(String(36),nullable=False)
+    resource_id = Column(String(100), primary_key=True)
     resource_name = Column(String(260),nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
@@ -30,6 +30,17 @@ class Resource(Base):
 
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
+
+class ResourcePermission(Base):
+    __tablename__ = 'resource_permission_table'
+    domain_id = Column(String(255))
+    resource_id = Column(String(100), primary_key=True)
+    email = Column(String(320), primary_key=True)
+    permission_id = Column(String(260), nullable=False)
+    permission_type = Column(String(10))
+
+    def __repr__(self):
+        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id,self.resource_id,self.email)
 
 class LoginUser(Base):
     __tablename__ = 'login_user'

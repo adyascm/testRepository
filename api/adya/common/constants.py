@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
@@ -15,3 +16,14 @@ NEXT_CALL_FROM_FILE_ID = 4*60
 PROCESS_RESOURCES_URL = API_HOST + "/processresources"
 GDRIVE_SCAN_URL = API_HOST + "/gdrivescan"
 GET_PERMISSION_URL = API_HOST +"/permisssions"
+
+class ResourceExposureType(Enum):
+    PRIVATE = "PVT"
+    INTERNAL = "INT"
+    DOMAIN = "DOMAIN"
+    EXTERNAL = "EXT"
+    PUBLIC = "PUBLIC"
+
+class PermissionType(Enum):
+      READ ="R"
+      WRITE ="W"

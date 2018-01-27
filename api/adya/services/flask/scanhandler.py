@@ -1,5 +1,5 @@
 from flask_restful import Resource,reqparse,request
-from adya.datasources.google import scan
+from adya.datasources.google import scan,permission
 import json
 
 class initialDSScan(Resource):
@@ -30,6 +30,6 @@ class getPermission(Resource):
         requestdata = json.loads(request.data)
         fileIds = requestdata['fileIds']
         domain_id = requestdata['domainId']
-        scan_permisssion = scan.GetPermission(domain_id,fileIds)
+        scan_permisssion = permission.GetPermission(domain_id,fileIds)
         scan_permisssion.get_permission()
         return "Getting file permission", 202
