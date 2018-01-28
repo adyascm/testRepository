@@ -5,6 +5,13 @@ import requests,json,time
 from adya.db.connection import db_connection
 from adya.db.models import Resource
 
+
+def gdrivescan(datasource_id,access_token,domain_id):
+    session = FuturesSession()
+    data = json.dumps({"domainId": domain_id,"accessToken":access_token, "dataSourceId": datasource_id})
+    session.post(constants.INITIAL_GDRIVE_SCAN,data=data)
+
+
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token = None):
 
@@ -21,14 +28,14 @@ def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token
                                 "nextPageToken",pageSize=1000, pageToken = next_page_token).execute()
 
             file_count = file_count + len(results['files'])
-            data = json.dumps({"resourceData":results,"domainId":domain_id,"datasourceId":datasource_id})
+            data = json.dumps({"resourceData":results,"domainId":domain_id,"dataSourceId":datasource_id})
             session.post(constants.PROCESS_RESOURCES_URL,data=data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     data = {"dataSourceId":datasource_id,
-                            "AccessToken":access_token,
+                            "accessToken":access_token,
                             "domainId":domain_id,
                             "nextPageToken": next_page_token}
                     session.post(constants.GDRIVE_SCAN_URL,data)
@@ -38,6 +45,7 @@ def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token
         except Exception as ex:
             print ex
             break
+
 
 ## processing resource data for fileIds
 def process_resource_data(resources, domain_id, datasource_id):

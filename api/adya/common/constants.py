@@ -15,7 +15,8 @@ OAUTH_STATUS_URL = UI_HOST + "/oauthstatus"
 NEXT_CALL_FROM_FILE_ID = 4*60
 PROCESS_RESOURCES_URL = API_HOST + "/processresources"
 GDRIVE_SCAN_URL = API_HOST + "/gdrivescan"
-GET_PERMISSION_URL = API_HOST +"/permisssions"
+GET_PERMISSION_URL = API_HOST + "/permisssions"
+INITIAL_GDRIVE_SCAN = API_HOST + "/initialgdrivescan"
 
 class ResourceExposureType(Enum):
     PRIVATE = "PVT"
