@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import { StyleSheet, css } from 'aphrodite/no-important';
 import Button from '../Button';
 import {connect} from 'react-redux';
-import { selectors } from '../AuthContainer/reducer';
+import { selectors } from '../PermissionsApp/reducer';
 import { colors, sizes, spaces } from '../designTokens';
-import {SET_GOOGLELOGININFO as setLoginInfo } from '../AuthContainer/actions';
+import {SET_ACCOUNT_SIGN_UP as setLoginInfo } from '../PermissionsApp/actions';
 
 
 const mapStateToProps = (state) => ({
-  getGoogleLoginInfo: () => selectors.getGoogleLoginInfo(state)
+  getAccountSignUp: () => selectors.getAccountSignUp(state)
 });
 
 const mapDispatchToProps = {
@@ -33,12 +33,16 @@ class GoogleAuthRedirectHandler extends Component {
       var authToken = this.props.location.query.authtoken
       var email = this.props.location.query.email
       var profile = {'email':email, 'authToken':authToken}
-      this.props.setLoginInfo(profile)
+      console.log("profile : ", profile)
+      localStorage.setItem("email",email)
+      localStorage.setItem("authToken", authToken)
+      this.props.setLoginInfo(email)
       window.opener.postMessage(this.props.params.status, '*');
     }
   }
 
   render() {
+
     let messageElt;
     if (this.props.params.status === 'success') {
       messageElt = <p>Successfully added data source.</p>;

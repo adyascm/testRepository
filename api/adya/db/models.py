@@ -32,12 +32,13 @@ class Domain(Base):
     def __repr__(self):
         return "<Domain('%s', '%s')>" % (self.domain_id, self.domain_name)
 
+
 class Resource(Base):
     __tablename__ = 'resource'
     domain_id = Column(String(255))
-    datasource_id = Column(String(36),nullable=False)
+    datasource_id = Column(String(36), nullable=False)
     resource_id = Column(String(100), primary_key=True)
-    resource_name = Column(String(260),nullable=False)
+    resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
     resource_owner_id = Column(String(320))
@@ -46,7 +47,10 @@ class Resource(Base):
     exposure_type = Column(String(10))
 
     def __repr__(self):
-        return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
+        return "Resource('%s','%s', '%s', '%s')" % (
+        self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
+
+
 
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
@@ -57,10 +61,12 @@ class ResourcePermission(Base):
     permission_type = Column(String(10))
 
     def __repr__(self):
-        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id,self.resource_id,self.email)
+        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
+
+
 
 class LoginUser(Base):
-    __tablename__ = 'login_user'
+    __tablename__ = 'login'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     email = Column(String(320), primary_key=True)
     first_name = Column(String(255))
@@ -71,6 +77,7 @@ class LoginUser(Base):
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
 
+
 class DataSource(Base):
     __tablename__ = 'data_source'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
@@ -78,5 +85,18 @@ class DataSource(Base):
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
+
+
+
+class DomainUser(Base):
+    __tablename__ ='domain_user'
+    domain_id = Column(String(255), primary_key=True)
+    datasource_id = Column(String(100), primary_key=True)
+    email = Column(String(320), primary_key=True)
+    # we can't put constraint for firstname and lastname null
+    # because if we get External user from other domain provider that might not have Names
+    first_name = Column(String(255))
+    last_name = Column(String(255))
+    member_type = Column(String(6))
 
 

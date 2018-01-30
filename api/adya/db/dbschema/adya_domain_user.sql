@@ -26,10 +26,10 @@ CREATE TABLE `domain_user` (
   `domain_id` varchar(255) NOT NULL,
   `datasource_id` varchar(36) NOT NULL,
   `email` varchar(320) NOT NULL,
-  `first_name` varchar(35) NOT NULL,
-  `last_name` varchar(35) NOT NULL,
+  `first_name` varchar(35) DEFAULT NULL,
+  `last_name` varchar(35) DEFAULT NULL,
   `member_type` varchar(6) DEFAULT NULL,
-  PRIMARY KEY (`domain_id`,`datasource_id`)
+  PRIMARY KEY (`domain_id`,`datasource_id`,`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -39,6 +39,7 @@ CREATE TABLE `domain_user` (
 
 LOCK TABLES `domain_user` WRITE;
 /*!40000 ALTER TABLE `domain_user` DISABLE KEYS */;
+INSERT INTO `domain_user` VALUES ('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','adyatest11@gmail.com','Adya','Test','EXT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','bhanu.mallya@serendipity-technologies.com','bhanu','mallya','INT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','deepak@adya.io','Deepak','Balakrishna','EXT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','deepak@serendipity-technologies.com','Deepak','Balakrishna','INT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','pdas@serendipity-technologies.com','Piyush','Gupta','INT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','purnimagupta@serendipity-technologies.com','Purnima','Gupta','INT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','purnimaguptapccs@gmail.com','Purnima','Gupta','EXT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','rashmi.singh@adya.io','Rashmi','Singh','EXT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','rashmi.singh@serendipity-technologies.com','Rashmi','Singh','INT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','tinkesh.kumar@adya.io','Tinkesh','Kumar','EXT'),('serendipity-technologies.com','7426b482-9d18-43d3-b2df-32ab7fc28f16','tinkesh@serendipity-technologies.com','Tinkesh','Kumar','INT');
 /*!40000 ALTER TABLE `domain_user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-27  8:49:52
+-- Dump completed on 2018-01-30  6:45:34

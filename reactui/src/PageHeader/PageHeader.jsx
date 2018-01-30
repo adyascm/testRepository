@@ -100,59 +100,12 @@ class PageHeader extends Component {
       // dateTo: moment()
     }
     //this.showSearchForm = this.showSearchForm.bind(this);
-    this.onGoogleAuthResult = this.onGoogleAuthResult.bind(this);
-    // this.dateChangedFrom = this.dateChangedFrom.bind(this);
     // this.dateChangedTo = this.dateChangedTo.bind(this);
   }
 
-  // dateChangedFrom(d){
-  //   this.setState({dateFrom: d});
-  //   console.log("dateFrom ", this.state.dateFrom["-d"])
-  // }
-  // dateChangedTo(d){
-  //   this.setState({dateTo: d});
-  // }
 
   handleMenuModel(modelData) {
     this.props.setMenuDialogVisible(true, modelData);
-  }
-
-  handleGoogleAuth() {
-    const left = (window.innerWidth / 4);
-    const email = this.props.getProfile().email;
-    const authToken = this.props.getProfile().authToken;
-    const url = addDatasource(email, authToken);
-
-    window.addEventListener('message', this.onGoogleAuthResult);
-    this.googleAuthWindow = window.open(
-      url,
-      'googleWindow',
-      'width=600,height=500,status=1,top=70,left=' + left + ''
-    );
-
-  }
-
-  onGoogleAuthResult(message) {
-    window.removeEventListener('message', this.onGoogleAuthResult);
-
-    if (message.data === 'success') {
-      this.googleAuthWindow.close();
-      // TODO: refresh all data sources.
-    }
-  }
-
-  componentDidMount() {
-    // if (this.props.getScanStatus()) {
-    //   this.setState({
-    //     scanStatus: true
-    //   })
-    // }
-    //
-    // else {
-    //   this.setState({
-    //     scanStatus: false
-    //   })
-    // }
   }
 
   componentWillReceiveProps(nextProps) {
