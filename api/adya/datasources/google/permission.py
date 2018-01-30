@@ -1,6 +1,6 @@
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
-from adya.db.models import Resource,ResourcePermission
+from adya.db.models import Resource,ResourcePermission,DomainUser
 from adya.common import constants
 from sqlalchemy import and_
 #  this class is use to get permisson for drive resources
@@ -9,8 +9,9 @@ from sqlalchemy import and_
 class GetPermission():
     domain_id =""
 
-    def __init__(self, domain_id,resources):
+    def __init__(self, domain_id, datasource_id, resources):
         self.domain_id = domain_id
+        self.datasource_id = datasource_id
         self.resources = resources
     # callback will be called for each fileId, here request_id will be in same order we have created the request
     ## here I am not considering case of more than 100 permissions for a given file id
@@ -44,6 +45,8 @@ class GetPermission():
         resource.domain_id = self.domain_id
         resource.resource_id = resource_id
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
+        non_domain_user =[]
+        db_session = db_connection().get_session()
         for permission in permissions:
             permission_type = constants.PermissionType.READ
             permission_id = permission.get('id')
@@ -56,6 +59,20 @@ class GetPermission():
                 resource_exposure_type = constants.ResourceExposureType.INTERNAL
                 if gutils.get_domain_name_from_email(email_address) != self.domain_id:
                     resource_exposure_type = constants.ResourceExposureType.EXTERNAL
+
+                    ## inseret non domain user as External user in db, Domain users will be
+                    ## inserted during processing Users
+                    user = DomainUser()
+                    user.domain_id = self.domain_id
+                    user.datasource_id = self.datasource_id
+                    user.email = email_address
+                    if display_name and display_name != "":
+                        name_list = display_name.split(' ')
+                        user.first_name = name_list[0]
+                        if len(name_list) > 1:
+                            user.last_name = name_list[1]
+                    user.member_type = constants.UserMemberType.EXTERNAL
+                    db_session.merge(user)
             elif display_name:
                 resource_exposure_type = constants.ResourceExposureType.DOMAIN
                 email_address = "__ANYONE__@"+ self.domain_id
@@ -70,10 +87,10 @@ class GetPermission():
             resource_permission['permission_type'] = permission_type
             data_for_permission_table.append(resource_permission)
         try:
-            db_session = db_connection().get_session()
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
-            db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.domain_id== self.domain_id))\
+            db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.domain_id == self.domain_id))\
                 .update({'exposure_type': resource_exposure_type})
             db_session.commit()
         except Exception as ex:
             print("Updating permission for " + resource_id + " failed")
+
