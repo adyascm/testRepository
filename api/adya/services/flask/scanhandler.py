@@ -93,6 +93,6 @@ class processGroups(Resource):
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")
-        users_response_data = data.get("usersResponseData")
+        users_response_data = data.get("groupsResponseData")
         scan.processUsers(users_response_data,datasource_id,domian_id)
         return "processing users metadata", 202

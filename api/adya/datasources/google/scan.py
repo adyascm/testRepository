@@ -138,3 +138,59 @@ def processUsers(users_data, datasource_id, domain_id):
         db_session.commit()
     except Exception as ex:
         print("User data insertation failed", ex.message)
+
+
+def getDomainGroups(datasource_id,access_token,domain_id,next_page_token):
+    print("Getting domain user from google")
+
+    directory_service = gutils.get_directory_service()
+    starttime = time.time()
+    session = FuturesSession()
+
+    while True:
+        try:
+            print ("Got users data")
+            results = directory_service.users().list(customer='my_customer', maxResults=500, pageToken=next_page_token,
+                                                     orderBy='email').execute()
+
+            data = {"usersResponseData":results["users"],"dataSourceId":datasource_id,"domainId":domain_id}
+            session.post(url=constants.PROCESS_USERS_DATA,data=json.dumps(data))
+            next_page_token = results.get('nextPageToken')
+            if next_page_token:
+                timediff = time.time() - starttime
+                if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
+                    data = {"dataSourceId":datasource_id,
+                            "accessToken":access_token,
+                            "domainId":domain_id,
+                            "nextPageToken": next_page_token}
+                    session.post(constants.GDRIVE_SCAN_URL,data)
+                    break
+            else:
+                break
+        except Exception as ex:
+            print ex
+            break
+
+
+def processGroups(users_data, datasource_id, domain_id):
+
+    print ("Started processing users meta data")
+    user_db_insert_data_dic =[]
+    for user_data in users_data:
+        useremail = user_data["emails"][0]["address"]
+        names = user_data["name"]
+        user = {}
+        user["domain_id"] = domain_id
+        user["datasource_id"] = datasource_id
+        user["email"] = useremail
+        user["first_name"] = names.get("givenName")
+        user["last_name"] = names.get("familyName")
+        user["member_type"] = constants.UserMemberType.INTERNAL
+        user_db_insert_data_dic.append(user)
+
+    try:
+        db_session = db_connection().get_session()
+        db_session.bulk_insert_mappings(DomainUser,user_db_insert_data_dic)
+        db_session.commit()
+    except Exception as ex:
+        print("User data insertation failed", ex.message)
