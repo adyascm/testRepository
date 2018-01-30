@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import {browserHistory} from 'react-router';
 import { push } from 'react-router-redux';
 import { StyleSheet, css } from 'aphrodite/no-important';
 import { SubmissionError } from 'redux-form';
 import LoginForm from '../LoginForm';
 import SignupForm from '../SignupForm';
 import TabSwitcher from '../TabSwitcher';
-import { loginWorkflow, signupWorkflow } from './actions';
+import { loginWorkflow, signupWorkflow, setLoginInfo } from './actions';
 import { selectors } from './reducer';
 import { colors, sizes, spaces } from '../designTokens';
 import { SET_SCAN_STATUS as setScanStatus,
@@ -50,7 +51,9 @@ const renderFormField = ({ input, label, type, meta: { touched, error, warning }
 
 const mapStateToProps = ({ auth }) => ({
   getIsLoggingIn: () => selectors.getIsLoggingIn(auth),
-  getIsSigningUp: () => selectors.getIsSigningUp(auth)
+  getIsSigningUp: () => selectors.getIsSigningUp(auth),
+  getGoogleLogin: () => selectors.getGoogleLogin(auth),
+  getGoogleLoginInfo: () => selectors.getGoogleLoginInfo(auth)
 });
 
 const mapDispatchToProps = {
@@ -58,6 +61,7 @@ const mapDispatchToProps = {
   signupWorkflow,
   setScanStatus,
   setAccountSignUp,
+  setLoginInfo,
   redirectTo: url => push(url)
 };
 
@@ -65,15 +69,25 @@ class AuthContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: TAB_LOGIN
+      activeTab: TAB_LOGIN,
+      login: false
     };
   }
 
-  // componentWillMount() {
-  //   this.props.setScanStatus(true);
-  // }
+  componentWillMount(){
+    localStorage.setItem("email",'')
+    localStorage.setItem("authToken", '')
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps !== this.props) {
+      if (nextProps.getIsLoggingIn())
+        browserHistory.push("/")
+    }
+  }
 
   onLoginSubmit = values => {
+
     return this.props.loginWorkflow(values.email, values.password)
       .then(() => {this.props.redirectTo(this.props.location.query.redirectTo || '/')})
       .catch(error => {
@@ -107,7 +121,8 @@ class AuthContainer extends Component {
       <LoginForm onSubmit={this.onLoginSubmit}
                  isLoggingIn={this.props.getIsLoggingIn()}
                  renderFormField={renderFormField}
-                 renderError={renderError} />
+                 renderError={renderError}
+                 />
     );
 
     const signupForm = (

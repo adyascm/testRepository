@@ -6,7 +6,7 @@ import { REHYDRATE } from 'redux-persist/constants';
 import { MODE_FILE_PERMISSIONS, MODE_USER_PERMISSIONS, USER_LIST_TYPE_GROUPED, ALL_USERS_PARENT, RESOURCE_LIST_TYPE_TREE } from '../constants';
 
 const initialState = {
-  accountSignUp: false,
+  accountSignUp: '',
   headNode : {},
   isFetchingUsers: {},
   users: {},
@@ -248,7 +248,7 @@ export default handleActions({
   }, state),
 
   [actions.SET_ACCOUNT_SIGN_UP]: (state, action) => u({
-    accountSignUp: action.payload.accountSignUp
+    accountSignUp:  u.constant(action.payload.accountSignUp)
   }, state),
 
   [actions.SET_ACTIVE_FILE]: (state, action) => u({

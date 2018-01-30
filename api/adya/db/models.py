@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Sequence, Integer, String, DateTime,BigInteger,ForeignKey,Boolean
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -19,9 +19,9 @@ class Domain(Base):
 class Resource(Base):
     __tablename__ = 'resource'
     domain_id = Column(String(255))
-    datasource_id = Column(String(36),nullable=False)
+    datasource_id = Column(String(36), nullable=False)
     resource_id = Column(String(100), primary_key=True)
-    resource_name = Column(String(260),nullable=False)
+    resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
     resource_owner_id = Column(String(320))
@@ -30,7 +30,9 @@ class Resource(Base):
     exposure_type = Column(String(10))
 
     def __repr__(self):
-        return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
+        return "Resource('%s','%s', '%s', '%s')" % (
+        self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
+
 
 
 class ResourcePermission(Base):
@@ -42,11 +44,12 @@ class ResourcePermission(Base):
     permission_type = Column(String(10))
 
     def __repr__(self):
-        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id,self.resource_id,self.email)
+        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
+
 
 
 class LoginUser(Base):
-    __tablename__ = 'login_user'
+    __tablename__ = 'login'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     email = Column(String(320), primary_key=True)
     first_name = Column(String(255))
@@ -67,6 +70,7 @@ class DataSource(Base):
     creation_time = Column(DateTime)
 
 
+
 class DomainUser(Base):
     __tablename__ ='domain_user'
     domain_id = Column(String(255), primary_key=True)
@@ -77,4 +81,5 @@ class DomainUser(Base):
     first_name = Column(String(255))
     last_name = Column(String(255))
     member_type = Column(String(6))
+
 

@@ -5,22 +5,35 @@ import { REHYDRATE } from 'redux-persist/constants';
 import { POST_LOGIN, RECEIVE_LOGIN, POST_SIGNUP, RECEIVE_SIGNUP, LOGOUT } from './actions';
 
 const initialState = {
+  googleProfile: {},
   profile: null,
   isLoggingIn: false,
   loginError: null,
   isSigningUp: false,
   signupError: null,
-  isRehydrated: false
+  isRehydrated: false,
+  googleSignup: false
 };
 
 export default handleActions({
+
+  [actions.GOOGLE_LOGIN]: (state, action) => u({
+    googleSignup: action.payload.googleSignup
+  }, state),
+
   [REHYDRATE]: (state, action) => u({
     profile: action.payload.auth && action.payload.auth.profile,
     isRehydrated: true
   }, state),
 
   [actions.SET_GOOGLELOGININFO]: (state, action) => u({
-    profile: u.constant(action.payload.profile)
+    googleProfile: action.payload.profile
+  }, state),
+
+  [actions.IS_LOGGIN]: (state, action) => u({
+    isLoggingIn: action.payload.isLoggingIn,
+    isRehydrated: true,
+    profile: action.payload.profile
   }, state),
 
   [POST_LOGIN]: (state, action) => u({
@@ -62,7 +75,8 @@ export default handleActions({
   },
 
   [LOGOUT]: (state, action) => u({
-    profile: null
+    profile: null,
+    isLoggingIn: false
   }, state)
 }, initialState);
 
@@ -72,5 +86,6 @@ export const selectors = {
   getIsSigningUp: state => state.isSigningUp,
   getIsRehydrated: state => state.isRehydrated,
   getProfile: state => state.profile,
-  getGoogleLoginInfo: state => state.profile
+  getGoogleLoginInfo: state => state.googleProfile,
+  getGoogleLogin: state => state.googleSignup
 };
