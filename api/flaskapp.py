@@ -2,8 +2,9 @@ import os
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
+
+from adya.services.flask import scanhandler
 from adya.services.flask.authhandler import googleoauthlogin,googleoauthcallback,UserSession
-from adya.services.flask.scanhandler import initialgdrivescan,processResources,getPermission,getdomainuser,gdriveScan
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
