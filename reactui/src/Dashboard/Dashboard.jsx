@@ -35,7 +35,8 @@ class Dashboard extends Component {
     super(props);
     this.state = {
       datasourceId: '',
-      usersourceId: ''
+      usersourceId: '',
+      isDatasource: false
     }
   }
 
@@ -47,21 +48,30 @@ class Dashboard extends Component {
 
     this.props.setWidgetReport(false);
 
-    Api.getDatasourceId(email,authToken).then(response => {
-        datasourceId = response[0][0];
-        Api.getUsersourceId(email,authToken).then(response => {
-            usersourceId = response[0][0];
-            this.setState({
-              usersourceId: response[0][0],
-              datasourceId: datasourceId
-            })
-        });
+
+
+    Api.getDatasource(authToken).then(response => {
+        var datasources = JSON.parse(response['datasources']).length;
+        if (datasources){
+          this.setState({
+            isDatasource: true
+          })
+        }
+
+        // Api.getUsersourceId(email,authToken).then(response => {
+        //     usersourceId = response[0][0];
+        //     this.setState({
+        //       usersourceId: response[0][0],
+        //       datasourceId: datasourceId
+        //     })
+        // });
+
     });
   }
 
   render() {
 
-    if (this.props.getAccountSignUp()) {
+    if (!this.state.isDatasource) {
       return (
         <PageContent>
           <HomePage authContent={this.props.auth} />
