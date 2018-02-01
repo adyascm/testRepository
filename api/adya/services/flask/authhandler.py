@@ -3,7 +3,7 @@ import urlparse
 from flask_restful import Resource, reqparse, request
 from adya.datasources.google import authProvider
 from adya.controllers import authController
-
+from adya.datasources.google import gutils
 
 class googleoauthlogin(Resource):
     def get(self):
@@ -38,4 +38,12 @@ class UserSession(Resource):
             return {'message': 'Not authenticated'}, 401
         else:
             return user_session, 200
+
+
+class RevokeAccessForApp(Resource):
+    def delete(self):
+        data = request.data
+        domain_id = data.get("domainId")
+        gutils.revoke_appaccess(domain_id)
+        return "Success Removed",200
 

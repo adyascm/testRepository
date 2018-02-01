@@ -99,7 +99,7 @@ class DirectoryStructure(Base):
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
     member_email = Column(String(320), primary_key=True)
-    parent_email = Column(String(320))
+    parent_email = Column(String(320), primary_key=True)
 
 
 class ResourcePermission(Base):

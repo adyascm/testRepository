@@ -23,7 +23,7 @@ class GetPermission():
 
     # getting permissison for 100 resourceId
     def get_permission(self):
-        drive_service = gutils.get_gdrive_service()
+        drive_service = gutils.get_gdrive_service(domain_id=self.domain_id)
         batch = drive_service.new_batch_http_request(callback=self.resource_permissioncallback)
 
         for resource in self.resources:

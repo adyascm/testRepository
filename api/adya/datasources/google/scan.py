@@ -34,7 +34,7 @@ def gdrivescan(access_token,domain_id):
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token = None):
 
-    drive_service = gutils.get_gdrive_service()
+    drive_service = gutils.get_gdrive_service(domain_id=domain_id)
     file_count = 0
     starttime = time.time()
     session = FuturesSession()
@@ -105,7 +105,7 @@ def process_resource_data(resources, domain_id, datasource_id):
 def getDomainUsers(datasource_id,access_token,domain_id,next_page_token):
     print("Getting domain user from google")
 
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
@@ -161,7 +161,7 @@ def processUsers(users_data, datasource_id, domain_id):
 def getDomainGroups(datasource_id,access_token,domain_id,next_page_token):
     print("Getting domain user from google")
 
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
@@ -217,18 +217,20 @@ def processGroups(groups_data, datasource_id, domain_id,access_token):
 def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_token):
 
     print ("Started getting group Members")
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
     while True:
         try:
             print ("Got users data")
-            groupchildren = directory_service.members().list(groupKey=group_key).execute()
-            data = {"membersResponseData": groupchildren.get("members"), "groupKey":group_key,
-                    "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
-            session.post(url=constants.PROCESS_GROUP_MEMBER_DATA_URL, data=json.dumps(data))
-            next_page_token = groupchildren.get('nextPageToken')
+            groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
+            groupMember = groupmemberresponse.get("members")
+            if groupMember:
+                data = {"membersResponseData": groupMember, "groupKey":group_key,
+                        "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
+                session.post(url=constants.PROCESS_GROUP_MEMBER_DATA_URL, data=json.dumps(data))
+            next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
@@ -246,8 +248,8 @@ def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_to
             break
 
 
-def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id,access_token):
-    print ("Started processing users meta data")
+def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
+    print ("Started processing groupmember meta data")
     groupsmembers_db_insert_data_dic = []
     db_session = db_connection().get_session()
     for group_data in group_member_data:
@@ -260,11 +262,12 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id,
             group = {}
             group["domain_id"] = domain_id
             group["datasource_id"] = datasource_id
-            group["member_email"] = group_data
+            group["member_email"] = group_data["email"]
             group["parent_email"] = group_key
             groupsmembers_db_insert_data_dic.append(group)
     try:
         db_session.bulk_insert_mappings(models.DirectoryStructure, groupsmembers_db_insert_data_dic)
         db_session.commit()
     except Exception as ex:
-        print("User data insertation failed", ex.message)
+        print("Directory data insertation failed", ex.message)
+        return errormessage.SCAN_FAILED_ERROR_MESSAGE

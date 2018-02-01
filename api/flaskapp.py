@@ -40,6 +40,7 @@ api.add_resource(scanhandler.processGroupMembers,constants.PROCESS_GROUP_MEMBER_
 
 api.add_resource(datasource, constants.GET_DATASOURCE_URL)
 
+api.add_resource()
 
 if __name__ == '__main__':
     app.run(debug=True)

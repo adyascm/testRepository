@@ -67,7 +67,7 @@ def login_callback(auth_url, scopes, error):
 
     refresh_token = credentials.refresh_token
 
-    service =get_oauth_service(credentials)
+    service = get_oauth_service(None,credentials)
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
@@ -119,7 +119,7 @@ def check_for_enterprise_user(emailid):
 
     credentials = service_obj.create_delegated(emailid)
     try:
-        drive = gutils.get_gdrive_service(credentials)
+        drive = gutils.get_gdrive_service(None,credentials=credentials)
         profile_info = drive.about().get(fields="user").execute()
     except Exception as e:
         print e

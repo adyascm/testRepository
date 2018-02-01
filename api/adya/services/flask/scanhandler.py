@@ -118,7 +118,6 @@ class processGroupMembers(Resource):
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")
         group_key = data.get("groupKey")
-        access_token = data.get('accessToken')
         member_response_data = data.get("membersResponseData")
-        scan.processGroupMembers(group_key,member_response_data,datasource_id,domian_id,access_token)
+        scan.processGroupMembers(group_key,member_response_data,datasource_id,domian_id)
         return "processing groups metadata", 202
