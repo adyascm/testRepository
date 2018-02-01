@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Sequence, Integer, String, DateTime,BigInteger,ForeignKey,Boolean
+from sqlalchemy import Column, Sequence, Integer, String, DateTime,BigInteger,ForeignKey,Boolean,Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,7 @@ class Domain(Base):
 
 class Resource(Base):
     __tablename__ = 'resource'
-    domain_id = Column(String(255))
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36),nullable=False)
     resource_id = Column(String(100), primary_key=True)
     resource_name = Column(String(260),nullable=False)
@@ -28,14 +28,14 @@ class Resource(Base):
     last_modified_time = Column(DateTime)
     creation_time = Column(DateTime)
     exposure_type = Column(String(10))
-
+    resource_parent = Column(Text)
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
 
 
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
-    domain_id = Column(String(255))
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     resource_id = Column(String(100), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
@@ -61,7 +61,7 @@ class LoginUser(Base):
 class DataSource(Base):
     __tablename__ = 'data_source'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(255), primary_key=True)
+    datasource_id = Column(String(36), primary_key=True)
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
@@ -69,8 +69,8 @@ class DataSource(Base):
 
 class DomainUser(Base):
     __tablename__ ='domain_user'
-    domain_id = Column(String(255), primary_key=True)
-    datasource_id = Column(String(100), primary_key=True)
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36), primary_key=True)
     email = Column(String(320), primary_key=True)
     # we can't put constraint for firstname and lastname null
     # because if we get External user from other domain provider that might not have Names
@@ -78,3 +78,18 @@ class DomainUser(Base):
     last_name = Column(String(255))
     member_type = Column(String(6))
 
+class DomainGroup(Base):
+    __tablename__ ='domain_group'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36))
+    email = Column(String(320), primary_key=True)
+    name = Column(String(255))
+    include_all_user = Column(Boolean,default=False)
+
+
+class DirectoryStructure(Base):
+    __tablename__ = 'domain_directory_structure'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36))
+    member_email = Column(String(320), primary_key=True)
+    parent_email = Column(String(320))

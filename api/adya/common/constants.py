@@ -1,6 +1,7 @@
 import os
 from enum import Enum
 
+
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
@@ -9,22 +10,39 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root@adya')
 DB_NAME = os.environ.get('DB_NAME', 'adya')
 
-GOOGLE_OAUTH_CALLBACK_URL = API_HOST + "/googleoauthcallback"
-OAUTH_STATUS_URL = UI_HOST + "/oauthstatus"
+GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
+GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
+GOOGLE_OAUTH_CALLBACK_URL = API_HOST + GOOGLE_OAUTHCALLBACK_PATH
+OAUTH_STATUS_PATH = "/oauthstatus"
+OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
 
 NEXT_CALL_FROM_FILE_ID = 4*60
 
-GDRIVE_SCAN_URL = API_HOST + "/gdrivescan"
-INITIAL_GDRIVE_SCAN = API_HOST + "/initialgdrivescan"
+GDRIVE_SCAN_PATH = "/scan/gdrivescan"
+GDRIVE_SCAN_URL = API_HOST + GDRIVE_SCAN_PATH
+INITIAL_GDRIVE_SCAN_PATH = "/scan/initialgdrivescan"
+INITIAL_GDRIVE_SCAN = API_HOST + INITIAL_GDRIVE_SCAN_PATH
 
-GET_PERMISSION_URL = API_HOST + "/permisssions"
-PROCESS_RESOURCES_URL = API_HOST + "/processresources"
+GET_PERMISSION_PATH = "/scan/permisssions"
+GET_PERMISSION_URL = API_HOST + GET_PERMISSION_PATH
+PROCESS_RESOURCES_PATH = "/scan/processresources"
+PROCESS_RESOURCES_URL = API_HOST + PROCESS_RESOURCES_PATH
 
-GET_DOMAIN_USER = API_HOST + "/getdomainusers"
-PROCESS_USERS_DATA = API_HOST + "/processusers"
+GET_DOMAIN_USER_PATH = "/scan/getdomainusers"
+GET_DOMAIN_USER_URL = API_HOST + GET_DOMAIN_USER_PATH
 
-GET_GROUP = API_HOST + "/getdomaingroups"
-PROCESS_GROUP_DATA = API_HOST + "/processgroups"
+PROCESS_USERS_PATH = "/scan/processusers"
+PROCESS_USERS_DATA_URL = API_HOST + PROCESS_USERS_PATH
+
+
+GET_DOMAIN_GROUP_PATH = "/scan/getdomaingroups"
+GET_GROUP_URL = API_HOST + GET_DOMAIN_GROUP_PATH
+PROCESS_GROUP_PATH = "/scan/processgroups"
+PROCESS_GROUP_DATA_URL = API_HOST + PROCESS_GROUP_PATH
+GET_GROUP_MEMBERS_PATH = "/scan/getgroupmembers"
+GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
+PROCESS_GROUP_MEMBER_PATH = "/scan/processgroupmembers"
+PROCESS_GROUP_MEMBER_DATA_URL = API_HOST + PROCESS_GROUP_MEMBER_PATH
 
 class ResourceExposureType(Enum):
     PRIVATE = "PVT"
@@ -40,5 +58,9 @@ class PermissionType(Enum):
 
 
 class UserMemberType(Enum):
+    INTERNAL = "INT"
+    EXTERNAL = "EXT"
+
+class GroupMemberType(Enum):
     INTERNAL = "INT"
     EXTERNAL = "EXT"
