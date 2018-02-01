@@ -38,7 +38,7 @@ api.add_resource(scanhandler.processGroups,constants.PROCESS_GROUP_PATH)
 api.add_resource(scanhandler.getGroupMembers, constants.GET_GROUP_MEMBERS_PATH)
 api.add_resource(scanhandler.processGroupMembers,constants.PROCESS_GROUP_MEMBER_PATH)
 
-api.add_resource(datasource, '/getdatasources')
+api.add_resource(datasource, constants.GET_DATASOURCE_URL)
 
 
 if __name__ == '__main__':

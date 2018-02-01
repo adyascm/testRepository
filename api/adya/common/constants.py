@@ -44,6 +44,8 @@ GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
 PROCESS_GROUP_MEMBER_PATH = "/scan/processgroupmembers"
 PROCESS_GROUP_MEMBER_DATA_URL = API_HOST + PROCESS_GROUP_MEMBER_PATH
 
+GET_DATASOURCE_URL = '/getdatasources'
+
 PROFILE_VIEW_SCOPE = ['profile '
                        'email ' ]
 
