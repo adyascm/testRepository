@@ -1,15 +1,32 @@
 from adya.datasources.google import gutils
-from adya.common import constants
+from adya.common import constants,errormessage
 from requests_futures.sessions import FuturesSession
-import requests,json,time
+import uuid,json,time,datetime
 from adya.db.connection import db_connection
 from adya.db import models
 from sqlalchemy import and_
+from adya.db.models import DataSource
 
 
-def gdrivescan(datasource_id,access_token,domain_id):
-    session = FuturesSession()
+def gdrivescan(access_token,domain_id):
+    datasource_id = str(uuid.uuid4())
+    db_session = db_connection().get_session()
+    datasource = DataSource()
+    datasource.domain_id = domain_id
+    datasource.datasource_id = datasource_id
+    datasource.display_name = gutils.get_domain_name_from_email(domain_id)
+    # we are fixing the datasoure type this can be obtained from the frontend
+    datasource.datasource_type = "GSUITE"
+    datasource.creation_time = datetime.datetime.utcnow().isoformat()
+    try:
+        db_session.add(datasource)
+        db_session.commit()
+    except Exception as ex:
+        print("Creating datasource id failed", ex.message)
+        return errormessage.SCAN_FAILED_ERROR_MESSAGE
+
     data = json.dumps({"domainId": domain_id,"accessToken":access_token, "dataSourceId": datasource_id})
+    session = FuturesSession()
     session.post(constants.INITIAL_GDRIVE_SCAN,data=data)
     session.post(constants.GET_DOMAIN_USER_URL, data=data)
     session.post(constants.GET_GROUP_URL, data=data)

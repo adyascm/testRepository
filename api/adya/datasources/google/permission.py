@@ -47,6 +47,7 @@ class GetPermission():
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         non_domain_user =[]
         db_session = db_connection().get_session()
+        domain_name = gutils.get_domain_name_from_email(self.domain_id)
         for permission in permissions:
             permission_type = constants.PermissionType.READ
             permission_id = permission.get('id')
@@ -57,7 +58,7 @@ class GetPermission():
             display_name = permission.get('displayName')
             if email_address:
                 resource_exposure_type = constants.ResourceExposureType.INTERNAL
-                if gutils.get_domain_name_from_email(email_address) != self.domain_id:
+                if gutils.get_domain_name_from_email(email_address) != domain_name:
                     resource_exposure_type = constants.ResourceExposureType.EXTERNAL
 
                     ## inseret non domain user as External user in db, Domain users will be
