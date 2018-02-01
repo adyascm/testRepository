@@ -35,9 +35,9 @@ export const resources = (email, parentId, datasourceId, authToken) =>
   geturl+`/get_child_resources_with_user_perms/${email}?parent_id=${parentId}&datasource_id=${datasourceId}&authToken=${authToken}`;
 export const userActivityLog = (email, userId, authToken, columnNames) => posturl;
 export const fileActivityLog = (email, resourceId, authToken, columnNames) => posturl;
-export const addDatasource = (email, authToken) => envurl + `/google_auth_url/${env}/v1/${email}?authToken=${authToken}&env=${env}`;
+// export const addDatasource = (email, authToken) => envurl + `/google_auth_url/${env}/v1/${email}?authToken=${authToken}&env=${env}`;
 export const serviceaccounturl = (email,authToken)=> geturl+`/get_all_user_data/${email}?authToken=${authToken}`;
-
+export const addDatasource = (scope) => `${envurl}/googleoauthlogin?scope=${scope}`;
 export const deleteAccount= (email, datasourceId, datasourceType, authToken)=> geturl+`/delete_entity/${email}?datasource_id=${datasourceId}&datasource_type=${datasourceType}&authToken=${authToken}`;
 export const deleteDataSource= (email, datasourceId, authToken)=> geturl+`/delete_entity/${email}?datasource_id=${datasourceId}&authToken=${authToken}`;
 export const googleAuthurl= (email, authToken)=> envurl + `/google_auth_url/${env}/v1/${email}?authToken=${authToken}`;
@@ -53,7 +53,7 @@ export const getUsersource = (email,authToken) => geturl + `/get_usersources/${e
 export const emailForgotPassword = envurl+`/email_forgot_password/${env}/v1`;
 // export const changePassword = (email,authToken) => puturl;
 
-export const googleLogin = `${envurl}/googleoauthlogin`;
+export const googleLogin =(scope) => `${envurl}/googleoauthlogin?scope=${scope}`;
 
 
 export const userGroupemailNameMap = (email,authToken) => geturl +`/getuser_group_email_map/${email}?authToken=${authToken}`;

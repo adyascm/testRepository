@@ -4,11 +4,12 @@ import json
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 
+
 def get_credentials():
     refreshToken = '1/fHdU5Z-0HmEgBnjUv-CyWtIj03BMhG2p38Nf01Zz3AQ'
     client_id = '675474472628-87uc3fnbmojup9ur2a1b9ie7qfd5i732.apps.googleusercontent.com'
     client_secret = '8DcZ_BxYCd8cBKKEoXdLwwdk'
-    credentials = Credentials(None,refresh_token=refreshToken,
+    credentials = Credentials(None, refresh_token=refreshToken,
                               token_uri=GOOGLE_TOKEN_URI,
                               client_id=client_id,
                               client_secret=client_secret)
@@ -39,3 +40,10 @@ def get_domain_name_from_email(email):
     index_of_strudel_from_last = len(email) - email.index('@')
     domain_name = email[-index_of_strudel_from_last + 1:]
     return domain_name
+
+
+def get_oauth_service(credentials=None):
+    if not credentials:
+        credentials = get_credentials()
+    service = discovery.build('oauth2', 'v2', credentials=credentials)
+    return service

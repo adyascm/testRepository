@@ -88,7 +88,7 @@ class LoginForm extends Component {
   googleLoginFlag = () => {
 
     const left = (window.innerWidth / 4);
-    const url = urls.googleLogin;
+    const url = urls.googleLogin();
 
     console.log("url : ", url)
 

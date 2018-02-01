@@ -62,8 +62,9 @@ class HomePage extends Component {
     const email = auth.profile.email;
     const authToken = auth.profile.authToken;
     const left = (window.innerWidth / 4);
-    const url = addDatasource(email, authToken);
-
+    const scope = "read_drive"
+    const url = addDatasource(scope)
+  
     window.addEventListener('message', this.onGoogleAuthResult);
     this.googleAuthWindow = window.open(
       url,
