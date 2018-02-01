@@ -66,7 +66,7 @@ class ResourcePermission(Base):
 
 
 class LoginUser(Base):
-    __tablename__ = 'login'
+    __tablename__ = 'login_user'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     email = Column(String(320), primary_key=True)
     first_name = Column(String(255))
