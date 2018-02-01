@@ -69,7 +69,7 @@ def login_callback(auth_url, scopes, error):
 
     service =get_oauth_service(credentials)
     profile_info = service.userinfo().get().execute()
-    print profile_info
+
     login_email = profile_info['email'].lower()
     domain_id = login_email
     session = db_connection().get_session()
@@ -80,7 +80,7 @@ def login_callback(auth_url, scopes, error):
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
 
-        domain_name = domain_id.split('.')[0]
+        domain_name = gutils.get_domain_name_from_email(domain_id)
         creation_time = datetime.datetime.utcnow().isoformat()
         auth_token = str(uuid.uuid4())
         is_enterprise_user = False

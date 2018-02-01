@@ -63,7 +63,7 @@ def process_resource_data(resources, domain_id, datasource_id):
         resource["resource_id"] = resourcedata['id']
         resource["resource_name"] = resourcedata['name']
         resource["resource_type"] = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        # resource.resouce_parent = resourcedata.get('parents')
+        resource["resource_parent_id"] = resourcedata.get('parents')
         resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
         resource["resource_size"] = resourcedata.get('size')
         resource["creation_time"] = resourcedata['createdTime'][:-1]
