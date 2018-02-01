@@ -1,3 +1,4 @@
+from flask import json
 from flask_restful import Resource,reqparse
 
 from adya.controllers import datasourceController
@@ -13,6 +14,6 @@ class datasource(Resource):
             return {'message': 'Missing auth token'}, 400
         datasources = datasourceController.get_datasource(args['authToken'])
 
-        return datasources, 200
+        return {"datasources": datasources}, 200
 
 
