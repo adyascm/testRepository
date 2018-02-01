@@ -44,7 +44,7 @@ export const googleAuthurl= (email, authToken)=> envurl + `/google_auth_url/${en
 export const resourceFlatList = (email, users, authToken, columnNames)=> posturl;
 
 export const userGroupListForFileId = (email,datasourceId,resourceId,authToken, columnNames) => posturl;
-export const getDatasource = (email,authToken) => geturl + `/get_datasources/${email}?authToken=${authToken}`;
+// export const getDatasource = (email,authToken) => geturl + `/get_datasources/${email}?authToken=${authToken}`;
 
 export const getDashboardInfo = (email,authToken,dataSourceId,userSourceId,widgetInternalName) =>
 geturl + `/get_widget_summary/${email}?authToken=${authToken}&usersource_id=${userSourceId}&datasource_id=
@@ -54,6 +54,7 @@ export const emailForgotPassword = envurl+`/email_forgot_password/${env}/v1`;
 // export const changePassword = (email,authToken) => puturl;
 
 export const googleLogin =(scope) => `${envurl}/googleoauthlogin?scope=${scope}`;
+export  const getDatasource = (authToken) => `${envurl}/getdatasources?authToken=${authToken}`;
 
 
 export const userGroupemailNameMap = (email,authToken) => geturl +`/getuser_group_email_map/${email}?authToken=${authToken}`;

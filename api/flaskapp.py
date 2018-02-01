@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from adya.services.flask import scanhandler
 from adya.services.flask.authhandler import googleoauthlogin,googleoauthcallback,UserSession
+from adya.services.flask.datasourcehandler import datasource
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -32,6 +33,8 @@ api.add_resource(scanhandler.processUsers,'/processusers')
 
 api.add_resource(scanhandler.getdomainGroups,'/getgroups')
 api.add_resource(scanhandler.processGroups,'/processgroups')
+
+api.add_resource(datasource, '/getdatasources')
 
 
 if __name__ == '__main__':

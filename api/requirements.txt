@@ -13,4 +13,4 @@ flask-restful
 flask-cors
 sqlalchemy
 requests_futures
-flask_cors
+
