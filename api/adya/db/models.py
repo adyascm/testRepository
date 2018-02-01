@@ -1,9 +1,26 @@
+import json
 from sqlalchemy import Column, Sequence, Integer, String, DateTime,BigInteger,ForeignKey,Boolean,Text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
 from sqlalchemy.orm import relationship
+
 
 Base = declarative_base()
 
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj.__class__, DeclarativeMeta):
+            # an SQLAlchemy class
+            fields = {}
+            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                data = obj.__getattribute__(field)
+                try:
+                    json.dumps(data) # this will fail on non-encodable values, like other classes
+                    fields[field] = data
+                except TypeError:
+                    fields[field] = None
+            # a json-encodable dict
+            return fields
+        return json.JSONEncoder.default(self, obj)
 
 class Domain(Base):
     __tablename__ = 'domain'
@@ -21,7 +38,7 @@ class Resource(Base):
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36),nullable=False)
     resource_id = Column(String(100), primary_key=True)
-    resource_name = Column(String(260),nullable=False)
+    resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
     resource_owner_id = Column(String(320))
@@ -30,7 +47,9 @@ class Resource(Base):
     exposure_type = Column(String(10))
     resource_parent = Column(Text)
     def __repr__(self):
-        return "Resource('%s','%s', '%s', '%s')" % (self.domain_id,self.datasource_id,self.resource_id,self.resource_name)
+        return "Resource('%s','%s', '%s', '%s')" % (
+        self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
+
 
 
 class ResourcePermission(Base):
@@ -42,7 +61,8 @@ class ResourcePermission(Base):
     permission_type = Column(String(10))
 
     def __repr__(self):
-        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id,self.resource_id,self.email)
+        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
+
 
 
 class LoginUser(Base):
@@ -67,6 +87,7 @@ class DataSource(Base):
     creation_time = Column(DateTime)
 
 
+
 class DomainUser(Base):
     __tablename__ ='domain_user'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
@@ -77,6 +98,7 @@ class DomainUser(Base):
     first_name = Column(String(255))
     last_name = Column(String(255))
     member_type = Column(String(6))
+
 
 class DomainGroup(Base):
     __tablename__ ='domain_group'
@@ -93,3 +115,4 @@ class DirectoryStructure(Base):
     datasource_id = Column(String(36))
     member_email = Column(String(320), primary_key=True)
     parent_email = Column(String(320))
+

@@ -10,5 +10,7 @@ apiclient
 passlib
 enum
 flask-restful
+flask-cors
 sqlalchemy
 requests_futures
+

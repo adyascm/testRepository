@@ -7,8 +7,8 @@ UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
 DB_URL = os.environ.get('DB_URL', 'localhost:3306')
 DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-DB_PWD = os.environ.get('DB_PWD', 'root@adya')
-DB_NAME = os.environ.get('DB_NAME', 'adya')
+DB_PWD = os.environ.get('DB_PWD', 'root')
+DB_NAME = os.environ.get('DB_NAME', 'dev')
 
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
 GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
@@ -43,6 +43,24 @@ GET_GROUP_MEMBERS_PATH = "/scan/getgroupmembers"
 GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
 PROCESS_GROUP_MEMBER_PATH = "/scan/processgroupmembers"
 PROCESS_GROUP_MEMBER_DATA_URL = API_HOST + PROCESS_GROUP_MEMBER_PATH
+
+PROFILE_VIEW_SCOPE = ['profile '
+                       'email ' ]
+
+READ_DRIVE_SCOPE = ['https://www.googleapis.com/auth/drive.readonly ']
+
+FULL_SCOPE = ['https://www.googleapis.com/auth/drive '
+          'https://www.googleapis.com/auth/admin.directory.user '
+          'https://www.googleapis.com/auth/admin.directory.group '
+          'https://www.googleapis.com/auth/admin.reports.audit.readonly '
+          'https://www.googleapis.com/auth/drive ']
+
+SCOPE_DICT = {
+    "profile_view": PROFILE_VIEW_SCOPE,
+    "read_drive": READ_DRIVE_SCOPE,
+    "full_scope": FULL_SCOPE
+}
+
 
 class ResourceExposureType(Enum):
     PRIVATE = "PVT"

@@ -6,6 +6,8 @@ export const LOGOUT = createAction('permissions/AuthContainer/LOGOUT');
 
 export const POST_LOGIN = createAction('permissions/AuthContainer/POST_LOGIN');
 export const RECEIVE_LOGIN = createAction('permissions/AuthContainer/RECEIVE_LOGIN', profile => profile);
+export const GOOGLE_LOGIN = createAction('permissions/AuthContainer/GOOGLE_LOGIN', googleSignup => googleSignup);
+export const IS_LOGGIN = createAction('permissions/AuthContainer/IS_LOGGIN', (isLoggingIn, profile) => ({isLoggingIn, profile}));
 
 const extractProfile = (email, response) => {
   const [ accountId, accountName, accountType, accountStatus, authToken ] = response;
@@ -48,9 +50,10 @@ export const loginWorkflow = (email, password) => (dispatch, getState) => {
     });
 };
 
+
 export const POST_SIGNUP = createAction('permissions/AuthContainer/POST_SIGNUP');
 export const RECEIVE_SIGNUP = createAction('permissions/AuthContainer/RECEIVE_SIGNUP', profile => profile);
-export const SET_GOOGLELOGININFO = createAction('permissions/AuthContainer/SET_GOOGLELOGININFO', profile => profile);
+export const SET_GOOGLELOGININFO = createAction('permissions/AuthContainer/SET_GOOGLELOGININFO', (profile) => ({profile}));
 
 export const signupWorkflow = account => (dispatch, getState) => {
   const state = getState();
