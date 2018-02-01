@@ -1,7 +1,6 @@
 import datetime
 import uuid
 
-import httplib2
 import requests
 import google_auth_oauthlib.flow
 import google.oauth2.credentials
@@ -48,19 +47,22 @@ def login_request(scopes):
     return authorization_url
 
 
-def login_callback(auth_code, scopes, error):
+
+def login_callback(auth_url, scopes, error):
     redirect_url = ""
-    if error or not auth_code:
+    if error or not auth_url:
+        redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
         return redirect_url
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE, scopes=scopes)
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
-    flow.fetch_token(authorization_response=auth_code)
+    flow.fetch_token(authorization_response=auth_url)
 
     credentials = flow.credentials
     if not credentials:
+        redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format("Credentials not found.")
         return redirect_url
 
     refresh_token = credentials.refresh_token
