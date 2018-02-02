@@ -1,0 +1,2 @@
+
+SCAN_FAILED_ERROR_MESSAGE ="Scan has failed"
