@@ -1,19 +1,25 @@
 from flask import json
-from flask_restful import Resource,reqparse
+from flask_restful import Resource, reqparse, request
 
-from adya.controllers import datasourceController
+from adya.controllers import domainController
 
 
 class datasource(Resource):
     def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('authToken', type=str)
-        args = parser.parse_args()
-
-        if not args['authToken']:
+        auth_token = request.headers.get('Authorization')
+        if not auth_token:
             return {'message': 'Missing auth token'}, 400
-        datasources = datasourceController.get_datasource(args['authToken'])
+        datasources = domainController.get_datasource(auth_token)
 
-        return {"datasources": datasources}, 200
+        return datasources, 200
+
+    def post(self):
+        auth_token = request.headers.get('Authorization')
+        if not auth_token:
+            return {'message': 'Missing auth token'}, 400
+        payload = request.get_json()
+        datasource = domainController.create_datasource(auth_token, payload)
+
+        return datasource, 201
 
 

@@ -1,3 +1,4 @@
+import os
 import datetime
 import uuid
 
@@ -13,22 +14,17 @@ from adya.datasources.google import gutils
 
 from adya.common import constants
 from adya.datasources.google.gutils import get_oauth_service, get_gdrive_service
-from adya.db.models import Domain, LoginUser
+from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
-import os
+from adya.controllers import authController, domainController
 
-# from adya.db import accounts
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
-API_SERVICE_NAME = "drive"
-API_VERSION = 'v2'
-
-
-def login_request(scopes):
+def oauth_request(scopes):
     scope = SCOPE_DICT["profile_view"]
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
@@ -46,9 +42,7 @@ def login_request(scopes):
 
     return authorization_url
 
-
-
-def login_callback(auth_url, scopes, error):
+def oauth_callback(auth_url, scopes, error):
     redirect_url = ""
     if error or not auth_url:
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
@@ -73,45 +67,27 @@ def login_callback(auth_url, scopes, error):
     login_email = profile_info['email'].lower()
     domain_id = login_email
     session = db_connection().get_session()
-
+    creation_time = datetime.datetime.utcnow().isoformat()
     existing_user = session.query(LoginUser).filter(LoginUser.email == login_email).first()
     if existing_user:
         auth_token = existing_user.auth_token
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
+        existing_domain_user = session.query(DomainUser).filter(DomainUser.email == login_email).first()
+        if existing_domain_user:
+            login_user = authController.create_user(login_email, existing_domain_user.first_name, existing_domain_user.last_name, existing_domain_user.domain_id, refresh_token, True)
+        else:
+            domain_name = gutils.get_domain_name_from_email(domain_id)
+            is_enterprise_user = False
+            if check_for_enterprise_user(login_email):
+                domain_id = login_email.split('@')[1]
+                is_enterprise_user = True
 
-        domain_name = gutils.get_domain_name_from_email(domain_id)
-        creation_time = datetime.datetime.utcnow().isoformat()
-        auth_token = str(uuid.uuid4())
-        is_enterprise_user = False
-
-        if check_for_enterprise_user(login_email):
-            domain_id = login_email.split('@')[1]
-            is_enterprise_user = True
-
-        domain = Domain()
-        domain.domain_id = domain_id
-        domain.domain_name = domain_name
-        domain.creation_time = creation_time
-
-        login_user = LoginUser()
-        login_user.email = login_email
-        login_user.first_name = profile_info['given_name']
-        login_user.last_name = profile_info['family_name']
-        login_user.auth_token = auth_token
-        login_user.domain = domain
-        login_user.refresh_token = refresh_token
-        login_user.is_enterprise_user = is_enterprise_user
-        login_user.creation_time = creation_time
-        login_user.last_login_time = creation_time
-
-        session.add(domain)
-        session.add(login_user)
-        session.commit()
+            domain = domainController.create_domain(domain_id, domain_name)
+            login_user = authController.create_user(login_email, profile_info['given_name'], profile_info['family_name'], domain_id, refresh_token, is_enterprise_user)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     return redirect_url
-
 
 def check_for_enterprise_user(emailid):
     profile_info = None
