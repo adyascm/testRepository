@@ -1,15 +1,32 @@
 from adya.datasources.google import gutils
-from adya.common import constants
+from adya.common import constants,errormessage
 from requests_futures.sessions import FuturesSession
-import requests,json,time
+import uuid,json,time,datetime
 from adya.db.connection import db_connection
 from adya.db import models
 from sqlalchemy import and_
+from adya.db.models import DataSource
 
 
-def gdrivescan(datasource_id,access_token,domain_id):
-    session = FuturesSession()
+def gdrivescan(access_token,domain_id):
+    datasource_id = str(uuid.uuid4())
+    db_session = db_connection().get_session()
+    datasource = DataSource()
+    datasource.domain_id = domain_id
+    datasource.datasource_id = datasource_id
+    datasource.display_name = gutils.get_domain_name_from_email(domain_id)
+    # we are fixing the datasoure type this can be obtained from the frontend
+    datasource.datasource_type = "GSUITE"
+    datasource.creation_time = datetime.datetime.utcnow().isoformat()
+    try:
+        db_session.add(datasource)
+        db_session.commit()
+    except Exception as ex:
+        print("Creating datasource id failed", ex.message)
+        return errormessage.SCAN_FAILED_ERROR_MESSAGE
+
     data = json.dumps({"domainId": domain_id,"accessToken":access_token, "dataSourceId": datasource_id})
+    session = FuturesSession()
     session.post(constants.INITIAL_GDRIVE_SCAN,data=data)
     session.post(constants.GET_DOMAIN_USER_URL, data=data)
     session.post(constants.GET_GROUP_URL, data=data)
@@ -17,7 +34,7 @@ def gdrivescan(datasource_id,access_token,domain_id):
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token = None):
 
-    drive_service = gutils.get_gdrive_service()
+    drive_service = gutils.get_gdrive_service(domain_id=domain_id)
     file_count = 0
     starttime = time.time()
     session = FuturesSession()
@@ -63,7 +80,7 @@ def process_resource_data(resources, domain_id, datasource_id):
         resource["resource_id"] = resourcedata['id']
         resource["resource_name"] = resourcedata['name']
         resource["resource_type"] = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        # resource.resouce_parent = resourcedata.get('parents')
+        resource["resource_parent_id"] = resourcedata.get('parents')
         resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
         resource["resource_size"] = resourcedata.get('size')
         resource["creation_time"] = resourcedata['createdTime'][:-1]
@@ -88,7 +105,7 @@ def process_resource_data(resources, domain_id, datasource_id):
 def getDomainUsers(datasource_id,access_token,domain_id,next_page_token):
     print("Getting domain user from google")
 
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
@@ -144,7 +161,7 @@ def processUsers(users_data, datasource_id, domain_id):
 def getDomainGroups(datasource_id,access_token,domain_id,next_page_token):
     print("Getting domain user from google")
 
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
@@ -200,18 +217,20 @@ def processGroups(groups_data, datasource_id, domain_id,access_token):
 def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_token):
 
     print ("Started getting group Members")
-    directory_service = gutils.get_directory_service()
+    directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
     while True:
         try:
             print ("Got users data")
-            groupchildren = directory_service.members().list(groupKey=group_key).execute()
-            data = {"membersResponseData": groupchildren.get("members"), "groupKey":group_key,
-                    "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
-            session.post(url=constants.PROCESS_GROUP_MEMBER_DATA_URL, data=json.dumps(data))
-            next_page_token = groupchildren.get('nextPageToken')
+            groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
+            groupMember = groupmemberresponse.get("members")
+            if groupMember:
+                data = {"membersResponseData": groupMember, "groupKey":group_key,
+                        "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
+                session.post(url=constants.PROCESS_GROUP_MEMBER_DATA_URL, data=json.dumps(data))
+            next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
@@ -229,8 +248,8 @@ def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_to
             break
 
 
-def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id,access_token):
-    print ("Started processing users meta data")
+def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
+    print ("Started processing groupmember meta data")
     groupsmembers_db_insert_data_dic = []
     db_session = db_connection().get_session()
     for group_data in group_member_data:
@@ -243,11 +262,12 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id,
             group = {}
             group["domain_id"] = domain_id
             group["datasource_id"] = datasource_id
-            group["member_email"] = group_data
+            group["member_email"] = group_data["email"]
             group["parent_email"] = group_key
             groupsmembers_db_insert_data_dic.append(group)
     try:
         db_session.bulk_insert_mappings(models.DirectoryStructure, groupsmembers_db_insert_data_dic)
         db_session.commit()
     except Exception as ex:
-        print("User data insertation failed", ex.message)
+        print("Directory data insertation failed", ex.message)
+        return errormessage.SCAN_FAILED_ERROR_MESSAGE

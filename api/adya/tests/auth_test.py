@@ -2,7 +2,7 @@ import unittest
 
 import datetime
 
-from adya.datasources.google import authProvider
+from adya.datasources.google import auth
 from adya.db.db_conn import db_connection
 from adya.db.dbschema.models import Account
 

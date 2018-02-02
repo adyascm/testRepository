@@ -19,10 +19,9 @@ class gdriveScan(Resource):
     def post(self):
         print "started scan"
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
         access_token = data.get("accessToken")
         domian_id = data.get("domainId")
-        scan.gdrivescan(datasource_id, access_token, domian_id)
+        scan.gdrivescan(access_token, domian_id)
         # 202 for accepted
         return "Scan Started", 202
 
@@ -119,7 +118,6 @@ class processGroupMembers(Resource):
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")
         group_key = data.get("groupKey")
-        access_token = data.get('accessToken')
         member_response_data = data.get("membersResponseData")
-        scan.processGroupMembers(group_key,member_response_data,datasource_id,domian_id,access_token)
+        scan.processGroupMembers(group_key,member_response_data,datasource_id,domian_id)
         return "processing groups metadata", 202
