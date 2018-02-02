@@ -86,7 +86,7 @@ def oauth_callback(auth_url, scopes, error):
             domain = domainController.create_domain(domain_id, domain_name)
             login_user = authController.create_user(login_email, profile_info['given_name'], profile_info['family_name'], domain_id, refresh_token, is_enterprise_user)
 
-        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
+        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
     return redirect_url
 
 def check_for_enterprise_user(emailid):
