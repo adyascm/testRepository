@@ -15,6 +15,9 @@ import Users from './components/Users.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
 
+import { Container } from 'semantic-ui-react'
+
+
 import { APP_LOAD, REDIRECT } from './constants/actionTypes';
 import agent from './utils/agent';
 
@@ -58,12 +61,14 @@ class App extends Component {
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser} />
           <Switch>
+          <Container fluid style={{ marginTop: '5em' }}>
             <Route exact path="/login" component={Login} />
             <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Home))} />
             <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
             <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
             <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
             <Route path="/datasources" component={SecuredView(DataSources)} />
+            </Container>
           </Switch>
         </div>
       );

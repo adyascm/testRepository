@@ -6,7 +6,8 @@ import {
   HOME_PAGE_UNLOADED,
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
-  SET_DATASOURCES
+  SET_DATASOURCES,
+  CREATE_DATASOURCE
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -41,6 +42,11 @@ export default (state = defaultState, action) => {
       return{
         ...state,
         datasources: JSON.parse(action.payload)
+      };
+      case CREATE_DATASOURCE:
+      return{
+        ...state,
+        datasources: state.datasources.concat(JSON.parse(action.payload))
       };
     default:
       return state;

@@ -37,7 +37,9 @@ const Auth = {
 
 const Setting = {
     getDataSources: () =>
-        requests.get('/getdatasources')
+        requests.get('/datasources'),
+    createDataSource: (dataSource) =>
+        requests.post('/datasources', dataSource)
 };
 
 export default { Auth, Setting, setToken: _token => { token = _token; } };

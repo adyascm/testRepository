@@ -43,7 +43,10 @@ GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
 PROCESS_GROUP_MEMBER_PATH = "/scan/processgroupmembers"
 PROCESS_GROUP_MEMBER_DATA_URL = API_HOST + PROCESS_GROUP_MEMBER_PATH
 
-GET_DATASOURCE_URL = '/getdatasources'
+GET_DATASOURCE_URL = '/datasources'
+
+def get_url_from_path(path):
+    return API_HOST + path
 
 PROFILE_VIEW_SCOPE = ['profile '
                       'email ']

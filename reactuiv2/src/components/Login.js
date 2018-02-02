@@ -71,7 +71,7 @@ class Login extends Component {
         this.signInGoogle = () => ev => {
             ev.preventDefault();
             //this.props.onSubmit();
-            var url = API_ROOT + "/googleoauthlogin";
+            var url = API_ROOT + "/googleoauthlogin?scope=READ_DRIVE_SCOPE";
             authenticate(url).then(data => this.props.onSignInComplete(data)).catch(({errors}) => {this.props.onSignInError(errors)});
         };
     }

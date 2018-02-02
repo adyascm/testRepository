@@ -15,5 +15,6 @@ export const ASYNC_START = 'ASYNC_START';
 export const ASYNC_END = 'ASYNC_END';
 
 export const SET_DATASOURCES = 'SET_DATASOURCES';
+export const CREATE_DATASOURCE = 'CREATE_DATASOURCE';
 
 export const API_ROOT = 'http://127.0.0.1:5000';
