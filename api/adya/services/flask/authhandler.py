@@ -1,8 +1,8 @@
 import urlparse
 
 from flask_restful import Resource, reqparse, request
-from adya.datasources.google import authProvider
-from adya.controllers import authController
+from adya.datasources.google import auth
+from adya.controllers import auth_controller
 from adya.datasources.google import gutils
 
 class google_oauth_request(Resource):
@@ -10,7 +10,7 @@ class google_oauth_request(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('scope', type=str)
         args = parser.parse_args()
-        url = authProvider.oauth_request(args['scope'])
+        url = auth.oauth_request(args['scope'])
         return {'location': url}, 301, {'location': url}
 
 
@@ -20,7 +20,7 @@ class google_oauth_callback(Resource):
         scopes = request.args["scope"]
         parser.add_argument('error', type=str, help='Error if oauth fails')
         args = parser.parse_args()
-        url = authProvider.oauth_callback(request.url, scopes, args['error'])
+        url = auth.oauth_callback(request.url, scopes, args['error'])
         if not url:
             return {'message': 'Not authenticated'}, 401
         else:
@@ -33,7 +33,7 @@ class get_user_session(Resource):
         auth_token = req.headers.get('Authorization')
         if not auth_token:
             return {'message': 'Missing auth token'}, 400
-        user_session = authController.get_user_session(auth_token)
+        user_session = auth_controller.get_user_session(auth_token)
         if not user_session:
             return {'message': 'Not authenticated'}, 401
         else:
