@@ -4,7 +4,7 @@ import datetime
 import uuid
 
 from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, AlchemyEncoder
+from adya.db.models import DataSource, LoginUser, Domain, AlchemyEncoder
 
 
 def get_datasource(auth_token):
@@ -34,7 +34,7 @@ def create_datasource(auth_token, payload):
         session.commit()
         return json.dumps(datasource, cls=AlchemyEncoder)
     else:
-        return null
+        return None
 
 def create_domain(domain_id, domain_name):
     session = db_connection().get_session()
