@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+api/db_config.py
 
 # C extensions
 *.so

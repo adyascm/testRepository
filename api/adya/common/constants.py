@@ -1,5 +1,6 @@
 import os
 from enum import Enum
+import db_config
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
@@ -51,13 +52,22 @@ READ_DRIVE_SCOPE = ['profile '
                     'email '
                     'https://www.googleapis.com/auth/drive.readonly ']
 
+FULL_SCOPE_READONLY = [
+                            'profile '
+                            'email '
+                            'https://www.googleapis.com/auth/drive.readonly '
+                            'https://www.googleapis.com/auth/admin.directory.user.readonly '
+                            'https://www.googleapis.com/auth/admin.directory.group.readonly '
+                            'https://www.googleapis.com/auth/admin.reports.audit.readonly '
+                        ]
+
 FULL_SCOPE = ['profile '
               'email '
               'https://www.googleapis.com/auth/drive '
               'https://www.googleapis.com/auth/admin.directory.user '
               'https://www.googleapis.com/auth/admin.directory.group '
               'https://www.googleapis.com/auth/admin.reports.audit.readonly '
-              'https://www.googleapis.com/auth/drive ']
+              ]
 
 SCOPE_DICT = {
     "profile_view": PROFILE_VIEW_SCOPE,
