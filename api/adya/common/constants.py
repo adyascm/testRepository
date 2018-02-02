@@ -52,13 +52,22 @@ READ_DRIVE_SCOPE = ['profile '
                     'email '
                     'https://www.googleapis.com/auth/drive.readonly ']
 
+FULL_SCOPE_READONLY = [
+                            'profile '
+                            'email '
+                            'https://www.googleapis.com/auth/drive.readonly '
+                            'https://www.googleapis.com/auth/admin.directory.user.readonly '
+                            'https://www.googleapis.com/auth/admin.directory.group.readonly '
+                            'https://www.googleapis.com/auth/admin.reports.audit.readonly '
+                        ]
+
 FULL_SCOPE = ['profile '
               'email '
               'https://www.googleapis.com/auth/drive '
               'https://www.googleapis.com/auth/admin.directory.user '
               'https://www.googleapis.com/auth/admin.directory.group '
               'https://www.googleapis.com/auth/admin.reports.audit.readonly '
-              'https://www.googleapis.com/auth/drive ']
+              ]
 
 SCOPE_DICT = {
     "profile_view": PROFILE_VIEW_SCOPE,
