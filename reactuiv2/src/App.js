@@ -8,7 +8,7 @@ import { store } from './store';
 import Header from './components/Header.js'
 import Home from './components/Home.js'
 import Login from './components/Login.js'
-import DataSources from './components/DataSources.js'
+import ManageDataSources from './components/ManageDataSources.js'
 import Reports from './components/Reports.js'
 import Resources from './components/Resources.js'
 import Users from './components/Users.js'
@@ -67,7 +67,7 @@ class App extends Component {
             <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
             <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
             <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
-            <Route path="/datasources" component={SecuredView(DataSources)} />
+            <Route path="/datasources" component={SecuredView(ManageDataSources)} />
             </Container>
           </Switch>
         </div>

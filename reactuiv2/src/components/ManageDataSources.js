@@ -74,7 +74,7 @@ function authenticate(url) {
   return listenForCredentials(popup);
 }
 
-class DataSources extends Component {
+class ManageDataSources extends Component {
   // constructor() {
   //   super();
   //   this.signInGoogle = () => ev => {
@@ -126,4 +126,4 @@ class DataSources extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DataSources);
+export default connect(mapStateToProps, mapDispatchToProps)(ManageDataSources);

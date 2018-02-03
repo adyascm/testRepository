@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT } from '../constants/actionTypes';
+import AdyaLogo from '../AdyaLogo.png'
 import { Container, Input, Image, List, Menu, Segment } from 'semantic-ui-react'
 
 const LoggedOutView = props => {
@@ -9,12 +10,7 @@ const LoggedOutView = props => {
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
-                    <Image
-                        size='mini'
-                        src='/logo.png'
-                        style={{ marginRight: '1.5em' }}
-                    />
-                    Adya
+                    <Image size='tiny' src={AdyaLogo} />
               </Menu.Item>
             </Container>
         )
@@ -27,12 +23,7 @@ const LoggedInView = props => {
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
-                    <Image
-                        size='mini'
-                        src='/logo.png'
-                        style={{ marginRight: '1.5em' }}
-                    />
-                    Adya
+                    <Image size='tiny' src={AdyaLogo} />
               </Menu.Item>
 
                 <Menu.Menu position='left'>

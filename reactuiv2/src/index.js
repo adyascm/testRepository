@@ -7,6 +7,7 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import { store } from './store';
 
+window.Chart = require('chart.js');
 
 ReactDOM.render(
     (
