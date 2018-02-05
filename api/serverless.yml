@@ -25,6 +25,10 @@ provider:
   region: ${self:custom.stages.${self:provider.stage}.region}
   environment:
     API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
+    DB_URL: ${opt:DB_URL, 'localhost:3306'}
+    DB_USERNAME: ${opt:DB_USERNAME, 'root'}
+    DB_PWD: ${opt:DB_PWD, 'root'}
+    DB_NAME: ${opt:DB_NAME, 'dev'}
 
 plugins:
   - serverless-domain-manager
