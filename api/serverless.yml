@@ -89,6 +89,7 @@ functions:
       - http:
           path: user
           method: get
+          cors: true
 
   getdatasource:
     handler: adya.services.lambda.domain.handler.get_datasource
@@ -96,6 +97,7 @@ functions:
       - http:
           path: datasources
           method: get
+          cors: true
 
   postdatasource:
     handler: adya.services.lambda.domain.handler.post_datasource
@@ -103,4 +105,5 @@ functions:
       - http:
           path: datasources
           method: post
+          cors: true
 
