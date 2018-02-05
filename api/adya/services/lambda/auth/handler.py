@@ -25,7 +25,6 @@ def google_oauth_request(event, context):
 
 def google_oauth_callback(event, context):
     print(json.dumps(event))
-    print(json.dumps(context))
     params_dict = event["queryStringParameters"]
     oauth_code = event["queryStringParameters"]["code"]
     error_msg = ""
