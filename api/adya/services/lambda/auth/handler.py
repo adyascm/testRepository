@@ -52,11 +52,18 @@ def current_user(event, context):
     if not auth_token:
         return {
             "statusCode": 401,
-            "body": {"message": "Not authenticated"}
+            "body": {"message": "Not authenticated"},
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": True
+            },
         }
     user_session = auth_controller.get_user_session(auth_token)
     return {
         "statusCode": 200,
-        "body": json.dumps(user_session)
+        "body": json.dumps(user_session),
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": True
+        },
     }
-
