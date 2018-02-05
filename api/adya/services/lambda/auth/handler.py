@@ -27,12 +27,12 @@ def google_oauth_callback(event, context):
     print(json.dumps(event))
     print(json.dumps(context))
     params_dict = event["queryStringParameters"]
-    auth_code = event["queryStringParameters"]["code"]
+    oauth_code = event["queryStringParameters"]["code"]
     error_msg = ""
-    if error in params_dict:
+    if "error" in params_dict:
         error_msg = params_dict["error"]
     scope = params_dict["scope"]
-    auth_url = auth.oauth_callback(auth_code, scope, error_msg)
+    auth_url = auth.oauth_callback(oauth_code, scope, error_msg)
     if not auth_url:
         response = {
             "statusCode": 301,

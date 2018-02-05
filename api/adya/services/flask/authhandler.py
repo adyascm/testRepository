@@ -17,10 +17,11 @@ class google_oauth_request(Resource):
 class google_oauth_callback(Resource):
     def get(self):
         parser = reqparse.RequestParser()
+        oauth_code = request.args["code"]
         scopes = request.args["scope"]
         parser.add_argument('error', type=str, help='Error if oauth fails')
         args = parser.parse_args()
-        url = auth.oauth_callback(request.url, scopes, args['error'])
+        url = auth.oauth_callback(oauth_code, scopes, args['error'])
         if not url:
             return {'message': 'Not authenticated'}, 401
         else:
