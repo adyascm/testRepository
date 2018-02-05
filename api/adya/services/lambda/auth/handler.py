@@ -32,7 +32,8 @@ def google_oauth_callback(event, context):
         error_msg = params_dict["error"]
     scope = params_dict["scope"]
     auth_url = auth.oauth_callback(oauth_code, scope, error_msg)
-    if not auth_url:
+    print(auth_url)
+    if auth_url:
         response = {
             "statusCode": 301,
             "headers": {"location": auth_url}

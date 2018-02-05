@@ -23,6 +23,7 @@ provider:
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
   region: ${self:custom.stages.${self:provider.stage}.region}
+  timeout: 300
   environment:
     API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
     DB_URL: ${opt:DB_URL, 'localhost:3306'}
