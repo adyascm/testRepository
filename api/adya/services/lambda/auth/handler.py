@@ -8,6 +8,7 @@ from adya.controllers import auth_controller
 
 def google_oauth_request(event, context):
     print("Starting the login")
+    print(json.dumps(event))
     scope = event["scope"]
     if not scope:
         scope = "read_drive"

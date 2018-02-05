@@ -7,5 +7,6 @@
         "-p",
         "*_test.py"
     ],
-    "python.unitTest.unittestEnabled": true
+    "python.unitTest.unittestEnabled": true,
+    "python.linting.enabled": true
 }
