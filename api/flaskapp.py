@@ -6,13 +6,13 @@ from flask_cors import CORS
 from adya.services.flask import scanhandler
 from adya.common import constants
 from adya.services.flask.authhandler import google_oauth_request,google_oauth_callback,get_user_session
-from adya.services.flask.datasourcehandler import datasource
+from adya.services.flask.domainhandler import datasource
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app = Flask(__name__)
 CORS(app)
-api = Api(app)
+api = Api(app, "/api")
 
 #Add all routes here
 
