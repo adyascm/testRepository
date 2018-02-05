@@ -9,16 +9,24 @@ def get_datasource(event, context):
     if not auth_token:
         return {
             "statusCode": 401,
-            {message: "Not authenticated"}}
+            "body": {"message": "Not authenticated"},
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": True
+            }
+        }
     datasource = domain_controller.get_datasource(auth_token)
     if datasource:
         response = {
             "statusCode": 200,
-            json.dumps(datasource)
+            "body": json.dumps(datasource),
+            "headers": {
+                "Access-Control-Allow-Origin": "*", 
+                "Access-Control-Allow-Credentials": True
+            }
         }
 
     return response
-
 
 
 def post_datasource(event, context):
@@ -26,13 +34,21 @@ def post_datasource(event, context):
     if not auth_token:
         return {
             "statusCode": 401,
-            {message: "Not authenticated"}}
+            "body": {"message": "Not authenticated"},
+            "headers": {
+                "Access-Control-Allow-Origin": "*", 
+                "Access-Control-Allow-Credentials": True 
+            },
+        }
     datasource = domain_controller.create_datasource(auth_token, event['data'])
     if datasource:
         response = {
             "statusCode": 201,
-            json.dumps(datasource)
+            "body": json.dumps(datasource),
+            "headers": {
+                "Access-Control-Allow-Origin": "*", 
+                "Access-Control-Allow-Credentials": True 
+            },
         }
 
     return response
-

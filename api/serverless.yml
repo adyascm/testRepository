@@ -23,8 +23,14 @@ provider:
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
   region: ${self:custom.stages.${self:provider.stage}.region}
+  timeout: 300
   environment:
+    UI_HOST: ${self:custom.stages.${self:provider.stage}.uiHost}
     API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
+    DB_URL: ${opt:DB_URL, 'localhost:3306'}
+    DB_USERNAME: ${opt:DB_USERNAME, 'root'}
+    DB_PWD: ${opt:DB_PWD, 'root'}
+    DB_NAME: ${opt:DB_NAME, 'dev'}
 
 plugins:
   - serverless-domain-manager
@@ -35,13 +41,15 @@ custom:
     dev: 
       awsProfile: devProfile
       dbName: "dev"
-      region: ap-south-1
+      region: us-east-1
       apiHost: "api-dev.adyatest.com"
+      uiHost: "https://app.adyatest.com"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
       apiHost: "api.adya.io"
+      uiHost: "https://app.adyatest.com"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
@@ -81,6 +89,7 @@ functions:
       - http:
           path: user
           method: get
+          cors: true
 
   getdatasource:
     handler: adya.services.lambda.domain.handler.get_datasource
@@ -88,6 +97,7 @@ functions:
       - http:
           path: datasources
           method: get
+          cors: true
 
   postdatasource:
     handler: adya.services.lambda.domain.handler.post_datasource
@@ -95,4 +105,5 @@ functions:
       - http:
           path: datasources
           method: post
+          cors: true
 
