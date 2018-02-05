@@ -8,7 +8,7 @@ from adya.controllers import auth_controller
 
 def google_oauth_request(event, context):
     print("Starting the login")
-    scope = event["scopes"]
+    scope = event["scope"]
     if not scope:
         scope = "read_drive"
     auth_url = auth.oauth_request(scope)
@@ -25,9 +25,7 @@ def google_oauth_request(event, context):
 def google_oauth_callback(event, context):
     auth_code = event["code"]
     error = event["error"]
-    scope = event["scopes"]
-    if not scope:
-        scope = "read_drive"
+    scope = event["scope"]
     auth_url = auth.oauth_callback(auth_code, scope, error)
     if not auth_url:
         response = {
