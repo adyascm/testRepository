@@ -12,7 +12,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app = Flask(__name__)
 CORS(app)
-api = Api(app, "/api")
+api = Api(app)
 
 #Add all routes here
 
