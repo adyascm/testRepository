@@ -3,7 +3,7 @@ import json
 
 from adya.datasources.google import auth
 from adya.common.constants import READ_DRIVE_SCOPE
-from adya.controllers.auth_controller import auth_controller
+from adya.controllers import auth_controller
 
 
 def google_oauth_request(event, context):
@@ -46,18 +46,13 @@ def google_oauth_callback(event, context):
 def current_user(event, context):
     auth_token = event["Authorization"]
     if not auth_token:
-        return 
-        {
+        return {
             "statusCode": 401,
-            {message: "Not authenticated"}
+            "body": {"message": "Not authenticated"}
         }
     user_session = auth_controller.get_user_session(auth_token)
-    return
-        {
-            "statusCode": 200,
-            json.dumps(user_session)
-        }
+    return {
+        "statusCode": 200,
+        "body": json.dumps(user_session)
+    }
 
-
-if __name__ == '__main__':
-    googleoauthlogin('', '')
