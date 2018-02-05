@@ -3,6 +3,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 
+import db_config
 from adya.services.flask import scanhandler
 from adya.common import constants
 from adya.services.flask.authhandler import google_oauth_request,google_oauth_callback,get_user_session
