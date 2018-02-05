@@ -5,7 +5,7 @@ from adya.controllers.domain_controller import domain_controller
 
 
 def get_datasource(event, context):
-    auth_token = event["Authorization"]
+    auth_token = event["headers"]["Authorization"]
     if not auth_token:
         return {
             "statusCode": 401,
@@ -22,7 +22,7 @@ def get_datasource(event, context):
 
 
 def post_datasource(event, context):
-    auth_token = event["Authorization"]
+    auth_token = event["headers"]["Authorization"]
     if not auth_token:
         return {
             "statusCode": 401,
@@ -36,6 +36,3 @@ def post_datasource(event, context):
 
     return response
 
-
-if __name__ == '__main__':
-    googleoauthlogin('', '')
