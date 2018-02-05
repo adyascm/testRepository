@@ -1,6 +1,5 @@
 import os
 from enum import Enum
-import db_config
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')

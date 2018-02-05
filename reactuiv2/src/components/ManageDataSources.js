@@ -110,7 +110,7 @@ class ManageDataSources extends Component {
                     </Card.Description>
               <Form>
                 <Form.Field>
-                  <input placeholder='Name' required value={this.newDataSourceName} onChange={this.changeField}/>
+                  <input placeholder='Name' />
                 </Form.Field>
               </Form>
             </Card.Content>

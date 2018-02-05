@@ -61,7 +61,7 @@ custom:
 #    - exclude-me-dir/**
 
 functions:
-  googleoauthlogin:
+  googleoauthrequet:
     handler: adya.services.lambda.auth.handler.google_oauth_request
     events:
       - http:
@@ -74,4 +74,25 @@ functions:
       - http:
           path: googleoauthcallback
           method: get
+
+  currentuser:
+    handler: adya.services.lambda.auth.handler.current_user
+    events:
+      - http:
+          path: user
+          method: get
+
+  getdatasource:
+    handler: adya.services.lambda.domain.handler.get_datasource
+    events:
+      - http:
+          path: datasources
+          method: get
+
+  postdatasource:
+    handler: adya.services.lambda.domain.handler.post_datasource
+    events:
+      - http:
+          path: datasources
+          method: post
 
