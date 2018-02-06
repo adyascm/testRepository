@@ -5,6 +5,7 @@ from adya.datasources.google import auth
 from adya.controllers import auth_controller
 from adya.datasources.google import gutils
 
+
 class google_oauth_request(Resource):
     def get(self):
         parser = reqparse.RequestParser()

@@ -6,30 +6,8 @@ from adya.db.connection import db_connection
 from adya.db import models
 from sqlalchemy import and_
 from adya.db.models import DataSource
+from adya.common import utils
 
-
-def gdrivescan(access_token,domain_id):
-    datasource_id = str(uuid.uuid4())
-    db_session = db_connection().get_session()
-    datasource = DataSource()
-    datasource.domain_id = domain_id
-    datasource.datasource_id = datasource_id
-    datasource.display_name = gutils.get_domain_name_from_email(domain_id)
-    # we are fixing the datasoure type this can be obtained from the frontend
-    datasource.datasource_type = "GSUITE"
-    datasource.creation_time = datetime.datetime.utcnow().isoformat()
-    try:
-        db_session.add(datasource)
-        db_session.commit()
-    except Exception as ex:
-        print("Creating datasource id failed", ex.message)
-        return errormessage.SCAN_FAILED_ERROR_MESSAGE
-
-    data = json.dumps({"domainId": domain_id,"accessToken":access_token, "dataSourceId": datasource_id})
-    session = FuturesSession()
-    session.post(constants.INITIAL_GDRIVE_SCAN,data=data)
-    session.post(constants.GET_DOMAIN_USER_URL, data=data)
-    session.post(constants.GET_GROUP_URL, data=data)
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token = None):
@@ -47,17 +25,16 @@ def initial_datasource_scan(datasource_id,access_token,domain_id,next_page_token
                                 "nextPageToken",pageSize=1000, pageToken = next_page_token).execute()
 
             file_count = file_count + len(results['files'])
-            data = json.dumps({"resourceData":results,"domainId":domain_id,"dataSourceId":datasource_id})
-            session.post(constants.PROCESS_RESOURCES_URL,data=data)
+            data = {"resourceData":results,"domainId":domain_id,"dataSourceId":datasource_id}
+            utils.post_call_with_authorization_header(session,constants.PROCESS_RESOURCES_URL,access_token,data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     data = {"dataSourceId":datasource_id,
-                            "accessToken":access_token,
                             "domainId":domain_id,
                             "nextPageToken": next_page_token}
-                    session.post(constants.GDRIVE_SCAN_URL,data)
+                    utils.post_call_with_authorization_header(session, constants.GDRIVE_SCAN_URL, access_token,data)
                     break
             else:
                 break
@@ -122,10 +99,9 @@ def getDomainUsers(datasource_id,access_token,domain_id,next_page_token):
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     data = {"dataSourceId":datasource_id,
-                            "accessToken":access_token,
                             "domainId":domain_id,
                             "nextPageToken": next_page_token}
-                    session.post(constants.GDRIVE_SCAN_URL,data)
+                    utils.post_call_with_authorization_header(session,constants.GDRIVE_SCAN_URL,access_token,data)
                     break
             else:
                 break
@@ -159,7 +135,7 @@ def processUsers(users_data, datasource_id, domain_id):
 
 
 def getDomainGroups(datasource_id,access_token,domain_id,next_page_token):
-    print("Getting domain user from google")
+    print("Getting domain group from google")
 
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
@@ -170,18 +146,17 @@ def getDomainGroups(datasource_id,access_token,domain_id,next_page_token):
             print ("Got users data")
             results = directory_service.groups().list(customer='my_customer', maxResults=500, pageToken=next_page_token).execute()
 
-            data = {"groupsResponseData":results["groups"],"accessToken":access_token,
-                    "dataSourceId":datasource_id,"domainId":domain_id}
-            session.post(url=constants.PROCESS_GROUP_DATA_URL, data=json.dumps(data))
+            data = {"groupsResponseData":results["groups"],"dataSourceId":datasource_id,"domainId":domain_id}
+
+            utils.post_call_with_authorization_header(session, constants.PROCESS_GROUP_DATA_URL, access_token, data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     data = {"dataSourceId":datasource_id,
-                            "accessToken":access_token,
                             "domainId":domain_id,
                             "nextPageToken": next_page_token}
-                    session.post(constants.GDRIVE_SCAN_URL,data)
+                    utils.post_call_with_authorization_header(session,constants.GDRIVE_SCAN_URL,access_token,data)
                     break
             else:
                 break
@@ -195,7 +170,7 @@ def processGroups(groups_data, datasource_id, domain_id,access_token):
     print ("Started processing users meta data")
     groups_db_insert_data_dic =[]
     session = FuturesSession()
-    data = {"domainId":domain_id,"dataSourceId":datasource_id,"accessToken":access_token}
+    data = {"domainId":domain_id,"dataSourceId":datasource_id}
     for group_data in groups_data:
         group = {}
         group["domain_id"] = domain_id
@@ -205,7 +180,7 @@ def processGroups(groups_data, datasource_id, domain_id,access_token):
         group["name"] = group_data["name"]
         groups_db_insert_data_dic.append(group)
         data["groupKey"] = groupemail
-        session.post(url=constants.GET_GROUP_MEMBERS_URL,data=json.dumps(data))
+        utils.post_call_with_authorization_header(session,constants.GET_GROUP_MEMBERS_URL,access_token,data)
     try:
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup,groups_db_insert_data_dic)
@@ -216,30 +191,28 @@ def processGroups(groups_data, datasource_id, domain_id,access_token):
 
 def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_token):
 
-    print ("Started getting group Members")
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
 
     while True:
         try:
-            print ("Got users data")
             groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
             groupMember = groupmemberresponse.get("members")
             if groupMember:
                 data = {"membersResponseData": groupMember, "groupKey":group_key,
                         "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
-                session.post(url=constants.PROCESS_GROUP_MEMBER_DATA_URL, data=json.dumps(data))
+                utils.post_call_with_authorization_header(session,constants.PROCESS_GROUP_MEMBER_DATA_URL,access_token,data)
             next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     data = {"dataSourceId": datasource_id,
-                            "accessToken": access_token,
                             "domainId": domain_id,
                             "groupKey": group_key,
                             "nextPageToken": next_page_token}
-                    session.post(constants.GET_GROUP_MEMBERS_URL, data)
+                    utils.post_call_with_authorization_header(session, constants.GET_GROUP_MEMBERS_URL,
+                                                              access_token, data)
                     break
             else:
                 break
@@ -249,7 +222,7 @@ def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_to
 
 
 def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
-    print ("Started processing groupmember meta data")
+
     groupsmembers_db_insert_data_dic = []
     db_session = db_connection().get_session()
     for group_data in group_member_data:

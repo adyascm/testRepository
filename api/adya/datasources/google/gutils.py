@@ -18,12 +18,12 @@ def revoke_appaccess(domainid):
 
 def get_credentials(domain_id):
     db_session = db_connection().get_session()
-    refreshToken = db_session.query(LoginUser).filter(LoginUser.domain_id == domain_id)
+    user = db_session.query(LoginUser).filter(LoginUser.domain_id == domain_id).first()
 
     ## we need to pass client_id and client_secret in session to avoid dbcall/file access calls
     client_id = '675474472628-87uc3fnbmojup9ur2a1b9ie7qfd5i732.apps.googleusercontent.com'
     client_secret = '8DcZ_BxYCd8cBKKEoXdLwwdk'
-    credentials = Credentials(None, refresh_token=refreshToken,
+    credentials = Credentials(None, refresh_token= user.refresh_token,
                               token_uri=GOOGLE_TOKEN_URI,
                               client_id=client_id,
                               client_secret=client_secret)

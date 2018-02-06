@@ -2,7 +2,7 @@ from __future__ import print_function
 import json
 
 from adya.datasources.google import auth
-from adya.common.constants import READ_DRIVE_SCOPE
+from adya.common.scopeconstants import READ_DRIVE_SCOPE
 from adya.controllers import auth_controller
 
 
@@ -13,7 +13,6 @@ def google_oauth_request(event, context):
         scope = "read_drive"
     auth_url = auth.oauth_request(scope)
 
-    print(auth_url)
     response = {
         "statusCode": 301,
         "headers": {"location": auth_url}

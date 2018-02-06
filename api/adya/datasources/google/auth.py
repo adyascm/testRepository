@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
-from adya.common.constants import SCOPE_DICT
+from adya.common.scopeconstants import SCOPE_DICT
 from adya.datasources.google import gutils
 
 from adya.common import constants
@@ -25,7 +25,7 @@ CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
 def oauth_request(scopes):
-    scope = SCOPE_DICT["profile_view"]
+    scope = SCOPE_DICT["read_only_fullscope"]
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
@@ -62,6 +62,7 @@ def oauth_callback(auth_url, scopes, error):
     refresh_token = credentials.refresh_token
 
     service = get_oauth_service(None,credentials)
+
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
@@ -88,6 +89,7 @@ def oauth_callback(auth_url, scopes, error):
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
     return redirect_url
+
 
 def check_for_enterprise_user(emailid):
     profile_info = None
