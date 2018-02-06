@@ -8,7 +8,8 @@ from adya.controllers import auth_controller
 
 def google_oauth_request(event, context):
     print("Starting the login")
-    scope = event["scopes"]
+    print(json.dumps(event))
+    scope = event["queryStringParameters"]["scope"]
     if not scope:
         scope = "read_drive"
     auth_url = auth.oauth_request(scope)
@@ -22,13 +23,16 @@ def google_oauth_request(event, context):
 
 
 def google_oauth_callback(event, context):
-    auth_code = event["code"]
-    error = event["error"]
-    scope = event["scopes"]
-    if not scope:
-        scope = "read_drive"
-    auth_url = auth.oauth_callback(auth_code, scope, error)
-    if not auth_url:
+    print(json.dumps(event))
+    params_dict = event["queryStringParameters"]
+    oauth_code = event["queryStringParameters"]["code"]
+    error_msg = ""
+    if "error" in params_dict:
+        error_msg = params_dict["error"]
+    scope = params_dict["scope"]
+    auth_url = auth.oauth_callback(oauth_code, scope, error_msg)
+    print(auth_url)
+    if auth_url:
         response = {
             "statusCode": 301,
             "headers": {"location": auth_url}
@@ -43,15 +47,22 @@ def google_oauth_callback(event, context):
 
 
 def current_user(event, context):
-    auth_token = event["Authorization"]
+    auth_token = event["headers"]["Authorization"]
     if not auth_token:
         return {
             "statusCode": 401,
-            "body": {"message": "Not authenticated"}
+            "body": {"message": "Not authenticated"},
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": True
+            },
         }
     user_session = auth_controller.get_user_session(auth_token)
     return {
         "statusCode": 200,
-        "body": json.dumps(user_session)
+        "body": json.dumps(user_session),
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": True
+        },
     }
-

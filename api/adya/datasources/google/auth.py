@@ -42,9 +42,9 @@ def oauth_request(scopes):
 
     return authorization_url
 
-def oauth_callback(auth_url, scopes, error):
+def oauth_callback(oauth_code, scopes, error):
     redirect_url = ""
-    if error or not auth_url:
+    if error or not oauth_code:
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
         return redirect_url
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
@@ -52,7 +52,7 @@ def oauth_callback(auth_url, scopes, error):
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
-    flow.fetch_token(authorization_response=auth_url)
+    flow.fetch_token(code=oauth_code)
 
     credentials = flow.credentials
     if not credentials:

@@ -68,6 +68,7 @@ class App extends Component {
             <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
             <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
             <Route path="/datasources" component={SecuredView(ManageDataSources)} />
+            <Route path="/oauthstatus/:status" component={Home} />
             </Container>
           </Switch>
         </div>
