@@ -1,3 +1,10 @@
+from adya.controllers import resourceController
+from flask_restful import Resource, reqparse, request
 
-def get_resources(domain_id,datasource_id):
-    return {}
+class GetResources(Resource):
+    def get(Resource):
+        auth_token = request.headers.get('Authorization')
+        if not auth_token:
+            return {'message': 'Missing auth token'}, 400
+        resource_tree = resourceController.get_resource_tree(auth_token)
+        return resource_tree, 200 
