@@ -1,10 +1,10 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime,BigInteger,ForeignKey,Boolean
-from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 
-
 Base = declarative_base()
+
 
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -14,7 +14,7 @@ class AlchemyEncoder(json.JSONEncoder):
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                 data = obj.__getattribute__(field)
                 try:
-                    json.dumps(data) # this will fail on non-encodable values, like other classes
+                    json.dumps(data)  # this will fail on non-encodable values, like other classes
                     fields[field] = data
                 except TypeError:
                     fields[field] = None
@@ -32,6 +32,7 @@ class Domain(Base):
 
     def __repr__(self):
         return "<Domain('%s', '%s')>" % (self.domain_id, self.domain_name)
+
 
 class LoginUser(Base):
     __tablename__ = 'login_user'
@@ -59,8 +60,9 @@ class DataSource(Base):
     proccessed_group_memebers_count = Column(Integer, default=0)
     user_count = Column(Integer, default=0)
 
+
 class DomainUser(Base):
-    __tablename__ ='domain_user'
+    __tablename__ = 'domain_user'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36), primary_key=True)
     email = Column(String(320), primary_key=True)
@@ -74,7 +76,7 @@ class DomainUser(Base):
 class Resource(Base):
     __tablename__ = 'resource'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36),nullable=False)
+    datasource_id = Column(String(36), nullable=False)
     resource_id = Column(String(100), primary_key=True)
     resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
@@ -84,18 +86,19 @@ class Resource(Base):
     creation_time = Column(DateTime)
     exposure_type = Column(String(10))
     resource_parent_id = Column(String(100))
+
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
-        self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
+            self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
 
 
 class DomainGroup(Base):
-    __tablename__ ='domain_group'
+    __tablename__ = 'domain_group'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
     email = Column(String(320), primary_key=True)
     name = Column(String(255))
-    include_all_user = Column(Boolean,default=False)
+    include_all_user = Column(Boolean, default=False)
 
 
 class DirectoryStructure(Base):
@@ -117,3 +120,16 @@ class ResourcePermission(Base):
     def __repr__(self):
         return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
 
+
+class Report(Base):
+    __tablename__ = 'report'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    report_id = Column(String(36), primary_key=True)
+    name = Column(String(255))
+    description = Column(String(320))
+    config = Column(String(4000))
+    frequency = Column(String(320))
+    receivers = Column(String(320))
+    creation_time = Column(DateTime)
+    last_trigger_time = Column(DateTime)
+    is_active = Column(Boolean, default=False)
