@@ -8,21 +8,12 @@ class initialgdrivescan(Resource):
         print "started initial gdrive scan"
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
-        access_token = data.get("accessToken")
         domian_id = data.get("domainId")
+        access_token = request.headers.get('Authorization')
+        if not access_token:
+            return {'message': 'Missing auth token'}, 400
         scan.initial_datasource_scan(datasource_id,access_token,domian_id)
         # 202 for accespted
-        return "Scan Started", 202
-
-
-class gdriveScan(Resource):
-    def post(self):
-        print "started scan"
-        data = json.loads(request.data)
-        access_token = data.get("accessToken")
-        domian_id = data.get("domainId")
-        scan.gdrivescan(access_token, domian_id)
-        # 202 for accepted
         return "Scan Started", 202
 
 
@@ -56,7 +47,9 @@ class getdomainuser(Resource):
         print("Getting domain user")
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
-        access_token = data.get("accessToken")
+        access_token = request.headers.get('Authorization')
+        if not access_token:
+            return {'message': 'Missing auth token'}, 400
         domian_id = data.get("domainId")
         next_page_token = data.get("nextPageToken")
         scan.getDomainUsers(datasource_id,access_token,domian_id,next_page_token)
@@ -79,7 +72,9 @@ class getdomainGroups(Resource):
         print("Getting domain groups")
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
-        access_token = data.get("accessToken")
+        access_token = request.headers.get('Authorization')
+        if not access_token:
+            return {'message': 'Missing auth token'}, 400
         domian_id = data.get("domainId")
         next_page_token = data.get("nextPageToken")
         scan.getDomainGroups(datasource_id,access_token,domian_id,next_page_token)
@@ -92,7 +87,9 @@ class processGroups(Resource):
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")
-        access_token = data.get('accessToken')
+        access_token = request.headers.get('Authorization')
+        if not access_token:
+            return {'message': 'Missing auth token'}, 400
         group_response_data = data.get("groupsResponseData")
         scan.processGroups(group_response_data,datasource_id,domian_id,access_token)
         return "processing groups metadata", 202
@@ -100,20 +97,20 @@ class processGroups(Resource):
 
 class getGroupMembers(Resource):
     def post(self):
-        print("Processing group member")
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")
         group_key = data.get('groupKey')
         next_page_token = data.get('nextPageToken')
-        access_token = data.get('accessToken')
+        access_token = request.headers.get('Authorization')
+        if not access_token:
+            return {'message': 'Missing auth token'}, 400
         scan.getGroupsMember(group_key,access_token,datasource_id, domian_id,next_page_token)
         return "processing groups metadata", 202
 
 
 class processGroupMembers(Resource):
     def post(self):
-        print("Process groups data")
         data = json.loads(request.data)
         datasource_id = data.get("dataSourceId")
         domian_id = data.get("domainId")

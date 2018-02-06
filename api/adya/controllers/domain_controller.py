@@ -1,6 +1,7 @@
 import json
 import datetime
 import uuid
+from adya.common import utils
 
 from requests_futures.sessions import FuturesSession
 
@@ -47,10 +48,13 @@ def create_datasource(auth_token, payload):
             datasource.display_name = "test"
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
-        datasource.creation_time = datetime.datetime.utcnow()
+        datasource.creation_time = datetime.datetime.utcnow().isoformat()
         session.add(datasource)
-        session.commit()
-        start_scan(datasource.domain_id, datasource.datasource_id)
+        try:
+            session.commit()
+        except Exception as ex:
+            print (ex)
+        start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
         return json.dumps(datasource, cls=AlchemyEncoder)
     else:
         return None
@@ -68,11 +72,17 @@ def create_domain(domain_id, domain_name):
     session.commit()
     return domain
 
-def start_scan(domain_id, datasource_id):
-    data = json.dumps({"domainId": domain_id, "dataSourceId": datasource_id})
+
+def start_scan(auth_token, domain_id, datasource_id):
+    data = {"domainId": domain_id, "dataSourceId": datasource_id}
     session = FuturesSession()
-    session.post(constants.INITIAL_GDRIVE_SCAN,data=data)
-    session.post(constants.GET_DOMAIN_USER_URL, data=data)
-    session.post(constants.GET_GROUP_URL, data=data)
+    utils.post_call_with_authorization_header(session,url=constants.GET_DOMAIN_USER_URL,auth_token=auth_token, data=data)
+    utils.post_call_with_authorization_header(session,url=constants.GET_GROUP_URL,auth_token=auth_token, data=data)
+    utils.post_call_with_authorization_header(session,url=constants.INITIAL_GDRIVE_SCAN,auth_token=auth_token, data=data)
+
+
+
+
+
 
 

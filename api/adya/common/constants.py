@@ -6,7 +6,7 @@ UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
 DB_URL = os.environ.get('DB_URL', 'localhost:3306')
 DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-DB_PWD = os.environ.get('DB_PWD', 'root')
+DB_PWD = os.environ.get('DB_PWD', 'root@adya')
 DB_NAME = os.environ.get('DB_NAME', 'adya')
 
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
@@ -42,40 +42,13 @@ GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
 PROCESS_GROUP_MEMBER_PATH = "/scan/processgroupmembers"
 PROCESS_GROUP_MEMBER_DATA_URL = API_HOST + PROCESS_GROUP_MEMBER_PATH
 
-GET_DATASOURCE_URL = '/datasources'
+GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
+GET_USER_GROUP_TREE_URL = API_HOST + GET_USER_GROUP_TREE_PATH
+
+GET_DATASOURCE_PATH = '/datasources'
 
 def get_url_from_path(path):
     return API_HOST + path
-
-PROFILE_VIEW_SCOPE = ['profile '
-                      'email ']
-
-READ_DRIVE_SCOPE = ['profile '
-                    'email '
-                    'https://www.googleapis.com/auth/drive.readonly ']
-
-FULL_SCOPE_READONLY = [
-                            'profile '
-                            'email '
-                            'https://www.googleapis.com/auth/drive.readonly '
-                            'https://www.googleapis.com/auth/admin.directory.user.readonly '
-                            'https://www.googleapis.com/auth/admin.directory.group.readonly '
-                            'https://www.googleapis.com/auth/admin.reports.audit.readonly '
-                        ]
-
-FULL_SCOPE = ['profile '
-              'email '
-              'https://www.googleapis.com/auth/drive '
-              'https://www.googleapis.com/auth/admin.directory.user '
-              'https://www.googleapis.com/auth/admin.directory.group '
-              'https://www.googleapis.com/auth/admin.reports.audit.readonly '
-              ]
-
-SCOPE_DICT = {
-    "profile_view": PROFILE_VIEW_SCOPE,
-    "read_drive": READ_DRIVE_SCOPE,
-    "full_scope": FULL_SCOPE
-}
 
 
 class ResourceExposureType(Enum):

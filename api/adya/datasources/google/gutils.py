@@ -23,6 +23,7 @@ def get_credentials(domain_id):
     ## we need to pass client_id and client_secret in session to avoid dbcall/file access calls
     client_id = '675474472628-87uc3fnbmojup9ur2a1b9ie7qfd5i732.apps.googleusercontent.com'
     client_secret = '8DcZ_BxYCd8cBKKEoXdLwwdk'
+
     credentials = Credentials(None, refresh_token=user.refresh_token,
                               token_uri=GOOGLE_TOKEN_URI,
                               client_id=client_id,

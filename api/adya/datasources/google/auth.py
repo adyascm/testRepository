@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
-from adya.common.constants import SCOPE_DICT
+from adya.common.scopeconstants import SCOPE_DICT
 from adya.datasources.google import gutils
 
 from adya.common import constants
@@ -25,7 +25,7 @@ SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
 
 def oauth_request(scopes):
-    scope = SCOPE_DICT["profile_view"]
+    scope = SCOPE_DICT["read_only_fullscope"]
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
