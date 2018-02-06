@@ -47,5 +47,4 @@ class RevokeAccessForApp(Resource):
         data = request.data
         domain_id = data.get("domainId")
         gutils.revoke_appaccess(domain_id)
-        return "Success Removed",200
-
+        return "Success Removed", 200

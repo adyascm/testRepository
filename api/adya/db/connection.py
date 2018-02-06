@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from adya.common import constants
 from adya.db.models import Base
 
+
 class db_connection(object):
     _engine = None
 
@@ -20,8 +21,6 @@ class db_connection(object):
             except Exception as ex:
                 print(ex)
 
-
-
     def get_session(self):
-        create_session = sessionmaker(bind=self._engine)
+        create_session = sessionmaker(bind=db_connection._engine)
         return create_session()
