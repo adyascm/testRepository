@@ -1,4 +1,3 @@
-
 import json
 import datetime
 import uuid
@@ -10,12 +9,28 @@ from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, AlchemyEncoder
 
 
-def get_datasource(auth_token):
+
+def get_datasource(auth_token, datasource_id):
     session = db_connection().get_session()
-    datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
+    if datasource_id:
+        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
+            filter(LoginUser.auth_token == auth_token).all()
+    else:
+        datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
 
     return json.dumps(datasources, cls=AlchemyEncoder)
+
+
+def update_datasource(datasource_id, column_name, column_value):
+    session = db_connection().get_session()
+    if column_name:
+        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
+            update({column_name: column_name + column_value})
+        session.commit()
+
+        return datasources
+
 
 def create_datasource(auth_token, payload):
     datasource_id = str(uuid.uuid4())
@@ -39,6 +54,7 @@ def create_datasource(auth_token, payload):
         return json.dumps(datasource, cls=AlchemyEncoder)
     else:
         return None
+
 
 def create_domain(domain_id, domain_name):
     session = db_connection().get_session()

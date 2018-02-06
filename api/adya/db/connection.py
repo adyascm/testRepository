@@ -7,17 +7,18 @@ from sqlalchemy.orm import sessionmaker
 from adya.common import constants
 from adya.db.models import Base
 
+
 class db_connection(object):
     _engine = None
 
     def __init__(self):
         if db_connection._engine is None:
-            self._engine = sqlalchemy.create_engine("mysql+pymysql://" + constants.DB_USERNAME +
-                ":" + constants.DB_PWD + '@' + constants.DB_URL +
-                "/" + constants.DB_NAME + "?charset=utf8", encoding='utf-8', poolclass=QueuePool)
+            db_connection._engine = sqlalchemy.create_engine("mysql+pymysql://" + constants.DB_USERNAME +
+                                                    ":" + constants.DB_PWD + '@' + constants.DB_URL +
+                                                    "/" + constants.DB_NAME + "?charset=utf8", encoding='utf-8',
+                                                    poolclass=QueuePool)
             Base.metadata.create_all(self._engine)
 
-
     def get_session(self):
-        create_session = sessionmaker(bind=self._engine)
+        create_session = sessionmaker(bind=db_connection._engine)
         return create_session()

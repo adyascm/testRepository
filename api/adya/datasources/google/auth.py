@@ -18,11 +18,11 @@ from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
+
 
 def oauth_request(scopes):
     scope = SCOPE_DICT["profile_view"]
@@ -41,6 +41,7 @@ def oauth_request(scopes):
     print "state ", state
 
     return authorization_url
+
 
 def oauth_callback(oauth_code, scopes, error):
     redirect_url = ""
@@ -61,7 +62,7 @@ def oauth_callback(oauth_code, scopes, error):
 
     refresh_token = credentials.refresh_token
 
-    service = get_oauth_service(None,credentials)
+    service = get_oauth_service(None, credentials)
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
@@ -75,7 +76,9 @@ def oauth_callback(oauth_code, scopes, error):
     else:
         existing_domain_user = session.query(DomainUser).filter(DomainUser.email == login_email).first()
         if existing_domain_user:
-            login_user = auth_controller.create_user(login_email, existing_domain_user.first_name, existing_domain_user.last_name, existing_domain_user.domain_id, refresh_token, True)
+            login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
+                                                     existing_domain_user.last_name, existing_domain_user.domain_id,
+                                                     refresh_token, True)
         else:
             domain_name = gutils.get_domain_name_from_email(domain_id)
             is_enterprise_user = False
@@ -84,24 +87,25 @@ def oauth_callback(oauth_code, scopes, error):
                 is_enterprise_user = True
 
             domain = domain_controller.create_domain(domain_id, domain_name)
-            login_user = auth_controller.create_user(login_email, profile_info['given_name'], profile_info['family_name'], domain_id, refresh_token, is_enterprise_user)
+            login_user = auth_controller.create_user(login_email, profile_info['given_name'],
+                                                     profile_info['family_name'], domain_id, refresh_token,
+                                                     is_enterprise_user)
 
-        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
+        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
+                                                                                            login_user.auth_token)
     return redirect_url
+
 
 def check_for_enterprise_user(emailid):
     profile_info = None
-    service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SCOPE_DICT['read_drive'])
+    service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
+                                                                   SCOPE_DICT['read_drive'])
 
     credentials = service_obj.create_delegated(emailid)
     try:
-        drive = gutils.get_gdrive_service(None,credentials=credentials)
+        drive = gutils.get_gdrive_service(None, credentials=credentials)
         profile_info = drive.about().get(fields="user").execute()
     except Exception as e:
         print e
 
     return profile_info
-
-
-
-

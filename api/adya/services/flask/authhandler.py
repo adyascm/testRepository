@@ -5,6 +5,7 @@ from adya.datasources.google import auth
 from adya.controllers import auth_controller
 from adya.datasources.google import gutils
 
+
 class google_oauth_request(Resource):
     def get(self):
         parser = reqparse.RequestParser()
@@ -46,5 +47,4 @@ class RevokeAccessForApp(Resource):
         data = request.data
         domain_id = data.get("domainId")
         gutils.revoke_appaccess(domain_id)
-        return "Success Removed",200
-
+        return "Success Removed", 200

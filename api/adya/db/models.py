@@ -53,7 +53,11 @@ class DataSource(Base):
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
-
+    file_count = Column(BigInteger, default=0)
+    proccessed_file_permission_count = Column(BigInteger, default=0)
+    group_count = Column(Integer, default=0)
+    proccessed_group_memebers_count = Column(Integer, default=0)
+    user_count = Column(Integer, default=0)
 
 class DomainUser(Base):
     __tablename__ ='domain_user'
