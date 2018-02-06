@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { store } from './store';
 import Header from './components/Header.js'
-import Home from './components/Home.js'
+import Dashboard from './components/Dashboard.js'
 import Login from './components/Login.js'
 import ManageDataSources from './components/ManageDataSources.js'
 import Reports from './components/Reports.js'
@@ -63,12 +63,12 @@ class App extends Component {
           <Switch>
           <Container fluid style={{ marginTop: '5em' }}>
             <Route exact path="/login" component={Login} />
-            <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Home))} />
+            <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
             <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
             <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
             <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
             <Route path="/datasources" component={SecuredView(ManageDataSources)} />
-            <Route path="/oauthstatus/:status" component={Home} />
+            <Route path="/oauthstatus/:status" component={Dashboard} />
             </Container>
           </Switch>
         </div>

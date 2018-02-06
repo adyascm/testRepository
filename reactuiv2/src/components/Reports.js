@@ -4,21 +4,20 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import {
-  HOME_PAGE_LOADED,
-  HOME_PAGE_UNLOADED
+  REPORTS_PAGE_LOADED,
+  REPORTS_PAGE_UNLOADED
 } from '../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.home,
     appName: state.common.appName,
     currentUser: state.common.currentUser
   });
   
   const mapDispatchToProps = dispatch => ({
     onLoad: (tab, pager, payload) =>
-      dispatch({ type: HOME_PAGE_LOADED, tab, pager, payload }),
+      dispatch({ type: REPORTS_PAGE_LOADED, tab, pager, payload }),
     onUnload: () =>
-      dispatch({  type: HOME_PAGE_UNLOADED })
+      dispatch({  type: REPORTS_PAGE_UNLOADED })
   });
 
 class Reports extends Component {

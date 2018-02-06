@@ -1,7 +1,7 @@
 from __future__ import print_function
 import json
 
-from adya.controllers.domain_controller import domain_controller
+from adya.controllers import domain_controller
 
 
 def get_datasource(event, context):

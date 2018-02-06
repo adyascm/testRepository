@@ -22,5 +22,5 @@ class db_connection(object):
                 print(ex)
 
     def get_session(self):
-        create_session = sessionmaker(bind=db_connection._engine)
+        create_session = sessionmaker(bind=self._engine)
         return create_session()
