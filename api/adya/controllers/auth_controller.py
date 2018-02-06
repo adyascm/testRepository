@@ -5,12 +5,14 @@ import uuid
 from adya.db.models import Domain, LoginUser,AlchemyEncoder
 from adya.db.connection import db_connection
 
+
 def get_user_session(auth_token):
     if not auth_token:
         return None
     session = db_connection().get_session()
     user = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     return json.dumps(user, cls=AlchemyEncoder)
+
 
 def create_user(email, first_name, last_name, domain_id, refresh_token, is_enterprise_user):
     session = db_connection().get_session()
@@ -31,4 +33,3 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_enter
     session.add(login_user)
     session.commit()
     return login_user
-    
