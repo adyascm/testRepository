@@ -62,6 +62,7 @@ def oauth_callback(oauth_code, scopes, error):
 
     refresh_token = credentials.refresh_token
 
+
     service = get_oauth_service(None, credentials)
     profile_info = service.userinfo().get().execute()
 

@@ -35,7 +35,6 @@ def gdrivescan(access_token, domain_id):
     session.post(constants.GET_GROUP_URL, data=data)
 
 
-
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def initial_datasource_scan(datasource_id, access_token, domain_id, next_page_token=None):
     drive_service = gutils.get_gdrive_service(domain_id=domain_id)
@@ -45,16 +44,15 @@ def initial_datasource_scan(datasource_id, access_token, domain_id, next_page_to
     while True:
         try:
             print ("Got file data")
-            results = drive_service.files(). \
-                list(q="", fields="files(id, name, mimeType, parents, "
-                                  "owners, size, createdTime, modifiedTime), "
-                                  "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
+            results = drive_service.files().\
+                list(q = "", fields = "files(id, name, mimeType, parents, "
+                                "owners, size, createdTime, modifiedTime), "
+                                "nextPageToken",pageSize=1000, pageToken = next_page_token).execute()
 
             file_count = len(results['files'])
             update_and_get_count(datasource_id, DataSource.file_count, file_count, True)
-            data = {"resourceData": results, "domainId": domain_id, "dataSourceId": datasource_id}
-            utils.post_call_with_authorization_header(session, constants.PROCESS_RESOURCES_URL, access_token, data)
-
+            data = {"resourceData":results,"domainId":domain_id,"dataSourceId":datasource_id}
+            utils.post_call_with_authorization_header(session,constants.PROCESS_RESOURCES_URL,access_token,data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -230,6 +228,7 @@ def processGroups(groups_data, datasource_id, domain_id, access_token):
 
 
 
+
 def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_token):
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
@@ -262,7 +261,6 @@ def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_to
 
 
 def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
-
     groupsmembers_db_insert_data = []
     db_session = db_connection().get_session()
     for group_data in group_member_data:
