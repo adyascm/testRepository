@@ -25,6 +25,7 @@ def get_user_group_tree(auth_token):
             child_email = parent_child_data.member_email
             if child_email in users:
                 users[child_email]["parents"].append(parent_email)
+                groups[parent_email]["children"].append(child_email)
             elif child_email in groups:
                 groups[parent_email]["children"].append(child_email)
                 groups[child_email]["parents"].append(parent_email)
