@@ -11,23 +11,22 @@ import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import {
-  HOME_PAGE_LOADED,
-  HOME_PAGE_UNLOADED
+  USERS_PAGE_LOADED,
+  USERS_PAGE_UNLOADED
 } from '../../constants/actionTypes';
 import UserAccess from './UserAccess';
 import UserDetails from './UserDetails';
 
 const mapStateToProps = state => ({
-  ...state.home,
   appName: state.common.appName,
   currentUser: state.common.currentUser
 });
 
 const mapDispatchToProps = dispatch => ({
   onLoad: (tab, pager, payload) =>
-    dispatch({ type: HOME_PAGE_LOADED, tab, pager, payload }),
+    dispatch({ type: USERS_PAGE_LOADED, tab, pager, payload }),
   onUnload: () =>
-    dispatch({ type: HOME_PAGE_UNLOADED })
+    dispatch({ type: USERS_PAGE_UNLOADED })
 });
 
 class Users extends Component {

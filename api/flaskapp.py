@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_cors import CORS
 
 import db_config
-from adya.services.flask import scanhandler
+from adya.services.flask import scanhandler, reports_handler
 from adya.common import constants
 from adya.services.flask.authhandler import google_oauth_request,google_oauth_callback,get_user_session
 from adya.services.flask.domainhandler import datasource
@@ -24,6 +24,7 @@ api.add_resource(google_oauth_request, constants.GOOGLE_OAUTH_LOGIN)
 api.add_resource(google_oauth_callback, constants.GOOGLE_OAUTHCALLBACK_PATH)
 
 api.add_resource(get_user_session, '/user')
+api.add_resource(reports_handler.dashboard_widget, '/widgets')
 ## routes for scan user data for getting file meta data for each user and get user and group
 ## meta data for a domain
 api.add_resource(scanhandler.initialgdrivescan,constants.INITIAL_GDRIVE_SCAN_PATH)

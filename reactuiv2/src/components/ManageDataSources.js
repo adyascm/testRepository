@@ -10,23 +10,18 @@ import {
   API_ROOT,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
-  HOME_PAGE_LOADED,
-  HOME_PAGE_UNLOADED
+  DASHBOARD_PAGE_LOADED,
+  DASHBOARD_PAGE_UNLOADED
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
 const mapStateToProps = state => ({
-  ...state.home,
   appName: state.common.appName,
   currentUser: state.common.currentUser,
   dataSources: state.common.dataSources
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLoad: (tab, pager, payload) =>
-    dispatch({ type: HOME_PAGE_LOADED, tab, pager, payload }),
-  onUnload: () =>
-    dispatch({ type: HOME_PAGE_UNLOADED }),
   setDataSources: (datasources) =>
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
   addDataSource: (name) => ev => {

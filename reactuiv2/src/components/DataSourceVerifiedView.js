@@ -20,7 +20,10 @@ const DataSourceVerifiedView = ChildComponent => {
             this.props.setDataSources(agent.Setting.getDataSources());
         }
         render() {
-            if (this.props.common.datasources && this.props.common.datasources.length < 1) {
+            if (!this.props.common.datasources) {
+                return null;
+            }
+            else if (this.props.common.datasources.length < 1) {
                 return (
                       <Redirect to="/datasources" />
                   );
