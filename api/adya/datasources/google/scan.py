@@ -242,6 +242,9 @@ def getGroupsMember(group_key,access_token, datasource_id,domain_id,next_page_to
                 data = {"membersResponseData": groupMember, "groupKey":group_key,
                         "dataSourceId": datasource_id,"access_token":access_token, "domainId": domain_id}
                 utils.post_call_with_authorization_header(session,constants.PROCESS_GROUP_MEMBER_DATA_URL,access_token,data)
+            else:
+                update_and_get_count(datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
+
             next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
