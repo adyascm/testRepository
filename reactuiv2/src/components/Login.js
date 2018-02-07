@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import { Link, Redirect } from 'react-router-dom'
 import ListErrors from './ListErrors'
 import { connect } from 'react-redux';
-import openPopup from '../utils/popup'
 import agent from '../utils/agent';
+import authenticate from '../utils/oauth';
 import {
     UPDATE_FIELD_AUTH,
     LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
@@ -26,53 +26,12 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: LOGIN_PAGE_UNLOADED })
 });
 
-function listenForCredentials (popup, resolve, reject) {
-    if (!resolve) {
-      return new Promise((resolve, reject) => {
-        listenForCredentials(popup, resolve, reject);
-      });
-  
-    } else {
-      let email,token,error;
-  
-      try {
-        let params = (new URL(popup.location)).searchParams;
-        email =params.get("email");
-        token =params.get("authtoken");
-        error =params.get("error");
-      } catch (err) {}
-  
-      if (email && token) {
-        popup.close();
-        agent.setToken(token);
-        let currentUser = agent.Auth.current();
-        resolve({"token": token, "payload": currentUser});
-      } else if(error) {
-        reject({errors: {Failed: error}});
-      }else if (popup.closed) {
-        reject({errors: {Failed:"Authentication was cancelled."}})
-      } else {
-        setTimeout(() => {
-          listenForCredentials(popup, resolve, reject);
-        }, 50);
-      }
-    }
-  }
-
-  function authenticate(url) {
-    let popup = openPopup(url, "_blank");
-    return listenForCredentials(popup);
-  }
-  
-
 class Login extends Component {
     constructor() {
         super();
         this.signInGoogle = () => ev => {
             ev.preventDefault();
-            //this.props.onSubmit();
-            var url = API_ROOT + "/googleoauthlogin?scope=read_drive";
-            authenticate(url).then(data => this.props.onSignInComplete(data)).catch(({errors}) => {this.props.onSignInError(errors)});
+            authenticate("login_scope").then(data => this.props.onSignInComplete(data)).catch(({errors}) => {this.props.onSignInError(errors)});
         };
     }
     componentWillUnmount() {
