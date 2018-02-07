@@ -8,7 +8,7 @@ from adya.db import models
 from sqlalchemy import and_
 from adya.db.models import DataSource
 from adya.common import utils
-from adya.realtimeframework.ortc_conn import RealtimeConnection
+#from adya.realtimeframework.ortc_conn import RealtimeConnection
 
 
 def gdrivescan(access_token, domain_id):
@@ -291,7 +291,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
     rows_updated=update_datasource(datasource_id, column_name, column_value)
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id)
-        if send_message:
-            ortc_client = RealtimeConnection().get_conn()
+        #if send_message:
+            #ortc_client = RealtimeConnection().get_conn()
             # ortc_client.send(datasource_id, datasource)
     #TODO: handle if update failed
