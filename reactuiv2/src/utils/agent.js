@@ -42,4 +42,9 @@ const Setting = {
         requests.post('/datasources', dataSource)
 };
 
-export default { Auth, Setting, setToken: _token => { token = _token; } };
+const Dashboard = {
+    getWidgetData: (widgetId) =>
+        requests.get('/widgets?widgetId=' + widgetId)
+}
+
+export default { Auth, Setting, Dashboard, setToken: _token => { token = _token; } };

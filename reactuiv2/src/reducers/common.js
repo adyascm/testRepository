@@ -3,7 +3,7 @@ import {
   REDIRECT,
   LOGOUT,
   LOGIN,
-  HOME_PAGE_UNLOADED,
+  DASHBOARD_PAGE_UNLOADED,
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
   SET_DATASOURCES,
@@ -35,7 +35,7 @@ export default (state = defaultState, action) => {
         token: action.error ? null : action.token,
         currentUser: action.error ? null : JSON.parse(action.payload)
       };
-    case HOME_PAGE_UNLOADED:
+    case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
       return { ...state, viewChangeCounter: state.viewChangeCounter + 1 };
     case SET_DATASOURCES:

@@ -9,7 +9,7 @@ class datasource(Resource):
         auth_token = request.headers.get('Authorization')
         if not auth_token:
             return {'message': 'Missing auth token'}, 400
-        datasources = domain_controller.get_datasource(auth_token)
+        datasources = domain_controller.get_datasource(auth_token, None)
 
         return datasources, 200
 

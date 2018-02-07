@@ -21,6 +21,7 @@ import AuthWrapper from './AuthWrapper';
 import UserGroups from './UserGroups';
 import Resources from './Resources';
 import SettingsContainer from './SettingsContainer';
+import RealtimeFramework from './RealtimeFramewwork';
 //import GDriveScan from './GDriveScan';
 //import gdriveScanReport from './GDriveScanReport';
 import SearchContainer from './SearchContainer';
@@ -61,6 +62,7 @@ const history = syncHistoryWithStore(browserHistory, store);
 ReactDOM.render(
   <Provider store={store}>
     <Router history={history}>
+      <Route path="/realtime" component={RealtimeFramework} />
       <Route path="/oauthstatus/:status" component={GoogleAuthRedirectHandler} />
       <Route path="/" component={PermissionsAppContainer}>
         <IndexRoute component={AuthWrapper(Dashboard)} />
@@ -73,6 +75,7 @@ ReactDOM.render(
         <Route path="/usergroups" component={AuthWrapper(UserGroups)} />
         <Route path="/resources" component={AuthWrapper(Resources)} />
         <Route path="*" component={Placeholder} />
+
       </Route>
     </Router>
   </Provider>,
