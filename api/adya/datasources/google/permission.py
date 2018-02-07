@@ -47,7 +47,7 @@ class GetPermission():
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
 
         db_session = db_connection().get_session()
-        domain_name = gutils.get_domain_name_from_email(self.domain_id)
+        domain_name = self.domain_id
         for permission in permissions:
             permission_type = constants.PermissionType.READ
             permission_id = permission.get('id')

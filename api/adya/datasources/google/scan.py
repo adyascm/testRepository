@@ -267,8 +267,8 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id)
 
         if group_data.get("type") == "CUSTOMER":
             db_session.query(models.DomainGroup).filter(
-                and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id)) \
-                .update({'include_all_user': True})
+                and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
+                     models.DomainGroup.email == group_key)).update({'include_all_user': True})
             continue
         else:
             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
@@ -278,7 +278,7 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id)
     try:
         db_session.bulk_insert_mappings(models.DirectoryStructure, groupsmembers_db_insert_data)
         db_session.commit()
-        update_and_get_count(datasource_id, DataSource.proccessed_group_count, 1, True)
+        update_and_get_count(datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
     except Exception as ex:
         print("Directory data insertation failed", ex.message)
         return errormessage.SCAN_FAILED_ERROR_MESSAGE
