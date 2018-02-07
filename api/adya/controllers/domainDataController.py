@@ -1,7 +1,8 @@
-from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup,AlchemyEncoder
+from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup
 from adya.db.connection import db_connection
 from sqlalchemy import and_
 import json
+from adya.common import utils
 
 def get_user_group_tree(auth_token):
 
@@ -31,7 +32,7 @@ def get_user_group_tree(auth_token):
                 groups[parent_email]["children"].append(child_email)
                 groups[child_email]["parents"].append(parent_email)
         userGrouptrees[datasource_id] = users_groups
-    return json.dumps(userGrouptrees,cls=AlchemyEncoder)
+    return utils.get_response_json(userGrouptrees)
 
 
 def getUsersData(users_groups,db_session, domain_id, datasource_id):
