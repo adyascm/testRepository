@@ -80,6 +80,7 @@ def oauth_callback(oauth_code, scopes, error):
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
                                                      refresh_token, True)
         else:
+            # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
             is_enterprise_user = False
             if check_for_enterprise_user(login_email):
