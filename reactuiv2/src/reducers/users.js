@@ -14,7 +14,7 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                usersTree: action.payload
+                usersTree: JSON.parse(action.payload)
             }
         default:
             return state;

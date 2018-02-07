@@ -25,12 +25,9 @@ def get_user_group_tree(auth_token):
         for parent_child_data in parent_child_data_array:
             parent_email = parent_child_data.parent_email
             child_email = parent_child_data.member_email
-            if child_email in users:
-                users[child_email]["parents"].append(parent_email)
-                groups[parent_email]["children"].append(child_email)
-            elif child_email in groups:
-                groups[parent_email]["children"].append(child_email)
-                groups[child_email]["parents"].append(parent_email)
+            if child_email in users_groups:
+                users_groups[child_email]["parents"].append(parent_email)
+                users_groups[parent_email]["children"].append(child_email)
         userGrouptrees[datasource_id] = users_groups
     return utils.get_response_json(userGrouptrees)
 
