@@ -12,6 +12,7 @@ const UserDetails = props => {
         {text:'Make all owned files private'},
         {text:'Watch all my actions'}]
     };
+
     return (
         <Item.Group>
 
@@ -20,13 +21,13 @@ const UserDetails = props => {
 
                 <Item.Content >
                     <Item.Header >
-                        Amit Agarwal
+                        {props.cellRowData["group"]}
         </Item.Header>
                     <Item.Meta>
                         Member of
                 </Item.Meta>
                     <Item.Description>
-                        <Container fluid='true'>
+                        <Container fluid={true}>
 
                             <Label.Group color='blue'>
                                 <Label as='a'>

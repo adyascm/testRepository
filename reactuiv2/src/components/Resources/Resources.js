@@ -179,9 +179,9 @@ class Users extends Component {
             </div>
           </Grid.Column>
           <Grid.Column width={9}>
-          <Container fluid >
-          <Tab menu={{ secondary: true, pointing: true }} panes={this.panes} />
-</Container>
+            <Container fluid >
+                <Tab menu={{ secondary: true, pointing: true }} panes={this.panes} />
+            </Container>
           </Grid.Column>
         </Grid.Row>
       </Grid>
