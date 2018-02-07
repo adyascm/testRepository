@@ -15,12 +15,11 @@ def get_resource_tree(auth_token, parent_id):
         query =  db_session.query(ResourcePermission).filter( and_(ResourcePermission.domain_id == domain_id,
                                                   Resource.resource_id.in_(resource_id_array)))
         permissions_query_data = db_session.query(ResourcePermission).filter( and_(ResourcePermission.domain_id == domain_id,
-                                                  Resource.resource_id.in_(resource_id_array))).all()
+                                                  ResourcePermission.resource_id.in_(resource_id_array))).all()
+        
         for permission in permissions_query_data:
             permissionobject = {"permissionId":permission.permission_id,"pemrissionEmail":permission.email,"permissionType":permission.permission_type}
-            # need to check why other resourceid is coming into the permission_query_data
-            if permission.resource_id in resources:
-                resources[permission.resource_id]["permissions"].append(permissionobject)
+            resources[permission.resource_id]["permissions"].append(permissionobject)
         resources_tree[datasource_id] = resources
     return resources_tree
 
