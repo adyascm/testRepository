@@ -47,4 +47,9 @@ const Dashboard = {
         requests.get('/widgets?widgetId=' + widgetId)
 }
 
-export default { Auth, Setting, Dashboard, setToken: _token => { token = _token; } };
+const Users = {
+    getUsersTree: () =>
+        requests.get('/getusergrouptree')
+}
+
+export default { Auth, Setting, Dashboard, Users, setToken: _token => { token = _token; } };
