@@ -6,5 +6,6 @@ class GetResources(Resource):
         auth_token = request.headers.get('Authorization')
         if not auth_token:
             return {'message': 'Missing auth token'}, 400
-        resource_tree = resourceController.get_resource_tree(auth_token)
+        parent_id = request.args.get("parentId")
+        resource_tree = resourceController.get_resource_tree(auth_token,parent_id)
         return resource_tree, 200 

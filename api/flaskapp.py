@@ -9,6 +9,7 @@ from adya.common import constants
 from adya.services.flask.authhandler import google_oauth_request,google_oauth_callback,get_user_session
 from adya.services.flask.domainhandler import datasource
 from adya.services.flask.domainDataHandler import UserGroupTree
+from adya.services.flask.resourceHandler import GetResources
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -44,6 +45,9 @@ api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
 
 ## get user group tree
 api.add_resource(UserGroupTree, constants.GET_USER_GROUP_TREE_PATH)
+
+# get file resource data
+api.add_resource(GetResources,constants.GET_RESOURCE_TREE_PATH)
 
 if __name__ == '__main__':
     app.run(debug=True)
