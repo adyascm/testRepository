@@ -21,7 +21,7 @@ def get_resource_tree(auth_token, parent_id):
             permissionobject = {"permissionId":permission.permission_id,"pemrissionEmail":permission.email,"permissionType":permission.permission_type}
             resources[permission.resource_id]["permissions"].append(permissionobject)
         resources_tree[datasource_id] = resources
-    return resources_tree
+    return json.dumps(resources_tree,cls=AlchemyEncoder)
 
 def get_resource(db_session,domain_id,datasource_id,parent_id):
     resources ={}
