@@ -21,7 +21,7 @@ const UserDetails = props => {
 
                 <Item.Content >
                     <Item.Header >
-                        Adya
+                        {props.user}
                     </Item.Header>
                     <Item.Meta>
                         Member of

@@ -13,9 +13,8 @@ import {
   USERS_PAGE_LOADED,
   USERS_PAGE_UNLOADED
 } from '../../constants/actionTypes';
-import UserAccess from './UserAccess';
-import UserDetails from './UserDetails';
 import UsersTree from './UsersTree';
+import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
 
 const mapStateToProps = state => ({
   appName: state.common.appName,
@@ -32,17 +31,6 @@ const mapDispatchToProps = dispatch => ({
 class Users extends Component {
   constructor(props) {
     super(props);
-
-    this.panes = [
-      { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails /></Tab.Pane> },
-      { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserAccess /></Tab.Pane> },
-      { menuItem: 'Activity', render: () => <Tab.Pane attached={false}>Get all activities from google</Tab.Pane> },
-      
-    ];
-
-    this.gridOptions = {
-      onRowClicked: this.onCellRowClicked
-    }
   }
 
   onGridReady(params) {
@@ -50,13 +38,6 @@ class Users extends Component {
     this.gridColumnApi = params.columnApi;
 
     params.api.sizeColumnsToFit();
-  }
-
-  onCellRowClicked(params) {
-    console.log("cell row click data : ", params.data)
-    this.setState({
-      cellRowData: params.data
-    })
   }
 
   render() {
@@ -71,12 +52,11 @@ class Users extends Component {
           </Grid.Column>
           <Grid.Column width={9}>
             <Container fluid >
-              <Tab menu={{ secondary: true, pointing: true }} panes={this.panes} />
+              <UsersGroupsDetailsSection />
             </Container>
           </Grid.Column>
         </Grid.Row>
       </Grid>
-
     )
   }
 }
