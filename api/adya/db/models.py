@@ -92,6 +92,18 @@ class Resource(Base):
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
 
 
+class ResourcePermission(Base):
+    __tablename__ = 'resource_permission_table'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    resource_id = Column(String(100), primary_key=True)
+    email = Column(String(320), primary_key=True)
+    permission_id = Column(String(260), nullable=False)
+    permission_type = Column(String(10))
+
+    def __repr__(self):
+        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
+        
+
 class DomainGroup(Base):
     __tablename__ = 'domain_group'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
@@ -107,18 +119,6 @@ class DirectoryStructure(Base):
     datasource_id = Column(String(36))
     member_email = Column(String(320), primary_key=True)
     parent_email = Column(String(320), primary_key=True)
-
-
-class ResourcePermission(Base):
-    __tablename__ = 'resource_permission_table'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    resource_id = Column(String(100), primary_key=True)
-    email = Column(String(320), primary_key=True)
-    permission_id = Column(String(260), nullable=False)
-    permission_type = Column(String(10))
-
-    def __repr__(self):
-        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
 
 
 class Report(Base):
