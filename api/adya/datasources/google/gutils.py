@@ -3,11 +3,18 @@ import googleapiclient.discovery as discovery
 import json,requests
 from adya.db.connection import db_connection
 from adya.db.models import LoginUser
+from oauth2client.service_account import ServiceAccountCredentials
+from adya.common.scopeconstants import DRIVE_SCAN_SCOPE
+import os
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
 GOOGLE_HEADERS = {'content-type': 'application/x-www-form-urlencoded'}
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
+SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
 def revoke_appaccess(domainid):
     credentials = get_credentials(domain_id=domainid)
@@ -61,3 +68,26 @@ def get_oauth_service(domain_id,credentials=None):
         credentials = get_credentials(domain_id)
     service = discovery.build('oauth2', 'v2', credentials=credentials)
     return service
+
+def check_if_serviceaccount_enabled(emailid):
+    profile_info = None
+    service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
+                                                                   DRIVE_SCAN_SCOPE)
+
+    credentials = service_obj.create_delegated(emailid)
+    try:
+        drive = get_gdrive_service(None, credentials=credentials)
+        profile_info = drive.about().get(fields="user").execute()
+        return True
+    except Exception as e:
+        print e
+    return False
+
+def check_if_user_isamdin(credentials,emailid):
+    try:
+        directory_service = get_directory_service(credentials)
+        users = directory_service.users().get(userKey=emailid)
+        return true;
+    except Exception as ex:
+        print ex
+    return False

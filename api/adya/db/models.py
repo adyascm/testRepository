@@ -42,7 +42,7 @@ class LoginUser(Base):
     last_name = Column(String(255))
     auth_token = Column(String(36))
     refresh_token = Column(String(255))
-    is_enterprise_user = Column(Boolean, default=True)
+    is_admin_user = Column(Boolean, default=True)
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
 
@@ -59,6 +59,7 @@ class DataSource(Base):
     group_count = Column(Integer, default=0)
     proccessed_group_memebers_count = Column(Integer, default=0)
     user_count = Column(Integer, default=0)
+    is_serviceaccount_enabled = Column(Boolean)
 
 
 class DomainUser(Base):
