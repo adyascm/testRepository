@@ -59,7 +59,7 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
             else:
                 responsedata[resource.Resource.resource_id]["permissions"].append(permissionobject)
         resources_tree[datasource_id] = responsedata
-    return utils.get_response_json(resources_tree)
+    return resources_tree
 
 
 

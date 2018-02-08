@@ -20,7 +20,7 @@ def get_datasource(auth_token, datasource_id):
         datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
 
-    return utils.get_response_json(datasources)
+    return datasources
 
 
 def update_datasource(datasource_id, column_name, column_value):
@@ -56,7 +56,7 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
-        return utils.get_response_json(datasource)
+        return datasource
     else:
         return None
 
@@ -79,7 +79,7 @@ def start_scan(auth_token, domain_id, datasource_id):
     session = FuturesSession()
     utils.post_call_with_authorization_header(session,url=constants.GET_DOMAIN_USER_URL,auth_token=auth_token, data=data)
     utils.post_call_with_authorization_header(session,url=constants.GET_GROUP_URL,auth_token=auth_token, data=data)
-    utils.post_call_with_authorization_header(session,url=constants.INITIAL_GDRIVE_SCAN,auth_token=auth_token, data=data)
+    utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES,auth_token=auth_token, data=data)
 
 
 

@@ -1,120 +1,145 @@
-from flask_restful import Resource,reqparse,request
-from adya.datasources.google import scan,permission
+from flask_restful import Resource, reqparse, request
+from adya.datasources.google import scan, permission
 import json
+from adya.common.request_session import RequestSession
 
 
-class initialgdrivescan(Resource):
-    def post(self):
+class DriveResources(Resource):
+    def get(self):
         print "started initial gdrive scan"
-        data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        domian_id = data.get("domainId")
-        access_token = request.headers.get('Authorization')
-        if not access_token:
-            return {'message': 'Missing auth token'}, 400
-        scan.initial_datasource_scan(datasource_id,access_token,domian_id)
-        # 202 for accespted
-        return "Scan Started", 202
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'], ['next_page_token'])
+        if req_error:
+            return req_error
 
+        scan.get_resources(req_session.get_req_param(
+            'dataSourceId'), req_session.get_auth_token(), req_session.get_req_param('domainId'))
+        return req_session.generate_response(202)
 
-class processResources(Resource):
     def post(self):
         print "Processing Data"
-        request_data = json.loads(request.data)
-        resources = request_data.get('resourceData')["files"]
-        datasource_id = request_data.get('dataSourceId')
-        domain_id = request_data.get('domainId')
-        scan.process_resource_data(resources,domain_id,datasource_id)
-        return "Data has processed", 200
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
+        scan.process_resource_data(req_session.get_req_param(
+            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_body())
+        return req_session.generate_response(202)
 
 
 class getPermission(Resource):
     def post(self):
         print "Getting Permission Data"
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         requestdata = json.loads(request.data)
         fileIds = requestdata['fileIds']
-        domain_id = requestdata['domainId']
-        datasource_id = requestdata["dataSourceId"]
-        ## creating the instance of scan_permission calss
-        scan_permisssion_obj = permission.GetPermission(domain_id,datasource_id,fileIds)
+        ## creating the instance of scan_permission class
+        scan_permisssion_obj = permission.GetPermission(req_session.get_req_param(
+            'domainId'), req_session.get_req_param('dataSourceId'), fileIds)
         ## calling get permission api
         scan_permisssion_obj.get_permission()
-        return "Getting file permission", 202
+        return req_session.generate_response(202)
 
 
 class getdomainuser(Resource):
     def post(self):
         print("Getting domain user")
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        access_token = request.headers.get('Authorization')
-        if not access_token:
-            return {'message': 'Missing auth token'}, 400
-        domian_id = data.get("domainId")
         next_page_token = data.get("nextPageToken")
-        scan.getDomainUsers(datasource_id,access_token,domian_id,next_page_token)
-        return "Getting users data", 202
+        scan.getDomainUsers(req_session.get_req_param('dataSourceId'), req_session.get_auth_token(
+        ), req_session.get_req_param('domainId'), next_page_token)
+        return req_session.generate_response(202)
 
 
 class processUsers(Resource):
     def post(self):
         print("Process users data")
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        domian_id = data.get("domainId")
         users_response_data = data.get("usersResponseData")
-        scan.processUsers(users_response_data,datasource_id,domian_id)
-        return "processing users metadata", 202
+        scan.processUsers(users_response_data, req_session.get_req_param(
+            'dataSourceId'), req_session.get_req_param('domainId'))
+        return req_session.generate_response(202)
 
 
 class getdomainGroups(Resource):
     def post(self):
         print("Getting domain groups")
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        access_token = request.headers.get('Authorization')
-        if not access_token:
-            return {'message': 'Missing auth token'}, 400
-        domian_id = data.get("domainId")
         next_page_token = data.get("nextPageToken")
-        scan.getDomainGroups(datasource_id,access_token,domian_id,next_page_token)
-        return "Getting domain groups data", 202
+        scan.getDomainGroups(req_session.get_req_param('dataSourceId'), req_session.get_auth_token(
+        ), req_session.get_req_param('domainId'), next_page_token)
+        return req_session.generate_response(202)
 
 
 class processGroups(Resource):
     def post(self):
         print("Process groups data")
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        domian_id = data.get("domainId")
-        access_token = request.headers.get('Authorization')
-        if not access_token:
-            return {'message': 'Missing auth token'}, 400
         group_response_data = data.get("groupsResponseData")
-        scan.processGroups(group_response_data,datasource_id,domian_id,access_token)
-        return "processing groups metadata", 202
+        scan.processGroups(group_response_data, req_session.get_req_param(
+            'dataSourceId'), req_session.get_req_param('domainId'), req_session.get_auth_token())
+        return req_session.generate_response(202)
 
 
 class getGroupMembers(Resource):
     def post(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        domian_id = data.get("domainId")
         group_key = data.get('groupKey')
         next_page_token = data.get('nextPageToken')
-        access_token = request.headers.get('Authorization')
-        if not access_token:
-            return {'message': 'Missing auth token'}, 400
-        scan.getGroupsMember(group_key,access_token,datasource_id, domian_id,next_page_token)
-        return "processing groups metadata", 202
+        scan.getGroupsMember(group_key, req_session.get_auth_token(), req_session.get_req_param(
+            'dataSourceId'), req_session.get_req_param('domainId'), next_page_token)
+        return req_session.generate_response(202)
 
 
 class processGroupMembers(Resource):
     def post(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId', 'groupKey'])
+        if req_error:
+            return req_error
+
         data = json.loads(request.data)
-        datasource_id = data.get("dataSourceId")
-        domian_id = data.get("domainId")
         group_key = data.get("groupKey")
         member_response_data = data.get("membersResponseData")
-        scan.processGroupMembers(group_key,member_response_data,datasource_id,domian_id)
-        return "processing groups metadata", 202
+        scan.processGroupMembers(eq_session.get_req_param('groupKey'), member_response_data, req_session.get_req_param(
+            'dataSourceId'), req_session.get_req_param('domainId'))
+        return req_session.generate_response(202)
