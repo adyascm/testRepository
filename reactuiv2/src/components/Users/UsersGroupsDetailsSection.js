@@ -14,10 +14,12 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     render() {
+        let parents = this.props.selectedUserParents !== undefined? this.props.selectedUserParents:[]
+
         let user = this.props.rowData? this.props.rowData["firstName"]?this.props.rowData["firstName"]+" "+this.props.rowData["lastName"]
                     : this.props.rowData["name"] : null
         let panes  = [
-            { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails user={user} /></Tab.Pane> },
+            { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails user={user} parents={parents} /></Tab.Pane> },
             { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserAccess /></Tab.Pane> },
             { menuItem: 'Activity', render: () => <Tab.Pane attached={false}>Get all activities from google</Tab.Pane> },
             

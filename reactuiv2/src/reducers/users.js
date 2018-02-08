@@ -1,5 +1,8 @@
 import {
-    USERS_TREE_LOADED, USERS_TREE_LOAD_START,USERS_TREE_SET_ROW_DATA,USERS_TREE_GET_ROW_DATA
+    USERS_TREE_LOADED, 
+    USERS_TREE_LOAD_START,
+    USERS_TREE_SET_ROW_DATA,
+    SELECTED_USER_PARENTS_NAME
 } from '../constants/actionTypes';
 
 
@@ -21,6 +24,11 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 rowData: action.payload
+            }
+        case SELECTED_USER_PARENTS_NAME:
+            return {
+                ...state,
+                selectedUserParents: action.payload
             }
         default:
             return state;

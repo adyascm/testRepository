@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
 import { USERS_TREE_LOADED, 
          USERS_TREE_LOAD_START,
-         USERS_TREE_SET_ROW_DATA 
+         USERS_TREE_SET_ROW_DATA,
+         SELECTED_USER_PARENTS_NAME 
         } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
@@ -22,7 +23,9 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (payload) =>
         dispatch({ type: USERS_TREE_LOADED, payload }),
     setRowData: (payload) => 
-        dispatch({type: USERS_TREE_SET_ROW_DATA, payload})  
+        dispatch({type: USERS_TREE_SET_ROW_DATA, payload}),
+    setSelectedUserParents: (payload) =>
+        dispatch({type: SELECTED_USER_PARENTS_NAME,payload})
 });
 
 class UsersTree extends Component {
@@ -81,7 +84,16 @@ class UsersTree extends Component {
         this.setState({
             cellData: params.data
         })
-        this.props.setRowData(params.data)
+        this.props.setRowData(params.data);
+        
+        let selectedUserEmail = params.data["key"]
+        //console.log("rowdatakey : ", selectedUserEmail)
+        let selectedUserParentsEmail = params.data["parents"]
+        let selectedUserParentsName = selectedUserParentsEmail.map((parent,index) => {
+            return this.props.usersTree[parent]["name"]
+        })
+        console.log("selectedUserParentsName : ", selectedUserParentsName)
+        this.props.setSelectedUserParents(selectedUserParentsName)
     }
 
     componentWillMount() {
@@ -108,7 +120,6 @@ class UsersTree extends Component {
         return rows;
     }
     render() {
-        //console.log("users tree : ", this.props.usersTree)
         if (!this.props.usersTree) {
             if (this.props.isLoading) {
                 return (

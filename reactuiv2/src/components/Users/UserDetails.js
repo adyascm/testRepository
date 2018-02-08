@@ -7,12 +7,22 @@ import AdyaLogo from '../../AdyaLogo.png'
 const UserDetails = props => {
     const state = {
         quickActions: [{text:'Transfer ownership of all owned files'},
-        {text:'Remove external access for all owned files'},
-        {text:'Remove write access for all un-owned files'},
-        {text:'Make all owned files private'},
-        {text:'Watch all my actions'}]
+                       {text:'Remove external access for all owned files'},
+                       {text:'Remove write access for all un-owned files'},
+                       {text:'Make all owned files private'},
+                       {text:'Watch all my actions'}],
+        parents: props.parents !== []?props.parents:['None']
     };
 
+    let labels = state.parents.map((parent,index) => {
+        return (
+            <Label key={index} as='a'>
+                {parent}
+                <Icon name='close' />
+            </Label>
+        )
+    })
+    console.log("users details parents prop : ", props.parents)
     return (
         <Item.Group>
 
@@ -25,27 +35,11 @@ const UserDetails = props => {
                     </Item.Header>
                     <Item.Meta>
                         Member of
-                </Item.Meta>
+                    </Item.Meta>
                     <Item.Description>
                         <Container fluid={true}>
-
                             <Label.Group color='blue'>
-                                <Label as='a'>
-                                    Sales
-                                    <Icon name='close' />
-                                </Label>
-                                <Label as='a'>
-                                    Marketing
-                                    <Icon name='close' />
-                                </Label>
-                                <Label as='a'>
-                                    Engineering
-                                    <Icon name='close' />
-                                </Label>
-                                <Label as='a'>
-                                    Finance
-                                    <Icon name='close' />
-                                </Label>
+                                {labels}
                             </Label.Group>
                         </Container>
                     </Item.Description>
