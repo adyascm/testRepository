@@ -1,0 +1,69 @@
+from flask_restful import request
+
+
+class RequestSession():
+    def __init__(self, req):
+        self.req = request
+        self.auth_token = None
+        self.params = {}
+        self.isLocal = True
+
+    def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
+        #Validate the flask request
+        params_dict = {}
+        if type(self.req) is type(request):
+            self.auth_token = self.req.headers.get('Authorization')
+            params_dict = self.req.args
+        #Validate the lambda event object
+        else:
+            self.isLocal = False
+            self.auth_token = self.req["headers"]["Authorization"]
+            params_dict = self.req["queryStringParameters"]
+
+        if validateAuth and not self.auth_token:
+                return self.generate_error_response(401, "Not authenticated")
+        for param in mandatory_params:
+            value = params_dict.get(param)
+            if not value:
+                return self.generate_error_response(400, "Missing request fields - " + param)
+            else:
+                self.params[param] = value
+        for param in optional_params:
+            self.params[param] = params_dict.get(param)
+
+    def get_auth_token(self):
+        return self.auth_token
+
+    def get_req_param(self, param):
+        return self.params[param]
+
+    def get_body(self):
+        if self.isLocal:
+            return self.req.get_json()
+        else:
+            return self.req['data']
+
+    def generate_error_response(self, http_code, message):
+        return self.generate_response(http_code, {'message': message})
+
+    def generate_redirect_response(self, location):
+        if self.isLocal:
+            return {'location': location}, 301, {'location': location}
+        else:
+            return {
+                "statusCode": 301,
+                "headers": {"location": location}
+            }
+
+    def generate_response(self, http_code, payload):
+        if self.isLocal:
+            return payload, http_code
+        else:
+            return {
+                "statusCode": http_code,
+                "body": payload,
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": True
+                },
+            }

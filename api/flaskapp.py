@@ -6,7 +6,7 @@ from flask_cors import CORS
 import db_config
 from adya.services.flask import scanhandler, reports_handler
 from adya.common import constants
-from adya.services.flask.authhandler import google_oauth_request,google_oauth_callback,get_user_session
+from adya.services.flask.auth_handler import google_oauth_request,google_oauth_callback,get_user_session
 from adya.services.flask.domainhandler import datasource
 from adya.services.flask.domainDataHandler import UserGroupTree
 from adya.services.flask.resourceHandler import GetResources
