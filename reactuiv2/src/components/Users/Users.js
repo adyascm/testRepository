@@ -34,7 +34,7 @@ class Users extends Component {
     super(props);
 
     this.panes = [
-      { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails cellRowData={this.state.cellRowData} /></Tab.Pane> },
+      { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails /></Tab.Pane> },
       { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserAccess /></Tab.Pane> },
       { menuItem: 'Activity', render: () => <Tab.Pane attached={false}>Get all activities from google</Tab.Pane> },
       

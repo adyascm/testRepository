@@ -21,8 +21,8 @@ const UserDetails = props => {
 
                 <Item.Content >
                     <Item.Header >
-                        {props.cellRowData["group"]}
-        </Item.Header>
+                        Adya
+                    </Item.Header>
                     <Item.Meta>
                         Member of
                 </Item.Meta>
