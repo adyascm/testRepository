@@ -2,8 +2,9 @@ import json
 import datetime
 import uuid
 
-from adya.db.models import Domain, LoginUser,AlchemyEncoder
+from adya.db.models import Domain, LoginUser
 from adya.db.connection import db_connection
+from adya.common import utils
 
 
 def get_user_session(auth_token):
@@ -11,7 +12,20 @@ def get_user_session(auth_token):
         return None
     session = db_connection().get_session()
     user = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
-    return json.dumps(user, cls=AlchemyEncoder)
+    return utils.get_response_json(user)
+
+def get_user(email, session=None):
+    if not session:
+        session = db_connection().get_session()
+    user = session.query(LoginUser).filter(LoginUser.email == email).first()
+    return user
+
+def update_user_refresh_token(email, refresh_token, session=None):
+    if not session:
+        session = db_connection().get_session()
+    user = session.query(LoginUser).filter(LoginUser.email == email).update({"refresh_token": refresh_token})
+    session.commit()
+    return True
 
 
 def create_user(email, first_name, last_name, domain_id, refresh_token, is_enterprise_user):

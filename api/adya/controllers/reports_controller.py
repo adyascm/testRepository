@@ -2,9 +2,9 @@ import json
 import datetime
 import uuid
 
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, AlchemyEncoder
+from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report
 from adya.db.connection import db_connection
-
+from adya.common import utils
 
 def get_widget_data(auth_token, widget_id):
     if not auth_token:
@@ -62,6 +62,6 @@ def create_report(auth_token, payload):
             session.commit()
         except Exception as ex:
             print (ex)
-        return json.dumps(report, cls=AlchemyEncoder)
+        return utils.get_response_json(report)
     else:
         return None

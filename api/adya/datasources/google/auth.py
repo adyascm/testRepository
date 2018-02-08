@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
 
-from adya.common.scopeconstants import SCOPE_DICT
+from adya.common.scopeconstants import LOGIN_SCOPE, DRIVE_SCAN_SCOPE, SCOPE_DICT
 from adya.datasources.google import gutils
 
 from adya.common import constants
@@ -25,7 +25,7 @@ SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 
 
 def oauth_request(scopes):
-    scope = SCOPE_DICT["read_only_fullscope"]
+    scope = LOGIN_SCOPE
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
@@ -69,9 +69,10 @@ def oauth_callback(oauth_code, scopes, error):
     domain_id = login_email
     session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
-    existing_user = session.query(LoginUser).filter(LoginUser.email == login_email).first()
+    existing_user = auth_controller.get_user(login_email, session)
     if existing_user:
         auth_token = existing_user.auth_token
+        auth_controller.update_user_refresh_token(login_email, refresh_token, session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
         existing_domain_user = session.query(DomainUser).filter(DomainUser.email == login_email).first()
@@ -100,7 +101,7 @@ def oauth_callback(oauth_code, scopes, error):
 def check_for_enterprise_user(emailid):
     profile_info = None
     service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
-                                                                   SCOPE_DICT['read_drive'])
+                                                                   DRIVE_SCAN_SCOPE)
 
     credentials = service_obj.create_delegated(emailid)
     try:

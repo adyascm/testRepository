@@ -5,9 +5,9 @@ from adya.common import utils
 
 from requests_futures.sessions import FuturesSession
 
-from adya.common import constants
+from adya.common import constants,utils
 from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, Domain, AlchemyEncoder
+from adya.db.models import DataSource, LoginUser, Domain
 
 
 
@@ -20,7 +20,7 @@ def get_datasource(auth_token, datasource_id):
         datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
 
-    return json.dumps(datasources, cls=AlchemyEncoder)
+    return utils.get_response_json(datasources)
 
 
 def update_datasource(datasource_id, column_name, column_value):
@@ -55,7 +55,7 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
-        return json.dumps(datasource, cls=AlchemyEncoder)
+        return utils.get_response_json(datasource)
     else:
         return None
 

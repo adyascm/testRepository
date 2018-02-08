@@ -1,9 +1,12 @@
 from adya.db.connection import db_connection
-from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,AlchemyEncoder
+from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission
 from sqlalchemy import and_
 import json
+from adya.common import utils
 
 def get_resource_tree(auth_token, parent_id):
+    if not auth_token:
+        return None
     db_session = db_connection().get_session()
     existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     domain_id = existing_user.domain_id
@@ -22,16 +25,20 @@ def get_resource_tree(auth_token, parent_id):
             permissionobject = {"permissionId":permission.permission_id,"pemrissionEmail":permission.email,"permissionType":permission.permission_type}
             resources[permission.resource_id]["permissions"].append(permissionobject)
         resources_tree[datasource_id] = resources
-    return json.dumps(resources_tree,cls=AlchemyEncoder)
+    return utils.get_response_json(resources_tree)
 
 def get_resource(db_session,domain_id,datasource_id,parent_id):
     resources ={}
-    resources_querydata = db_session.query(Resource).filter( and_(Resource.domain_id == domain_id,Resource.datasource_id == datasource_id,Resource.resource_parent_id == parent_id)).all()
+    resources_querydata = db_session.query(Resource).filter( and_(Resource.domain_id == domain_id,
+                                                                Resource.datasource_id == datasource_id,
+                                                                Resource.resource_parent_id == parent_id)).all()
     resource_id_array =[]
     for resource in resources_querydata:
         resources[resource.resource_id] = {"resourceName":resource.resource_name,"resourceType":resource.resource_type,
                                            "resourceOwnerId":resource.resource_owner_id,"exposureType":resource.exposure_type,"permissions":[]}
         resource_id_array.append(resource.resource_id)
     return resources,resource_id_array
+
+
 
 
