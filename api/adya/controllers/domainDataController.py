@@ -29,7 +29,7 @@ def get_user_group_tree(auth_token):
                 users_groups[child_email]["parents"].append(parent_email)
                 users_groups[parent_email]["children"].append(child_email)
         userGrouptrees[datasource_id] = users_groups
-    return utils.get_response_json(userGrouptrees)
+    return userGrouptrees
 
 
 def getUsersData(users_groups,db_session, domain_id, datasource_id):

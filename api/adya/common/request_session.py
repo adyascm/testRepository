@@ -1,5 +1,7 @@
 from flask_restful import request
+import json
 
+from adya.db.models import AlchemyEncoder
 
 class RequestSession():
     def __init__(self, req):
@@ -54,6 +56,10 @@ class RequestSession():
                 "statusCode": 301,
                 "headers": {"location": location}
             }
+
+    def generate_sqlalchemy_response(self, http_code, payload):
+        json_layload = json.dumps(payload, cls=AlchemyEncoder)
+        return self.generate_response(http_code, json_layload)
 
     def generate_response(self, http_code, payload):
         if self.isLocal:

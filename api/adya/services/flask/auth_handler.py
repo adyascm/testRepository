@@ -44,7 +44,7 @@ class get_user_session(Resource):
         if not user_session:
             return req_session.generate_error_response(401, "User session not found")
         else:
-            return req_session.generate_response(200, user_session)
+            return req_session.generate_sqlalchemy_response(200, user_session)
 
 
 class RevokeAccessForApp(Resource):

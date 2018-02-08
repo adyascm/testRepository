@@ -5,33 +5,18 @@ from cloudwatch_event import create_cloudwatch_event
 
 
 def post_scheduled_report(event, context):
-    auth_token = event["headers"]["Authorization"]
-    if not auth_token:
-        return {
-            "statusCode": 401,
-            "body": {"message": "Not authenticated"},
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Credentials": True
-            },
-        }
+    req_session = RequestSession(request)
+    req_error = req_session.validate_authorized_request(True, ['widgetId'])
+    if req_error:
+        return req_error
 
-    report = reports_controller.create_report(auth_token, event['data'])
-    cron_expression = event['data']['frequency']
-    report_id = event['data']['report_id']
-    report_name = event['data']['report_name']
+    report = reports_controller.create_report(req_session.get_auth_token(),req_session.get_body())
+    
+    cron_expression = report.frequency
+    report_id = report.report_id
+    report_name = report.name
     cloudwatch_event_name = report_id + '-' + report_name
 
     create_cloudwatch_event(cloudwatch_event_name, cron_expression)
 
-    if report:
-        response = {
-            "statusCode": 201,
-            "body": json.dumps(report),
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Credentials": True
-            },
-        }
-
-    return response
+    return req_session.generate_sqlalchemy_response(201, report)
