@@ -8,7 +8,7 @@ from requests_futures.sessions import FuturesSession
 from adya.common import constants,utils
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain
-
+from adya.datasources.google import gutils
 
 
 def get_datasource(auth_token, datasource_id):
@@ -49,6 +49,7 @@ def create_datasource(auth_token, payload):
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
+        datasource.is_serviceaccount_enabled = gutils.check_for_enterprise_user(existing_user.email)
         session.add(datasource)
         try:
             session.commit()

@@ -18,18 +18,13 @@ from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
-SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
-
 
 def oauth_request(scopes):
     scope = LOGIN_SCOPE
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=scope)
+        gutils.CLIENT_SECRETS_FILE, scopes=scope)
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
     authorization_url, state = flow.authorization_url(
         # Enable offline access so that you can refresh an access token without
@@ -47,7 +42,7 @@ def oauth_callback(oauth_code, scopes, error):
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
         return redirect_url
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=scopes)
+        gutils.CLIENT_SECRETS_FILE, scopes=scopes)
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
@@ -83,31 +78,15 @@ def oauth_callback(oauth_code, scopes, error):
         else:
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
-            is_enterprise_user = False
-            if check_for_enterprise_user(login_email):
+            is_admin_user = gutils.check_if_user_isamdin(credentials,login_email)
+            if gutils.check_if_serviceaccount_enabled(login_email):
                 domain_id = login_email.split('@')[1]
-                is_enterprise_user = True
 
             domain = domain_controller.create_domain(domain_id, domain_name)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
-                                                     is_enterprise_user)
+                                                     is_admin_user)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
     return redirect_url
-
-
-def check_for_enterprise_user(emailid):
-    profile_info = None
-    service_obj = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
-                                                                   DRIVE_SCAN_SCOPE)
-
-    credentials = service_obj.create_delegated(emailid)
-    try:
-        drive = gutils.get_gdrive_service(None, credentials=credentials)
-        profile_info = drive.about().get(fields="user").execute()
-    except Exception as e:
-        print e
-
-    return profile_info

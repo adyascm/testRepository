@@ -2,6 +2,7 @@
 LOGIN_SCOPE = [
     'profile '
     'email '
+    'https://www.googleapis.com/auth/admin.directory.user.readonly '
 ]
 
 DRIVE_SCAN_SCOPE = [
