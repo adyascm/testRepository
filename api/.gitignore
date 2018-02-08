@@ -113,3 +113,6 @@ service_account.json
 #Serverless
 .serverless/*
 api/.serverless/*
+
+#Setting file
+api/.vscode
