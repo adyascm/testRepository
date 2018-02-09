@@ -5,7 +5,7 @@ from adya.db.models import AlchemyEncoder
 
 class RequestSession():
     def __init__(self, req):
-        self.req = request
+        self.req = req
         self.auth_token = None
         self.params = {}
         self.isLocal = True
