@@ -123,3 +123,75 @@ functions:
           method: post
           cors: true
 
+  get_drive_resources:
+    handler: adya.services.lambda.scan_handler.get_drive_resources
+    events:
+      - http:
+          path: scan/resources
+          method: get
+          cors: true
+
+  process_drive_resources:
+    handler: adya.services.lambda.scan_handler.process_drive_resources
+    events:
+      - http:
+          path: scan/resources
+          method: post
+          cors: true
+
+  process_resource_permissions:
+    handler: adya.services.lambda.scan_handler.process_resource_permissions
+    events:
+      - http:
+          path: scan/permisssions
+          method: post
+          cors: true
+
+  get_domain_users:
+    handler: adya.services.lambda.scan_handler.get_domain_users
+    events:
+      - http:
+          path: scan/domainusers
+          method: get
+          cors: true
+
+  process_domain_users:
+    handler: adya.services.lambda.scan_handler.process_domain_users
+    events:
+      - http:
+          path: scan/domainusers
+          method: post
+          cors: true
+
+  get_domain_groups:
+    handler: adya.services.lambda.scan_handler.get_domain_groups
+    events:
+      - http:
+          path: scan/domaingroups
+          method: get
+          cors: true
+        
+  process_domain_groups:
+    handler: adya.services.lambda.scan_handler.process_domain_groups
+    events:
+      - http:
+          path: scan/domaingroups
+          method: post
+          cors: true
+
+  get_group_members:
+    handler: adya.services.lambda.scan_handler.get_group_members
+    events:
+      - http:
+          path: scan/groupmembers
+          method: get
+          cors: true
+        
+  process_group_members:
+    handler: adya.services.lambda.scan_handler.process_group_members
+    events:
+      - http:
+          path: scan/groupmembers
+          method: post
+          cors: true
+
