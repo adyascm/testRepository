@@ -1,6 +1,7 @@
 
 from flask_restful import Resource, reqparse, request
 from adya.controllers import domainDataController
+from adya.common.request_session import RequestSession
 
 class UserGroupTree(Resource):
     def get(self):

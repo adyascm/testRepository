@@ -1,6 +1,7 @@
 from adya.controllers import resourceController
 from flask_restful import Resource, reqparse, request
 from adya.common import utils
+from adya.common.request_session import RequestSession
 
 class GetResources(Resource):
     def post(Resource):

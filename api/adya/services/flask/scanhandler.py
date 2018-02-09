@@ -136,17 +136,17 @@ class GetGroupMembers(Resource):
 
         return req_session.generate_response(202)
         def post(self):
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId', 'groupKey'])
-        if req_error:
-            return req_error
+            req_session = RequestSession(request)
+            req_error = req_session.validate_authorized_request(
+                True, ['dataSourceId', 'domainId', 'groupKey'])
+            if req_error:
+                return req_error
 
-        data = utils.get_json_object(request.data)
-        domain_id = req_session.get_req_param('domainId')
-        datasource_id = req_session.get_req_param('dataSourceId')
-        group_key = req_session.get_req_param('groupKey')
-        member_response_data = data.get("membersResponseData")
+            data = utils.get_json_object(request.data)
+            domain_id = req_session.get_req_param('domainId')
+            datasource_id = req_session.get_req_param('dataSourceId')
+            group_key = req_session.get_req_param('groupKey')
+            member_response_data = data.get("membersResponseData")
 
-        scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
-        return req_session.generate_response(202)
+            scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
+            return req_session.generate_response(202)
