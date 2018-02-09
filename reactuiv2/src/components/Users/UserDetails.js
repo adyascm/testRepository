@@ -11,7 +11,7 @@ const UserDetails = props => {
                        {text:'Remove write access for all un-owned files'},
                        {text:'Make all owned files private'},
                        {text:'Watch all my actions'}],
-        parents: props.parents !== []?props.parents:['None']
+        parents: props.parents
     };
 
     let labels = state.parents.map((parent,index) => {

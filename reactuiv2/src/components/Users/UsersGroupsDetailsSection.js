@@ -14,7 +14,7 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     render() {
-        let parents = this.props.selectedUserParents !== undefined? this.props.selectedUserParents:[]
+        let parents = (this.props.selectedUserParents !== undefined)&&(this.props.selectedUserParents.length !== 0)? this.props.selectedUserParents:['None']
 
         let user = this.props.rowData? this.props.rowData["firstName"]?this.props.rowData["firstName"]+" "+this.props.rowData["lastName"]
                     : this.props.rowData["name"] : null
