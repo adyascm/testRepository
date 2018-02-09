@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 
@@ -127,7 +127,7 @@ class Report(Base):
     report_id = Column(String(36), primary_key=True)
     name = Column(String(255))
     description = Column(String(320))
-    config = Column(String(4000))
+    config = Column(Text)
     frequency = Column(String(320))
     receivers = Column(String(320))
     creation_time = Column(DateTime)

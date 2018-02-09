@@ -21,6 +21,6 @@ class scheduled_report(Resource):
         if not auth_token:
             return {'message': 'Missing auth token'}, 400
         payload = request.get_json()
-        datasource = reports_controller.create_report(auth_token,payload)
+        report = reports_controller.create_report(auth_token,payload)
 
-        return datasource, 201
+        return report, 201

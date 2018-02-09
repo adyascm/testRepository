@@ -51,11 +51,11 @@ def create_report(auth_token, payload):
             report.name = payload["name"]
             if 'description' in payload:
                 report.description = payload["description"]
-            report.config = payload["config"]
+            report.config = json.dumps(payload["config"])
             report.frequency = payload["frequency"]
             report.receivers = payload["receivers"]
         report.creation_time = datetime.datetime.utcnow().isoformat()
-        report.is_active = True
+        report.is_active = payload["isactive"]
 
         session.add(report)
         try:

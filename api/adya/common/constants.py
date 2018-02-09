@@ -50,6 +50,8 @@ GET_RESOURCE_TREE_URL = API_HOST + GET_RESOURCE_TREE_PATH
 
 GET_DATASOURCE_PATH = '/datasources'
 
+GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
+
 def get_url_from_path(path):
     return API_HOST + path
 
