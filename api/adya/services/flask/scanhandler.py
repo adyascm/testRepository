@@ -13,8 +13,8 @@ class DriveResources(Resource):
         if req_error:
             return req_error
 
-        scan.get_resources(req_session.get_req_param(
-            'dataSourceId'), req_session.get_auth_token(), req_session.get_req_param('domainId'))
+        scan.get_resources(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param(
+            'dataSourceId'))
         return req_session.generate_response(202)
 
     def post(self):

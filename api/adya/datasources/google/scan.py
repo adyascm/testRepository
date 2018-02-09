@@ -213,9 +213,9 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group["email"] = groupemail
         group["name"] = group_data["name"]
         groups_db_insert_data_dic.append(group)
-        data["groupKey"] = groupemail
+        group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
-            session, url, auth_token)
+            session, group_url, auth_token)
 
     try:
         db_session = db_connection().get_session()
