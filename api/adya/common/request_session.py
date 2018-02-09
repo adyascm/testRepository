@@ -16,7 +16,7 @@ class RequestSession():
         try:
             ctx = self.req['requestContext']
             self.isLocal = False
-        except Exception as ex::
+        except Exception as ex:
             self.isLocal = True
         
         if self.isLocal is False:
@@ -71,7 +71,7 @@ class RequestSession():
 
     def generate_response(self, http_code, payload):
         if self.isLocal:
-            return payload, http_code
+            return json.loads(payload), http_code
         else:
             return {
                 "statusCode": http_code,

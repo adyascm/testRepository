@@ -18,7 +18,7 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                usersTree: JSON.parse(action.payload)
+                usersTree: action.payload
             }
         case USERS_TREE_SET_ROW_DATA:
             return {
