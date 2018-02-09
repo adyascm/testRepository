@@ -15,6 +15,8 @@ import {
 } from '../../constants/actionTypes';
 import ResourcePermissions from './ResourcePermissions';
 
+import agent from '../../utils/agent';
+
 const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser
@@ -156,6 +158,11 @@ class Users extends Component {
 
     params.api.sizeColumnsToFit();
   }
+
+  componentWillMount() {
+    console.log("resources tree : ", agent.Resources.getResourcesTree())
+  }
+
   render() {
     let containerStyle = {
       height: 450

@@ -53,4 +53,9 @@ const Users = {
         requests.get('/getusergrouptree')
 }
 
-export default { Auth, Setting, Dashboard, Users, setToken: _token => { token = _token; } };
+const Resources = {
+    getResourcesTree: () =>
+        requests.get('/getresourcetree')
+}
+
+export default { Auth, Setting, Dashboard, Users, Resources, setToken: _token => { token = _token; } };
