@@ -27,7 +27,6 @@ api.add_resource(google_oauth_callback, constants.GOOGLE_OAUTHCALLBACK_PATH)
 
 api.add_resource(get_user_session, '/user')
 api.add_resource(reports_handler.dashboard_widget, '/widgets')
-api.add_resource(reports_handler.scheduled_report, '/reports')
 ## routes for scan user data for getting file meta data for each user and get user and group
 ## meta data for a domain
 api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES_PATH)
