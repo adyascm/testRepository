@@ -87,7 +87,7 @@ def check_if_user_isamdin(credentials,emailid):
     try:
         directory_service = get_directory_service(credentials)
         users = directory_service.users().get(userKey=emailid)
-        return true;
+        return True
     except Exception as ex:
         print ex
     return False
