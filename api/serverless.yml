@@ -70,7 +70,7 @@ custom:
 
 functions:
   googleoauthrequet:
-    handler: adya.services.lambda.auth.handler.google_oauth_request
+    handler: adya.services.lambda.auth_handler.google_oauth_request
     events:
       - http:
           path: googleoauthlogin
@@ -104,6 +104,22 @@ functions:
     events:
       - http:
           path: datasources
+          method: post
+          cors: true
+
+  getwidgetdata:
+    handler: adya.services.lambda.reports_handler.get_widget_data
+    events:
+      - http:
+          path: widgets
+          method: get
+          cors: true
+
+  postscheduledreport:
+    handler: adya.services.lambda.reports_handler.post_scheduled_report
+    events:
+      - http:
+          path: reports
           method: post
           cors: true
 

@@ -14,10 +14,12 @@ class RequestSession():
         #Validate the flask request
         params_dict = {}
         if type(self.req) is type(request):
+            print("Request is understood as a flask request")
             self.auth_token = self.req.headers.get('Authorization')
             params_dict = self.req.args
         #Validate the lambda event object
         else:
+            print("Request is understood as a lambda request")
             self.isLocal = False
             self.auth_token = self.req["headers"]["Authorization"]
             params_dict = self.req["queryStringParameters"]
