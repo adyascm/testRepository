@@ -16,7 +16,7 @@ class RequestSession():
         if self.req['requestContext'] and self.req['requestContext']['accountId']:
             print("Request is understood as a lambda request")
             self.isLocal = False
-            self.auth_token = self.req["headers"]["Authorization"]
+            self.auth_token = self.req["headers"].get("Authorization")
             params_dict = self.req["queryStringParameters"]
         #Validate the lambda event object
         else:
