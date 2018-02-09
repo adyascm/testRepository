@@ -13,7 +13,13 @@ class RequestSession():
     def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
         #Validate the flask request
         params_dict = {}
-        if self.req['requestContext'] and self.req['requestContext']['accountId']:
+        try:
+            ctx = self.req['requestContext']
+            self.isLocal = False
+        except Exception as ex:
+            self.isLocal = True
+        
+        if self.isLocal is False:
             print("Request is understood as a lambda request")
             self.isLocal = False
             self.auth_token = self.req["headers"].get("Authorization")
@@ -65,7 +71,7 @@ class RequestSession():
 
     def generate_response(self, http_code, payload):
         if self.isLocal:
-            return payload, http_code
+            return json.loads(payload), http_code
         else:
             return {
                 "statusCode": http_code,

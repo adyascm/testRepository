@@ -12,6 +12,7 @@ const responseBody = res => res.body;
 
 let token = null;
 const tokenPlugin = req => {
+    req.set('Content-Type', 'application/json');
     if (token) {
         req.set('authorization', `${token}`);
     }
