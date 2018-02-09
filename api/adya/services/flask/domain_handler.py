@@ -1,5 +1,4 @@
-from flask import json
-from flask_restful import Resource, reqparse, request
+from flask_restful import Resource, request
 from adya.common.request_session import RequestSession
 from adya.controllers import domain_controller
 
