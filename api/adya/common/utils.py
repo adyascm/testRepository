@@ -1,14 +1,19 @@
 import json
 from adya.db.models import AlchemyEncoder, LoginUser, DataSource
+from adya.common.constants import API_HOST
 
 
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
+    if not url.startswith('http'):
+        url = API_HOST + url
     session.get(url=url, headers=headers)
 
 
 def post_call_with_authorization_header(session, url, auth_token, data):
     headers = {"Authorization": auth_token}
+    if not url.startswith('http'):
+        url = API_HOST + url
     session.post(url=url, data=json.dumps(data), headers=headers)
 
 
@@ -24,3 +29,6 @@ def get_domain_id(db_session, auth_token):
         LoginUser.auth_token == auth_token).first()
     domain_id = existing_user.domain_id
     return domain_id
+
+def get_json_object(payload):
+    return json.loads(payload)

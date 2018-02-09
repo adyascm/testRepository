@@ -58,7 +58,7 @@ class RequestSession():
 
     def generate_redirect_response(self, location):
         if self.isLocal:
-            return {'location': location}, 301, {'location': location, 'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'}
+            return {'location': location}, 301, {'location': location}
         else:
             return {
                 "statusCode": 301,
@@ -70,9 +70,9 @@ class RequestSession():
         json_layload = json.loads(json_string_layload)
         return self.generate_response(http_code, json_layload)
 
-    def generate_response(self, http_code, payload):
+    def generate_response(self, http_code, payload = None):
         if self.isLocal:
-            return payload, http_code, {'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'}
+            return payload, http_code
         else:
             return {
                 "statusCode": http_code,
