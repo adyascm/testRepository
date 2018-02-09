@@ -235,10 +235,10 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
             groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
             groupMember = groupmemberresponse.get("members")
             if groupMember:
-                data = {"membersResponseData": groupMember, "groupKey": group_key,
-                        "dataSourceId": datasource_id, "auth_token": auth_token, "domainId": domain_id}
-                utils.post_call_with_authorization_header(
-                    session, constants.PROCESS_GROUP_MEMBER_DATA_URL, auth_token, data)
+                data = {"membersResponseData": groupMember}
+                url = constants.GET_GROUP_MEMBERS_URL + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
+                utils.post_call_with_authorization_header(session, url, auth_token, data)
             else:
                 update_and_get_count(
                     datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
@@ -251,8 +251,9 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
                             "domainId": domain_id,
                             "groupKey": group_key,
                             "nextPageToken": next_page_token}
-                    utils.post_call_with_authorization_header(session, constants.GET_GROUP_MEMBERS_URL,
-                                                              auth_token, data)
+                    url = constants.GET_GROUP_MEMBERS_URL + "?domainId=" + \
+                        domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
+                    utils.get_call_with_authorization_header(session, url, auth_token, data)
                     break
             else:
                 break

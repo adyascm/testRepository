@@ -119,33 +119,34 @@ class GetDomainGroups(Resource):
         return req_session.generate_response(202)
 
 
-class getGroupMembers(Resource):
-    def post(self):
+class GetGroupMembers(Resource):
+    def get(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'])
+            True, ['dataSourceId', 'domainId','groupKey'],['nextPageToken'])
         if req_error:
             return req_error
 
-        data = json.loads(request.data)
-        group_key = data.get('groupKey')
-        next_page_token = data.get('nextPageToken')
-        scan.getGroupsMember(group_key, req_session.get_auth_token(), req_session.get_req_param(
-            'dataSourceId'), req_session.get_req_param('domainId'), next_page_token)
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        group_key = req_session.get_req_param('groupKey')
+        next_page_token = req_session.get_req_param('nextPageToken')
+        auth_token = req_session.get_auth_token()
+        scan.getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token)
+
         return req_session.generate_response(202)
-
-
-class processGroupMembers(Resource):
-    def post(self):
+        def post(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId', 'groupKey'])
         if req_error:
             return req_error
 
-        data = json.loads(request.data)
-        group_key = data.get("groupKey")
+        data = utils.get_json_object(request.data)
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        group_key = req_session.get_req_param('groupKey')
         member_response_data = data.get("membersResponseData")
-        scan.processGroupMembers(eq_session.get_req_param('groupKey'), member_response_data, req_session.get_req_param(
-            'dataSourceId'), req_session.get_req_param('domainId'))
+
+        scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
         return req_session.generate_response(202)
