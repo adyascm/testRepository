@@ -84,23 +84,23 @@ class GetDomainuser(Resource):
         return req_session.generate_response(202)
 
 
-class getdomainGroups(Resource):
-    def post(self):
+class GetDomainGroups(Resource):
+    def get(self):
         print("Getting domain groups")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'])
+            True, ['dataSourceId', 'domainId'],["nextPageToken"])
         if req_error:
             return req_error
 
-        data = json.loads(request.data)
-        next_page_token = data.get("nextPageToken")
-        scan.getDomainGroups(req_session.get_req_param('dataSourceId'), req_session.get_auth_token(
-        ), req_session.get_req_param('domainId'), next_page_token)
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        next_page_token = req_session.get_req_param('nextPageToken')
+        auth_token =  req_session.get_auth_token()
+
+        scan.getDomainGroups(datasource_id, auth_token , domain_id, next_page_token)
         return req_session.generate_response(202)
 
-
-class processGroups(Resource):
     def post(self):
         print("Process groups data")
         req_session = RequestSession(request)
@@ -108,11 +108,14 @@ class processGroups(Resource):
             True, ['dataSourceId', 'domainId'])
         if req_error:
             return req_error
-
-        data = json.loads(request.data)
+    
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        auth_token = req_session.get_auth_token()
+        data = utils.get_json_object(request.data)
         group_response_data = data.get("groupsResponseData")
-        scan.processGroups(group_response_data, req_session.get_req_param(
-            'dataSourceId'), req_session.get_req_param('domainId'), req_session.get_auth_token())
+
+        scan.processGroups(group_response_data, datasource_id ,domain_id, auth_token)
         return req_session.generate_response(202)
 
 

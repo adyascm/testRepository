@@ -34,8 +34,8 @@ api.add_resource(scanhandler.GetPermission, constants.GET_PERMISSION_PATH)
 
 api.add_resource(scanhandler.GetDomainuser, constants.GET_DOMAIN_USER_PATH)
 
-api.add_resource(scanhandler.getdomainGroups, constants.GET_DOMAIN_GROUP_PATH)
-api.add_resource(scanhandler.processGroups,constants.PROCESS_GROUP_PATH)
+api.add_resource(scanhandler.GetDomainGroups, constants.GET_DOMAIN_GROUP_PATH)
+
 api.add_resource(scanhandler.getGroupMembers, constants.GET_GROUP_MEMBERS_PATH)
 api.add_resource(scanhandler.processGroupMembers,constants.PROCESS_GROUP_MEMBER_PATH)
 

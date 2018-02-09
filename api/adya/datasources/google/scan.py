@@ -175,11 +175,11 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             group_count = len(results["groups"])
             update_and_get_count(
                 datasource_id, DataSource.group_count, group_count, False)
-            data = {"groupsResponseData": results["groups"],
-                    "dataSourceId": datasource_id, "domainId": domain_id}
+            data = {"groupsResponseData": results["groups"]}
 
-            utils.post_call_with_authorization_header(
-                session, constants.PROCESS_GROUP_DATA_URL, auth_token, data)
+            url = constants.GET_GROUP_URL + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id
+            utils.post_call_with_authorization_header(session, url, auth_token, data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -187,8 +187,9 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                     data = {"dataSourceId": datasource_id,
                             "domainId": domain_id,
                             "nextPageToken": next_page_token}
-                    utils.post_call_with_authorization_header(
-                        session, constants.GDRIVE_SCAN_URL, auth_token, data)
+                    url = constants.GET_GROUP_URL + "?domainId=" + \
+                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
+                    utils.get_call_with_authorization_header(session, url, auth_token)
                     break
             else:
                 break
