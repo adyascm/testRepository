@@ -59,3 +59,9 @@ const Resources = {
 }
 
 export default { Auth, Setting, Dashboard, Users, Resources, setToken: _token => { token = _token; } };
+const Scheduled_Report = {
+   createReport: (report) =>
+     requests.post('/scheduledreport', report)
+}
+
+export default { Auth, Setting, Dashboard, Users, Scheduled_Report, setToken: _token => { token = _token; } };

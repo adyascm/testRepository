@@ -23,3 +23,4 @@ class scheduled_report(Resource):
 
         report = reports_controller.create_report(req_session.get_auth_token(),req_session.get_body())
         return req_session.generate_sqlalchemy_response(201, report)
+
