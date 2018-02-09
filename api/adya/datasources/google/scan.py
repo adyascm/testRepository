@@ -203,7 +203,8 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     groups_db_insert_data_dic = []
     session = FuturesSession()
 
-    data = {"domainId": domain_id, "dataSourceId": datasource_id}
+    url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id
     for group_data in groups_data:
         group = {}
         group["domain_id"] = domain_id
@@ -213,8 +214,8 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group["name"] = group_data["name"]
         groups_db_insert_data_dic.append(group)
         data["groupKey"] = groupemail
-        utils.post_call_with_authorization_header(
-            session, constants.SCAN_GROUP_MEMBERS, auth_token, data)
+        utils.get_call_with_authorization_header(
+            session, url, auth_token)
 
     try:
         db_session = db_connection().get_session()
@@ -247,13 +248,9 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    data = {"dataSourceId": datasource_id,
-                            "domainId": domain_id,
-                            "groupKey": group_key,
-                            "nextPageToken": next_page_token}
                     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token, data)
+                    utils.get_call_with_authorization_header(session, url, auth_token)
                     break
             else:
                 break

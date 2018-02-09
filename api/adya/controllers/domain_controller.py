@@ -75,11 +75,11 @@ def create_domain(domain_id, domain_name):
 
 
 def start_scan(auth_token, domain_id, datasource_id):
-    data = {"domainId": domain_id, "dataSourceId": datasource_id}
+    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
     session = FuturesSession()
-    utils.post_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS,auth_token=auth_token, data=data)
-    utils.post_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS,auth_token=auth_token, data=data)
-    utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES,auth_token=auth_token, data=data)
+    utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
+    utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
+    utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
 
 
 
