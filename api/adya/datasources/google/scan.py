@@ -111,23 +111,21 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             results = directory_service.users().list(customer='my_customer', maxResults=500, pageToken=next_page_token,
                                                      orderBy='email').execute()
 
-            data = {"usersResponseData": results["users"],
-                    "dataSourceId": datasource_id, "domainId": domain_id}
+            data = {"usersResponseData": results["users"]}
             user_count = len(results["users"])
             # no need to send user count to ui , so passing send_message flag as false
             update_and_get_count(
                 datasource_id, DataSource.user_count, user_count, False)
-            session.post(url=constants.PROCESS_USERS_DATA_URL,
-                         data=json.dumps(data))
+            url = constants.GET_DOMAIN_USER_URL + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id
+            utils.post_call_with_authorization_header(session,url,auth_token,data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    data = {"dataSourceId": datasource_id,
-                            "domainId": domain_id,
-                            "nextPageToken": next_page_token}
-                    utils.post_call_with_authorization_header(
-                        session, constants.GDRIVE_SCAN_URL, auth_token, data)
+                    url = constants.SCAN_RESOURCES + "?domainId=" + \
+                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
+                    utils.get_call_with_authorization_header(session, url, auth_token)
                     break
             else:
                 update_and_get_count(

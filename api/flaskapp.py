@@ -32,8 +32,7 @@ api.add_resource(reports_handler.scheduled_report, '/reports')
 api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES_PATH)
 api.add_resource(scanhandler.GetPermission, constants.GET_PERMISSION_PATH)
 
-api.add_resource(scanhandler.getdomainuser, constants.GET_DOMAIN_USER_PATH)
-api.add_resource(scanhandler.processUsers, constants.PROCESS_USERS_PATH)
+api.add_resource(scanhandler.GetDomainuser, constants.GET_DOMAIN_USER_PATH)
 
 api.add_resource(scanhandler.getdomainGroups, constants.GET_DOMAIN_GROUP_PATH)
 api.add_resource(scanhandler.processGroups,constants.PROCESS_GROUP_PATH)
