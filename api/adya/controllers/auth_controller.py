@@ -12,7 +12,7 @@ def get_user_session(auth_token):
         return None
     session = db_connection().get_session()
     user = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
-    return utils.get_response_json(user)
+    return user
 
 def get_user(email, session=None):
     if not session:

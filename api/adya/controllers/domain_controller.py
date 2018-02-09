@@ -8,7 +8,7 @@ from requests_futures.sessions import FuturesSession
 from adya.common import constants,utils
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain
-
+from adya.datasources.google import gutils
 
 
 def get_datasource(auth_token, datasource_id):
@@ -20,7 +20,7 @@ def get_datasource(auth_token, datasource_id):
         datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
 
-    return utils.get_response_json(datasources)
+    return datasources
 
 
 def update_datasource(datasource_id, column_name, column_value):
@@ -49,13 +49,14 @@ def create_datasource(auth_token, payload):
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
+        datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
         session.add(datasource)
         try:
             session.commit()
         except Exception as ex:
             print (ex)
         start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
-        return utils.get_response_json(datasource)
+        return datasource
     else:
         return None
 
@@ -78,7 +79,7 @@ def start_scan(auth_token, domain_id, datasource_id):
     session = FuturesSession()
     utils.post_call_with_authorization_header(session,url=constants.GET_DOMAIN_USER_URL,auth_token=auth_token, data=data)
     utils.post_call_with_authorization_header(session,url=constants.GET_GROUP_URL,auth_token=auth_token, data=data)
-    utils.post_call_with_authorization_header(session,url=constants.INITIAL_GDRIVE_SCAN,auth_token=auth_token, data=data)
+    utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES,auth_token=auth_token, data=data)
 
 
 

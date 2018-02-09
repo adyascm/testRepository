@@ -3,42 +3,63 @@ from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,Reso
 from sqlalchemy import and_
 import json
 from adya.common import utils
+from sets import Set
 
-def get_resource_tree(auth_token, parent_id):
+def get_resource_tree(auth_token, parent_id,emailList=None):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
-    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
-    domain_id = existing_user.domain_id
-    datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == domain_id).all()
-
+    domain_id,datasource_id_list_data = utils.get_domain_id_and_datasource_id_list(db_session,auth_token)
     resources_tree ={}
     for datasource in datasource_id_list_data:
         datasource_id = datasource.datasource_id
-        resources,resource_id_array = get_resource(db_session,domain_id,datasource_id,parent_id)
-        query =  db_session.query(ResourcePermission).filter( and_(ResourcePermission.domain_id == domain_id,
-                                                  Resource.resource_id.in_(resource_id_array)))
-        permissions_query_data = db_session.query(ResourcePermission).filter( and_(ResourcePermission.domain_id == domain_id,
-                                                  ResourcePermission.resource_id.in_(resource_id_array))).all()
+        resources = []
+        if emailList:
+            resource_permissions_query_data=None
+            if not parent_id:
+                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                                        and_(ResourcePermission.resource_id == Resource.resource_id,
+                                        ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, Resource.resource_type =='folder',
+                                        ResourcePermission.email.in_(emailList))).all()
+            else:
+                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                                        and_(ResourcePermission.resource_id == Resource.resource_id,
+                                        ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, Resource.resource_type =='folder',
+                                        ResourcePermission.email.in_(emailList),Resource.resource_parent_id == parent_id)).all()
+            resource_id_set = Set()
+            for row in resource_permissions_query_data:
+                resource_id_set.add(row.Resource.resource_id)
+            resource_data =[]
+            for row in resource_permissions_query_data:
+                if (row.Resource.resource_parent_id != None and not row.Resource.resource_parent_id in resource_id_set) \
+                    or row.Resource.resource_parent_id == None :
+                    resources.append(row)
+        else:
+            resources = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                                    and_(ResourcePermission.resource_id == Resource.resource_id,
+                                    ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, 
+                                    Resource.resource_type =='folder',Resource.resource_parent_id == parent_id)).all()
         
-        for permission in permissions_query_data:
-            permissionobject = {"permissionId":permission.permission_id,"pemrissionEmail":permission.email,"permissionType":permission.permission_type}
-            resources[permission.resource_id]["permissions"].append(permissionobject)
-        resources_tree[datasource_id] = resources
-    return utils.get_response_json(resources_tree)
+        responsedata ={}
+        for resource in resources:
+            permissionobject = {
+                                    "permissionId":resource.ResourcePermission.permission_id,
+                                    "pemrissionEmail":resource.ResourcePermission.email,
+                                    "permissionType":resource.ResourcePermission.permission_type
+                               }
 
-def get_resource(db_session,domain_id,datasource_id,parent_id):
-    resources ={}
-    resources_querydata = db_session.query(Resource).filter( and_(Resource.domain_id == domain_id,
-                                                                Resource.datasource_id == datasource_id,
-                                                                Resource.resource_parent_id == parent_id)).all()
-    resource_id_array =[]
-    for resource in resources_querydata:
-        resources[resource.resource_id] = {"resourceName":resource.resource_name,"resourceType":resource.resource_type,
-                                           "resourceOwnerId":resource.resource_owner_id,"exposureType":resource.exposure_type,"permissions":[]}
-        resource_id_array.append(resource.resource_id)
-    return resources,resource_id_array
-
+            if not resource.Resource.resource_id in responsedata:
+                responsedata[resource.Resource.resource_id] = {
+                    "resourceName":resource.Resource.resource_name,
+                    "resourceType":resource.Resource.resource_type,
+                    "resourceOwnerId":resource.Resource.resource_owner_id,
+                    "exposureType":resource.Resource.exposure_type,
+                    "permissions":[permissionobject]
+                }
+            else:
+                responsedata[resource.Resource.resource_id]["permissions"].append(permissionobject)
+        resources_tree[datasource_id] = responsedata
+    return resources_tree
 
 
 

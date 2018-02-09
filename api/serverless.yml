@@ -70,21 +70,21 @@ custom:
 
 functions:
   googleoauthrequet:
-    handler: adya.services.lambda.auth.handler.google_oauth_request
+    handler: adya.services.lambda.auth_handler.google_oauth_request
     events:
       - http:
           path: googleoauthlogin
           method: get
 
   googleoauthcallback:
-    handler: adya.services.lambda.auth.handler.google_oauth_callback
+    handler: adya.services.lambda.auth_handler.google_oauth_callback
     events:
       - http:
           path: googleoauthcallback
           method: get
 
   currentuser:
-    handler: adya.services.lambda.auth.handler.current_user
+    handler: adya.services.lambda.auth_handler.current_user
     events:
       - http:
           path: user
@@ -92,7 +92,7 @@ functions:
           cors: true
 
   getdatasource:
-    handler: adya.services.lambda.domain.handler.get_datasource
+    handler: adya.services.lambda.domain_handler.get_datasource
     events:
       - http:
           path: datasources
@@ -100,10 +100,26 @@ functions:
           cors: true
 
   postdatasource:
-    handler: adya.services.lambda.domain.handler.post_datasource
+    handler: adya.services.lambda.domain_handler.post_datasource
     events:
       - http:
           path: datasources
+          method: post
+          cors: true
+
+  getwidgetdata:
+    handler: adya.services.lambda.reports_handler.get_widget_data
+    events:
+      - http:
+          path: widgets
+          method: get
+          cors: true
+
+  postscheduledreport:
+    handler: adya.services.lambda.reports_handler.post_scheduled_report
+    events:
+      - http:
+          path: reports
           method: post
           cors: true
 

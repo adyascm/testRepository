@@ -27,6 +27,8 @@ wheels/
 *.egg
 node_modules/
 db_config.py
+.DS_Store
+.vscode
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -111,3 +113,6 @@ service_account.json
 #Serverless
 .serverless/*
 api/.serverless/*
+
+#Setting file
+api/.vscode

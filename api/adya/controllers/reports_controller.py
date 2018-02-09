@@ -62,6 +62,6 @@ def create_report(auth_token, payload):
             session.commit()
         except Exception as ex:
             print (ex)
-        return utils.get_response_json(report)
+        return report
     else:
         return None

@@ -11,7 +11,7 @@ def get_user_group_tree(auth_token):
     user_domain_id = existing_user.domain_id
     datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
 
-    userGrouptrees ={}
+    #userGrouptrees ={}
 
     for datasource in datasource_id_list_data:
         datasource_id = datasource.datasource_id
@@ -28,8 +28,8 @@ def get_user_group_tree(auth_token):
             if child_email in users_groups:
                 users_groups[child_email]["parents"].append(parent_email)
                 users_groups[parent_email]["children"].append(child_email)
-        userGrouptrees[datasource_id] = users_groups
-    return utils.get_response_json(userGrouptrees)
+        #userGrouptrees[datasource_id] = users_groups
+    return users_groups
 
 
 def getUsersData(users_groups,db_session, domain_id, datasource_id):

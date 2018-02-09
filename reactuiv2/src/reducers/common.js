@@ -22,7 +22,7 @@ export default (state = defaultState, action) => {
         ...state,
         token: action.token || null,
         appLoaded: true,
-        currentUser: action.error ? null : JSON.parse(action.payload)
+        currentUser: action.error ? null : action.payload
       };
     case REDIRECT:
       return { ...state, redirectTo: null };
@@ -33,7 +33,7 @@ export default (state = defaultState, action) => {
         ...state,
         redirectTo: action.error ? null : '/dashboard',
         token: action.error ? null : action.token,
-        currentUser: action.error ? null : JSON.parse(action.payload)
+        currentUser: action.error ? null : action.payload
       };
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
@@ -41,12 +41,12 @@ export default (state = defaultState, action) => {
     case SET_DATASOURCES:
       return{
         ...state,
-        datasources: JSON.parse(action.payload)
+        datasources: action.payload
       };
       case CREATE_DATASOURCE:
       return{
         ...state,
-        datasources: state.datasources.concat(JSON.parse(action.payload))
+        datasources: state.datasources.concat(action.payload)
       };
     default:
       return state;

@@ -4,7 +4,6 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { Grid, Image, Tab, Container } from 'semantic-ui-react'
-import { Grid as TreeGrid } from 'react-redux-grid';
 
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
@@ -165,7 +164,6 @@ class Users extends Component {
       <Grid stretched celled='internally'>
         <Grid.Row>
           <Grid.Column width={7}>
-            {/* <TreeGrid { ...this.treeConfig } data={this.treeData}/> */}
             <div className="ag-theme-fresh">
               <AgGridReact
                 id="myGrid" domLayout="autoHeight"
@@ -178,9 +176,9 @@ class Users extends Component {
             </div>
           </Grid.Column>
           <Grid.Column width={9}>
-          <Container fluid >
-          <Tab menu={{ secondary: true, pointing: true }} panes={this.panes} />
-</Container>
+            <Container fluid >
+                <Tab menu={{ secondary: true, pointing: true }} panes={this.panes} />
+            </Container>
           </Grid.Column>
         </Grid.Row>
       </Grid>

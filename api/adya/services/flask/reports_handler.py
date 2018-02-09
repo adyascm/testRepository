@@ -1,26 +1,26 @@
-import urlparse
-
-from flask_restful import Resource, reqparse, request
+from flask_restful import Resource, request
 from adya.controllers import reports_controller
+from adya.common.request_session import RequestSession
 
 
 class dashboard_widget(Resource):
     def get(self):
-        req = request
-        auth_token = req.headers.get('Authorization')
-        if not auth_token:
-            return {'message': 'Missing auth token'}, 400
-        widget_id = request.args["widgetId"]
-        data = reports_controller.get_widget_data(auth_token, widget_id)
-        return data, 200
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(True, ['widgetId'])
+        if req_error:
+            return req_error
+            
+        data = reports_controller.get_widget_data(req_session.get_auth_token(), req_session.get_req_param('widgetId'))
+        return req_session.generate_sqlalchemy_response(200, data)
 
 
 class scheduled_report(Resource):
     def post(self):
-        auth_token = request.headers.get('Authorization')
-        if not auth_token:
-            return {'message': 'Missing auth token'}, 400
-        payload = request.get_json()
-        report = reports_controller.create_report(auth_token,payload)
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request()
+        if req_error:
+            return req_error
 
-        return report, 201
+        report = reports_controller.create_report(req_session.get_auth_token(),req_session.get_body())
+        return req_session.generate_sqlalchemy_response(201, report)
+
