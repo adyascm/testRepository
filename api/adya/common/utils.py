@@ -5,14 +5,14 @@ from adya.common.constants import API_HOST
 
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
-    if not url.startswith('http')
+    if not url.startswith('http'):
         url = API_HOST + url
     session.get(url=url, headers=headers)
 
 
 def post_call_with_authorization_header(session, url, auth_token, data):
     headers = {"Authorization": auth_token}
-    if not url.startswith('http')
+    if not url.startswith('http'):
         url = API_HOST + url
     session.post(url=url, data=json.dumps(data), headers=headers)
 
