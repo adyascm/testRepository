@@ -159,9 +159,9 @@ class Users extends Component {
     params.api.sizeColumnsToFit();
   }
 
-  componentWillMount() {
-    console.log("resources tree : ", agent.Resources.getResourcesTree())
-  }
+//   componentWillMount() {
+//     console.log("resources tree : ", agent.Resources.getResourcesTree())
+//   }
 
   render() {
     let containerStyle = {
