@@ -5,8 +5,10 @@ import json
 
 class UserGroupTree(Resource):
     def get(self):
-        auth_token = request.headers.get('Authorization')
-        if not auth_token:
-            return {'message': 'Missing auth token'}, 400
-        datasources = domainDataController.get_user_group_tree(auth_token)
-        return datasources, 200
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request()
+        if req_error:
+            return req_error
+        auth_token = req_session.get_auth_token()
+        user_group_tree = domainDataController.get_user_group_tree(auth_token)
+        return req_session.generate_sqlalchemy_response(200, user_group_tree)
