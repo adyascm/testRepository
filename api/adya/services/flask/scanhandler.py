@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse, request
 from adya.datasources.google import scan, permission
-import json
+from adya.common import utils
 from adya.common.request_session import RequestSession
 
 
@@ -30,7 +30,7 @@ class DriveResources(Resource):
         return req_session.generate_response(202)
 
 
-class getPermission(Resource):
+class GetPermission(Resource):
     def post(self):
         print "Getting Permission Data"
         req_session = RequestSession(request)
@@ -39,11 +39,12 @@ class getPermission(Resource):
         if req_error:
             return req_error
 
-        requestdata = json.loads(request.data)
+        requestdata = utils.get_json_object(request.data)
         fileIds = requestdata['fileIds']
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
         ## creating the instance of scan_permission class
-        scan_permisssion_obj = permission.GetPermission(req_session.get_req_param(
-            'domainId'), req_session.get_req_param('dataSourceId'), fileIds)
+        scan_permisssion_obj = permission.GetPermission(domain_id, datasource_id , fileIds)
         ## calling get permission api
         scan_permisssion_obj.get_permission()
         return req_session.generate_response(202)

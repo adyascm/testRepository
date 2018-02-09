@@ -90,12 +90,12 @@ def process_resource_data(domain_id, datasource_id, resources):
 
 
 def get_permission_for_fileId(batch_request_file_id_list, domain_id, datasource_id, session):
-    requestdata = {"fileIds": batch_request_file_id_list,
-                   "domainId": domain_id, "dataSourceId": datasource_id}
-    session.post(constants.GET_PERMISSION_URL, json.dumps(requestdata))
+    requestdata = {"fileIds": batch_request_file_id_list}
+    url = constants.GET_PERMISSION_URL + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id
+    session.post(url, json.dumps(requestdata))
     proccessed_file_count = len(batch_request_file_id_list)
-    update_and_get_count(
-        datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
+    update_and_get_count(datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
 
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):

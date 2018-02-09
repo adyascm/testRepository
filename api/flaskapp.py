@@ -30,7 +30,7 @@ api.add_resource(reports_handler.scheduled_report, '/reports')
 ## routes for scan user data for getting file meta data for each user and get user and group
 ## meta data for a domain
 api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES_PATH)
-api.add_resource(scanhandler.getPermission, constants.GET_PERMISSION_PATH)
+api.add_resource(scanhandler.GetPermission, constants.GET_PERMISSION_PATH)
 
 api.add_resource(scanhandler.getdomainuser, constants.GET_DOMAIN_USER_PATH)
 api.add_resource(scanhandler.processUsers, constants.PROCESS_USERS_PATH)
