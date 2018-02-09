@@ -17,33 +17,23 @@ OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 
-SCAN_RESOURCES_PATH = "/scan/resources"
-SCAN_RESOURCES = API_HOST + SCAN_RESOURCES_PATH
+SCAN_RESOURCES = "/scan/resources"
 
-GET_PERMISSION_PATH = "/scan/permisssions"
-GET_PERMISSION_URL = API_HOST + GET_PERMISSION_PATH
+SCAN_PERMISSIONS = "/scan/permisssions"
 
-GET_DOMAIN_USER_PATH = "/scan/getdomainusers"
-GET_DOMAIN_USER_URL = API_HOST + GET_DOMAIN_USER_PATH
+SCAN_DOMAIN_USERS = "/scan/domainusers"
 
-GET_DOMAIN_GROUP_PATH = "/scan/getdomaingroups"
-GET_GROUP_URL = API_HOST + GET_DOMAIN_GROUP_PATH
+SCAN_DOMAIN_GROUPS = "/scan/domaingroups"
 
-GET_GROUP_MEMBERS_PATH = "/scan/getgroupmembers"
-GET_GROUP_MEMBERS_URL = API_HOST + GET_GROUP_MEMBERS_PATH
+SCAN_GROUP_MEMBERS = "/scan/groupmembers"
 
 GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
-GET_USER_GROUP_TREE_URL = API_HOST + GET_USER_GROUP_TREE_PATH
 
 GET_RESOURCE_TREE_PATH = "/getresourcetree"
-GET_RESOURCE_TREE_URL = API_HOST + GET_RESOURCE_TREE_PATH
 
 GET_DATASOURCE_PATH = '/datasources'
 
 GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
-
-def get_url_from_path(path):
-    return API_HOST + path
 
 
 class ResourceExposureType(Enum):
