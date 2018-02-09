@@ -58,7 +58,7 @@ class RequestSession():
 
     def generate_redirect_response(self, location):
         if self.isLocal:
-            return {'location': location}, 301, {'location': location}
+            return {'location': location}, 301, {'location': location, 'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'}
         else:
             return {
                 "statusCode": 301,
@@ -66,12 +66,13 @@ class RequestSession():
             }
 
     def generate_sqlalchemy_response(self, http_code, payload):
-        json_layload = json.dumps(payload, cls=AlchemyEncoder)
+        json_string_layload = json.dumps(payload, cls=AlchemyEncoder)
+        json_layload = json.loads(json_string_layload)
         return self.generate_response(http_code, json_layload)
 
     def generate_response(self, http_code, payload):
         if self.isLocal:
-            return json.loads(payload), http_code
+            return payload, http_code, {'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'}
         else:
             return {
                 "statusCode": http_code,
