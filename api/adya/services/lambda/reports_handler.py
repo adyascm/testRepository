@@ -1,5 +1,5 @@
 from adya.controllers import reports_controller
-from cloudwatch_event import create_cloudwatch_event
+from adya.common.cloudwatch_event import create_cloudwatch_event
 from adya.common.request_session import RequestSession
 
 
