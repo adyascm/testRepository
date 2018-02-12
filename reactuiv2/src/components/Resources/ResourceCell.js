@@ -6,10 +6,10 @@ class ResourceCell extends Component {
         super(props);
     }
     render() {
-        console.log("props in ResourceCell : ", this.props)
+        //console.log("props in ResourceCell : ", this.props)
         return (
             <span>
-                <Icon name='triangle right' onClick={() => this.props.cellExpand(this.props)} />
+                <Icon name='triangle right' onClick={() => this.props.cellExpanded(this.props)} />
                 {this.props.value}
             </span>
         )

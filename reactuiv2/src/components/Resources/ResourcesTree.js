@@ -22,7 +22,7 @@ class ResourcesTree extends Component {
     constructor(props) {
         super(props);
 
-        this.cellExpand = this.cellExpand.bind(this);
+        this.cellExpanded = this.cellExpanded.bind(this);
         
         this.state = {
             columnDefs: [
@@ -32,7 +32,7 @@ class ResourcesTree extends Component {
                   //cellRenderer: "agGroupCellRenderer",
                   cellRendererFramework: ResourceCell,
                   cellRendererParams: {
-                    cellExpand: this.cellExpand
+                    cellExpanded: this.cellExpanded
                   }
               },
               {
@@ -126,13 +126,9 @@ class ResourcesTree extends Component {
               }
           }
         };
-
-        // this.gridOptions = {
-        //     cellExpand: this.cellExpand
-        // }
     }
 
-    cellExpand(params) {
+    cellExpanded(params) {
         console.log("Cell expanded params: ", params)
         let parentId = params.data["group"]
         let expandedResource = agent.Resources.getResourcesTree(parentId)
@@ -150,7 +146,7 @@ class ResourcesTree extends Component {
     }
     
     componentWillMount() {
-        console.log("resources tree : ", agent.Resources.getResourcesTree(''))
+        console.log("resources tree : ", agent.Resources.getResourcesTree({}))
     }
 
     render() {
