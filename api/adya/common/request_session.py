@@ -54,7 +54,7 @@ class RequestSession():
             return self.req.get_json()
         else:
             if(self.req["body"]):
-                return self.req["body"]
+                return json.loads(self.req["body"])
             else:
                 return {}
 
