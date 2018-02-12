@@ -8,7 +8,9 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
 import ResourceCell from './ResourceCell';
-import {RESOURCES_PAGE_LOADED, RESOURCES_PAGE_LOAD_START} from '../../constants/actionTypes';
+import { RESOURCES_PAGE_LOADED, 
+         RESOURCES_PAGE_LOAD_START,
+         RESOURCES_TREE_SET_ROW_DATA } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
@@ -17,7 +19,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
    onLoadStart: () => dispatch({type:RESOURCES_PAGE_LOAD_START}),
-   onLoad: (payload) => dispatch({type:RESOURCES_PAGE_LOADED,payload})
+   onLoad: (payload) => dispatch({type:RESOURCES_PAGE_LOADED,payload}),
+   setRowData: (payload) => dispatch({type:RESOURCES_TREE_SET_ROW_DATA,payload})
 });
 
 class ResourcesTree extends Component {
@@ -25,7 +28,7 @@ class ResourcesTree extends Component {
         super(props);
 
         this.cellExpanded = this.cellExpanded.bind(this);
-        //this.getTreeRows = this.getTreeRows.bind(this);
+        this.onCellClicked = this.onCellClicked.bind(this);
         
         this.state = {
             resourceTree: '',
@@ -40,20 +43,17 @@ class ResourcesTree extends Component {
                     cellExpanded: this.cellExpanded
                   }
               }
-          ],
-          getNodeChildDetails: function getNodeChildDetails(rowItem) {
-              if (rowItem.participants) {
-                  return {
-                      group: true,
-                      expanded: false,
-                      children: rowItem.participants,
-                      key: rowItem.group
-                  };
-              } else {
-                  return null;
-              }
-          }
+          ]
         };
+
+        this.gridOptions = {
+            onRowClicked: this.onCellClicked
+        }
+    }
+
+    onCellClicked(params) {
+        console.log("cell data clicked: ", params)
+        this.props.setRowData(params.data)
     }
 
     cellExpanded(params) {
@@ -127,7 +127,7 @@ class ResourcesTree extends Component {
                 rowData={this.getTreeRows()}
                 getNodeChildDetails={this.state.getNodeChildDetails}
                 onGridReady={this.onGridReady.bind(this)}
-                //gridOptions={this.gridOptions}
+                gridOptions={this.gridOptions}
               />
             </div>
         )

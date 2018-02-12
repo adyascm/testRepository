@@ -1,7 +1,8 @@
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_UNLOADED,
-    RESOURCES_PAGE_LOAD_START
+    RESOURCES_PAGE_LOAD_START,
+    RESOURCES_TREE_SET_ROW_DATA
 } from '../constants/actionTypes';
 
 export default (state={},action) => {
@@ -16,6 +17,11 @@ export default (state={},action) => {
                 ...state,
                 isloading: false,
                 resourceTree: action.payload
+            }
+        case RESOURCES_TREE_SET_ROW_DATA:
+            return {
+                ...state,
+                rowData: action.payload
             }
         default:
             return state;

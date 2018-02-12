@@ -12,51 +12,43 @@ const ResourcePermissions = props => {
         {text:'Make this private'},
         {text:'Watch all actions on this file'}]
     };
-    const onGridReady = (params) => {
-        this.gridApi = params.api;
-        this.gridColumnApi = params.columnApi;
 
-        params.api.sizeColumnsToFit();
+    if (props.rowData)
+        console.log("props rowdata : ", props.rowData.permissions)
+    
+    let permissions = props.rowData.permissions
+    let permissionUsers = []
+    
+    if (permissions) {
+        permissionUsers = permissions.map((permission,index) => {
+            return (
+                <Grid.Row>
+                    <Grid.Column width={2}>
+                        <Button animated='vertical' basic color='red'>
+                            <Button.Content hidden>Remove</Button.Content>
+                            <Button.Content visible>
+                                <Icon name='remove' />
+                            </Button.Content>
+                        </Button>
+                    </Grid.Column>
+                    <Grid.Column width={10}>
+                        {permission["pemrissionEmail"]}
+                    </Grid.Column>
+                    <Grid.Column width={4}>
+                        <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} />
+                    </Grid.Column>
+                </Grid.Row>
+            )
+        })
     }
+    
     return (
         <Grid celled='internally'>
+            {permissionUsers}
             <Grid.Row>
-                <Grid.Column width={2}>
-                    <Button animated='vertical' basic color='red'>
-                        <Button.Content hidden>Remove</Button.Content>
-                        <Button.Content visible>
-                            <Icon name='remove' />
-                        </Button.Content>
-                    </Button>
-                </Grid.Column>
-                <Grid.Column width={10}>
-                    amit@adya.io
-      </Grid.Column>
-                <Grid.Column width={4}>
-                    <Dropdown fluid text='Read' options={state.permissionOptions} />
-                </Grid.Column>
-            </Grid.Row>
-
-            <Grid.Row>
-                <Grid.Column width={2}>
-                    <Button animated='vertical'  basic color='red'>
-                        <Button.Content hidden>Remove</Button.Content>
-                        <Button.Content visible>
-                            <Icon name='remove' />
-                        </Button.Content>
-                    </Button>
-                </Grid.Column>
-                <Grid.Column width={10}>
-                    tinkesh@adya.io
-      </Grid.Column>
-                <Grid.Column width={4}>
-                    <Dropdown fluid text="Write" options={state.permissionOptions} />
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-            <Grid.Column width={16}>
-            <Dropdown placeholder='Quick Actions...' fluid selection options={state.quickActions} />
-            </Grid.Column >
+                <Grid.Column width={16}>
+                    <Dropdown placeholder='Quick Actions...' fluid selection options={state.quickActions} />
+                </Grid.Column >
             </Grid.Row>
         </Grid>
 
