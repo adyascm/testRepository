@@ -7,7 +7,7 @@ from requests_futures.sessions import FuturesSession
 
 from adya.common import constants,utils
 from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, Domain
+from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, DomainUser, ResourcePermission, Resource
 from adya.datasources.google import gutils
 
 
@@ -57,6 +57,30 @@ def create_datasource(auth_token, payload):
             print (ex)
         start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
         return datasource
+    else:
+        return None
+
+def delete_datasource(auth_token, datasource_id):
+    session = db_connection().get_session()
+
+    existing_datasource = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    domain_id = existing_datasource.domain_id
+    if existing_datasource:
+        try:
+            session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+            session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+            session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+            session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+            session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+            session.delete(existing_datasource)
+            session.commit()
+        except Exception as ex:
+            print "Exception occurred during datasource data delete - " + ex
+        
+        try:
+            gutils.revoke_appaccess(domain_id)
+        except Exception as ex:
+            print "Exception occurred while revoking the app access - " + ex
     else:
         return None
 

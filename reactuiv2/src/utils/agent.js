@@ -40,7 +40,9 @@ const Setting = {
     getDataSources: () =>
         requests.get('/datasources'),
     createDataSource: (dataSource) =>
-        requests.post('/datasources', dataSource)
+        requests.post('/datasources', dataSource),
+    deleteDataSource: (dataSource) =>
+        requests.del('/datasources?datasourceId=' + dataSource.datasource_id)
 };
 
 const Dashboard = {
