@@ -40,7 +40,9 @@ const Setting = {
     getDataSources: () =>
         requests.get('/datasources'),
     createDataSource: (dataSource) =>
-        requests.post('/datasources', dataSource)
+        requests.post('/datasources', dataSource),
+    deleteDataSource: (dataSource) =>
+        requests.del('/datasources?datasourceId=' + dataSource.datasource_id)
 };
 
 const Dashboard = {
@@ -53,9 +55,14 @@ const Users = {
         requests.get('/getusergrouptree')
 }
 
+const Resources = {
+    getResourcesTree: () =>
+        requests.get('/getresourcetree')
+}
+
 const Scheduled_Report = {
    createReport: (report) =>
      requests.post('/scheduledreport', report)
 }
 
-export default { Auth, Setting, Dashboard, Users, Scheduled_Report, setToken: _token => { token = _token; } };
+export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, setToken: _token => { token = _token; } };

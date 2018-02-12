@@ -96,6 +96,7 @@ class Resource(Base):
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36))
     resource_id = Column(String(100), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)

@@ -37,6 +37,12 @@ class ManageDataSources extends Component {
       ev.preventDefault();
       authenticate("drive_scan_scope").then(data => this.props.addDataSource("Testing")).catch(({ errors }) => { this.props.onSignInError(errors) });
     };
+    this.deleteDataSource = (datasource) => {
+      datasource.isDeleting = true;
+      agent.Setting.deleteDataSource(datasource).then(res => {
+        this.props.setDataSources(agent.Setting.getDataSources())
+      });
+    };
   }
   componentWillMount() {
     if (!this.props.common.dataSources)
@@ -52,7 +58,7 @@ class ManageDataSources extends Component {
           {
             this.props.common.datasources && this.props.common.datasources.map(ds => {
               return (
-                <DataSourceItem item={ds} />
+                <DataSourceItem item={ds} onDelete={this.deleteDataSource}/>
               )
             })
           }

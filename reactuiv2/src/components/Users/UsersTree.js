@@ -99,6 +99,7 @@ class UsersTree extends Component {
     componentWillMount() {
         this.props.onLoadStart();
         this.props.onLoad(agent.Users.getUsersTree());
+        //console.log("resources tree : ", agent.Resources.getResourcesTree())
     }
     onGridReady(params) {
         this.gridApi = params.api;

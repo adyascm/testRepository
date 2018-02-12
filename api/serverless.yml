@@ -25,8 +25,8 @@ provider:
   region: ${self:custom.stages.${self:provider.stage}.region}
   timeout: 300
   environment:
-    UI_HOST: ${self:custom.stages.${self:provider.stage}.uiHost}
-    API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
+    UI_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.uiHost}
+    API_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.apiHost}
     DB_URL: ${opt:DB_URL, 'localhost:3306'}
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
@@ -42,14 +42,16 @@ custom:
       awsProfile: devProfile
       dbName: "dev"
       region: us-east-1
+      httpProtocol: "https://"
       apiHost: "api-dev.adyatest.com"
-      uiHost: "https://app.adyatest.com"
+      uiHost: "app.adyatest.com"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
+      httpProtocol: "https://"
       apiHost: "api.adya.io"
-      uiHost: "https://app.adyatest.com"
+      uiHost: "app.adya.io"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
@@ -107,6 +109,14 @@ functions:
           method: post
           cors: true
 
+  deletedatasource:
+    handler: adya.services.lambda.domain_handler.delete_datasource
+    events:
+      - http:
+          path: datasources
+          method: delete
+          cors: true
+
   getwidgetdata:
     handler: adya.services.lambda.reports_handler.get_widget_data
     events:
@@ -115,11 +125,99 @@ functions:
           method: get
           cors: true
 
+  getusertreedata:
+    handler: adya.services.lambda.reports_handler.get_user_tree_data
+    events:
+      - http:
+          path: getusergrouptree
+          method: get
+          cors: true
+
+  getresourcetreedata:
+    handler: adya.services.lambda.reports_handler.get_resource_tree_data
+    events:
+      - http:
+          path: getresourcetree
+          method: post
+          cors: true
+
   postscheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
     events:
       - http:
           path: reports
+          method: post
+          cors: true
+
+  get_drive_resources:
+    handler: adya.services.lambda.scan_handler.get_drive_resources
+    events:
+      - http:
+          path: scan/resources
+          method: get
+          cors: true
+
+  process_drive_resources:
+    handler: adya.services.lambda.scan_handler.process_drive_resources
+    events:
+      - http:
+          path: scan/resources
+          method: post
+          cors: true
+
+  process_resource_permissions:
+    handler: adya.services.lambda.scan_handler.process_resource_permissions
+    events:
+      - http:
+          path: scan/permisssions
+          method: post
+          cors: true
+
+  get_domain_users:
+    handler: adya.services.lambda.scan_handler.get_domain_users
+    events:
+      - http:
+          path: scan/domainusers
+          method: get
+          cors: true
+
+  process_domain_users:
+    handler: adya.services.lambda.scan_handler.process_domain_users
+    events:
+      - http:
+          path: scan/domainusers
+          method: post
+          cors: true
+
+  get_domain_groups:
+    handler: adya.services.lambda.scan_handler.get_domain_groups
+    events:
+      - http:
+          path: scan/domaingroups
+          method: get
+          cors: true
+        
+  process_domain_groups:
+    handler: adya.services.lambda.scan_handler.process_domain_groups
+    events:
+      - http:
+          path: scan/domaingroups
+          method: post
+          cors: true
+
+  get_group_members:
+    handler: adya.services.lambda.scan_handler.get_group_members
+    events:
+      - http:
+          path: scan/groupmembers
+          method: get
+          cors: true
+        
+  process_group_members:
+    handler: adya.services.lambda.scan_handler.process_group_members
+    events:
+      - http:
+          path: scan/groupmembers
           method: post
           cors: true
 

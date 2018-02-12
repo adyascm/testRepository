@@ -29,16 +29,15 @@ api.add_resource(get_user_session, '/user')
 api.add_resource(reports_handler.dashboard_widget, '/widgets')
 ## routes for scan user data for getting file meta data for each user and get user and group
 ## meta data for a domain
-api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES_PATH)
-api.add_resource(scanhandler.getPermission, constants.GET_PERMISSION_PATH)
+api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES)
+api.add_resource(scanhandler.GetPermission, constants.SCAN_PERMISSIONS)
 
-api.add_resource(scanhandler.getdomainuser, constants.GET_DOMAIN_USER_PATH)
-api.add_resource(scanhandler.processUsers, constants.PROCESS_USERS_PATH)
+api.add_resource(scanhandler.GetDomainuser, constants.SCAN_DOMAIN_USERS)
 
-api.add_resource(scanhandler.getdomainGroups, constants.GET_DOMAIN_GROUP_PATH)
-api.add_resource(scanhandler.processGroups,constants.PROCESS_GROUP_PATH)
-api.add_resource(scanhandler.getGroupMembers, constants.GET_GROUP_MEMBERS_PATH)
-api.add_resource(scanhandler.processGroupMembers,constants.PROCESS_GROUP_MEMBER_PATH)
+api.add_resource(scanhandler.GetDomainGroups, constants.SCAN_DOMAIN_GROUPS)
+
+api.add_resource(scanhandler.GetGroupMembers, constants.SCAN_GROUP_MEMBERS)
+
 
 api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
 

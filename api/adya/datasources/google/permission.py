@@ -82,6 +82,7 @@ class GetPermission():
                 email_address = constants.ResourceExposureType.PUBLIC
             resource_permission = {}
             resource_permission['domain_id'] = self.domain_id
+            resource_permission['datasource_id'] = self.datasource_id
             resource_permission['resource_id'] = resource_id
             resource_permission['email'] = email_address
             resource_permission['permission_id'] = permission_id
