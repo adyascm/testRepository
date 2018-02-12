@@ -107,6 +107,14 @@ functions:
           method: post
           cors: true
 
+  deletedatasource:
+    handler: adya.services.lambda.domain_handler.delete_datasource
+    events:
+      - http:
+          path: datasources
+          method: delete
+          cors: true
+
   getwidgetdata:
     handler: adya.services.lambda.reports_handler.get_widget_data
     events:
