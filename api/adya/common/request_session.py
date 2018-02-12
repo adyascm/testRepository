@@ -66,9 +66,10 @@ class RequestSession():
             }
 
     def generate_sqlalchemy_response(self, http_code, payload):
-        json_string_layload = json.dumps(payload, cls=AlchemyEncoder)
-        json_layload = json.loads(json_string_layload)
-        return self.generate_response(http_code, json_layload)
+        json_string_payload = json.dumps(payload, cls=AlchemyEncoder)
+        if self.isLocal:
+            json_payload = json.loads(json_string_payload)
+        return self.generate_response(http_code, json_payload)
 
     def generate_response(self, http_code, payload = None):
         if self.isLocal:
