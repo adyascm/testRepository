@@ -17,6 +17,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 class ReactCron extends Component {
+
   static propTypes = {
     className: PropTypes.string
   }
@@ -24,6 +25,7 @@ class ReactCron extends Component {
   _value: '* * * * *'
 
   state = {
+    cronexp: '',
     selectedPeriod: 'minute',
     selectedHourOption: {
       min: 0
@@ -240,9 +242,12 @@ class ReactCron extends Component {
 
   }
 
-  setCronFunc = (e) => {
-    console.log("hiiii")
-  }
+ componentDidUpdate(){
+   if(document.getElementById("crondata")){
+   var cronExp = document.getElementById("crondata").value
+   this.props.stateSetHandler(cronExp)
+ }
+ }
 
 
   render() {
@@ -255,6 +260,7 @@ class ReactCron extends Component {
         <span className='m-l-xs m-r-xs'>{option.prep}</span>
       );
     }
+
 
     return (
       <div className={classnames(className, 'cron-row')}>
@@ -277,7 +283,8 @@ class ReactCron extends Component {
             {this.getYearComponent()}
 
           </div>
-          <input className='cron-input' type='hidden' value={Helper.getCron(this.state)} onChange={(e) => this.setCronFunc(e)}/>
+          <input id="crondata"  className='cron-input'  value={Helper.getCron(this.state)}
+           />
         </div>
       </div>
     );
