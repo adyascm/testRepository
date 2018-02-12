@@ -12,6 +12,8 @@ class RequestSession():
 
     def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
         #Validate the flask request
+        print "Dumping the request"
+        print json.dumps(self.req)
         params_dict = {}
         try:
             ctx = self.req['requestContext']
@@ -51,8 +53,8 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            if(self.req.body):
-                return JSON.parse(self.req.body)
+            if(self.req["body"]:
+                return JSON.parse(self.req["body"])
             else:
                 return {}
 
