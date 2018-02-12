@@ -8,7 +8,7 @@ def get_call_with_authorization_header(session, url, auth_token):
     if not url.startswith('http'):
         url = API_HOST + url
     print "Making a GET request on the following url - " + url
-    session.get(url=url, headers=headers)
+    return session.get(url=url, headers=headers)
 
 
 def post_call_with_authorization_header(session, url, auth_token, json):
