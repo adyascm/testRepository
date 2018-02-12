@@ -43,7 +43,7 @@ custom:
       dbName: "dev"
       region: us-east-1
       apiHost: "api-dev.adyatest.com"
-      uiHost: "https://app.adyatest.com"
+      uiHost: "http://app.adyatest.com"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
