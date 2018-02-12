@@ -4,7 +4,7 @@ from adya.common.request_session import RequestSession
 
 
 def get_widget_data(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True, ['widgetId'])
     if req_error:
         return req_error
@@ -15,7 +15,7 @@ def get_widget_data(event, context):
 
 
 def post_scheduled_report(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error

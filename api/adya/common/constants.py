@@ -9,6 +9,8 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root@adya')
 DB_NAME = os.environ.get('DB_NAME', 'adya')
 
+LAMBDA_FUNCTION_NAME_FOR_CRON = os.environ.get("LAMBDA_FUNCTION_NAME", "execute_cron_report")
+
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
 GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
 GOOGLE_OAUTH_CALLBACK_URL = API_HOST + GOOGLE_OAUTHCALLBACK_PATH
