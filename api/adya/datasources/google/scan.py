@@ -66,9 +66,9 @@ def process_resource_data(auth_token, domain_id, datasource_id, resources):
         resource["datasource_id"] = datasource_id
         resource["resource_id"] = resourcedata['id']
         resource["resource_name"] = resourcedata['name']
-        resource["resource_type"] = gutils.get_file_type_from_mimetype(
-            resourcedata['mimeType'])
-        resource["resource_parent_id"] = resourcedata.get('parents')
+        resource["resource_type"] = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
+        if resourcedata.get('parents'):
+            resource["resource_parent_id"] = resourcedata.get('parents')[0]
         resource["resource_owner_id"] = resourcedata['owners'][0].get(
             'emailAddress')
         resource["resource_size"] = resourcedata.get('size')
