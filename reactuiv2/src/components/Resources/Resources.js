@@ -12,8 +12,6 @@ import {
 import ResourcesTree from './ResourcesTree';
 import ResourcePermissionSection from './ResourcePermissionSection';
 
-import agent from '../../utils/agent';
-
 const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser

@@ -51,4 +51,4 @@ api.add_resource(GetResources,constants.GET_RESOURCE_TREE_PATH)
 api.add_resource(scheduled_report, constants.GET_SCHEDULED_RESOURCE_PATH)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

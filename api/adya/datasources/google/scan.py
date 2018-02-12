@@ -20,6 +20,7 @@ def get_resources(auth_token, domain_id, datasource_id, next_page_token=None):
     file_count = 0
     starttime = time.time()
     session = FuturesSession()
+    last_future = None
     while True:
         try:
             print ("Got file data")
@@ -34,7 +35,7 @@ def get_resources(auth_token, domain_id, datasource_id, next_page_token=None):
                 datasource_id, DataSource.file_count, file_count, True)
             url = constants.SCAN_RESOURCES + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-            utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
+            last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -42,13 +43,15 @@ def get_resources(auth_token, domain_id, datasource_id, next_page_token=None):
                     url = constants.SCAN_RESOURCES + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
                     utils.get_call_with_authorization_header(
-                        session, url, auth_token)
+                        session, url, auth_token).result()
                     break
             else:
                 break
         except Exception as ex:
             print ex
             break
+    if last_future:
+        last_future.result()
 
 
 ## processing resource data for fileIds
@@ -93,7 +96,7 @@ def get_permission_for_fileId(auth_token, batch_request_file_id_list, domain_id,
     requestdata = {"fileIds": batch_request_file_id_list}
     url = constants.SCAN_PERMISSIONS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-    utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
+    utils.post_call_with_authorization_header(session,url,auth_token,requestdata).result()
     proccessed_file_count = len(batch_request_file_id_list)
     update_and_get_count(datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
 
@@ -104,7 +107,7 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
-
+    last_future = None
     while True:
         try:
             print ("Got users data")
@@ -118,14 +121,14 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
                 datasource_id, DataSource.user_count, user_count, False)
             url = constants.SCAN_DOMAIN_USERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-            utils.post_call_with_authorization_header(session,url,auth_token,data)
+            last_future = utils.post_call_with_authorization_header(session,url,auth_token,data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     url = constants.SCAN_RESOURCES + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token)
+                    utils.get_call_with_authorization_header(session, url, auth_token).result()
                     break
             else:
                 update_and_get_count(
@@ -134,6 +137,8 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
         except Exception as ex:
             print ex
             break
+    if last_future:
+        last_future.result()
 
 
 def processUsers(users_data, datasource_id, domain_id):
@@ -165,7 +170,7 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
-
+    last_future = None
     while True:
         try:
             print ("Got users data")
@@ -179,7 +184,7 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 
             url = constants.SCAN_DOMAIN_GROUPS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-            utils.post_call_with_authorization_header(session, url, auth_token, data)
+            last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -189,13 +194,15 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                             "nextPageToken": next_page_token}
                     url = constants.SCAN_DOMAIN_GROUPS + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token)
+                    utils.get_call_with_authorization_header(session, url, auth_token).result()
                     break
             else:
                 break
         except Exception as ex:
             print ex
             break
+    if last_future:
+        last_future.result()
 
 
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
@@ -215,7 +222,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         groups_db_insert_data_dic.append(group)
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
-            session, group_url, auth_token)
+            session, group_url, auth_token).result()
 
     try:
         db_session = db_connection().get_session()
@@ -230,7 +237,7 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
-
+    last_future = None
     while True:
         try:
             groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
@@ -239,7 +246,7 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
                 data = {"membersResponseData": groupMember}
                 url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
-                utils.post_call_with_authorization_header(session, url, auth_token, data)
+                last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
             else:
                 update_and_get_count(
                     datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
@@ -250,14 +257,15 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token)
+                    utils.get_call_with_authorization_header(session, url, auth_token).result()
                     break
             else:
                 break
         except Exception as ex:
             print ex
             break
-
+    if last_future:
+        last_future.result()
 
 def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
     groupsmembers_db_insert_data = []

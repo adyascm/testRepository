@@ -125,6 +125,22 @@ functions:
           method: get
           cors: true
 
+  getusertreedata:
+    handler: adya.services.lambda.reports_handler.get_user_tree_data
+    events:
+      - http:
+          path: getusergrouptree
+          method: get
+          cors: true
+
+  getresourcetreedata:
+    handler: adya.services.lambda.reports_handler.get_resource_tree_data
+    events:
+      - http:
+          path: getresourcetree
+          method: post
+          cors: true
+
   postscheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
     events:

@@ -108,6 +108,7 @@ class UsersTree extends Component {
         params.api.sizeColumnsToFit();
     }
     getTreeRows() {
+        console.log("usersTree is : ", this.props.usersTree)
         var rows = [];
         var keys = Object.keys(this.props.usersTree);
 
@@ -118,6 +119,7 @@ class UsersTree extends Component {
                 row.name = row.firstName + " " + row.lastName + " [" + keys[index] + "]";
             rows.push(row);
         }
+        console.log("users tree rows : ", rows)
         return rows;
     }
     render() {

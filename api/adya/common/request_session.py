@@ -51,7 +51,10 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            return self.req['data']
+            if(self.req["body"]):
+                return json.loads(self.req["body"])
+            else:
+                return {}
 
     def generate_error_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})
@@ -69,6 +72,8 @@ class RequestSession():
         json_string_payload = json.dumps(payload, cls=AlchemyEncoder)
         if self.isLocal:
             json_payload = json.loads(json_string_payload)
+        else:
+            json_payload = json_string_payload
         return self.generate_response(http_code, json_payload)
 
     def generate_response(self, http_code, payload = None):

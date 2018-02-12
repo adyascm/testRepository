@@ -2,19 +2,20 @@ import json
 from adya.db.models import AlchemyEncoder, LoginUser, DataSource
 from adya.common.constants import API_HOST
 
-
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
     if not url.startswith('http'):
         url = API_HOST + url
-    session.get(url=url, headers=headers)
+    print "Making a GET request on the following url - " + url
+    return session.get(url=url, headers=headers)
 
 
 def post_call_with_authorization_header(session, url, auth_token, json):
     headers = {"Authorization": auth_token, "Content-Type": "application/json"}
     if not url.startswith('http'):
         url = API_HOST + url
-    session.post(url=url, json=json, headers=headers)
+    print "Making a POST request on the following url - " + url
+    return session.post(url=url, json=json, headers=headers)
 
 
 def get_domain_id_and_datasource_id_list(db_session, auth_token):

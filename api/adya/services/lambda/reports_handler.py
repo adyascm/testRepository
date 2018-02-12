@@ -1,10 +1,10 @@
-from adya.controllers import reports_controller
+from adya.controllers import reports_controller, domainDataController, resourceController
 from adya.common.cloudwatch_event import create_cloudwatch_event
 from adya.common.request_session import RequestSession
 
 
 def get_widget_data(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True, ['widgetId'])
     if req_error:
         return req_error
@@ -13,9 +13,30 @@ def get_widget_data(event, context):
         req_session.get_auth_token(), req_session.get_req_param('widgetId'))
     return req_session.generate_sqlalchemy_response(200, data)
 
+def get_user_tree_data(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+    auth_token = req_session.get_auth_token()
+    user_group_tree = domainDataController.get_user_group_tree(auth_token)
+    return req_session.generate_sqlalchemy_response(200, user_group_tree)
+
+def get_resource_tree_data(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+    auth_token = req_session.get_auth_token()
+
+    payload = req_session.get_body()
+    parentlist = payload.get("parentList")
+    parentId = payload.get("parentId")
+    resource_list = resourceController.get_resource_tree(auth_token,parentId,parentlist)
+    return req_session.generate_sqlalchemy_response(200, resource_list)
 
 def post_scheduled_report(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error
