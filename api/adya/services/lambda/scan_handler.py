@@ -3,9 +3,9 @@ from adya.common import utils
 from adya.common.request_session import RequestSession
 
 
-def get_drive_resources(self):
+def get_drive_resources(event, context):
     print "started initial gdrive scan"
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'], ['next_page_token'])
     if req_error:
@@ -15,9 +15,9 @@ def get_drive_resources(self):
         'dataSourceId'))
     return req_session.generate_response(202)
 
-def process_drive_resources(self):
+def process_drive_resources(event, context):
     print "Processing Data"
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
@@ -28,9 +28,9 @@ def process_drive_resources(self):
     return req_session.generate_response(202)
 
 
-def process_resource_permissions(self):
+def process_resource_permissions(event, context):
     print "Getting Permission Data"
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
@@ -47,9 +47,9 @@ def process_resource_permissions(self):
     return req_session.generate_response(202)
 
 
-def get_domain_users(self):
+def get_domain_users(event, context):
     print("Getting domain user")
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
     if req_error:
@@ -63,9 +63,9 @@ def get_domain_users(self):
     scan.getDomainUsers(datasource_id, auth_token, domain_id, next_page_token)
     return req_session.generate_response(202)
 
-def process_domain_users(self):
+def process_domain_users(event, context):
     print("Process users data")
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
@@ -80,9 +80,9 @@ def process_domain_users(self):
     return req_session.generate_response(202)
 
 
-def get_domain_groups(self):
+def get_domain_groups(event, context):
     print("Getting domain groups")
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
     if req_error:
@@ -96,9 +96,9 @@ def get_domain_groups(self):
     scan.getDomainGroups(datasource_id, auth_token , domain_id, next_page_token)
     return req_session.generate_response(202)
 
-def process_domain_groups(self):
+def process_domain_groups(event, context):
     print("Process groups data")
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
@@ -114,8 +114,8 @@ def process_domain_groups(self):
     return req_session.generate_response(202)
 
 
-def get_group_members(self):
-    req_session = RequestSession(request)
+def get_group_members(event, context):
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId','groupKey'],['nextPageToken'])
     if req_error:
@@ -130,8 +130,8 @@ def get_group_members(self):
 
     return req_session.generate_response(202)
     
-def process_group_members(self):
-    req_session = RequestSession(request)
+def process_group_members(event, context):
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId', 'groupKey'])
     if req_error:
