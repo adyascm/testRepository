@@ -17,13 +17,13 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
         if emailList:
             resource_permissions_query_data=None
             if not parent_id:
-                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                         and_(ResourcePermission.resource_id == Resource.resource_id,
                                         ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id,
                                         Resource.resource_type =='folder',
                                         ResourcePermission.email.in_(emailList))).all()
             else:
-                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                resource_permissions_query_data = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                         and_(ResourcePermission.resource_id == Resource.resource_id,
                                         ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id,
                                         ResourcePermission.email.in_(emailList),Resource.resource_parent_id == parent_id)).all()
@@ -37,23 +37,26 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
                     resources.append(row)
         else:
             if not parent_id:
-                resources = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                resources = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                     and_(ResourcePermission.resource_id == Resource.resource_id,
                                     ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, 
                                     Resource.resource_type =='folder',Resource.resource_parent_id == parent_id)).all()
             else:
-                resources = db_session.query(Resource,ResourcePermission).join(ResourcePermission,
+                resources = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                     and_(ResourcePermission.resource_id == Resource.resource_id,
                                     ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, 
                                     Resource.resource_parent_id == parent_id)).all()
         
         responsedata ={}
         for resource in resources:
-            permissionobject = {
-                                    "permissionId":resource.ResourcePermission.permission_id,
-                                    "pemrissionEmail":resource.ResourcePermission.email,
-                                    "permissionType":resource.ResourcePermission.permission_type
-                               }
+            if resource.ResourcePermission:
+                permissionobject = {
+                                        "permissionId":resource.ResourcePermission.permission_id,
+                                        "pemrissionEmail":resource.ResourcePermission.email,
+                                        "permissionType":resource.ResourcePermission.permission_type
+                                }
+            else:
+                permissionobject ={}
 
             if not resource.Resource.resource_id in responsedata:
                 responsedata[resource.Resource.resource_id] = {
