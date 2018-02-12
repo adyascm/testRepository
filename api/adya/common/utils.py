@@ -10,11 +10,11 @@ def get_call_with_authorization_header(session, url, auth_token):
     session.get(url=url, headers=headers)
 
 
-def post_call_with_authorization_header(session, url, auth_token, data):
-    headers = {"Authorization": auth_token}
+def post_call_with_authorization_header(session, url, auth_token, json):
+    headers = {"Authorization": auth_token, "Content-Type": "application/json"}
     if not url.startswith('http'):
         url = API_HOST + url
-    session.post(url=url, data=json.dumps(data), headers=headers)
+    session.post(url=url, json=json, headers=headers)
 
 
 def get_domain_id_and_datasource_id_list(db_session, auth_token):

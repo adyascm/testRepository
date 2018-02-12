@@ -29,12 +29,12 @@ def get_resources(auth_token, domain_id, datasource_id, next_page_token=None):
                      "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
 
             file_count = len(results['files'])
+            reosurcedata = results['files']
             update_and_get_count(
                 datasource_id, DataSource.file_count, file_count, True)
             url = constants.SCAN_RESOURCES + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-            utils.post_call_with_authorization_header(
-                session, url, auth_token, results)
+            utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -93,7 +93,7 @@ def get_permission_for_fileId(auth_token, batch_request_file_id_list, domain_id,
     requestdata = {"fileIds": batch_request_file_id_list}
     url = constants.SCAN_PERMISSIONS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
-    utils.post_call_with_authorization_header(session,url,auth_token,json.dumps(requestdata))
+    utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
     proccessed_file_count = len(batch_request_file_id_list)
     update_and_get_count(datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
 
