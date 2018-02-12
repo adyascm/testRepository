@@ -26,7 +26,7 @@ provider:
   timeout: 300
   environment:
     UI_HOST: ${self:custom.stages.${self:provider.stage}.uiHost}
-    API_HOST: https://${self:custom.stages.${self:provider.stage}.apiHost}
+    API_HOST: ${self:custom.stages.${self:provider.stage}.apiHost}
     DB_URL: ${opt:DB_URL, 'localhost:3306'}
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
@@ -42,14 +42,14 @@ custom:
       awsProfile: devProfile
       dbName: "dev"
       region: us-east-1
-      apiHost: "api-dev.adyatest.com"
+      apiHost: "http://api-dev.adyatest.com"
       uiHost: "http://app.adyatest.com"
     prod: 
       awsProfile: prodProfile
       dbName: "prod"
       region: us-east-1
-      apiHost: "api.adya.io"
-      uiHost: "https://app.adyatest.com"
+      apiHost: "https://api.adya.io"
+      uiHost: "https://app.adya.io"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
