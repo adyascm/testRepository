@@ -49,9 +49,9 @@ class RequestSession():
 
     def get_body(self):
         if self.isLocal:
-            return self.req.get_json()
+            return self.req.get_json() or {}
         else:
-            return self.req['data']
+            return self.req['data'] or {}
 
     def generate_error_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})

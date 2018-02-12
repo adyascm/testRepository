@@ -11,7 +11,7 @@ class GetResources(Resource):
             return req_error
         auth_token = req_session.get_auth_token()
 
-        payload = utils.get_json_object(request.data)
+        payload = req_session.get_body()
         parentlist = payload.get("parentList")
         parentId = payload.get("parentId")
         resource_list = resourceController.get_resource_tree(auth_token,parentId,parentlist)
