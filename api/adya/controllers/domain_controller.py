@@ -55,6 +55,7 @@ def create_datasource(auth_token, payload):
             session.commit()
         except Exception as ex:
             print (ex)
+        print "Starting the scan"
         start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
         return datasource
     else:
