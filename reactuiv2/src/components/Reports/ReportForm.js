@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import UsersTree from '../Users/UsersTree';
 import ResourceTree from '../Resources/Resources';
 import agent from '../../utils/agent';
+import * as Helper from '../../reactCron/helpers/index';
 
 import {
   CREATE_SCHEDULED_REPORT
@@ -37,7 +38,7 @@ class ReportForm extends Component {
       value:{},
       cronExpression: '',
       IsActive: true,
-      reportType: ''
+      reportType: '',
     }
   }
 
@@ -50,8 +51,6 @@ class ReportForm extends Component {
     const cronValue = this.refs.reactCron.__value;
   }
 
-  onChange = (e, data) => {console.log(" id ", data)}
-
   handleChange = (e, { value }) => this.setState({value })
   submit = () => {
     // if(this.state.reportName == ''){
@@ -60,19 +59,23 @@ class ReportForm extends Component {
     //     reportNameError: true
     //   })
     // }
-
-    var config = {'report_type':this.state.reportType, "report_on":this.state.value}
+    var config = {'report_type':this.state.reportType, "selected_entity":this.state.value, "selected_entity_Type":""}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
-                  "frequency":"", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
+                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
 
     this.props.addScheduledReport(reportData)
     this.props.close()
   }
 
-  cronExpValue = cronexp => {
-    console.log("cron exp : ", cronexp)
+  stateSetHandler = (data) => {
+      this.setState({
+        cronExpression: data
+      })
   }
+
+
   render() {
+
     const { value } = this.state
     return(
       <div>
@@ -90,7 +93,7 @@ class ReportForm extends Component {
                   label='Name' placeholder='Name' width={6} />
                   <Form.Field width={2}></Form.Field>
                   <Form.Field>
-                    <ReactCron ref='reactCron' cronExpression={this.cronExpValue} />
+                    <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
                   </Form.Field>
                 </Form.Group>
                 <Form.Group>

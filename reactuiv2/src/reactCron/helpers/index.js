@@ -65,31 +65,31 @@ export function getDayOptions() {
   return [
     {
       label: 'Sunday',
-      value: 0
-    },
-    {
-      label: 'Monday',
       value: 1
     },
     {
-      label: 'Tuesday',
-      value: 2
+      label: 'Monday',
+      value: 0
     },
     {
-      label: 'Wednesday',
+      label: 'Tuesday',
       value: 3
     },
     {
-      label: 'Thursday',
+      label: 'Wednesday',
       value: 4
     },
     {
-      label: 'Friday',
+      label: 'Thursday',
       value: 5
     },
     {
-      label: 'Saturday',
+      label: 'Friday',
       value: 6
+    },
+    {
+      label: 'Saturday',
+      value: 7
     }
   ];
 }
@@ -119,27 +119,27 @@ export function getMonthOptions() {
 }
 
 export function getMinuteCron(value) {
-  return '* * * * *';
+  return '* * ? * * *';
 }
 
 export function getHourCron(value) {
-  return `${value.min} * * * *`;
+  return `${value.min} * ? * * *`;
 }
 
 export function getDayCron(value) {
-  return `${value.min} ${value.hour} * * *`;
+  return `${value.min} ${value.hour} ? * * *`;
 }
 
 export function getWeekCron(value) {
-  return `${value.min} ${value.hour} * * ${value.day}`;
+  return `${value.min} ${value.hour} ? * ${value.day} *`;
 }
 
 export function getMonthCron(value) {
-  return `${value.min} ${value.hour} ${value.day} * *`;
+  return `${value.min} ${value.hour} ${value.day} * ? *`;
 }
 
 export function getYearCron(value) {
-  return `${value.min} ${value.hour} ${value.day} ${value.mon} *`;
+  return `${value.min} ${value.hour} ${value.day} ${value.mon} ? *`;
 }
 
 export function getCron(state) {
