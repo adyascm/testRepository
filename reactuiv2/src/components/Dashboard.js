@@ -36,8 +36,8 @@ class Dashboard extends Component {
       { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget" },
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget" },
       { id: "sharedDocsByType", header: "", footer: "Shared docs", renderType: "ChartWidget" },
-      { id: "sharedDocsList", header: "Last Accessed", footer: "4 external shared documents", renderType: "ListWidget" },
-      { id: "externalUsersList", header: "Last Active", footer: "2 external users", renderType: "ListWidget" },
+      { id: "sharedDocsList", header: "Top 5 visible docs", renderType: "ListWidget" },
+      { id: "externalUsersList", header: "Top 5 external users", renderType: "ListWidget" },
     ];
   }
 

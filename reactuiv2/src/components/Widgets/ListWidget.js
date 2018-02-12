@@ -22,38 +22,42 @@ class ListWidget extends Component {
         this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id));
     }
     render() {
+
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
+                const data = this.props[this.props.config.id].data.rows;
+                const count = this.props[this.props.config.id].data.totalCount;
+                const footer = "Total " + count;
                 return (
                     <Card>
-                <Card.Content>
-                    <Table celled fixed singleLine>
-                        <Table.Header>
-                            <Table.Row>
-                                <Table.HeaderCell colSpan='2'>{this.props.config.header}</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            {
-                                this.props[this.props.config.id].data.map(row => {
-                                return (
+                        <Card.Content>
+                            <Table celled fixed singleLine>
+                                <Table.Header>
                                     <Table.Row>
-                                        <Table.Cell collapsing>{row[Object.keys(row)[0]]} </Table.Cell>
-                                        <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]]}</Table.Cell>
+                                        <Table.HeaderCell colSpan='2'>{this.props.config.header}</Table.HeaderCell>
                                     </Table.Row>
-                                )
-                            }
-                            )}
-                        </Table.Body>
-                    </Table>
+                                </Table.Header>
+                                <Table.Body>
+                                    {
+                                        data.map(row => {
+                                            return (
+                                                <Table.Row>
+                                                    <Table.Cell collapsing>{row[Object.keys(row)[0]]} </Table.Cell>
+                                                    <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]]}</Table.Cell>
+                                                </Table.Row>
+                                            )
+                                        }
+                                        )}
+                                </Table.Body>
+                            </Table>
 
-                </Card.Content>
-                <Card.Content extra>
-                    <div className='ui'>
-                        <Label color='green'>{this.props.config.footer} </Label>
-                    </div>
-                </Card.Content>
-            </Card>
+                        </Card.Content>
+                        <Card.Content extra>
+                            <div className='ui'>
+                                <Label color='green'>{footer} </Label>
+                            </div>
+                        </Card.Content>
+                    </Card>
                 )
             }
             else {
