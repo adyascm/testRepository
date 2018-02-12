@@ -12,6 +12,8 @@ class RequestSession():
 
     def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
         #Validate the flask request
+        print "Dumping the request"
+        print json.dumps(self.req)
         params_dict = {}
         try:
             ctx = self.req['requestContext']
@@ -51,7 +53,10 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            return self.req['data']
+            if(self.req["body"]):
+                return json.loads(self.req["body"])
+            else:
+                return {}
 
     def generate_error_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})
@@ -66,9 +71,12 @@ class RequestSession():
             }
 
     def generate_sqlalchemy_response(self, http_code, payload):
-        json_string_layload = json.dumps(payload, cls=AlchemyEncoder)
-        json_layload = json.loads(json_string_layload)
-        return self.generate_response(http_code, json_layload)
+        json_string_payload = json.dumps(payload, cls=AlchemyEncoder)
+        if self.isLocal:
+            json_payload = json.loads(json_string_payload)
+        else:
+            json_payload = json_string_payload
+        return self.generate_response(http_code, json_payload)
 
     def generate_response(self, http_code, payload = None):
         if self.isLocal:
