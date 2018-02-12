@@ -19,7 +19,7 @@ SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 def revoke_appaccess(domainid):
     credentials = get_credentials(domain_id=domainid)
     requests.post(GOOGLE_REVOKE_URI,
-              params={'token': credentials.token},
+              params={'token': credentials.refresh_token},
               headers=GOOGLE_HEADERS)
 
 

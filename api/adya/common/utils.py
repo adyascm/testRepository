@@ -29,6 +29,3 @@ def get_domain_id(db_session, auth_token):
         LoginUser.auth_token == auth_token).first()
     domain_id = existing_user.domain_id
     return domain_id
-
-def get_json_object(payload):
-    return json.loads(payload)

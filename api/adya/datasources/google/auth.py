@@ -67,7 +67,8 @@ def oauth_callback(oauth_code, scopes, error):
     existing_user = auth_controller.get_user(login_email, session)
     if existing_user:
         auth_token = existing_user.auth_token
-        auth_controller.update_user_refresh_token(login_email, refresh_token, session)
+        if refresh_token:
+            auth_controller.update_user_refresh_token(login_email, refresh_token, session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
         existing_domain_user = session.query(DomainUser).filter(DomainUser.email == login_email).first()

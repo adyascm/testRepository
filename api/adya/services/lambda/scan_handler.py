@@ -36,7 +36,7 @@ def process_resource_permissions(event, context):
     if req_error:
         return req_error
 
-    requestdata = utils.get_json_object(request.data)
+    requestdata = req_session.get_body()
     fileIds = requestdata['fileIds']
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
@@ -74,7 +74,7 @@ def process_domain_users(event, context):
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
 
-    data = utils.get_json_object(request.data)
+    data = req_session.get_body()
     users_response_data = data.get("usersResponseData")
     scan.processUsers(users_response_data, datasource_id, domain_id)
     return req_session.generate_response(202)
@@ -107,7 +107,7 @@ def process_domain_groups(event, context):
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     auth_token = req_session.get_auth_token()
-    data = utils.get_json_object(request.data)
+    data = req_session.get_body()
     group_response_data = data.get("groupsResponseData")
 
     scan.processGroups(group_response_data, datasource_id ,domain_id, auth_token)
@@ -137,7 +137,7 @@ def process_group_members(event, context):
     if req_error:
         return req_error
 
-    data = utils.get_json_object(request.data)
+    data = req_session.get_body()
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     group_key = req_session.get_req_param('groupKey')
