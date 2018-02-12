@@ -53,7 +53,7 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            if(self.req["body"]:
+            if(self.req["body"]):
                 return JSON.parse(self.req["body"])
             else:
                 return {}
