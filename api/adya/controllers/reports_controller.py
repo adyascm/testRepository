@@ -4,7 +4,8 @@ import uuid
 
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report
 from adya.db.connection import db_connection
-from adya.common import utils
+from adya.common import utils, constants
+from sqlalchemy import func
 
 def get_widget_data(auth_token, widget_id):
     if not auth_token:
@@ -15,26 +16,28 @@ def get_widget_data(auth_token, widget_id):
         data = session.query(DomainUser).filter(DomainUser.domain_id == LoginUser.domain_id).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'groupsCount':
-        data = 4  # data = session.query(DomainGroup).filter(DomainGroup.domain_id == LoginUser.domain_id).filter(
-        # LoginUser.auth_token == auth_token).count()
+        data = session.query(DomainGroup).filter(DomainGroup.domain_id == LoginUser.domain_id).filter(
+            LoginUser.auth_token == auth_token).count()
     elif widget_id == 'filesCount':
-        data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id).filter(
+        data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id and Resource.resource_type != 'folder').filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'foldersCount':
-        data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id).filter(
+        data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id and Resource.resource_type == 'folder').filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
-        # data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id).filter(
-        # LoginUser.auth_token == auth_token).count()
-        data = {"Public": "4", "Domain": "6"}
+        data = session.query(Resource.exposure_type, func.count(Resource.exposure_type)).group_by(Resource.exposure_type).all()
     elif widget_id == 'sharedDocsList':
-        # data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id).filter(
-        # LoginUser.auth_token == auth_token).all()
-        data = [{"name": "confidentials.doc", "last_accessed": "10 mins"}]
+        data = {}
+        data["rows"] = session.query(Resource.resource_name, Resource.resource_type).filter(Resource.domain_id == LoginUser.domain_id and (Resource.exposure_type == constants.ResourceExposureType.EXTERNAL or Resource.exposure_type == constants.ResourceExposureType.PUBLIC)).filter(
+            LoginUser.auth_token == auth_token).limit(5).all()
+        data["totalCount"] = session.query(Resource.resource_name, Resource.resource_type).filter(Resource.domain_id == LoginUser.domain_id and (Resource.exposure_type == constants.ResourceExposureType.EXTERNAL or Resource.exposure_type == constants.ResourceExposureType.PUBLIC)).filter(
+            LoginUser.auth_token == auth_token).count()
     elif widget_id == 'externalUsersList':
-        # data = session.query(Resource).filter(Resource.domain_id == LoginUser.domain_id).filter(
-        # LoginUser.auth_token == auth_token).count()
-        data = [{"name": "amit", "last_active": "10 mins"}]
+        data = {}
+        data["rows"] = session.query(DomainUser.email).filter(DomainUser.domain_id == LoginUser.domain_id and DomainUser.member_type == constants.UserMemberType.EXTERNAL).filter(
+            LoginUser.auth_token == auth_token).limit(5).all()
+        data["totalCount"] = session.query(DomainUser.email).filter(DomainUser.domain_id == LoginUser.domain_id and DomainUser.member_type == constants.UserMemberType.EXTERNAL).filter(
+            LoginUser.auth_token == auth_token).count()
     return data
 
 
