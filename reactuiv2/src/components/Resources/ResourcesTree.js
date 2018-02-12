@@ -1,19 +1,39 @@
 import React, {Component} from 'react';
+import {connect} from 'react-redux';
 
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
+import agent from '../../utils/agent';
+import ResourceCell from './ResourceCell';
+import {RESOURCES_PAGE_LOADED} from '../../constants/actionTypes';
+
+
+const mapStateToProps = state => ({
+    ...state.resources
+});
+
+const mapDispatchToProps = dispatch => ({
+   onLoad: (payload) => dispatch({type:RESOURCES_PAGE_LOADED,payload})
+});
 
 class ResourcesTree extends Component {
     constructor(props) {
         super(props);
+
+        this.cellExpand = this.cellExpand.bind(this);
+        
         this.state = {
             columnDefs: [
               {
                   headerName: "Resource",
                   field: "group",
-                  cellRenderer: "agGroupCellRenderer"
+                  //cellRenderer: "agGroupCellRenderer",
+                  cellRendererFramework: ResourceCell,
+                  cellRendererParams: {
+                    cellExpand: this.cellExpand
+                  }
               },
               {
                   headerName: "Owner",
@@ -106,6 +126,20 @@ class ResourcesTree extends Component {
               }
           }
         };
+
+        // this.gridOptions = {
+        //     cellExpand: this.cellExpand
+        // }
+    }
+
+    cellExpand(params) {
+        console.log("Cell expanded params: ", params)
+        let parentId = params.data["group"]
+        let expandedResource = agent.Resources.getResourcesTree(parentId)
+        console.log("expanded resource : ", expandedResource)
+        //this.gridApi.setRowData(expandedResource);
+        this.gridApi.onGroupExpandedOrCollapsed();
+
     }
 
     onGridReady(params) {
@@ -113,7 +147,11 @@ class ResourcesTree extends Component {
         this.gridColumnApi = params.columnApi;
     
         params.api.sizeColumnsToFit();
-      }
+    }
+    
+    componentWillMount() {
+        console.log("resources tree : ", agent.Resources.getResourcesTree(''))
+    }
 
     render() {
         return (
@@ -125,10 +163,11 @@ class ResourcesTree extends Component {
                 rowData={this.state.rowData}
                 getNodeChildDetails={this.state.getNodeChildDetails}
                 onGridReady={this.onGridReady.bind(this)}
+                //gridOptions={this.gridOptions}
               />
             </div>
         )
     }
 }
 
-export default ResourcesTree;
+export default connect(mapStateToProps,mapDispatchToProps)(ResourcesTree);

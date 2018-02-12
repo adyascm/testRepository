@@ -54,8 +54,8 @@ const Users = {
 }
 
 const Resources = {
-    getResourcesTree: () =>
-        requests.get('/getresourcetree')
+    getResourcesTree: (parentId) =>
+        requests.post('/getresourcetree',parentId)
 }
 
 const Scheduled_Report = {

@@ -26,7 +26,6 @@ export default (state = {}, action) => {
                 rowData: action.payload
             }
         case SELECTED_USER_PARENTS_NAME:
-            console.log("selected user parents : ", action.payload)
             return {
                 ...state,
                 selectedUserParents: action.payload
