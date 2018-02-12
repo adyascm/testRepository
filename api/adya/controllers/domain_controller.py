@@ -105,9 +105,9 @@ def start_scan(auth_token, domain_id, datasource_id):
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
     future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
     future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
-    #future_users.result()
-    #future_groups.result()
-    #future_resources.result()
+    future_users.result()
+    future_groups.result()
+    future_resources.result()
 
 
 
