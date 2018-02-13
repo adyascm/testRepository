@@ -7,6 +7,7 @@ from adya.db.connection import db_connection
 from adya.common import utils, constants
 from sqlalchemy import func
 
+
 def get_widget_data(auth_token, widget_id):
     if not auth_token:
         return None
@@ -68,3 +69,12 @@ def create_report(auth_token, payload):
         return report
     else:
         return None
+
+
+def get_report(auth_token):
+    if not auth_token:
+        return None
+    session = db_connection().get_session()
+    reports_data = session.query(Report).filter(Report.domain_id == LoginUser.domain_id).filter(LoginUser.auth_token ==
+                                                                                                auth_token).all()
+    return reports_data

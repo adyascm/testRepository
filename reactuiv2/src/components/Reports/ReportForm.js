@@ -38,9 +38,10 @@ class ReportForm extends Component {
       value:{},
       cronExpression: '',
       IsActive: true,
-      reportType: '',
+      reportType: ''
     }
   }
+
 
   handleCreateButton(evt) {
     evt.preventDefault()
