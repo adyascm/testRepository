@@ -29,4 +29,12 @@ class scheduled_report(Resource):
         cloudwatch_event.create_cloudwatch_event(name, frequency)
         return req_session.generate_sqlalchemy_response(201, report)
 
+    def get(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request()
+        if req_error:
+            return req_error
+
+        reports = reports_controller.get_report(req_session.get_auth_token())
+        return req_session.generate_sqlalchemy_response(200, reports)
 

@@ -36,5 +36,6 @@ export const ASYNC_END = 'ASYNC_END';
 
 export const SET_DATASOURCES = 'SET_DATASOURCES';
 export const CREATE_DATASOURCE = 'CREATE_DATASOURCE';
+export const GET_SCHEDULED_REPORTS = 'GET_SCHEDULED_REPORTS';
 
 export const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://127.0.0.1:5000';

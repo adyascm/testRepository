@@ -1,6 +1,7 @@
 import {
     REPORTS_CRON_EXP,
-    CREATE_SCHEDULED_REPORT
+    CREATE_SCHEDULED_REPORT,
+    GET_SCHEDULED_REPORTS
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -15,6 +16,11 @@ export default (state = {}, action) => {
                ...state,
                scheduledReport: action.payload
              }
+        case GET_SCHEDULED_REPORTS:
+              return{
+                ...state,
+                reports: action.payload
+              }
         default:
             return state;
     }

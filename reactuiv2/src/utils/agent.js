@@ -62,7 +62,9 @@ const Resources = {
 
 const Scheduled_Report = {
    createReport: (report) =>
-     requests.post('/scheduledreport', report)
+     requests.post('/scheduledreport', report),
+   getReports: () => 
+     requests.get('/scheduledreport')
 }
 
 export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, setToken: _token => { token = _token; } };
