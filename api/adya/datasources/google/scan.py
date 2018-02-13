@@ -47,12 +47,14 @@ def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page
                      "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
 
             file_count = len(results['files'])
+
             reosurcedata = results['files']
             update_and_get_count(
                 datasource_id, DataSource.file_count, file_count, True)
             url = constants.SCAN_RESOURCES + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
             last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
+
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime

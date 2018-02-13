@@ -1,6 +1,7 @@
 from adya.datasources.google import scan, permission
 from adya.common import utils
 from adya.common.request_session import RequestSession
+from adya.datasources.google import incremental_scan
 
 
 def get_drive_resources(event, context):
@@ -145,3 +146,29 @@ def process_group_members(event, context):
 
     scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
     return req_session.generate_response(202)
+
+
+def subscribe_gdrive_notifications(event, context):
+        req_session = RequestSession(event)
+        req_error = req_session.validate_authorized_request()
+        if req_error:
+            return req_error
+
+        domain_id = req_session.get_req_param('domain_id')
+        print "Subscribing push notifications for domain_id: ", domain_id
+        incremental_scan.subscribe(domain_id)
+        return req_session.generate_response(202, "Subscription successful")
+
+
+def process_gdrive_notifications(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
+    if req_error:
+        return req_error
+
+    domain_id = req_session.get_req_header('X-Goog-Channel-Token')
+    channel_id = req_session.get_req_header('X-Goog-Channel-ID')
+    print "Processing notifications for ", domain_id, " on channel: ", channel_id
+    incremental_scan.process_notifications(domain_id, channel_id)
+    return req_session.generate_response(202, "Finished processing notifications. ")
+

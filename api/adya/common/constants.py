@@ -1,6 +1,7 @@
 import os
 from enum import Enum
 
+
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
@@ -40,6 +41,13 @@ GET_RESOURCE_TREE_PATH = "/getresourcetree"
 GET_DATASOURCE_PATH = '/datasources'
 
 GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
+
+SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
+PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
+
+
+def get_url_from_path(path):
+    return API_HOST + path
 
 
 class ResourceExposureType(Enum):

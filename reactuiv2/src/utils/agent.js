@@ -42,7 +42,9 @@ const Setting = {
     createDataSource: (dataSource) =>
         requests.post('/datasources', dataSource),
     deleteDataSource: (dataSource) =>
-        requests.del('/datasources?datasourceId=' + dataSource.datasource_id)
+        requests.del('/datasources?datasourceId=' + dataSource.datasource_id),
+    processNotifications: () =>
+        requests.get('/process-notifications')
 };
 
 const Dashboard = {
@@ -63,7 +65,7 @@ const Resources = {
 const Scheduled_Report = {
    createReport: (report) =>
      requests.post('/scheduledreport', report),
-   getReports: () => 
+   getReports: () =>
      requests.get('/scheduledreport')
 }
 

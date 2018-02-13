@@ -89,10 +89,13 @@ class GetPermission():
             resource_permission['permission_type'] = permission_type
             data_for_permission_table.append(resource_permission)
         try:
+            print data_for_permission_table
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
+            print "Successfully inserted permissions..."
             db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.domain_id == self.domain_id))\
                 .update({'exposure_type': resource_exposure_type})
             db_session.commit()
         except Exception as ex:
+            print (ex)
             print("Updating permission for " + resource_id + " failed")
 

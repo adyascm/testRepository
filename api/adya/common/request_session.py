@@ -8,9 +8,10 @@ class RequestSession():
         self.req = req
         self.auth_token = None
         self.params = {}
+        self.headers = {}
         self.isLocal = True
 
-    def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
+    def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[], headers = []):
         #Validate the flask request
         params_dict = {}
         try:
@@ -18,18 +19,20 @@ class RequestSession():
             self.isLocal = False
         except Exception as ex:
             self.isLocal = True
-        
+
+        headers_dict = {}
         if self.isLocal is False:
             print("Request is understood as a lambda request")
             self.isLocal = False
-            self.auth_token = self.req["headers"].get("Authorization")
+            headers_dict = self.req["headers"]
             params_dict = self.req["queryStringParameters"]
         #Validate the lambda event object
         else:
             print("Request is understood as a flask request")
-            self.auth_token = self.req.headers.get('Authorization')
+            headers_dict = self.req.headers
             params_dict = self.req.args
 
+        self.auth_token = headers_dict.get("Authorization")
         if validateAuth and not self.auth_token:
                 return self.generate_error_response(401, "Not authenticated")
         for param in mandatory_params:
@@ -41,11 +44,17 @@ class RequestSession():
         for param in optional_params:
             self.params[param] = params_dict.get(param)
 
+        for header in headers:
+            self.headers[header] = headers_dict.get(param)
+
     def get_auth_token(self):
         return self.auth_token
 
     def get_req_param(self, param):
         return self.params[param]
+
+    def get_req_header(self, header):
+        return self.headers[header]
 
     def get_body(self):
         if self.isLocal:
