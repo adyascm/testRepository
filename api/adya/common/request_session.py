@@ -12,8 +12,6 @@ class RequestSession():
 
     def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[]):
         #Validate the flask request
-        print "Dumping the request"
-        print json.dumps(self.req)
         params_dict = {}
         try:
             ctx = self.req['requestContext']

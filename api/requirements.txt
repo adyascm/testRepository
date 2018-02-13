@@ -14,4 +14,5 @@ flask-cors
 sqlalchemy
 requests_futures
 websocket-client
+boto3
 
