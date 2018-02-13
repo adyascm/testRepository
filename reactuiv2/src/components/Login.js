@@ -4,6 +4,7 @@ import ListErrors from './ListErrors'
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
+import { Segment, Header, Button, Grid } from 'semantic-ui-react';
 import {
     UPDATE_FIELD_AUTH,
     LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
@@ -31,7 +32,7 @@ class Login extends Component {
         super();
         this.signInGoogle = () => ev => {
             ev.preventDefault();
-            authenticate("login_scope").then(data => this.props.onSignInComplete(data)).catch(({errors}) => {this.props.onSignInError(errors)});
+            authenticate("login_scope").then(data => this.props.onSignInComplete(data)).catch(({ errors }) => { this.props.onSignInError(errors) });
         };
     }
     componentWillUnmount() {
@@ -40,24 +41,29 @@ class Login extends Component {
     render() {
         if (!this.props.currentUser) {
             return (
-                <div className="auth-page">
-                    <div className="container page">
-                        <div className="row">
-
-                            <div className="col-md-6 offset-md-3 col-xs-12">
-
-                                <ListErrors errors={this.props.errors} />
-
-                                <button
-                                    className="btn btn-lg btn-primary pull-xs-center"
-                                    onClick={this.signInGoogle()}
-                                    disabled={this.props.inProgress || this.props.errors}>
-                                    Sign in with Google
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
+                <div style={{height:'100%'}}>
+                <Grid stretched >
+                <Grid.Column width={5} />
+                    <Grid.Column width={6} verticalAlign='middle'>
+                        <ListErrors errors={this.props.errors} />
+                        <Segment.Group vertical>
+                            <Segment>
+                                <img src="/images/AdyaLogo.png"></img>
+                                <div>
+                                    <Header size="large" color='darkgreen'>Manage and Secure your SaaS Apps</Header>
+                                </div>
+                            </Segment>
+                            <Segment>
+                                <Button.Group>
+                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} />
+                                    <Button.Or />
+                                    <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
+                                </Button.Group>
+                            </Segment>
+                        </Segment.Group>
+                    </ Grid.Column>
+                    <Grid.Column width={5} />
+                </Grid>
                 </div>
             );
         } else {
