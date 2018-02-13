@@ -56,7 +56,7 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        start_scan(auth_token,datasource.domain_id, datasource.datasource_id)
+        start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
     else:
         return None
@@ -99,8 +99,8 @@ def create_domain(domain_id, domain_name):
     return domain
 
 
-def start_scan(auth_token, domain_id, datasource_id):
-    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
+def start_scan(auth_token, domain_id, datasource_id,useremail):
+    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + useremail
     session = FuturesSession()
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
     future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
