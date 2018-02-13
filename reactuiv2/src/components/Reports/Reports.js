@@ -5,11 +5,13 @@ import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-re
 import ReactCron from '../../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
-import ReportView from './ReportView'
+import ReportView from './ReportView';
+import agent from '../../utils/agent';
 
 import {
   REPORTS_PAGE_LOADED,
-  REPORTS_PAGE_UNLOADED
+  REPORTS_PAGE_UNLOADED,
+  GET_SCHEDULED_REPORTS
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -19,6 +21,9 @@ const mapStateToProps = state => ({
   });
 
   const mapDispatchToProps = dispatch => ({
+    onLoad: () => {
+      dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
+    }
 
   });
 
@@ -31,8 +36,17 @@ class Reports extends Component {
       reportDescription: '',
       emailTo: '',
       value:{},
-      cronExpression: ''
+      cronExpression: '',
+      reportsData: {}
     }
+  }
+
+  componentWillMount(){
+    this.props.onLoad()
+    this.setState({
+        reportsData: this.props.reports
+    })
+    //
   }
 
   reportForm = () => {
@@ -49,7 +63,7 @@ class Reports extends Component {
 
 
   render() {
-    console.log("scheduledReport : ", this.props.scheduledReport)
+    
     const { value } = this.state
     if (this.props.currentUser){
       return(
@@ -58,7 +72,8 @@ class Reports extends Component {
           {
             this.props.scheduledReport?
                 <ReportView report={this.props.scheduledReport} />
-              : null }
+              : <ReportView report={this.props.reports} />
+            }
 
             <ReportForm showModal={this.state.showModal} close={this.handleClose} />
               <Card>
