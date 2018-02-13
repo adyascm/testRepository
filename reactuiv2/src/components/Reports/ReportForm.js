@@ -9,8 +9,7 @@ import agent from '../../utils/agent';
 import * as Helper from '../../reactCron/helpers/index';
 
 import {
-  CREATE_SCHEDULED_REPORT,
-  GET_SCHEDULED_REPORTS
+  CREATE_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -20,9 +19,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     addScheduledReport: (report) => {
       dispatch({ type: CREATE_SCHEDULED_REPORT, payload: agent.Scheduled_Report.createReport(report) })
-    },
-    onLoad: () => {
-      dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
     }
   });
 
@@ -42,14 +38,10 @@ class ReportForm extends Component {
       value:{},
       cronExpression: '',
       IsActive: true,
-      reportType: '',
+      reportType: ''
     }
   }
 
- componentDidMount(){
-   this.props.onLoad();
-   console.log("reports data ", this.props.onLoad())
- }
 
   handleCreateButton(evt) {
     evt.preventDefault()
