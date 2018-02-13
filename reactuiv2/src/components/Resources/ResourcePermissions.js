@@ -19,7 +19,7 @@ const ResourcePermissions = props => {
     if (permissions) {
         permissionUsers = permissions.map((permission,index) => {
             return (
-                <Grid.Row>
+                <Grid.Row key={index}>
                     <Grid.Column width={2}>
                         <Button animated='vertical' basic color='red'>
                             <Button.Content hidden>Remove</Button.Content>

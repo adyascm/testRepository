@@ -27,24 +27,25 @@ class ResourcesTree extends Component {
     constructor(props) {
         super(props);
 
-        this.cellExpanded = this.cellExpanded.bind(this);
+        this.cellExpandedOrCollapsed = this.cellExpandedOrCollapsed.bind(this);
         this.onCellClicked = this.onCellClicked.bind(this);
         
         this.state = {
-            resourceTree: '',
-            columnDefs: [
-              {
-                  headerName: "Resource",
-                  field: "name",
-                  cellStyle: {textAlign: "left"},
-                  //cellRenderer: "agGroupCellRenderer",
-                  cellRendererFramework: ResourceCell,
-                  cellRendererParams: {
-                    cellExpanded: this.cellExpanded
-                  }
-              }
-          ]
+            resourceTree: ''
         };
+
+        this.columnDefs = [
+            {
+                headerName: "Resource",
+                field: "name",
+                cellStyle: {textAlign: "left"},
+                //cellRenderer: "agGroupCellRenderer",
+                cellRendererFramework: ResourceCell,
+                cellRendererParams: {
+                  cellExpandedOrCollapsed: this.cellExpandedOrCollapsed,
+                }
+            }
+        ];
 
         this.gridOptions = {
             onRowClicked: this.onCellClicked
@@ -55,9 +56,8 @@ class ResourcesTree extends Component {
         this.props.setRowData(params.data)
     }
 
-    cellExpanded(params) {
-        console.log("Cell expanded params: ", params)
-        params.node.expanded = true;        
+    cellExpandedOrCollapsed(params) {
+        console.log("Cell expanded params: ", params)     
     }
 
     getTreeRows() {
@@ -116,7 +116,7 @@ class ResourcesTree extends Component {
               <AgGridReact
                 id="myGrid" domLayout="autoHeight"
                 rowSelection='single' suppressCellSelection='true'
-                columnDefs={this.state.columnDefs}
+                columnDefs={this.columnDefs}
                 rowData={this.getTreeRows()}
                 getNodeChildDetails={this.state.getNodeChildDetails}
                 onGridReady={this.onGridReady.bind(this)}
