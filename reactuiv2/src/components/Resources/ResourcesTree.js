@@ -52,23 +52,16 @@ class ResourcesTree extends Component {
     }
 
     onCellClicked(params) {
-        console.log("cell data clicked: ", params)
         this.props.setRowData(params.data)
     }
 
     cellExpanded(params) {
         console.log("Cell expanded params: ", params)
-        let parentId = params.data["group"]
-        let expandedResource = agent.Resources.getResourcesTree(parentId)
-        console.log("expanded resource : ", expandedResource)
-        //this.gridApi.setRowData(expandedResource);
-        this.gridApi.onGroupExpandedOrCollapsed();
-
+        params.node.expanded = true;        
     }
 
     getTreeRows() {
         let rows = [];
-        //console.log("resourceTree keys : ", this.props.resourceTree)
         let resourceTreeData = this.props.resourceTree
         if (resourceTreeData) {
             let datasourceId = Object.keys(resourceTreeData)

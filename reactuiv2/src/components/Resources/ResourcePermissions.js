@@ -12,9 +12,6 @@ const ResourcePermissions = props => {
         {text:'Make this private'},
         {text:'Watch all actions on this file'}]
     };
-
-    if (props.rowData)
-        console.log("props rowdata : ", props.rowData.permissions)
     
     let permissions = props.rowData.permissions
     let permissionUsers = []
