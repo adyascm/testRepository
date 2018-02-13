@@ -4,6 +4,10 @@ from enum import Enum
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
+ROOT = "__root__"
+ROOT_NAME ="dummy"
+ROOT_MIME_TYPE = 'folder'
+
 DB_URL = os.environ.get('DB_URL', 'localhost:3306')
 DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root@adya')

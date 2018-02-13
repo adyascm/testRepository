@@ -15,12 +15,29 @@ from adya.common import utils
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
-def get_resources(auth_token, domain_id, datasource_id, next_page_token=None):
+def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page_token=None):
     drive_service = gutils.get_gdrive_service(domain_id=domain_id)
     file_count = 0
     starttime = time.time()
     session = FuturesSession()
     last_future = None
+    # need to have dummy node for all files at root level
+    if not next_page_token:
+        db_session = db_connection().get_session()
+        resource = models.Resource()
+        resource.resource_id = constants.ROOT
+        resource.domain_id = domain_id
+        resource.datasource_id = datasource_id
+        resource.resource_type = constants.ROOT_MIME_TYPE
+        resource.resource_name = constants.ROOT_NAME
+        resource.resource_owner_id = user_email
+        resource.creation_time = datetime.datetime.utcnow().isoformat()
+        resource.last_modified_time = datetime.datetime.utcnow().isoformat()
+        resource.exposure_type = constants.ResourceExposureType.PRIVATE
+        db_session.add(resource)
+        db_session.commit()
+
+
     while True:
         try:
             print ("Got file data")
@@ -66,11 +83,14 @@ def process_resource_data(auth_token, domain_id, datasource_id, resources):
         resource["datasource_id"] = datasource_id
         resource["resource_id"] = resourcedata['id']
         resource["resource_name"] = resourcedata['name']
-        resource["resource_type"] = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
+        mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
+        resource["resource_type"] = mime_type
         if resourcedata.get('parents'):
             resource["resource_parent_id"] = resourcedata.get('parents')[0]
-        resource["resource_owner_id"] = resourcedata['owners'][0].get(
-            'emailAddress')
+        else:
+            if mime_type != 'folder':
+                resource["resource_parent_id"] = constants.ROOT
+        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
         resource["resource_size"] = resourcedata.get('size')
         resource["creation_time"] = resourcedata['createdTime'][:-1]
         resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
