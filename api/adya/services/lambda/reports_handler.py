@@ -1,5 +1,5 @@
 from adya.controllers import reports_controller, domainDataController, resourceController
-from adya.common.cloudwatch_event import create_cloudwatch_event
+from adya.common import aws_utils
 from adya.common.request_session import RequestSession
 
 
@@ -49,6 +49,6 @@ def post_scheduled_report(event, context):
     report_name = report.name
     cloudwatch_event_name = report_id + '-' + report_name
 
-    create_cloudwatch_event(cloudwatch_event_name, cron_expression)
+    aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression)
 
     return req_session.generate_sqlalchemy_response(201, report)
