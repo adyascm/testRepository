@@ -261,7 +261,6 @@ class ReactCron extends Component {
       );
     }
 
-
     return (
       <div className={classnames(className, 'cron-row')}>
         <label className=''>Cron tab</label>
@@ -283,7 +282,7 @@ class ReactCron extends Component {
             {this.getYearComponent()}
 
           </div>
-          <input id="crondata"  className='cron-input'  value={Helper.getCron(this.state)}
+          <input id="crondata" type='hidden' className='cron-input'  value={Helper.getCron(this.state)}
            />
         </div>
       </div>

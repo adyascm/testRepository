@@ -4,7 +4,7 @@ import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-re
 import ReactCron from '../../reactCron/index'
 import { connect } from 'react-redux';
 import UsersTree from '../Users/UsersTree';
-import ResourceTree from '../Resources/Resources';
+import ResourceTree from '../Resources/ResourcesTree';
 import agent from '../../utils/agent';
 import * as Helper from '../../reactCron/helpers/index';
 
@@ -31,7 +31,6 @@ class ReportForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showModal: false,
       reportName: '',
       reportDescription: '',
       emailTo: '',
@@ -84,37 +83,35 @@ class ReportForm extends Component {
          open={this.props.showModal}>
           <Modal.Content>
               <Form onSubmit={this.submit}>
-                <Form.Group>
-                  <Form.Field>
-                    <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group>
-                  <Form.Input onChange={(e) => this.setState({reportName: e.target.value})}
-                  label='Name' placeholder='Name' width={6} />
-                  <Form.Field width={2}></Form.Field>
-                  <Form.Field>
-                    <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group>
-                  <Form.Input onChange={(e) => this.setState({reportDescription: e.target.value})} label='Description' placeholder='Description' width={6} />
-                </Form.Group>
-                <Form.Group>
-                  <Form.Select  id='reportType' onChange={(e, data) => this.setState({reportType: data.value})} label='Report Type' options={reportOptions} placeholder='Report Type' width={6}/>
-                  <Form.Field width={2}></Form.Field>
-                  {this.state.value == 'group'?
-                   <Form.Field width={6}><UsersTree width={6}/></Form.Field> : null}
-                   {this.state.value == 'resource'? <Form.Field width={6}><ResourceTree width={6}/></Form.Field> : null}
-                </Form.Group>
-                <Form.Group inline>
-                  <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
-                  <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
-                </Form.Group>
-                <Form.Group>
-                  <Form.Input onChange={(e) => this.setState({emailTo: e.target.value})}
-                  label='Email To' placeholder='Email To' control={Input} width={6} />
-                </Form.Group>
+              <div class="ui two column very relaxed grid">
+                <div class="column">
+                  <div class="ui form">
+                      <Form.Field>
+                        <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
+                      </Form.Field>
+                      <Form.Input onChange={(e) => this.setState({reportName: e.target.value})}
+                      label='Name' placeholder='Name' />
+                      <Form.Input onChange={(e) => this.setState({reportDescription: e.target.value})} label='Description' placeholder='Description'  />
+                      <Form.Select  id='reportType' onChange={(e, data) => this.setState({reportType: data.value})} label='Report Type' options={reportOptions} placeholder='Report Type' />
+                      <Form.Input onChange={(e) => this.setState({emailTo: e.target.value})}
+                      label='Email To' placeholder='Email To' control={Input} />
+                      <Form.Field >
+                        <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
+                      </Form.Field>
+                  </div>
+                </div>
+
+                <div class="column">
+                    <Form.Group inline>
+                      <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
+                      <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
+                    </Form.Group>
+                    {this.state.value == 'group'?
+                       <Form.Field ><UsersTree /></Form.Field> : null}
+                       {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
+                </div>
+              </div>
+
               </Form>
           </Modal.Content>
           <Modal.Actions>
