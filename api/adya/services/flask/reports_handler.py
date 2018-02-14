@@ -1,6 +1,4 @@
 from flask_restful import Resource, request
-
-from adya.common import cloudwatch_event
 from adya.controllers import reports_controller
 from adya.common.request_session import RequestSession
 

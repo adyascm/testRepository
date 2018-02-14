@@ -38,11 +38,6 @@ class Reports extends Component {
     super(props);
     this.state = {
       showModal: false,
-      reportName: '',
-      reportDescription: '',
-      emailTo: '',
-      value:{},
-      cronExpression: '',
       reportsData: {},
       fetchScheduledReport: false
     }
@@ -89,7 +84,6 @@ class Reports extends Component {
 
   render() {
 
-    const { value } = this.state
     if (this.props.currentUser){
       return(
         <div>

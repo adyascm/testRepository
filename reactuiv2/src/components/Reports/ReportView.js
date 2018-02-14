@@ -50,7 +50,20 @@ const ReportView = props => {
 
     } else {
         return (
-            <div></div>
+            <Card.Group>
+              <Card>
+                <Card.Content>
+                  <Card.Description>
+                    Click on Add Report to create new report
+                        </Card.Description>
+                </Card.Content>
+                <Card.Content extra>
+                  <div className='ui buttons'>
+                    <Button basic color='green' onClick={props.reportForm}>Add Report</Button>
+                  </div>
+                </Card.Content>
+              </Card>
+            </Card.Group>
         );
     }
 };

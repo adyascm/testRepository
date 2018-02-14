@@ -13,7 +13,9 @@ import {
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.reports
+    ...state.reports,
+    ...state.users,
+    ...state.resources
   });
 
 const mapDispatchToProps = dispatch => ({
@@ -37,7 +39,15 @@ class ReportForm extends Component {
       value:{},
       cronExpression: '',
       IsActive: true,
-      reportType: ''
+      reportType: '',
+      reportNameError: false,
+      emailToError: false,
+      valueError: false,
+      cronExpressionError: false,
+      IsActiveError: false,
+      reportTypeError: false,
+      error: ''
+
     }
   }
 
@@ -53,18 +63,75 @@ class ReportForm extends Component {
 
   handleChange = (e, { value }) => this.setState({value })
   submit = () => {
-    // if(this.state.reportName == ''){
-    //   this.setState({
-    //     error:true,
-    //     reportNameError: true
-    //   })
-    // }
-    var config = {'report_type':this.state.reportType, "selected_entity":this.state.value, "selected_entity_Type":""}
+    var errorMessage = ""
+    var success = false
+    var pattern = /^\s*$/;
+    let valid = true
+    var emailCheck  = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    var selected_entity;
+    if(this.state.value === "user"){
+      if(this.props.rowData){
+        selected_entity = this.props.rowData.key
+      }
+    }
+    else if (this.state.value === "resource") {
+      if(this.props.rowData){
+        selected_entity = this.props.rowData.resourceId
+      }
+    }
+
+    var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_Type":this.state.value}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
                   "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
+    console.log("data ", reportData)
+    if(!reportData.name){
+      errorMessage = "Please enter a name for this report."
+      valid = false
+    }
+    else if(!reportData.config.report_type){
+      errorMessage = " Please select the report type."
+      valid = false
+    }
+    else if(!reportData.config.selected_entity_Type){
+      console.log("reportData.config.selected_entity_Type ", reportData.config.selected_entity_Type)
+      errorMessage = "Please select User/Group or File/Folder."
+      valid = false
+    }
+    else if(!reportData.config.selected_entity){
+      errorMessage = "Please select the entity "
+      valid = false
+    }
+    else if(!reportData.receivers){
+      errorMessage = "Please enter an email address."
+      valid = false
+    }
+    else if(!reportData.receivers.match(emailCheck)){
 
-    this.props.addScheduledReport(reportData)
-    this.props.close()
+      let emails = reportData.receivers.split(',');
+      console.log(emails);
+      emails.map((email) => {
+        let cleaned_email = email.trim();
+        if(!cleaned_email.match(emailCheck) || cleaned_email.match(pattern)){
+          errorMessage = "Please enter a valid email address."
+          valid = false
+        }
+        return errorMessage;
+      })
+    }
+
+    if(valid){
+      success = true
+      this.props.addScheduledReport(reportData)
+      this.props.close()
+
+    }
+    if(!success){
+      this.setState((state) => ({
+        error: errorMessage
+      }))
+
+    }
+
   }
 
   stateSetHandler = (data) => {
@@ -73,19 +140,20 @@ class ReportForm extends Component {
       })
   }
 
-
   render() {
-
+    let user = this.props.rowData
+    console.log("let user = this.props.rowData ", user)
     const { value } = this.state
     return(
       <div>
         <Modal className="scrolling"
          open={this.props.showModal}>
           <Modal.Content>
+            <div style = {{color:'red'}}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{this.state.error}</div>
               <Form onSubmit={this.submit}>
-              <div class="ui two column very relaxed grid">
-                <div class="column">
-                  <div class="ui form">
+              <div className="ui two column very relaxed grid">
+                <div className="column">
+                  <div className="ui form">
                       <Form.Field>
                         <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
                       </Form.Field>
@@ -101,13 +169,13 @@ class ReportForm extends Component {
                   </div>
                 </div>
 
-                <div class="column">
+                <div className="column">
                     <Form.Group inline>
                       <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
-                      <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
+                      <Form.Radio label='Group/User' value='group' checked={value === 'user'} onChange={this.handleChange} />
                     </Form.Group>
                     {this.state.value == 'group'?
-                       <Form.Field ><UsersTree /></Form.Field> : null}
+                       <Form.Field ><UsersTree userTreeHandler={this.userTreeHandler}/></Form.Field> : null}
                        {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
                 </div>
               </div>
