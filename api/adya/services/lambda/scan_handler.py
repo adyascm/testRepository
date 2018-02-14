@@ -33,7 +33,7 @@ def process_resource_permissions(event, context):
     print "Getting Permission Data"
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId'])
+        True, ['dataSourceId', 'domainId'],['userEmail'])
     if req_error:
         return req_error
 
@@ -41,10 +41,11 @@ def process_resource_permissions(event, context):
     fileIds = requestdata['fileIds']
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
+    user_email = req_session.get_req_param('userEmail')
     ## creating the instance of scan_permission class
     scan_permisssion_obj = permission.GetPermission(domain_id, datasource_id , fileIds)
     ## calling get permission api
-    scan_permisssion_obj.get_permission()
+    scan_permisssion_obj.get_permission(user_email)
     return req_session.generate_response(202)
 
 
