@@ -136,7 +136,7 @@ def process_notifications(domain_id, channel_id):
             db_session.commit()
 
 
-            response = requests.get("https://dev-api.adya.io/notifications",
+            response = requests.get(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                     headers={"X-Goog-Channel-Token": domain_id,
                                              "X-Goog-Channel-ID": channel_id})
             print response
