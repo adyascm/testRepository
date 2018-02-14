@@ -5,11 +5,14 @@ import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-re
 import ReactCron from '../../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
-import ReportView from './ReportView'
+import ReportView from './ReportView';
+import agent from '../../utils/agent';
 
 import {
   REPORTS_PAGE_LOADED,
-  REPORTS_PAGE_UNLOADED
+  REPORTS_PAGE_UNLOADED,
+  SET_SCHEDULED_REPORTS,
+  CREATE_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -19,6 +22,14 @@ const mapStateToProps = state => ({
   });
 
   const mapDispatchToProps = dispatch => ({
+    setreports: (reports) =>
+      dispatch({ type: SET_SCHEDULED_REPORTS, payload: reports }),
+      addScheduledReport: (report) => {
+        dispatch({ type: CREATE_SCHEDULED_REPORT, payload: agent.Scheduled_Report.createReport(report) })
+      }
+    // onLoad: () => {
+    //   dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
+    // }
 
   });
 
@@ -27,12 +38,17 @@ class Reports extends Component {
     super(props);
     this.state = {
       showModal: false,
-      reportName: '',
-      reportDescription: '',
-      emailTo: '',
-      value:{},
-      cronExpression: ''
+      reportsData: {},
+      fetchScheduledReport: false
     }
+  }
+
+  componentWillMount(){
+    this.props.setreports(agent.Scheduled_Report.getReports())
+    this.setState({
+        reportsData: this.props.reports
+    })
+    //
   }
 
   reportForm = () => {
@@ -47,33 +63,34 @@ class Reports extends Component {
     })
   }
 
+  deleteReport = (reportId) => ev => {
+    ev.preventDefault();
+    agent.Scheduled_Report.deleteReport(reportId).then(res => {
+      this.props.setreports(agent.Scheduled_Report.getReports())
+    });
+  }
+
+
+  componentWillReceiveProps(nextProps){
+
+    if(nextProps.scheduledReport !== undefined && !this.state.fetchScheduledReport){
+      this.setState({
+        fetchScheduledReport: true
+      })
+      nextProps.setreports(agent.Scheduled_Report.getReports())
+    }
+  }
+
 
   render() {
-    console.log("scheduledReport : ", this.props.scheduledReport)
-    const { value } = this.state
+
     if (this.props.currentUser){
       return(
         <div>
-          <Card.Group>
-          {
-            this.props.scheduledReport?
-                <ReportView report={this.props.scheduledReport} />
-              : null }
 
-            <ReportForm showModal={this.state.showModal} close={this.handleClose} />
-              <Card>
-                <Card.Content>
-                  <Card.Description>
-                    Click on Add Report to create new report
-                        </Card.Description>
-                </Card.Content>
-                <Card.Content extra>
-                  <div className='ui buttons'>
-                    <Button basic color='green' onClick={this.reportForm}>Add Report</Button>
-                  </div>
-                </Card.Content>
-              </Card>
-          </Card.Group>
+          <ReportView report={this.props.reports} deleteReport={this.deleteReport} reportForm={this.reportForm}/>
+          <ReportForm showModal={this.state.showModal} close={this.handleClose} showrecent={this.showrecent}/>
+
         </div>
       )
     }

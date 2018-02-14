@@ -37,8 +37,17 @@ class UsersTree extends Component {
             cellData: '',
             columnDefs: [
                 {
+                    headerName: "Type",
+                    field: "type",
+                    hide: true,
+                    sort: "asc",
+                    cellRenderer: "agGroupCellRenderer",
+                    cellStyle: {textAlign: "left"}
+                },
+                {
                     headerName: "Users and Groups",
                     field: "name",
+                    sort: "asc",
                     cellRenderer: "agGroupCellRenderer",
                     cellStyle: {textAlign: "left"}
                 }
@@ -52,8 +61,6 @@ class UsersTree extends Component {
                             var childKey = rowItem.children[index];
                             var row = this.props.usersTree[childKey];
                             row.key = childKey;
-                            if (!row.name)
-                                row.name = row.firstName + " " + row.lastName;
                             rows.push(row);
                         }
                         return {
@@ -115,8 +122,12 @@ class UsersTree extends Component {
         for (var index = 0; index < keys.length; index++) {
             var row = this.props.usersTree[keys[index]];
             row.key = keys[index];
+            row.type = "group";
             if (!row.name)
+            {
+                row.type = "user";
                 row.name = row.firstName + " " + row.lastName + " [" + keys[index] + "]";
+            } 
             rows.push(row);
         }
         console.log("users tree rows : ", rows)

@@ -135,3 +135,16 @@ class Report(Base):
     creation_time = Column(DateTime)
     last_trigger_time = Column(DateTime)
     is_active = Column(Boolean, default=False)
+
+
+class PushNotificationsSubscription(Base):
+    __tablename__ = 'push_notifications_subscription'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    channel_id = Column(String(100), primary_key=True)
+    page_token = Column(Integer)
+    in_progress = Column(Boolean)
+    stale = Column(Boolean)
+    last_accessed = Column(DateTime)
+    expire_at = Column(DateTime)
+
+

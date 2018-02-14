@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Card, Image, Dimmer, Segment, Loader } from 'semantic-ui-react'
-
 import agent from '../utils/agent';
+
 
 const DataSourceItem = props => {
     const datasource = props.item;
@@ -9,6 +9,14 @@ const DataSourceItem = props => {
         ev.preventDefault();
         props.onDelete(datasource);
     };
+    const onScanButtonClick = (e) => {
+      console.log("onclick scan called")
+      e.preventDefault();
+      agent.Setting.processNotifications().then(res => {
+        console.log(res);
+      });
+    }
+
     if (datasource) {
         return (
             <Card>
@@ -30,7 +38,7 @@ const DataSourceItem = props => {
                 </Card.Content>
                 <Card.Content extra>
                     <div className='ui two buttons'>
-                        <Button basic color='green'>Scan</Button>
+                        <Button basic color='green' onClick={onScanButtonClick}>Scan</Button>
                         <Button basic color='red' onClick={deleteDatasource(datasource)}>Delete</Button>
                     </div>
                 </Card.Content>

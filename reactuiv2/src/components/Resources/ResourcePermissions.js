@@ -12,33 +12,33 @@ const ResourcePermissions = props => {
         {text:'Make this private'},
         {text:'Watch all actions on this file'}]
     };
-
-    if (props.rowData)
-        console.log("props rowdata : ", props.rowData.permissions)
     
     let permissions = props.rowData.permissions
     let permissionUsers = []
     
-    if (permissions) {
+    if (permissions !== undefined && permissions.length > 0) {
         permissionUsers = permissions.map((permission,index) => {
-            return (
-                <Grid.Row>
-                    <Grid.Column width={2}>
-                        <Button animated='vertical' basic color='red'>
-                            <Button.Content hidden>Remove</Button.Content>
-                            <Button.Content visible>
-                                <Icon name='remove' />
-                            </Button.Content>
-                        </Button>
-                    </Grid.Column>
-                    <Grid.Column width={10}>
-                        {permission["pemrissionEmail"]}
-                    </Grid.Column>
-                    <Grid.Column width={4}>
-                        <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} />
-                    </Grid.Column>
-                </Grid.Row>
-            )
+            if (permission["permissionId"] !== undefined)
+                return (
+                    <Grid.Row key={index}>
+                        <Grid.Column width={2}>
+                            <Button animated='vertical' basic color='red'>
+                                <Button.Content hidden>Remove</Button.Content>
+                                <Button.Content visible>
+                                    <Icon name='remove' />
+                                </Button.Content>
+                            </Button>
+                        </Grid.Column>
+                        <Grid.Column width={10}>
+                            {permission["pemrissionEmail"]}
+                        </Grid.Column>
+                        <Grid.Column width={4}>
+                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} />
+                        </Grid.Column>
+                    </Grid.Row>
+                )
+            else 
+                return ("")
         })
     }
     

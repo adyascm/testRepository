@@ -60,6 +60,7 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
 
             if not resource.Resource.resource_id in responsedata:
                 responsedata[resource.Resource.resource_id] = {
+                    "resourceId":resource.Resource.resource_id,
                     "resourceName":resource.Resource.resource_name,
                     "resourceType":resource.Resource.resource_type,
                     "resourceOwnerId":resource.Resource.resource_owner_id,

@@ -9,6 +9,9 @@ import { store } from './store';
 
 window.Chart = require('chart.js');
 
+
+
+
 ReactDOM.render(
     (
         <Provider store={store}>

@@ -33,6 +33,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                      "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
 
             file_count = len(results['files'])
+
             reosurcedata = results['files']
             update_and_get_count(
                 datasource_id, DataSource.file_count, file_count, True)
@@ -41,6 +42,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             if user_email:
                         url = url + "&userEmail=" + user_email
             last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
+
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime

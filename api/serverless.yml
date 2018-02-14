@@ -141,11 +141,19 @@ functions:
           method: post
           cors: true
 
+  getscheduledreports:
+    handler: adya.services.lambda.reports_handler.get_scheduled_reports
+    events:
+      - http:
+          path: scheduledreport
+          method: get
+          cors: true
+
   postscheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
     events:
       - http:
-          path: reports
+          path: scheduledreport
           method: post
           cors: true
 
@@ -221,3 +229,18 @@ functions:
           method: post
           cors: true
 
+  process_gdrive_notifications:
+    handler: adya.services.lambda.scan_handler.process_gdrive_notifications
+    events:
+      - http:
+          path: scan/processnotifications
+          method: post
+          cors: true
+
+  subscribe_gdrive_notifications:
+    handler: adya.services.lambda.scan_handler.subscribe_gdrive_notifications
+    events:
+      - http:
+          path: scan/subscribenotifications
+          method: get
+          cors: true

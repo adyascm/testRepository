@@ -42,7 +42,9 @@ const Setting = {
     createDataSource: (dataSource) =>
         requests.post('/datasources', dataSource),
     deleteDataSource: (dataSource) =>
-        requests.del('/datasources?datasourceId=' + dataSource.datasource_id)
+        requests.del('/datasources?datasourceId=' + dataSource.datasource_id),
+    processNotifications: () =>
+        requests.get('/process-notifications')
 };
 
 const Dashboard = {
@@ -62,7 +64,12 @@ const Resources = {
 
 const Scheduled_Report = {
    createReport: (report) =>
-     requests.post('/scheduledreport', report)
+     requests.post('/scheduledreport', report),
+   getReports: () =>
+     requests.get('/scheduledreport'),
+   deleteReport: (report_id) =>
+     requests.del('/scheduledreport?reportId=' + report_id)
+
 }
 
 export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, setToken: _token => { token = _token; } };
