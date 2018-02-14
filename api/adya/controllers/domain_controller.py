@@ -50,13 +50,25 @@ def create_datasource(auth_token, payload):
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        # need to have dummy node for all files at root level
+        resource = Resource()
+        resource.resource_id = constants.ROOT
+        resource.domain_id = existing_user.domain_id
+        resource.datasource_id = datasource_id
+        resource.resource_type = constants.ROOT_MIME_TYPE
+        resource.resource_name = constants.ROOT_NAME
+        resource.resource_owner_id = existing_user.email
+        resource.creation_time = datetime.datetime.utcnow().isoformat()
+        resource.last_modified_time = datetime.datetime.utcnow().isoformat()
+        resource.exposure_type = constants.ResourceExposureType.PRIVATE
+        db_session.add(resource)
         session.add(datasource)
         try:
             session.commit()
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
+        start_scan(auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled)
         return datasource
     else:
         return None
@@ -99,12 +111,13 @@ def create_domain(domain_id, domain_name):
     return domain
 
 
-def start_scan(auth_token, domain_id, datasource_id,useremail):
-    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + useremail
+def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
+    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
     session = FuturesSession()
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
     future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
-    future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
+    if not is_service_account_enabled:
+        future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
     future_users.result()
     future_groups.result()
     future_resources.result()

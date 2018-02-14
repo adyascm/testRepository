@@ -7,24 +7,24 @@ def get_drive_resources(event, context):
     print "started initial gdrive scan"
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId'], ['next_page_token'])
+        True, ['dataSourceId', 'domainId'], ['nextPageToken','userEmail'])
     if req_error:
         return req_error
 
     scan.get_resources(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param(
-        'dataSourceId'))
+        'dataSourceId'),req_session.get_req_param('nextPageToken'),req_session.get_req_param('userEmail'))
     return req_session.generate_response(202)
 
 def process_drive_resources(event, context):
     print "Processing Data"
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId'])
+        True, ['dataSourceId', 'domainId'],['userEmail'])
     if req_error:
         return req_error
 
     scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
-        'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_body())
+        'domainId'), req_session.get_req_param('dataSourceId'),, req_session.get_req_param('userEmail'), req_session.get_body())
     return req_session.generate_response(202)
 
 

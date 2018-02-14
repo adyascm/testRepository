@@ -15,34 +15,20 @@ from adya.common import utils
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
-def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page_token=None):
-    drive_service = gutils.get_gdrive_service(domain_id=domain_id)
+def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user_email=None):
+    drive_service = gutils.get_gdrive_service(domain_id,user_email)
     file_count = 0
     starttime = time.time()
     session = FuturesSession()
     last_future = None
-    # need to have dummy node for all files at root level
-    if not next_page_token:
-        db_session = db_connection().get_session()
-        resource = models.Resource()
-        resource.resource_id = constants.ROOT
-        resource.domain_id = domain_id
-        resource.datasource_id = datasource_id
-        resource.resource_type = constants.ROOT_MIME_TYPE
-        resource.resource_name = constants.ROOT_NAME
-        resource.resource_owner_id = user_email
-        resource.creation_time = datetime.datetime.utcnow().isoformat()
-        resource.last_modified_time = datetime.datetime.utcnow().isoformat()
-        resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        db_session.add(resource)
-        db_session.commit()
-
-
+    querystring =""
+    if user_email:
+        querystring = useremail +"' in owners'"
     while True:
         try:
-            print ("Got file data")
+            print ("Got file data") 
             results = drive_service.files().\
-                list(q="", fields="files(id, name, mimeType, parents, "
+                list(q=querystring, fields="files(id, name, mimeType, parents, "
                      "owners, size, createdTime, modifiedTime), "
                      "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
 
@@ -52,6 +38,8 @@ def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page
                 datasource_id, DataSource.file_count, file_count, True)
             url = constants.SCAN_RESOURCES + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
+            if user_email:
+                        url = url + "&userEmail=" + user_email
             last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
             next_page_token = results.get('nextPageToken')
             if next_page_token:
@@ -59,6 +47,8 @@ def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     url = constants.SCAN_RESOURCES + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
+                    if user_email:
+                        url = url + "&userEmail=" + user_email
                     utils.get_call_with_authorization_header(
                         session, url, auth_token).result()
                     break
@@ -72,7 +62,7 @@ def get_resources(auth_token, domain_id, datasource_id,user_email=None,next_page
 
 
 ## processing resource data for fileIds
-def process_resource_data(auth_token, domain_id, datasource_id, resources):
+def process_resource_data(auth_token, domain_id, datasource_id, user_email, resources):
     batch_request_file_id_list = []
     resourceList = []
     session = FuturesSession()
@@ -99,11 +89,11 @@ def process_resource_data(auth_token, domain_id, datasource_id, resources):
 
         batch_request_file_id_list.append(resourcedata['id'])
         if len(batch_request_file_id_list) == 100:
-            get_permission_for_fileId(auth_token, 
+            get_permission_for_fileId(auth_token, user_email,
                 batch_request_file_id_list, domain_id, datasource_id, session)
             batch_request_file_id_list = []
     if len(batch_request_file_id_list) > 0:
-        get_permission_for_fileId(auth_token, 
+        get_permission_for_fileId(auth_token, user_email,
             batch_request_file_id_list, domain_id, datasource_id, session)
     try:
         db_session.bulk_insert_mappings(models.Resource, resourceList)
@@ -112,10 +102,12 @@ def process_resource_data(auth_token, domain_id, datasource_id, resources):
         print("Resource_update failes", ex)
 
 
-def get_permission_for_fileId(auth_token, batch_request_file_id_list, domain_id, datasource_id, session):
+def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
     requestdata = {"fileIds": batch_request_file_id_list}
     url = constants.SCAN_PERMISSIONS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
+    if user_email:
+        url = url +"&userEmail=" + user_email
     utils.post_call_with_authorization_header(session,url,auth_token,requestdata).result()
     proccessed_file_count = len(batch_request_file_id_list)
     update_and_get_count(datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
@@ -161,25 +153,32 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
         last_future.result()
 
 
-def processUsers(users_data, datasource_id, domain_id):
+def processUsers(auth_token,users_data, datasource_id, domain_id):
     print ("Started processing users meta data")
     user_db_insert_data_dic = []
+    db_session = db_connection().get_session()
+    datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    session = FuturesSession()
+    lastresult = None
     for user_data in users_data:
-        useremail = user_data["emails"][0]["address"]
+        user_email = user_data["emails"][0]["address"]
         names = user_data["name"]
         user = {}
         user["domain_id"] = domain_id
         user["datasource_id"] = datasource_id
-        user["email"] = useremail
+        user["email"] = user_email
         user["first_name"] = names.get("givenName")
         user["last_name"] = names.get("familyName")
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
-
+        if datasource.is_serviceaccount_enabled:
+            url = constants.SCAN_RESOURCES + "?domainId=" + \
+                        domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
+            lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
+    if lastresult:
+        lastresult.result()
     try:
-        db_session = db_connection().get_session()
-        db_session.bulk_insert_mappings(
-            models.DomainUser, user_db_insert_data_dic)
+        db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_session.commit()
     except Exception as ex:
         print("User data insertation failed", ex.message)
