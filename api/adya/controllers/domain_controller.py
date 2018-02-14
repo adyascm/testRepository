@@ -50,6 +50,8 @@ def create_datasource(auth_token, payload):
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        session.add(datasource)
+
         # need to have dummy node for all files at root level
         resource = Resource()
         resource.resource_id = constants.ROOT
@@ -61,8 +63,8 @@ def create_datasource(auth_token, payload):
         resource.creation_time = datetime.datetime.utcnow().isoformat()
         resource.last_modified_time = datetime.datetime.utcnow().isoformat()
         resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        db_session.add(resource)
-        session.add(datasource)
+        session.add(resource)
+
         try:
             session.commit()
         except Exception as ex:
@@ -116,11 +118,13 @@ def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
     session = FuturesSession()
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
     future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
+    future_resources = None
     if not is_service_account_enabled:
         future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
     future_users.result()
     future_groups.result()
-    future_resources.result()
+    if future_resources:
+        future_resources.result()
 
 
 

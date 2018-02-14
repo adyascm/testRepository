@@ -23,7 +23,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
     last_future = None
     querystring =""
     if user_email:
-        querystring = useremail +"' in owners'"
+        querystring = "'"+ user_email +"' in owners"
     while True:
         try:
             print ("Got file data") 
