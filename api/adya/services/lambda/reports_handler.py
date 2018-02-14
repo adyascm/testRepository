@@ -35,6 +35,15 @@ def get_resource_tree_data(event, context):
     resource_list = resourceController.get_resource_tree(auth_token,parentId,parentlist)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
+def get_scheduled_reports(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+
+    reports = reports_controller.get_report(req_session.get_auth_token())
+    return req_session.generate_sqlalchemy_response(200, reports)
+
 def post_scheduled_report(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request()

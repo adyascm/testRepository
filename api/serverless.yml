@@ -141,6 +141,14 @@ functions:
           method: post
           cors: true
 
+  getscheduledreports:
+    handler: adya.services.lambda.reports_handler.get_scheduled_reports
+    events:
+      - http:
+          path: reports
+          method: get
+          cors: true
+
   postscheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
     events:
