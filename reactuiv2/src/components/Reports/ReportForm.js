@@ -13,7 +13,9 @@ import {
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.reports
+    ...state.reports,
+    ...state.users,
+    ...state.resources
   });
 
 const mapDispatchToProps = dispatch => ({
@@ -66,18 +68,24 @@ class ReportForm extends Component {
     var pattern = /^\s*$/;
     let valid = true
     var emailCheck  = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    var selected_entity;
+    if(this.state.value === "user"){
+      if(this.props.rowData){
+        selected_entity = this.props.rowData.key
+      }
+    }
+    else if (this.state.value === "resource") {
+      if(this.props.rowData){
+        selected_entity = this.props.rowData.resourceId
+      }
+    }
 
-
-    var config = {'report_type':this.state.reportType, "selected_entity":"", "selected_entity_Type":this.state.value}
+    var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_Type":this.state.value}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
                   "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
     console.log("data ", reportData)
     if(!reportData.name){
       errorMessage = "Please enter a name for this report."
-      valid = false
-    }
-    else if(reportData.name.match(pattern)){
-      errorMessage = "Please enter valid name for the report."
       valid = false
     }
     else if(!reportData.config.report_type){
@@ -89,7 +97,7 @@ class ReportForm extends Component {
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if(reportData.config.selected_entity){
+    else if(!reportData.config.selected_entity){
       errorMessage = "Please select the entity "
       valid = false
     }
@@ -132,9 +140,9 @@ class ReportForm extends Component {
       })
   }
 
-
   render() {
-
+    let user = this.props.rowData
+    console.log("let user = this.props.rowData ", user)
     const { value } = this.state
     return(
       <div>
@@ -164,10 +172,10 @@ class ReportForm extends Component {
                 <div className="column">
                     <Form.Group inline>
                       <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
-                      <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
+                      <Form.Radio label='Group/User' value='group' checked={value === 'user'} onChange={this.handleChange} />
                     </Form.Group>
                     {this.state.value == 'group'?
-                       <Form.Field ><UsersTree /></Form.Field> : null}
+                       <Form.Field ><UsersTree userTreeHandler={this.userTreeHandler}/></Form.Field> : null}
                        {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
                 </div>
               </div>
