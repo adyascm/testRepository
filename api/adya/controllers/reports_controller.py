@@ -71,10 +71,25 @@ def create_report(auth_token, payload):
         return None
 
 
-def get_report(auth_token):
+def get_reports(auth_token):
     if not auth_token:
         return None
     session = db_connection().get_session()
     reports_data = session.query(Report).filter(Report.domain_id == LoginUser.domain_id).filter(LoginUser.auth_token ==
                                                                                                 auth_token).all()
     return reports_data
+
+
+def delete_report(auth_token, report_id):
+    if not auth_token:
+        return None
+    session = db_connection().get_session()
+    existing_report = session.query(Report).filter(Report.report_id == report_id).first()
+    session.delete(existing_report)
+    try:
+        session.commit()
+    except:
+        print "Exception occured while delete a report"
+
+
+
