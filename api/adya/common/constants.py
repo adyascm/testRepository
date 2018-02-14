@@ -49,6 +49,8 @@ PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
 def get_url_from_path(path):
     return API_HOST + path
 
+SUCCESS_STATUS_CODE = 200
+
 
 class ResourceExposureType(Enum):
     PRIVATE = "PVT"
