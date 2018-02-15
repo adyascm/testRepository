@@ -16,6 +16,8 @@ class RealtimeConnection(object):
             self.last_message = None
             if not self.ortc_client.is_connected:
                 self.ortc_client.set_on_connected_callback(self.on_connected)
+                self.ortc_client.set_on_reconnecting_callback(self.on_reconnecting)
+                self.ortc_client.set_on_reconnected_callback(self.on_connected)
                 self.last_channel = channel
                 self.last_message = message
                 self.ortc_client.connect(self.application_key)
@@ -33,3 +35,6 @@ class RealtimeConnection(object):
                 self.last_message = None
         except Exception as ex:
             print "Sending message to realtime framework failed with exception - " + ex
+
+    def on_reconnecting(self, sender):
+        return

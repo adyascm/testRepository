@@ -63,7 +63,7 @@ class App extends Component {
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser} />
           <Switch>
-          <Container fluid style={{ marginTop: '5em' }}>
+          <Container fluid style={{ marginTop: '5em', height: '100%' }}>
             <Route exact path="/login" component={Login} />
             <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
             <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
