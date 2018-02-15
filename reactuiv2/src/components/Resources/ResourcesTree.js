@@ -11,7 +11,8 @@ import ResourceCell from './ResourceCell';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA
+    RESOURCES_TREE_SET_ROW_DATA,
+    RESOURCES_TREE_CELL_EXPANDED
 } from '../../constants/actionTypes';
 
 
@@ -22,7 +23,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
     onLoad: (parent, payload) => dispatch({ type: RESOURCES_PAGE_LOADED, parent, payload }),
-    setRowData: (payload) => dispatch({type:RESOURCES_TREE_SET_ROW_DATA,payload})
+    setRowData: (payload) => dispatch({type:RESOURCES_TREE_SET_ROW_DATA,payload}),
+    setCellExpanded: (payload) => dispatch({type:RESOURCES_TREE_CELL_EXPANDED,payload})
 });
 
 class ResourcesTree extends Component {
@@ -37,7 +39,6 @@ class ResourcesTree extends Component {
                 headerName: "Resource",
                 field: "name",
                 cellStyle: { textAlign: "left" },
-                //cellRenderer: "agGroupCellRenderer",
                 cellRendererFramework: ResourceCell,
                 cellRendererParams: {
                     cellExpandedOrCollapsed: this.cellExpandedOrCollapsed,
@@ -62,14 +63,12 @@ class ResourcesTree extends Component {
     }
 
     onCellClicked(params) {
-        console.log("cell clicked data : ", params.data)
         this.props.setRowData(params.data)
     }
 
     cellExpandedOrCollapsed(params) {
-        console.log("Cell expanded params: ", params)
         if (!params.data.isExpanded) {
-            this.props.onLoadStart();
+            this.props.setCellExpanded(true);
             this.props.onLoad(params.data, agent.Resources.getResourcesTree({ "parentId": params.data["resourceId"] }))
         }
         else {
@@ -91,6 +90,11 @@ class ResourcesTree extends Component {
     }
 
     render() {
+
+        if (this.props.cellExpanded !== undefined && !this.props.cellExpanded) {
+            this.gridApi.setRowData(this.props.resourceTree)
+        }
+        
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>

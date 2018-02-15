@@ -2,7 +2,8 @@ import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_UNLOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA
+    RESOURCES_TREE_SET_ROW_DATA,
+    RESOURCES_TREE_CELL_EXPANDED
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -54,11 +55,17 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
+                cellExpanded: false
             }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {
                 ...state,
                 rowData: action.payload
+            }
+        case RESOURCES_TREE_CELL_EXPANDED:
+            return {
+                ...state,
+                cellExpanded: action.payload
             }
         default:
             return state;
