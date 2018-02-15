@@ -12,6 +12,7 @@ from adya.services.flask.domain_handler import datasource
 from adya.services.flask.domainDataHandler import UserGroupTree
 from adya.services.flask.reports_handler import scheduled_report
 from adya.services.flask.resourceHandler import GetResources
+from adya.services.flask.activities_handler import get_activities_for_user
 from flask_restful import request
 from flask import make_response
 
@@ -48,14 +49,19 @@ api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
 
 ## get user group tree
 api.add_resource(UserGroupTree, constants.GET_USER_GROUP_TREE_PATH)
+
+# incremental scan
 api.add_resource(incremental_scan_handler.subscribe, constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
 api.add_resource(incremental_scan_handler.trigger_process_notifications, constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH)
 
 # get file resource data
 api.add_resource(GetResources,constants.GET_RESOURCE_TREE_PATH)
 
-#create scheduled report
+# create scheduled report
 api.add_resource(scheduled_report, constants.GET_SCHEDULED_RESOURCE_PATH)
+
+# activities
+api.add_resource(get_activities_for_user, constants.GET_ACTIVITIES_FOR_USER_PATH)
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

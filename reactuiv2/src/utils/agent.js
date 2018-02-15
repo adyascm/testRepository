@@ -44,8 +44,13 @@ const Setting = {
     deleteDataSource: (dataSource) =>
         requests.del('/datasources?datasourceId=' + dataSource.datasource_id),
     processNotifications: () =>
-        requests.get('/process-notifications')
+        requests.get('/scan/processnotifications')
 };
+
+const Activity = {
+    getActivitiesForUser: (user_email) =>
+        requests.get('/getactivitiesforuser?user_email=' + user_email)
+}
 
 const Dashboard = {
     getWidgetData: (widgetId) =>
@@ -66,10 +71,7 @@ const Scheduled_Report = {
    createReport: (report) =>
      requests.post('/scheduledreport', report),
    getReports: () =>
-     requests.get('/scheduledreport'),
-   deleteReport: (report_id) =>
-     requests.del('/scheduledreport?reportId=' + report_id)
-
+     requests.get('/scheduledreport')
 }
 
-export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, setToken: _token => { token = _token; } };
+export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, Activity, setToken: _token => { token = _token; } };

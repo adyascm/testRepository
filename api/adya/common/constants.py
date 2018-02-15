@@ -42,8 +42,11 @@ GET_DATASOURCE_PATH = '/datasources'
 
 GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
 
+GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'
+
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
+
 
 
 def get_url_from_path(path):

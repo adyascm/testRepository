@@ -44,6 +44,14 @@ def get_gdrive_service(domain_id,credentials=None):
     return service
 
 
+def get_gdrive_reports_service(domain_id, credentials = None):
+    if not credentials:
+        credentials = get_credentials(domain_id)
+
+    service = discovery.build('admin', 'reports_v1', credentials = credentials)
+    return service
+
+
 def get_directory_service(domain_id,credentials=None):
     if not credentials:
         credentials = get_credentials(domain_id)
