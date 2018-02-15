@@ -71,7 +71,13 @@ const Scheduled_Report = {
    createReport: (report) =>
      requests.post('/scheduledreport', report),
    getReports: () =>
-     requests.get('/scheduledreport')
+     requests.get('/scheduledreport'),
+   deleteReport: (report_id) =>
+     requests.del('/scheduledreport?reportId=' + report_id),
+   getRunReportData: (report_id) =>
+     requests.get('/scheduledreport/runreport?reportId=' + report_id)
+
 }
+
 
 export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, Activity, setToken: _token => { token = _token; } };
