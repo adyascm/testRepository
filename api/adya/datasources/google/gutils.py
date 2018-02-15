@@ -5,7 +5,7 @@ from adya.db.connection import db_connection
 from adya.db.models import LoginUser
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.scopeconstants import DRIVE_SCAN_SCOPE,SERVICE_ACCOUNT_SCOPE
-import os
+import os,httplib2
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
@@ -15,7 +15,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
-
+SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
+                                                                SERVICE_ACCOUNT_SCOPE)
 def revoke_appaccess(domainid):
     credentials = get_credentials(domain_id=domainid)
     requests.post(GOOGLE_REVOKE_URI,
@@ -24,13 +25,13 @@ def revoke_appaccess(domainid):
 
 
 def get_credentials(domain_id,user_email=None):
-    db_session = db_connection().get_session()
-    user = db_session.query(LoginUser).filter(LoginUser.domain_id == domain_id).first()
     credentials =None
     if user_email:
         credentials = get_credentials_object(user_email)
     else:    
         ## we need to pass client_id and client_secret in session to avoid dbcall/file access calls
+        db_session = db_connection().get_session()
+        user = db_session.query(LoginUser).filter(LoginUser.domain_id == domain_id).first()
         client_id = '675474472628-87uc3fnbmojup9ur2a1b9ie7qfd5i732.apps.googleusercontent.com'
         client_secret = '8DcZ_BxYCd8cBKKEoXdLwwdk'
         credentials = Credentials(None, refresh_token= user.refresh_token,
@@ -92,7 +93,8 @@ def check_if_user_isamdin(credentials,emailid):
     return False
 
 def get_credentials_object(emailid):
-        service_object = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
-                                                                   SERVICE_ACCOUNT_SCOPE)
-        credentials = service_object.create_delegated(emailid)
-        return credentials
+    credentials = SERVICE_OBJECT.create_delegated(emailid)
+    http = credentials.authorize(httplib2.Http())
+    credentials.refresh(http)
+    print credentials.to_json()
+    return credentials
