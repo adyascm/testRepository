@@ -8,7 +8,7 @@ class ResourceCell extends Component {
     render() {
         let expandIcon = this.props.data.isExpanded?"triangle down":"triangle right"
         var leftMargin = 2 * this.props.data.depth + "em";
-        if(this.props.data.resourceType == 'folder')
+        if(this.props.data.resourceType === 'folder')
         {
             return (
                 <span style={{"marginLeft":leftMargin}}>

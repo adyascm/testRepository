@@ -21,7 +21,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
-    onLoad: (parent, payload) => dispatch({ type: RESOURCES_PAGE_LOADED, parent, payload })
+    onLoad: (parent, payload) => dispatch({ type: RESOURCES_PAGE_LOADED, parent, payload }),
+    setRowData: (payload) => dispatch({type:RESOURCES_TREE_SET_ROW_DATA,payload})
 });
 
 class ResourcesTree extends Component {
@@ -45,7 +46,7 @@ class ResourcesTree extends Component {
         ];
 
         this.gridOptions = {
-            //onRowClicked: this.onCellClicked,
+            onRowClicked: this.onCellClicked,
             getNodeChildDetails: rowItem => {
                 if (rowItem.resourceType == 'folder') {
                     return {
@@ -56,30 +57,31 @@ class ResourcesTree extends Component {
                     }
                 }
                 return null;
-            },
-            rowGroupOpened: rowItem => {
-                debugger;
             }
         }
     }
 
     onCellClicked(params) {
         console.log("cell clicked data : ", params.data)
-        //this.props.setRowData(params.data)
+        this.props.setRowData(params.data)
     }
 
     cellExpandedOrCollapsed(params) {
         console.log("Cell expanded params: ", params)
-        this.props.onLoadStart();
-        this.props.onLoad(params.data, agent.Resources.getResourcesTree({ "parentId": params.data["resourceId"] }))
+        if (!params.data.isExpanded) {
+            this.props.onLoadStart();
+            this.props.onLoad(params.data, agent.Resources.getResourcesTree({ "parentId": params.data["resourceId"] }))
+        }
+        else {
+            this.props.onLoad(params.data,{})
+            this.gridApi.setRowData(this.props.resourceTree)
+        }
     }
 
     onGridReady(params) {
         this.gridApi = params.api;
         this.gridColumnApi = params.columnApi;
-
         params.api.sizeColumnsToFit();
-        this.gridApi.setRowData(this.props.resourceTree)
     }
 
     componentWillMount() {
@@ -99,15 +101,13 @@ class ResourcesTree extends Component {
             )
         }
         else {
-            if (this.gridApi)
-                this.gridApi.setRowData(this.props.resourceTree);
             return (
                 <div className="ag-theme-fresh">
                     <AgGridReact
                         id="myGrid" domLayout="autoHeight"
                         rowSelection='single' suppressCellSelection='true'
+                        rowData={this.props.resourceTree}
                         columnDefs={this.columnDefs}
-                        getNodeChildDetails={this.gridOptions.getNodeChildDetails}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}
                     />
