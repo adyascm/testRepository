@@ -44,6 +44,7 @@ GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
+RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
 
 
 def get_url_from_path(path):

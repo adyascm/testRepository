@@ -17,7 +17,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
             FunctionName=function_name
         )
 
-        if lambda_function['ResponseMetadata']['HTTPStatusCode'] != constants.SUCCESS_STATUS_CODE:
+        if lambda_function and lambda_function['ResponseMetadata']['HTTPStatusCode'] != constants.SUCCESS_STATUS_CODE:
             print "Did not find the report trigger lambda to be attached to cloud watch event, skipping creating " \
                   "the cloud watch event "
             return False
@@ -30,7 +30,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
         )
         print "Created cloud watch event with response - " + response
 
-        if response['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
+        if response and response['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
             # Adds the specified targets to the specified rule

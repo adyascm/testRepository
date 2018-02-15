@@ -1,9 +1,10 @@
 from flask_restful import Resource, request
 from adya.controllers import reports_controller
 from adya.common.request_session import RequestSession
+from adya.realtimeframework.ortc_conn import RealtimeConnection
 
 
-class dashboard_widget(Resource):
+class DashboardWidget(Resource):
     def get(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(True, ['widgetId'])
@@ -14,7 +15,7 @@ class dashboard_widget(Resource):
         return req_session.generate_sqlalchemy_response(200, data)
 
 
-class scheduled_report(Resource):
+class ScheduledReport(Resource):
     def post(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request()
@@ -45,4 +46,14 @@ class scheduled_report(Resource):
         return req_session.generate_response(200)
 
 
+class RunReport(Resource):
+    def get(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(True, ['reportId'])
+        if req_error:
+            return req_error
+
+        run_report_data = reports_controller.run_report(req_session.get_auth_token(), req_session.get_req_param('reportId'))
+
+        return req_session.generate_sqlalchemy_response(200, run_report_data)
 
