@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
-import {Icon} from 'semantic-ui-react';
+import {connect} from 'react-redux';
+import {Icon,Loader} from 'semantic-ui-react';
+
+const mapStateToProps = state => ({
+    ...state.resources
+})
 
 class ResourceCell extends Component {
     constructor(props) {
@@ -12,7 +17,13 @@ class ResourceCell extends Component {
         {
             return (
                 <span style={{"marginLeft":leftMargin}}>
-                    <Icon name={expandIcon} onClick={() => this.props.cellExpandedOrCollapsed(this.props)} />
+                    {
+                        (this.props.cellExpanded !== undefined && this.props.cellExpanded)?
+                        <Loader size='mini' active inline />
+                        :
+                        <Icon name={expandIcon} onClick={() => this.props.cellExpandedOrCollapsed(this.props)} />
+                    }
+                    <Icon name='folder outline' />
                     {this.props.value}
                 </span>
             )
@@ -22,6 +33,7 @@ class ResourceCell extends Component {
             return (
                 <span style={{"marginLeft":leftMargin}}>
                     <Icon name="minus" />
+                    <Icon name='file text outline' />
                     {this.props.value}
                 </span>
             )
@@ -29,4 +41,4 @@ class ResourceCell extends Component {
     }
 }
 
-export default ResourceCell;
+export default connect(mapStateToProps)(ResourceCell);

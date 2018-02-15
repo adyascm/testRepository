@@ -91,10 +91,10 @@ class ResourcesTree extends Component {
 
     render() {
 
-        if (this.props.cellExpanded !== undefined && !this.props.cellExpanded) {
+        if (this.gridApi && this.props.cellExpanded !== undefined && !this.props.cellExpanded) {
             this.gridApi.setRowData(this.props.resourceTree)
         }
-        
+
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>
