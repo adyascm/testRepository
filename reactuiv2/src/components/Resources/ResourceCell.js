@@ -1,19 +1,44 @@
 import React, { Component } from 'react';
-import {Icon} from 'semantic-ui-react';
+import {connect} from 'react-redux';
+import {Icon,Loader} from 'semantic-ui-react';
+
+const mapStateToProps = state => ({
+    ...state.resources
+})
 
 class ResourceCell extends Component {
     constructor(props) {
         super(props);
     }
     render() {
-        //let expandIcon = this.props.isNodeExpanded?"triangle down":"triangle right"
-        return (
-            <span>
-                <Icon name="triangle right" onClick={() => this.props.cellExpandedOrCollapsed(this.props)} />
-                {this.props.value}
-            </span>
-        )
+        let expandIcon = this.props.data.isExpanded?"triangle down":"triangle right"
+        var leftMargin = 2 * this.props.data.depth + "em";
+        if(this.props.data.resourceType === 'folder')
+        {
+            return (
+                <span style={{"marginLeft":leftMargin}}>
+                    {
+                        (this.props.cellExpanded !== undefined && this.props.cellExpanded)?
+                        <Loader size='mini' active inline />
+                        :
+                        <Icon name={expandIcon} onClick={() => this.props.cellExpandedOrCollapsed(this.props)} />
+                    }
+                    <Icon name='folder outline' />
+                    {this.props.value}
+                </span>
+            )
+        }
+        
+        else{
+            return (
+                <span style={{"marginLeft":leftMargin}}>
+                    <Icon name="minus" />
+                    <Icon name='file text outline' />
+                    {this.props.value}
+                </span>
+            )
+        }
     }
 }
 
-export default ResourceCell;
+export default connect(mapStateToProps)(ResourceCell);

@@ -6,8 +6,10 @@ import dashboard from './reducers/dashboard';
 import users from './reducers/users';
 import reports from './reducers/reports'
 import resources from './reducers/resources'
+import activity from './reducers/activity'
 
 export default combineReducers({
+  activity,
   auth,
   common,
   dashboard,

@@ -20,6 +20,7 @@ import { Container } from 'semantic-ui-react'
 
 import { APP_LOAD, REDIRECT } from './constants/actionTypes';
 import agent from './utils/agent';
+import initializePushNotifications from './pushnotifications/realtimeFramework'
 
 const mapStateToProps = state => {
   return {
@@ -57,6 +58,7 @@ class App extends Component {
   }
   render() {
     if (this.props.appLoaded) {
+      initializePushNotifications();
       return (
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser} />

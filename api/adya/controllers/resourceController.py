@@ -11,9 +11,10 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
     db_session = db_connection().get_session()
     domain_id,datasource_id_list_data = utils.get_domain_id_and_datasource_id_list(db_session,auth_token)
     resources_tree ={}
+    resources = []
     for datasource in datasource_id_list_data:
         datasource_id = datasource.datasource_id
-        resources = []
+        
         if emailList:
             resource_permissions_query_data=None
             if not parent_id:
@@ -47,30 +48,30 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
                                     ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain_id, 
                                     Resource.resource_parent_id == parent_id)).all()
         
-        responsedata ={}
-        for resource in resources:
-            if resource.ResourcePermission:
-                permissionobject = {
-                                        "permissionId":resource.ResourcePermission.permission_id,
-                                        "pemrissionEmail":resource.ResourcePermission.email,
-                                        "permissionType":resource.ResourcePermission.permission_type
-                                }
-            else:
-                permissionobject ={}
+    responsedata ={}
+    for resource in resources:
+        if resource.ResourcePermission:
+            permissionobject = {
+                                    "permissionId":resource.ResourcePermission.permission_id,
+                                    "pemrissionEmail":resource.ResourcePermission.email,
+                                    "permissionType":resource.ResourcePermission.permission_type
+                            }
+        else:
+            permissionobject ={}
 
-            if not resource.Resource.resource_id in responsedata:
-                responsedata[resource.Resource.resource_id] = {
-                    "resourceId":resource.Resource.resource_id,
-                    "resourceName":resource.Resource.resource_name,
-                    "resourceType":resource.Resource.resource_type,
-                    "resourceOwnerId":resource.Resource.resource_owner_id,
-                    "exposureType":resource.Resource.exposure_type,
-                    "permissions":[permissionobject]
-                }
-            else:
-                responsedata[resource.Resource.resource_id]["permissions"].append(permissionobject)
-        resources_tree[datasource_id] = responsedata
-    return resources_tree
+        if not resource.Resource.resource_id in responsedata:
+            responsedata[resource.Resource.resource_id] = {
+                "resourceId":resource.Resource.resource_id,
+                "resourceName":resource.Resource.resource_name,
+                "resourceType":resource.Resource.resource_type,
+                "resourceOwnerId":resource.Resource.resource_owner_id,
+                "exposureType":resource.Resource.exposure_type,
+                "permissions":[permissionobject]
+            }
+        else:
+            responsedata[resource.Resource.resource_id]["permissions"].append(permissionobject)
+    resources_tree[datasource_id] = responsedata    
+    return responsedata
 
 
 
