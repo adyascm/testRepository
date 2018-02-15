@@ -2,17 +2,19 @@ import React, { Component, PropTypes } from 'react';
 // import '../../App.css';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-react'
-import ReactCron from '../../reactCron/index'
+import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
 import ReportView from './ReportView';
 import agent from '../../utils/agent';
+// import ReportsGrid from './ReportsGrid';
 
 import {
   REPORTS_PAGE_LOADED,
   REPORTS_PAGE_UNLOADED,
   SET_SCHEDULED_REPORTS,
-  CREATE_SCHEDULED_REPORT
+  CREATE_SCHEDULED_REPORT,
+  RUN_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -24,9 +26,12 @@ const mapStateToProps = state => ({
   const mapDispatchToProps = dispatch => ({
     setreports: (reports) =>
       dispatch({ type: SET_SCHEDULED_REPORTS, payload: reports }),
-      addScheduledReport: (report) => {
+    addScheduledReport: (report) => {
         dispatch({ type: CREATE_SCHEDULED_REPORT, payload: agent.Scheduled_Report.createReport(report) })
-      }
+      },
+    runScheduledReport: (reportId) => {
+      dispatch({type:RUN_SCHEDULED_REPORT, payload: agent.Scheduled_Report.getRunReportData(reportId)})
+    }
     // onLoad: () => {
     //   dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
     // }
@@ -70,6 +75,11 @@ class Reports extends Component {
     });
   }
 
+  runReport = (reportId) => ev => {
+   this.props.runScheduledReport(reportId)
+
+  }
+
 
   componentWillReceiveProps(nextProps){
 
@@ -83,12 +93,23 @@ class Reports extends Component {
 
 
   render() {
+    if(this.props.runReportData){
+      console.log("run report data : ", this.props.runReportData)
+      // return(
+      //   <ReportsGrid reportsData={this.props.runReportData}/>
+      // )
+
+
+    }
+
+
 
     if (this.props.currentUser){
       return(
         <div>
 
-          <ReportView report={this.props.reports} deleteReport={this.deleteReport} reportForm={this.reportForm}/>
+          <ReportView report={this.props.reports} deleteReport={this.deleteReport}
+            reportForm={this.reportForm} runReport={this.runReport} />
           <ReportForm showModal={this.state.showModal} close={this.handleClose} showrecent={this.showrecent}/>
 
         </div>
@@ -99,6 +120,7 @@ class Reports extends Component {
         <Redirect to="/login" />
     );
     }
+
   }
 }
 

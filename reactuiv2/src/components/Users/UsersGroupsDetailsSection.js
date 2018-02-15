@@ -2,10 +2,12 @@ import React, {Component} from 'react';
 import {Tab} from 'semantic-ui-react';
 import UserDetails from './UserDetails';
 import UserAccess from './UserAccess';
+import UserActivity from './UserActivity';
 import {connect} from 'react-redux';
 
 const mapStateToProps = state => ({
-    ...state.users
+    ...state.users,
+    ...state.common
 });
 
 class UsersGroupsDetailsSection extends Component {
@@ -21,11 +23,11 @@ class UsersGroupsDetailsSection extends Component {
         let panes  = [
             { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails user={user} parents={parents} /></Tab.Pane> },
             { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserAccess /></Tab.Pane> },
-            { menuItem: 'Activity', render: () => <Tab.Pane attached={false}>Get all activities from google</Tab.Pane> },
-            
+            { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity selectedUser={this.props.rowData}/></Tab.Pane> },
+
         ]
         return (
-            <Tab menu={{ secondary: true, pointing: true }} panes={panes} /> 
+            <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
         )
     }
 

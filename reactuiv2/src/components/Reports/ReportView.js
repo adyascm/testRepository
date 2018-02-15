@@ -24,6 +24,8 @@ const ReportView = props => {
                 <Card.Content extra>
                     <div className='ui two buttons'>
                         <Button basic color='red' onClick={props.deleteReport(report.report_id)}>Delete</Button>
+                        <Button basic color='green' onClick={props.runReport(report.report_id)}>Run Report</Button>
+
                     </div>
                 </Card.Content>
             </Card>
