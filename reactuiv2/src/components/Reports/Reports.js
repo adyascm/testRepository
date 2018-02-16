@@ -1,20 +1,21 @@
 import React, { Component, PropTypes } from 'react';
 // import '../../App.css';
 import { Route, Switch, Redirect } from 'react-router-dom';
-import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-react'
+import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader} from 'semantic-ui-react'
 import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
 import ReportView from './ReportView';
 import agent from '../../utils/agent';
-// import ReportsGrid from './ReportsGrid';
+import ReportsGrid from './ReportsGrid';
 
 import {
   REPORTS_PAGE_LOADED,
   REPORTS_PAGE_UNLOADED,
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
-  RUN_SCHEDULED_REPORT
+  RUN_SCHEDULED_REPORT,
+  DELETE_OLD_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -31,6 +32,9 @@ const mapStateToProps = state => ({
       },
     runScheduledReport: (reportId) => {
       dispatch({type:RUN_SCHEDULED_REPORT, payload: agent.Scheduled_Report.getRunReportData(reportId)})
+    },
+    deleteOldRunReportData: () => {
+      dispatch({type:DELETE_OLD_SCHEDULED_REPORT })
     }
     // onLoad: () => {
     //   dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
@@ -44,7 +48,9 @@ class Reports extends Component {
     this.state = {
       showModal: false,
       reportsData: {},
-      fetchScheduledReport: false
+      fetchScheduledReport: false,
+      isRunreport: false,
+      runReportName: ''
     }
   }
 
@@ -64,8 +70,10 @@ class Reports extends Component {
 
   handleClose = () => {
     this.setState({
-      showModal: false
+      showModal: false,
+      isRunreport: false
     })
+    this.props.deleteOldRunReportData()
   }
 
   deleteReport = (reportId) => ev => {
@@ -75,9 +83,21 @@ class Reports extends Component {
     });
   }
 
-  runReport = (reportId) => ev => {
-   this.props.runScheduledReport(reportId)
+  runReport = (reportId, name) => ev => {
 
+   this.props.runScheduledReport(reportId)
+   this.setState({
+     showModal: true,
+     isRunreport: true,
+     runReportName: name
+   })
+
+  }
+
+  modifyReport = (reportId) => ev => {
+     this.setState({
+       showModal: true
+     })
   }
 
 
@@ -93,25 +113,55 @@ class Reports extends Component {
 
 
   render() {
-    if(this.props.runReportData){
-      console.log("run report data : ", this.props.runReportData)
-      // return(
-      //   <ReportsGrid reportsData={this.props.runReportData}/>
-      // )
-
-
-    }
-
-
 
     if (this.props.currentUser){
       return(
         <div>
+          {this.state.showModal === false?
+            <ReportView report={this.props.reports} deleteReport={this.deleteReport}
+              reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
+            :
+            this.state.isRunreport ?
+                this.props.runReportData?
+                    <Modal className="scrolling" open={this.state.showModal} >
+                     <Modal.Header>{this.state.runReportName}</Modal.Header>
 
-          <ReportView report={this.props.reports} deleteReport={this.deleteReport}
-            reportForm={this.reportForm} runReport={this.runReport} />
-          <ReportForm showModal={this.state.showModal} close={this.handleClose} showrecent={this.showrecent}/>
+                      <Modal.Content>
+                        <ReportsGrid reportsData={this.props.runReportData}/>
+                      </Modal.Content>
+                      <Modal.Actions>
+                        <Button basic color='green' >
+                         Export to csv
+                        </Button>
+                        <Button basic color='red' onClick={this.handleClose}>
+                          <Icon name='remove' /> Close
+                        </Button>
+                     </Modal.Actions>
+                    </Modal>
+                 :
+                    this.props.runReportData && this.props.runReportData.length === 0 ?
+                    <Modal className="scrolling"
+                     open={this.state.showModal} >
+                     <Modal.Header>{this.state.runReportName}</Modal.Header>
 
+                      <Modal.Content>
+                       No Data Found
+                      </Modal.Content>
+                      <Modal.Actions>
+                        <Button basic color='green' >
+                         Export to csv
+                        </Button>
+                        <Button basic color='red' onClick={this.handleClose}>
+                          <Icon name='remove' /> Close
+                        </Button>
+                     </Modal.Actions>
+                    </Modal>
+                    :
+                    <Loader size='mini' active inline />
+             :
+
+                <ReportForm showModal={this.state.showModal} close={this.handleClose} showrecent={this.showrecent}/>
+          }
         </div>
       )
     }

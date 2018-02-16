@@ -82,7 +82,7 @@ class ReportForm extends Component {
 
     var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_type":this.state.value}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
-                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
+                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "is_active": this.state.IsActive}
     console.log("data ", reportData)
     if(!reportData.name){
       errorMessage = "Please enter a name for this report."

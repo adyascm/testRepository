@@ -22,9 +22,11 @@ const ReportView = props => {
                     </Card.Description>
                 </Card.Content>
                 <Card.Content extra>
-                    <div className='ui two buttons'>
+                    <div className='ui three buttons'>
                         <Button basic color='red' onClick={props.deleteReport(report.report_id)}>Delete</Button>
-                        <Button basic color='green' onClick={props.runReport(report.report_id)}>Run Report</Button>
+                        <Button basic color='green' onClick={props.runReport(report.report_id,
+                             report.name)}>Run Report</Button>
+                           <Button basic color='blue' onClick={props.modifyReport(report.report_id)}> Modify </Button>
 
                     </div>
                 </Card.Content>
