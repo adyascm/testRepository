@@ -72,7 +72,7 @@ class GetParent(Resource):
         print "Getting Parents Data"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId','userEmail'])
+            True, ['dataSourceId', 'domainId'],['userEmail'])
         if req_error:
             return req_error
 

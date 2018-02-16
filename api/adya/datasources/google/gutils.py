@@ -74,8 +74,8 @@ def get_oauth_service(domain_id,credentials=None):
 
 def check_if_serviceaccount_enabled(emailid):
     profile_info = None
-    credentials = get_credentials_object(emailid)
     try:
+        credentials = get_credentials_object(emailid)
         drive = discovery.build('drive', 'v3', credentials=credentials)
         profile_info = drive.about().get(fields="user").execute()
         return True
