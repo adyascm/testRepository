@@ -1,8 +1,7 @@
-from flask_restful import Resource,reqparse,request
+from flask_restful import Resource,request
 from adya.datasources.google import incremental_scan
 from adya.controllers import domain_controller
 from adya.common.request_session import RequestSession
-import json
 
 
 class subscribe(Resource):

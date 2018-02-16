@@ -4,7 +4,7 @@ import ListErrors from './ListErrors'
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Segment, Header, Button, Grid } from 'semantic-ui-react';
+import { Segment, Header, Button, Grid, Image, Message } from 'semantic-ui-react';
 import {
     UPDATE_FIELD_AUTH,
     LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
@@ -41,29 +41,25 @@ class Login extends Component {
     render() {
         if (!this.props.currentUser) {
             return (
-                <div style={{height:'100%'}}>
-                <Grid stretched >
-                <Grid.Column width={5} />
-                    <Grid.Column width={6} verticalAlign='middle'>
-                        <ListErrors errors={this.props.errors} />
-                        <Segment.Group vertical>
-                            <Segment>
-                                <img src="/images/AdyaLogo.png"></img>
-                                <div>
-                                    <Header size="large" color='darkgreen'>Manage and Secure your SaaS Apps</Header>
-                                </div>
-                            </Segment>
-                            <Segment>
+                <div style={{ height: '100%' }}>
+                    <Grid textAlign='center'
+                        style={{ height: '100%' }}
+                        verticalAlign='middle' >
+                        <Grid.Column style={{ maxWidth: 450 }}>
+                            <Image size='massive' src='/images/AdyaLogo.png' />
+                            <Header as='h3' color='teal' textAlign='center'>
+                                Manage and secure your SaaS Apps
+                            </Header>
+                            <Segment >
                                 <Button.Group>
                                     <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} />
                                     <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
                                 </Button.Group>
                             </Segment>
-                        </Segment.Group>
-                    </ Grid.Column>
-                    <Grid.Column width={5} />
-                </Grid>
+
+                        </Grid.Column>
+                    </Grid>
                 </div>
             );
         } else {
