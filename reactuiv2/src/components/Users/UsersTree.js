@@ -37,76 +37,48 @@ class UsersTree extends Component {
             cellData: '',
             columnDefs: [
                 {
-                    headerName: "Type",
-                    field: "type",
-                    hide: true,
-                    sort: "asc",
-                    cellRenderer: "agGroupCellRenderer",
-                    cellStyle: {textAlign: "left"}
-                },
-                {
                     headerName: "Users and Groups",
                     field: "name",
                     sort: "asc",
                     cellRenderer: "agGroupCellRenderer",
                     cellStyle: {textAlign: "left"}
                 }
-            ],
-            getNodeChildDetails: rowItem => {
-                //console.log("node child details : ", rowItem)
-                if (!rowItem.member_type) {
-                    var rows = [];
-                    if (rowItem.children) {
-                        for (var index = 0; index < rowItem.children.length; index++) {
-                            var childKey = rowItem.children[index];
-                            var row = this.props.usersTree[childKey];
-                            row.key = childKey;
-                            rows.push(row);
-                        }
-                        return {
-                            group: true,
-                            expanded: false,
-                            children: rows,
-                            key: rowItem.key
-                        };
-                    }
-                    return {
-                        group: true,
-                        expanded: false,
-                        children: []
-                    }
-                } else {
-                    return null;
-                }
-            }
+            ]
         };
         
         this.gridOptions = {
-            onRowClicked: this.onCellClicked
+            onRowClicked: this.onCellClicked,
+            getNodeChildDetails: rowItem => {
+                if (!rowItem.member_type) {
+                    return {
+                        group: true,
+                        expanded: false,
+                        children: rowItem.children || [],
+                        key: rowItem.key
+                    }
+                }
+                else 
+                    return null
+            }
         }
     }
 
     onCellClicked(params) {
-        console.log("cell click data : ", params.data)
         this.setState({
             cellData: params.data
         })
-        this.props.setRowData(params.data);
-        
+        this.props.setRowData(params.data);       
         let selectedUserEmail = params.data["key"]
-        //console.log("rowdatakey : ", selectedUserEmail)
         let selectedUserParentsEmail = params.data["parents"]
         let selectedUserParentsName = selectedUserParentsEmail.map((parent,index) => {
-            return this.props.usersTree[parent]["name"]
+            return this.props.usersTreeInitial[parent]["name"]
         })
-        console.log("selectedUserParentsName : ", selectedUserParentsName)
         this.props.setSelectedUserParents(selectedUserParentsName)
     }
 
     componentWillMount() {
         this.props.onLoadStart();
         this.props.onLoad(agent.Users.getUsersTree());
-        //console.log("resources tree : ", agent.Resources.getResourcesTree())
     }
     onGridReady(params) {
         this.gridApi = params.api;
@@ -114,25 +86,7 @@ class UsersTree extends Component {
 
         params.api.sizeColumnsToFit();
     }
-    getTreeRows() {
-        console.log("usersTree is : ", this.props.usersTree)
-        var rows = [];
-        var keys = Object.keys(this.props.usersTree);
 
-        for (var index = 0; index < keys.length; index++) {
-            var row = this.props.usersTree[keys[index]];
-            row.key = keys[index];
-            row.type = "group";
-            if (!row.name)
-            {
-                row.type = "user";
-                row.name = row.firstName + " " + row.lastName + " [" + keys[index] + "]";
-            } 
-            rows.push(row);
-        }
-        console.log("users tree rows : ", rows)
-        return rows;
-    }
     render() {
         if (!this.props.usersTree) {
             if (this.props.isLoading) {
@@ -154,8 +108,7 @@ class UsersTree extends Component {
                     <AgGridReact
                         id="myGrid" domLayout="autoHeight"
                         columnDefs={this.state.columnDefs}
-                        rowData={this.getTreeRows()}
-                        getNodeChildDetails={this.state.getNodeChildDetails.bind(this)}
+                        rowData={this.props.usersTree}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}
                     />
