@@ -64,13 +64,13 @@ def create_datasource(auth_token, payload):
         resource.last_modified_time = datetime.datetime.utcnow().isoformat()
         resource.exposure_type = constants.ResourceExposureType.PRIVATE
         db_session.add(resource)
-
-        resourceparent = ResourceParent()
-        resourceparent.datasource_id = datasource_id
-        resourceparent.domain_id = existing_user.domain_id
-        resourceparent.email = existing_user.email
-        resourceparent.resource_id = constants.ROOT
-        db_session.add(resourceparent)
+        if not datasource.is_serviceaccount_enabled
+            resourceparent = ResourceParent()
+            resourceparent.datasource_id = datasource_id
+            resourceparent.domain_id = existing_user.domain_id
+            resourceparent.email = existing_user.email
+            resourceparent.resource_id = constants.ROOT
+            db_session.add(resourceparent)
 
         try:
             db_session.commit()

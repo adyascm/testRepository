@@ -7,7 +7,7 @@ from adya.db.connection import db_connection
 from adya.db import models
 from adya.common.constants import UserMemberType
 from sqlalchemy import and_
-from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser
+from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
 from adya.common import utils
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 
@@ -215,6 +215,28 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
+            ## adding dummy folder 
+
+            # need to have dummy node for all files at root level
+            resource = Resource()
+            resource.resource_id = constants.ROOT
+            resource.domain_id = domain_id
+            resource.datasource_id = datasource_id
+            resource.resource_type = constants.ROOT_MIME_TYPE
+            resource.resource_name = constants.ROOT_NAME
+            resource.resource_owner_id = user_email
+            resource.creation_time = datetime.datetime.utcnow().isoformat()
+            resource.last_modified_time = datetime.datetime.utcnow().isoformat()
+            resource.exposure_type = constants.ResourceExposureType.PRIVATE
+            db_session.add(resource)
+
+            resourceparent = ResourceParent()
+            resourceparent.datasource_id = datasource_id
+            resourceparent.domain_id = domain_id
+            resourceparent.email = user_email
+            resourceparent.resource_id = constants.ROOT
+            db_session.add(resourceparent)
+            
             url = constants.SCAN_RESOURCES + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
             lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
