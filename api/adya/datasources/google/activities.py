@@ -30,7 +30,7 @@ def get_activities_for_user(domain_id, datasource_id, user_email):
                                     startTime=start_time_string, page_token=reports_page_token).execute()
             payload += process_user_activity(domain_id, datasource_name, user_email, results)
 
-        return payload
+        return payload[:100]
 
     except Exception as e:
         print e
