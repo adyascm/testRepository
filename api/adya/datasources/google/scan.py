@@ -318,4 +318,12 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id)
         if send_message:
-            RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
+            session = FuturesSession()
+            push_message = {}
+            push_message["AK"] = "QQztAk"
+            push_message["PK"] = "WDcLMrV4LQgt"
+            push_message["C"] = "adya-scan-update"
+            push_message["M"] = json.dumps(datasource, cls=models.AlchemyEncoder)
+
+            session.post(url='http://ortc-developers2-euwest1-s0001.realtime.co/send', json=push_message)
+            #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))

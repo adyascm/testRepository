@@ -52,7 +52,7 @@ class Dashboard extends Component {
   render() {
     return (
       
-      <Card.Group>
+      <Card.Group stackable>
         {
           this.widgetConfigs.map(config => {
             var widget = null;

@@ -55,7 +55,8 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                cellExpanded: false
+                cellExpanded: false,
+                rowData: {}
             }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {

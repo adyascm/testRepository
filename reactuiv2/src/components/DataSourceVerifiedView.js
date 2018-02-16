@@ -17,7 +17,8 @@ const DataSourceVerifiedView = ChildComponent => {
     class DataSourceVerifiedViewInner extends Component {
         componentWillMount(){
             //this.props.common.datasources = [];
-            this.props.setDataSources(agent.Setting.getDataSources());
+            if (!this.props.common.datasources)
+                this.props.setDataSources(agent.Setting.getDataSources());
         }
         render() {
             if (!this.props.common.datasources) {

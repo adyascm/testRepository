@@ -15,10 +15,52 @@ export default (state = {}, action) => {
 
             }
         case USERS_TREE_LOADED:
+            let usersTreePayload = action.payload
+            let rows = []
+            let emailRowMap = {}
+            let keys = Object.keys(usersTreePayload)
+
+            for (let index=0; index<keys.length; index++) {
+                let rowItem = usersTreePayload[keys[index]]
+                rowItem.key = keys[index]
+                emailRowMap[keys[index]] = index;
+                rowItem.type = "group";
+                if (rowItem.depth === undefined)
+                    rowItem.depth = 0
+                rowItem.isExpanded = rowItem.isExpanded || false
+                if (!rowItem.name) {
+                    rowItem.type = "user";
+                    rowItem.name = rowItem.firstName + " " + rowItem.lastName + " [" + keys[index] + "]";
+                }
+
+                let childRows = []
+                if (rowItem.children) {
+                    for (let index=0; index<rowItem.children.length; index++) {
+                        let childRowItem = usersTreePayload[rowItem.children[index]]
+                        childRowItem.key = rowItem.children[index]
+                        // if (childRowItem.depth === undefined)
+                        //     childRowItem.depth = rowItem.depth+1
+                        childRows.push(childRowItem)
+                    }
+                }
+
+                if (childRows.length > 0) {
+                    let rowItemCopy = Object.assign({},rowItem)
+                    rowItemCopy.children = childRows
+                    rows.push(rowItemCopy)
+                    rowItem = Object.assign({},rowItemCopy)
+                }
+                else 
+                    rows.push(rowItem)
+            }
+
+            console.log("user group nodes : ",rows)
+
             return {
                 ...state,
                 isLoading: false,
-                usersTree: action.payload
+                usersTree: rows,
+                emailRowMap: emailRowMap
             }
         case USERS_TREE_SET_ROW_DATA:
             return {
