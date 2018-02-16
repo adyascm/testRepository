@@ -244,3 +244,11 @@ functions:
           path: scan/subscribenotifications
           method: get
           cors: true
+
+  get_activities_for_user:
+    handler: adya.services.lambda.activities_handler.get_activities_for_user
+    events:
+      - http:
+          path: getactivitiesforuser
+          method: get
+          cors: true

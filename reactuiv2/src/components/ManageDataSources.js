@@ -4,14 +4,17 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Card, Button, Form } from 'semantic-ui-react'
+import { Card, Button, Form, Container } from 'semantic-ui-react'
+import Realtime from 'realtime-messaging';
+
 
 import {
   API_ROOT,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
   DASHBOARD_PAGE_LOADED,
-  DASHBOARD_PAGE_UNLOADED
+  DASHBOARD_PAGE_UNLOADED,
+  SCAN_UPDATE_RECEIVED
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
@@ -26,6 +29,9 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
   addDataSource: (name) => {
     dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name }) })
+  },
+  onPushNotification: (actionType, msg) => {
+    dispatch({ type: actionType, payload: msg })
   }
 
 });
@@ -51,38 +57,41 @@ class ManageDataSources extends Component {
     this.changeField = value => { this.newDataSourceName = value; }
   }
   render() {
-    return (
-
-      <div>
-        <Card.Group>
-          {
-            this.props.common.datasources && this.props.common.datasources.map(ds => {
-              return (
-                <DataSourceItem item={ds} onDelete={this.deleteDataSource}/>
-              )
-            })
-          }
-          <Card>
-
-            <Card.Content>
-              <Card.Description>
-                Enter a friendly name to create a new datasource
-                    </Card.Description>
-              <Form>
-                <Form.Field>
-                  <input placeholder='Name' />
-                </Form.Field>
-              </Form>
-            </Card.Content>
-            <Card.Content extra>
-              <div className='ui buttons'>
-                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()}>Google</Button>
-              </div>
-            </Card.Content>
-          </Card>
-        </Card.Group>
-      </div>
-    )
+    if (!this.props.common.datasources || !this.props.common.datasources.length) {
+      return (
+        <Container>
+          <Card.Group>
+            <Card fluid>
+              <Card.Content>
+                <Card.Description>
+                  No datasource connected yet, please click below to start scanning your Google Suite...
+                      </Card.Description>
+              </Card.Content>
+              <Card.Content extra>
+                <div className='ui buttons'>
+                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()}>Scan</Button>
+                </div>
+              </Card.Content>
+            </Card>
+          </Card.Group>
+        </Container>
+      )
+    }
+    else {
+      return (
+        <Container>
+          <Card.Group>
+            {
+              this.props.common.datasources && this.props.common.datasources.map(ds => {
+                return (
+                  <DataSourceItem item={ds} onDelete={this.deleteDataSource} />
+                )
+              })
+            }
+          </Card.Group>
+        </Container>
+      )
+    }
   }
 }
 

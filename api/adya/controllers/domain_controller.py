@@ -2,6 +2,7 @@ import json
 import datetime
 import uuid
 from adya.common import utils
+from threading import Thread
 
 from requests_futures.sessions import FuturesSession
 
@@ -77,7 +78,9 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        start_scan(auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled)
+        thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
+        thread.start()
+        #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
     else:
         return None

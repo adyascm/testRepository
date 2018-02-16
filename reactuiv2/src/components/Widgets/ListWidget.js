@@ -29,9 +29,9 @@ class ListWidget extends Component {
                 const count = this.props[this.props.config.id].data.totalCount;
                 const footer = "Total " + count;
                 return (
-                    <Card>
+                    <Card fluid>
                         <Card.Content>
-                            <Table celled fixed singleLine>
+                            <Table celled singleLine>
                                 <Table.Header>
                                     <Table.Row>
                                         <Table.HeaderCell colSpan='2'>{this.props.config.header}</Table.HeaderCell>

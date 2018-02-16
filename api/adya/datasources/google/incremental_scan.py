@@ -3,11 +3,9 @@ from adya.datasources.google.permission import GetPermission
 from adya.db.connection import db_connection
 from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission
 from adya.controllers import domain_controller
-from sqlalchemy import and_, update
+from sqlalchemy import and_
 from adya.common import constants
 import requests
-import json
-
 import uuid
 
 def subscribe(domain_id, auth_token):
@@ -136,7 +134,7 @@ def process_notifications(domain_id, channel_id):
             db_session.commit()
 
 
-            response = requests.get(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                     headers={"X-Goog-Channel-Token": domain_id,
                                              "X-Goog-Channel-ID": channel_id})
             print response

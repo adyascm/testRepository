@@ -9,7 +9,7 @@ from adya.common.constants import UserMemberType
 from sqlalchemy import and_
 from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
 from adya.common import utils
-#from adya.realtimeframework.ortc_conn import RealtimeConnection
+from adya.realtimeframework.ortc_conn import RealtimeConnection
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
@@ -395,3 +395,13 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         #ortc_client = RealtimeConnection().get_conn()
         # ortc_client.send(datasource_id, datasource)
     #TODO: handle if update failed
+        if send_message:
+            session = FuturesSession()
+            push_message = {}
+            push_message["AK"] = "QQztAk"
+            push_message["PK"] = "WDcLMrV4LQgt"
+            push_message["C"] = "adya-scan-update"
+            push_message["M"] = json.dumps(datasource, cls=models.AlchemyEncoder)
+
+            session.post(url='http://ortc-developers2-euwest1-s0001.realtime.co/send', json=push_message)
+            #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))

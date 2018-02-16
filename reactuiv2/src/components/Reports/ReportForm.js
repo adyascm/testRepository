@@ -1,12 +1,12 @@
 import React, { Component, PropTypes } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-react'
-import ReactCron from '../../reactCron/index'
+import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import UsersTree from '../Users/UsersTree';
 import ResourceTree from '../Resources/ResourcesTree';
 import agent from '../../utils/agent';
-import * as Helper from '../../reactCron/helpers/index';
+import * as Helper from '../reactCron/helpers/index';
 
 import {
   CREATE_SCHEDULED_REPORT
@@ -69,7 +69,7 @@ class ReportForm extends Component {
     let valid = true
     var emailCheck  = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     var selected_entity;
-    if(this.state.value === "user"){
+    if(this.state.value === "group"){
       if(this.props.rowData){
         selected_entity = this.props.rowData.key
       }
@@ -80,9 +80,9 @@ class ReportForm extends Component {
       }
     }
 
-    var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_Type":this.state.value}
+    var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_type":this.state.value}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
-                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "isactive": this.state.IsActive}
+                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "is_active": this.state.IsActive}
     console.log("data ", reportData)
     if(!reportData.name){
       errorMessage = "Please enter a name for this report."
@@ -92,7 +92,7 @@ class ReportForm extends Component {
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if(!reportData.config.selected_entity_Type){
+    else if(!reportData.config.selected_entity_type){
       console.log("reportData.config.selected_entity_Type ", reportData.config.selected_entity_Type)
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
@@ -172,7 +172,7 @@ class ReportForm extends Component {
                 <div className="column">
                     <Form.Group inline>
                       <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
-                      <Form.Radio label='Group/User' value='group' checked={value === 'user'} onChange={this.handleChange} />
+                      <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
                     </Form.Group>
                     {this.state.value == 'group'?
                        <Form.Field ><UsersTree userTreeHandler={this.userTreeHandler}/></Form.Field> : null}

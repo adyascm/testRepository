@@ -2,9 +2,11 @@ import json
 import datetime
 import uuid
 
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report
+from flask import request
+
+from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission
 from adya.db.connection import db_connection
-from adya.common import utils, constants
+from adya.common import utils, constants, request_session
 from sqlalchemy import func, or_, and_
 
 
@@ -59,7 +61,7 @@ def create_report(auth_token, payload):
             report.frequency = payload["frequency"]
             report.receivers = payload["receivers"]
         report.creation_time = datetime.datetime.utcnow().isoformat()
-        report.is_active = payload["isactive"]
+        report.is_active = payload["is_active"]
 
         db_session.add(report)
         try:
@@ -92,4 +94,49 @@ def delete_report(auth_token, report_id):
         print "Exception occured while delete a report"
 
 
+def run_report(auth_token, report_id):
+    if not auth_token:
+        return None
+    session = db_connection().get_session()
 
+    get_report_info = session.query(Report.config).filter(and_(Report.domain_id == LoginUser.domain_id,
+                                                               Report.report_id == report_id)).\
+                                                    filter(LoginUser.auth_token == auth_token).one()
+
+    config_data = json.loads(get_report_info[0])
+    report_type = config_data.get('report_type')
+    selected_entity = config_data.get('selected_entity')
+    selected_entity_type = config_data.get('selected_entity_type')
+    if report_type == "Permission":
+        if selected_entity_type == "group":
+            query_string = ResourcePermission.email == selected_entity
+        elif selected_entity_type == "resource":
+            query_string = ResourcePermission.resource_id == selected_entity
+
+        get_perms_report = session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
+                                                                         LoginUser.domain_id, query_string, Resource.resource_id
+                                                                            == ResourcePermission.resource_id)).filter(LoginUser.auth_token
+                                                                                                     == auth_token).all()
+
+        return get_perms_report
+
+
+    # elif report_type == "Activity":
+    #
+    #     get_activity_report = session.query(Activity)
+
+
+def update_report(auth_token, payload):
+    if not auth_token:
+        return None
+    session = db_connection().get_session()
+    if payload:
+        report_id = payload['report_id']
+        session.query(Report).filter(Report.report_id == report_id).update(payload)
+        try:
+            session.commit()
+        except Exception as ex:
+            print ex
+        return "successful update "
+    else:
+        return None

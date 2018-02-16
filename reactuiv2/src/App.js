@@ -20,6 +20,7 @@ import { Container } from 'semantic-ui-react'
 
 import { APP_LOAD, REDIRECT } from './constants/actionTypes';
 import agent from './utils/agent';
+import initializePushNotifications from './pushnotifications/realtimeFramework'
 
 const mapStateToProps = state => {
   return {
@@ -36,7 +37,11 @@ const mapDispatchToProps = dispatch => ({
   },
 
   onRedirect: () =>
-    dispatch({ type: REDIRECT })
+    dispatch({ type: REDIRECT }),
+  onPushNotification: (actionType, msg) => {
+    dispatch({ type: actionType, payload: msg })
+  }
+
 });
 
 class App extends Component {
@@ -54,6 +59,8 @@ class App extends Component {
     }
 
     this.props.onLoad(token ? agent.Auth.current() : null, token);
+
+    initializePushNotifications(this.props);
   }
   render() {
     if (this.props.appLoaded) {
@@ -61,14 +68,14 @@ class App extends Component {
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser} />
           <Switch>
-          <Container fluid style={{ marginTop: '5em' }}>
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
-            <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
-            <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
-            <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
-            <Route path="/datasources" component={SecuredView(ManageDataSources)} />
-            <Route path="/oauthstatus/:status" component={Dashboard} />
+            <Container fluid style={{ marginTop: '5em', height: '100%' }}>
+              <Route exact path="/login" component={Login} />
+              <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
+              <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
+              <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
+              <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
+              <Route path="/datasources" component={SecuredView(ManageDataSources)} />
+              <Route path="/oauthstatus/:status" component={Dashboard} />
             </Container>
           </Switch>
         </div>

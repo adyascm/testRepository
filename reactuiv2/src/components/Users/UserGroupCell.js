@@ -5,15 +5,27 @@ class UserGroupCell extends Component {
     constructor(props) {
         super(props);
     }
+    
     render() {
-        console.log("props in UserGroupCell : ", this.props)
-        return (
-            <span>
-                <Icon name='triangle right' />
-                <Icon name='user' />
-                {this.props.value}
-            </span>
-        )
+        let expandIcon = this.props.data.isExpanded?"triangle down":"triangle right"
+        var leftMargin = 2 * this.props.data.depth + "em";
+        if (this.props.data.children && this.props.data.children.length > 0) {
+            return (
+                <span style={{"marginLeft":leftMargin}}>
+                    <Icon name={expandIcon} onClick={()=>this.props.cellExpandedOrCollapsed(this.props)} />
+                    <Icon name='group' />
+                    {this.props.value}
+                </span>
+            )
+        }
+        else {
+            return (
+                <span style={{"marginLeft":leftMargin}}>
+                    <Icon name='user' />
+                    {this.props.value}
+                </span>
+            )
+        }
     }
 }
 
