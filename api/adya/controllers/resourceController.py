@@ -26,8 +26,7 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
             else:
                 resource_permissions_query_data = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                         and_(ResourcePermission.resource_id == Resource.resource_id,
-                                        ResourcePermission.domain_id == Resource.domain_id))\
-                                        .outerjoin(ResourceParent,and_(ResourceParent.resource_id == Resource.resource_id,\
+                                        ResourcePermission.domain_id == Resource.domain_id)).outerjoin(ResourceParent,and_(ResourceParent.resource_id == Resource.resource_id,\
                                         ResourceParent.domain_id == Resource.domain_id))\
                                         .filter(and_(Resource.domain_id == domain_id,
                                         ResourcePermission.email.in_(emailList),ResourceParent.resource_parent_id == parent_id)).all()
@@ -43,7 +42,7 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
             if not parent_id:
                 resources = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                     and_(ResourcePermission.resource_id == Resource.resource_id,
-                                    ResourcePermission.domain_id == Resource.domain_id))
+                                    ResourcePermission.domain_id == Resource.domain_id))\
                                     .outerjoin(ResourceParent,and_(ResourceParent.resource_id == Resource.resource_id,\
                                         ResourceParent.domain_id == Resource.domain_id))\
                                     .filter(and_(Resource.domain_id == domain_id, 
@@ -51,10 +50,10 @@ def get_resource_tree(auth_token, parent_id,emailList=None):
             else:
                 resources = db_session.query(Resource,ResourcePermission).outerjoin(ResourcePermission,
                                     and_(ResourcePermission.resource_id == Resource.resource_id,
-                                    ResourcePermission.domain_id == Resource.domain_id))
+                                    ResourcePermission.domain_id == Resource.domain_id))\
                                     .outerjoin(ResourceParent,and_(ResourceParent.resource_id == Resource.resource_id,\
                                     ResourceParent.domain_id == Resource.domain_id))\
-                                    .filter(and_(Resource.domain_id == domain_id,\ 
+                                    .filter(and_(Resource.domain_id == domain_id, 
                                     ResourceParent.resource_parent_id == parent_id)).all()
         
         responsedata ={}
