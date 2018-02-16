@@ -92,6 +92,7 @@ def delete_datasource(auth_token, datasource_id):
             db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
             db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
             db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
             db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
             db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
             db_session.delete(existing_datasource)
