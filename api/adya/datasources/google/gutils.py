@@ -96,5 +96,4 @@ def get_credentials_object(emailid):
     credentials = SERVICE_OBJECT.create_delegated(emailid)
     http = credentials.authorize(httplib2.Http())
     credentials.refresh(http)
-    print credentials.to_json()
     return credentials

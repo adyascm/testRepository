@@ -36,6 +36,7 @@ api.add_resource(reports_handler.dashboard_widget, '/widgets')
 ## meta data for a domain
 api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES)
 api.add_resource(scanhandler.GetPermission, constants.SCAN_PERMISSIONS)
+api.add_resource(scanhandler.GetParent, constants.SCAN_PARENTS)
 
 api.add_resource(scanhandler.GetDomainuser, constants.SCAN_DOMAIN_USERS)
 

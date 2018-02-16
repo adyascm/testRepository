@@ -7,37 +7,37 @@ from requests_futures.sessions import FuturesSession
 
 from adya.common import constants,utils
 from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, DomainUser, ResourcePermission, Resource
+from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,\
+                             DomainGroup, DomainUser, ResourcePermission, Resource,ResourceParent
 from adya.datasources.google import gutils
 
 
-def get_datasource(auth_token, datasource_id):
-    session = db_connection().get_session()
+def get_datasource(auth_token, datasource_id, db_session=None):
+    if not db_session:
+        db_session = db_connection().get_session()
     if datasource_id:
-        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-            filter(LoginUser.auth_token == auth_token).all()
+        datasources = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     else:
-        datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
+        datasources = db_session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
 
     return datasources
 
 
-def update_datasource(datasource_id, column_name, column_value):
-    session = db_connection().get_session()
+def update_datasource(db_session,datasource_id, column_name, column_value): 
     if column_name:
-        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
+        datasources = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
             update({column_name: column_name + column_value})
-        session.commit()
+        db_session.commit()
 
         return datasources
 
 
 def create_datasource(auth_token, payload):
     datasource_id = str(uuid.uuid4())
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
 
-    existing_user = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     if existing_user:
         datasource = DataSource()
         datasource.domain_id = existing_user.domain_id
@@ -50,7 +50,7 @@ def create_datasource(auth_token, payload):
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
-        session.add(datasource)
+        db_session.add(datasource)
 
         # need to have dummy node for all files at root level
         resource = Resource()
@@ -63,10 +63,17 @@ def create_datasource(auth_token, payload):
         resource.creation_time = datetime.datetime.utcnow().isoformat()
         resource.last_modified_time = datetime.datetime.utcnow().isoformat()
         resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        session.add(resource)
+        db_session.add(resource)
+
+        resourceparent = ResourceParent()
+        resourceparent.datasource_id = datasource_id
+        resourceparent.domain_id = existing_user.domain_id
+        resourceparent.email = existing_user.email
+        resourceparent.resource_id = constants.ROOT
+        db_session.add(resourceparent)
 
         try:
-            session.commit()
+            db_session.commit()
         except Exception as ex:
             print (ex)
         print "Starting the scan"
@@ -76,19 +83,19 @@ def create_datasource(auth_token, payload):
         return None
 
 def delete_datasource(auth_token, datasource_id):
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
 
-    existing_datasource = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     domain_id = existing_datasource.domain_id
     if existing_datasource:
         try:
-            session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-            session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-            session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-            session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-            session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-            session.delete(existing_datasource)
-            session.commit()
+            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+            db_session.delete(existing_datasource)
+            db_session.commit()
         except Exception as ex:
             print "Exception occurred during datasource data delete - " + ex
         
@@ -101,15 +108,15 @@ def delete_datasource(auth_token, datasource_id):
 
 
 def create_domain(domain_id, domain_name):
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
 
     domain = Domain()
     domain.domain_id = domain_id
     domain.domain_name = domain_name
     domain.creation_time = creation_time
-    session.add(domain)
-    session.commit()
+    db_session.add(domain)
+    db_session.commit()
     return domain
 
 
