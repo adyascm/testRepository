@@ -25,6 +25,9 @@ export default (state = {}, action) => {
                 rowItem.key = keys[index]
                 emailRowMap[keys[index]] = index;
                 rowItem.type = "group";
+                if (rowItem.depth === undefined)
+                    rowItem.depth = 0
+                rowItem.isExpanded = rowItem.isExpanded || false
                 if (!rowItem.name) {
                     rowItem.type = "user";
                     rowItem.name = rowItem.firstName + " " + rowItem.lastName + " [" + keys[index] + "]";
@@ -35,6 +38,8 @@ export default (state = {}, action) => {
                     for (let index=0; index<rowItem.children.length; index++) {
                         let childRowItem = usersTreePayload[rowItem.children[index]]
                         childRowItem.key = rowItem.children[index]
+                        // if (childRowItem.depth === undefined)
+                        //     childRowItem.depth = rowItem.depth+1
                         childRows.push(childRowItem)
                     }
                 }
@@ -48,6 +53,8 @@ export default (state = {}, action) => {
                 else 
                     rows.push(rowItem)
             }
+
+            console.log("user group nodes : ",rows)
 
             return {
                 ...state,

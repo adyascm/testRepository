@@ -12,6 +12,7 @@ import agent from '../../utils/agent';
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
+import UserGroupCell from './UserGroupCell';
 
 const mapStateToProps = state => ({
     ...state.users
@@ -32,18 +33,29 @@ class UsersTree extends Component {
     constructor(props) {
         super(props);
         this.onCellClicked = this.onCellClicked.bind(this);
+        this.cellExpandedOrCollapsed = this.cellExpandedOrCollapsed.bind(this);
         
         this.state = {
             cellData: '',
-            columnDefs: [
+            columnDefs: [{
+                    headerName: "Type",
+                    field: "type",
+                    hide: true,
+                    sort: "asc",
+                    cellRenderer: "agGroupCellRenderer",
+                    cellStyle: {textAlign: "left"}
+                },
                 {
                     headerName: "Users and Groups",
                     field: "name",
                     sort: "asc",
                     cellStyle: {textAlign: "left"},
-                    cellRenderer: "agGroupCellRenderer"
-                }
-            ]
+                    //cellRenderer: "agGroupCellRenderer"
+                    cellRendererFramework: UserGroupCell,
+                    cellRendererParams: {
+                        cellExpandedOrCollapsed: this.cellExpandedOrCollapsed
+                    }
+                }]
         };
         
         this.gridOptions = {
@@ -52,7 +64,7 @@ class UsersTree extends Component {
                 if (!rowItem.member_type) {
                     return {
                         group: true,
-                        expanded: false,
+                        expanded: rowItem.isExpanded,
                         children: rowItem.children || [],
                         key: rowItem.key
                     }
@@ -64,6 +76,7 @@ class UsersTree extends Component {
     }
 
     onCellClicked(params) {
+        console.log("params data : ", params.data)
         this.setState({
             cellData: params.data
         })
@@ -74,6 +87,28 @@ class UsersTree extends Component {
             return this.props.usersTree[this.props.emailRowMap[parent]]["name"]
         })
         this.props.setSelectedUserParents(selectedUserParentsName)
+    }
+
+    cellExpandedOrCollapsed(params) {
+        console.log("cell expanded or collapsed")
+        if (!params.data.isExpanded) {
+            params.data["isExpanded"] = true
+            let children = params.data["children"]
+            for (let index=0; index<children.length; index++) {
+                if (children[index]["depth"] !== undefined)
+                    children[index]["depth"] += 1
+            }
+            this.gridApi.setRowData(this.props.usersTree)
+        }
+        else {
+            params.data["isExpanded"] = false
+            let children = params.data["children"]
+            for (let index=0; index<children.length; index++) {
+                if (children[index]["depth"] !== undefined)
+                    children[index]["depth"] -= 1
+            }
+            this.gridApi.setRowData(this.props.usersTree)
+        }
     }
 
     componentWillMount() {
