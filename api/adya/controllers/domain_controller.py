@@ -64,7 +64,7 @@ def create_datasource(auth_token, payload):
         resource.last_modified_time = datetime.datetime.utcnow().isoformat()
         resource.exposure_type = constants.ResourceExposureType.PRIVATE
         db_session.add(resource)
-        if not datasource.is_serviceaccount_enabled
+        if not datasource.is_serviceaccount_enabled:
             resourceparent = ResourceParent()
             resourceparent.datasource_id = datasource_id
             resourceparent.domain_id = existing_user.domain_id
