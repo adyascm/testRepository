@@ -62,6 +62,22 @@ class UsersTree extends Component {
             onRowClicked: this.onCellClicked,
             getNodeChildDetails: rowItem => {
                 if (!rowItem.member_type) {
+                    if (rowItem.children.length > 0) {
+                        if (!rowItem.children[0]["key"]) {
+                            var childRows = []
+                            for (let index=0; index<rowItem.children.length; index++) {
+                                let childRowItem = Object.assign({},this.props.usersTree[this.props.emailRowMap[rowItem.children[index]]])
+                                childRowItem.depth = rowItem.depth + 1
+                                childRows.push(childRowItem)
+                            }
+                            return {
+                                group: true,
+                                expanded: rowItem.isExpanded,
+                                children: childRows,
+                                key: rowItem.key
+                            }
+                        }
+                    }
                     return {
                         group: true,
                         expanded: rowItem.isExpanded,
@@ -96,7 +112,7 @@ class UsersTree extends Component {
             let children = params.data["children"]
             for (let index=0; index<children.length; index++) {
                 if (children[index]["depth"] !== undefined)
-                    children[index]["depth"] += 1
+                    children[index]["depth"] = params.data["depth"] + 1
             }
             this.gridApi.setRowData(this.props.usersTree)
         }

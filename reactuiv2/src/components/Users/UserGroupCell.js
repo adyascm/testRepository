@@ -14,7 +14,7 @@ class UserGroupCell extends Component {
                 <span style={{"marginLeft":leftMargin}}>
                     <Icon name={expandIcon} onClick={()=>this.props.cellExpandedOrCollapsed(this.props)} />
                     <Icon name='group' />
-                    {this.props.value}
+                    {this.props.data.name}
                 </span>
             )
         }
@@ -22,7 +22,7 @@ class UserGroupCell extends Component {
             return (
                 <span style={{"marginLeft":leftMargin}}>
                     <Icon name='user' />
-                    {this.props.value}
+                    {this.props.data.name}
                 </span>
             )
         }

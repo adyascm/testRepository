@@ -19,7 +19,7 @@ export default (state = {}, action) => {
             let rows = []
             let emailRowMap = {}
             let keys = Object.keys(usersTreePayload)
-
+            
             for (let index=0; index<keys.length; index++) {
                 let rowItem = usersTreePayload[keys[index]]
                 rowItem.key = keys[index]
@@ -36,10 +36,16 @@ export default (state = {}, action) => {
                 let childRows = []
                 if (rowItem.children) {
                     for (let index=0; index<rowItem.children.length; index++) {
-                        let childRowItem = usersTreePayload[rowItem.children[index]]
+                        let childRowItem = Object.assign({},usersTreePayload[rowItem.children[index]])
                         childRowItem.key = rowItem.children[index]
-                        // if (childRowItem.depth === undefined)
-                        //     childRowItem.depth = rowItem.depth+1
+                        if (childRowItem.depth === undefined)
+                            childRowItem.depth = 0
+                        childRowItem.isExpanded = childRowItem.isExpanded || false
+                        childRowItem.type = "group"
+                        if (!childRowItem.name) {
+                            childRowItem.type = "user"
+                            childRowItem.name = childRowItem.firstName + " " + childRowItem.lastName + " [" + childRowItem.key + "]";
+                        }
                         childRows.push(childRowItem)
                     }
                 }
@@ -55,7 +61,7 @@ export default (state = {}, action) => {
             }
 
             console.log("user group nodes : ",rows)
-
+            console.log("user email map : ", emailRowMap)
             return {
                 ...state,
                 isLoading: false,
