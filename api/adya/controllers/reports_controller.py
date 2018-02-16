@@ -61,7 +61,7 @@ def create_report(auth_token, payload):
             report.frequency = payload["frequency"]
             report.receivers = payload["receivers"]
         report.creation_time = datetime.datetime.utcnow().isoformat()
-        report.is_active = payload["isactive"]
+        report.is_active = payload["is_active"]
 
         session.add(report)
         try:
@@ -122,7 +122,21 @@ def run_report(auth_token, report_id):
 
 
     # elif report_type == "Activity":
+    #
+    #     get_activity_report = session.query(Activity)
 
-        # get_activity_report = session.query(Activity)
 
-
+def update_report(auth_token, payload):
+    if not auth_token:
+        return None
+    session = db_connection().get_session()
+    if payload:
+        report_id = payload['report_id']
+        session.query(Report).filter(Report.report_id == report_id).update(payload)
+        try:
+            session.commit()
+        except Exception as ex:
+            print ex
+        return "successful update "
+    else:
+        return None
