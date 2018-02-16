@@ -40,8 +40,8 @@ class UsersTree extends Component {
                     headerName: "Users and Groups",
                     field: "name",
                     sort: "asc",
-                    cellRenderer: "agGroupCellRenderer",
-                    cellStyle: {textAlign: "left"}
+                    cellStyle: {textAlign: "left"},
+                    cellRenderer: "agGroupCellRenderer"
                 }
             ]
         };
@@ -71,7 +71,7 @@ class UsersTree extends Component {
         let selectedUserEmail = params.data["key"]
         let selectedUserParentsEmail = params.data["parents"]
         let selectedUserParentsName = selectedUserParentsEmail.map((parent,index) => {
-            return this.props.usersTreeInitial[parent]["name"]
+            return this.props.usersTree[this.props.emailRowMap[parent]]["name"]
         })
         this.props.setSelectedUserParents(selectedUserParentsName)
     }

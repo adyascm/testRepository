@@ -15,14 +15,15 @@ export default (state = {}, action) => {
 
             }
         case USERS_TREE_LOADED:
-            console.log("users payload : ", action.payload)
             let usersTreePayload = action.payload
             let rows = []
+            let emailRowMap = {}
             let keys = Object.keys(usersTreePayload)
 
             for (let index=0; index<keys.length; index++) {
                 let rowItem = usersTreePayload[keys[index]]
                 rowItem.key = keys[index]
+                emailRowMap[keys[index]] = index;
                 rowItem.type = "group";
                 if (!rowItem.name) {
                     rowItem.type = "user";
@@ -48,12 +49,11 @@ export default (state = {}, action) => {
                     rows.push(rowItem)
             }
 
-            console.log("users payload refined : ", rows)
             return {
                 ...state,
                 isLoading: false,
                 usersTree: rows,
-                usersTreeInitial: action.payload
+                emailRowMap: emailRowMap
             }
         case USERS_TREE_SET_ROW_DATA:
             return {
