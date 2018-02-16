@@ -20,6 +20,7 @@ class SimpleNumberWidget extends Component {
     componentWillMount() {
         this.props.onLoadStart(this.props.config.id);
         this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id));
+
     }
     render() {
         if (this.props[this.props.config.id]) {
