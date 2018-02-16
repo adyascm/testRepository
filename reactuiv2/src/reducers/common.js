@@ -7,7 +7,8 @@ import {
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
   SET_DATASOURCES,
-  CREATE_DATASOURCE
+  CREATE_DATASOURCE,
+  SCAN_UPDATE_RECEIVED
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -39,12 +40,19 @@ export default (state = defaultState, action) => {
     case LOGIN_PAGE_UNLOADED:
       return { ...state, viewChangeCounter: state.viewChangeCounter + 1 };
     case SET_DATASOURCES:
-      return{
+      return {
         ...state,
         datasources: action.payload
       };
-      case CREATE_DATASOURCE:
-      return{
+    case SCAN_UPDATE_RECEIVED:
+      if (state.datasources)
+        state.datasources[0] = JSON.parse(action.payload);
+      return {
+        ...state,
+
+      };
+    case CREATE_DATASOURCE:
+      return {
         ...state,
         datasources: state.datasources.concat(action.payload)
       };

@@ -2,6 +2,7 @@ import json
 import datetime
 import uuid
 from adya.common import utils
+from threading import Thread
 
 from requests_futures.sessions import FuturesSession
 
@@ -14,8 +15,7 @@ from adya.datasources.google import gutils
 def get_datasource(auth_token, datasource_id):
     session = db_connection().get_session()
     if datasource_id:
-        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-            filter(LoginUser.auth_token == auth_token).all()
+        datasources = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     else:
         datasources = session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
@@ -56,7 +56,9 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
+        thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email))
+        thread.start()
+        #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
     else:
         return None
