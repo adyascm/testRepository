@@ -32,36 +32,8 @@ export default (state = {}, action) => {
                     rowItem.type = "user";
                     rowItem.name = rowItem.firstName + " " + rowItem.lastName + " [" + keys[index] + "]";
                 }
-
-                let childRows = []
-                if (rowItem.children) {
-                    for (let index=0; index<rowItem.children.length; index++) {
-                        let childRowItem = Object.assign({},usersTreePayload[rowItem.children[index]])
-                        childRowItem.key = rowItem.children[index]
-                        if (childRowItem.depth === undefined)
-                            childRowItem.depth = 0
-                        childRowItem.isExpanded = childRowItem.isExpanded || false
-                        childRowItem.type = "group"
-                        if (!childRowItem.name) {
-                            childRowItem.type = "user"
-                            childRowItem.name = childRowItem.firstName + " " + childRowItem.lastName + " [" + childRowItem.key + "]";
-                        }
-                        childRows.push(childRowItem)
-                    }
-                }
-
-                if (childRows.length > 0) {
-                    let rowItemCopy = Object.assign({},rowItem)
-                    rowItemCopy.children = childRows
-                    rows.push(rowItemCopy)
-                    rowItem = Object.assign({},rowItemCopy)
-                }
-                else 
-                    rows.push(rowItem)
+                rows.push(rowItem)
             }
-
-            console.log("user group nodes : ",rows)
-            console.log("user email map : ", emailRowMap)
             return {
                 ...state,
                 isLoading: false,

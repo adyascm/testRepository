@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT } from '../constants/actionTypes';
 import AdyaLogo from '../AdyaLogo.png'
-import { Container, Input, Image, List, Menu, Segment } from 'semantic-ui-react'
+import { Container, Input, Image, List, Menu, Segment, Icon } from 'semantic-ui-react'
 
 const LoggedOutView = props => {
     if (!props.currentUser) {
@@ -11,7 +11,7 @@ const LoggedOutView = props => {
             <Container>
                 <Menu.Item as={Link} to="/" header>
                     <Image size='tiny' src={AdyaLogo} />
-              </Menu.Item>
+                </Menu.Item>
             </Container>
         )
     }
@@ -24,9 +24,9 @@ const LoggedInView = props => {
             <Container>
                 <Menu.Item as={Link} to="/" header>
                     <Image size='tiny' src={AdyaLogo} />
-              </Menu.Item>
+                </Menu.Item>
 
-                <Menu.Menu position='left'>
+                <Menu.Menu position='left' >
                     <Menu.Item as={Link} to="/">Dashboard</Menu.Item>
                     <Menu.Item as={Link} to="/users">Users</Menu.Item>
                     <Menu.Item as={Link} to="/resources">Resources</Menu.Item>
@@ -38,7 +38,7 @@ const LoggedInView = props => {
                         <Input icon='search' placeholder='Search...' />
                     </Menu.Item>
                     <Menu.Item icon='settings' as={Link} to="/datasources" />
-                    <Menu.Item icon='sign out' onClick={props.onClickLogout} />
+                    <Menu.Item icon labelPosition="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'margin-left': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
         );
@@ -57,14 +57,10 @@ const mapDispatchToProps = dispatch => ({
 class Header extends React.Component {
     render() {
         return (
-            <div>
-                <div>
-                    <Menu fixed='top' inverted stackable>
-                        <LoggedOutView currentUser={this.props.currentUser} />
-                        <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} />
-                    </Menu>
-                </div>
-            </div>
+            <Menu fixed='top' inverted>
+                <LoggedOutView currentUser={this.props.currentUser} />
+                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} />
+            </Menu>
         )
     }
 }
