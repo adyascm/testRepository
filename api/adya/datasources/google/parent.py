@@ -1,6 +1,6 @@
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
-from adya.db.models import Resource,ResourceParent,DomainUser
+from adya.db.models import Resource,ResourceParent,DomainUser,DataSource
 from adya.common import constants
 from sqlalchemy import and_
 #  this class is use to get permisson for drive resources
@@ -20,19 +20,24 @@ class GetParents():
     ## here I am not considering case of more than 100 permissions for a given file id
     ## we need to implement that in future if we get that use case.
     def resource_parentscallback(self,request_id, response, exception):
-            request_id = int(request_id)
-            resource_id = self.resources[request_id - 1]
-            if response:
-                row = {"resourceId":resource_id}
-                if response.get('parents'):
-                    row["parentId"] = response['parents'][0]
-                else:
-                    mime_type = gutils.get_file_type_from_mimetype(response['mimeType'])
-                    if mime_type != 'folder':
-                        row["parentId"] = constants.ROOT
-                self.resource_parent_array.append(row)
-            if self.resource_count == request_id:
-                self.update_parents_data_for_resource()
+
+            if exception:
+                print exception
+            else:
+                request_id = int(request_id)
+                resource_id = self.resources[request_id - 1]
+                if response:
+                    row = {"resourceId":resource_id}
+                    if response.get('parents'):
+                        row["parentId"] = response['parents'][0]
+                    else:
+                        mime_type = gutils.get_file_type_from_mimetype(response['mimeType'])
+                        if mime_type != 'folder':
+                            row["parentId"] = constants.ROOT
+                    self.resource_parent_array.append(row)
+                if self.resource_count == request_id:
+                    print "updating parent data"
+                    self.update_parents_data_for_resource()
 
     # getting permissison for 100 resourceId
     def get_parent(self):
@@ -54,18 +59,21 @@ class GetParents():
     def update_parents_data_for_resource(self):
         data_for_parent_table =[]
         db_session = db_connection().get_session()
-        domain_name = self.domain_id
+        email = self.user_email
+        if not email:
+            email = self.domain_id
         for resource_parent_data in self.resource_parent_array:
             resource_parent = {}
             resource_parent['domain_id'] = self.domain_id
             resource_parent['datasource_id'] = self.datasource_id
-            resource_parent['email'] = self.user_email
+            resource_parent['email'] = email
             resource_parent['resource_id'] = resource_parent_data['resourceId']
             resource_parent['parent_id'] = resource_parent_data.get('parentId')
             data_for_parent_table.append(resource_parent)
         try:
             db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
             db_session.commit()
+            print "Inserted parent data into db"
         except Exception as ex:
             print (ex)
-            print("Updating permission for " + self.user_email + " failed")
+            print("Updating parents for failed")

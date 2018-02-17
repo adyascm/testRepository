@@ -79,7 +79,7 @@ class GetPermission():
                             if len(name_list) > 1:
                                 user.last_name = name_list[1]
                         user.member_type = constants.UserMemberType.EXTERNAL
-                        db_session.merge(user)
+                        db_session.merge(user,True)
                 elif display_name:
                     resource_exposure_type = constants.ResourceExposureType.DOMAIN
                     email_address = "__ANYONE__@"+ self.domain_id
@@ -94,8 +94,9 @@ class GetPermission():
                 resource_permission['permission_id'] = permission_id
                 resource_permission['permission_type'] = permission_type
                 data_for_permission_table.append(resource_permission)
-            db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.domain_id == self.domain_id))\
-                .update({'exposure_type': resource_exposure_type})
+            db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
+                 Resource.datasource_id == self.datasource_id,
+                 Resource.domain_id == self.domain_id)).update({'exposure_type': resource_exposure_type})
         try:
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
             db_session.commit()

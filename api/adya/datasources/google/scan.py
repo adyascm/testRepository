@@ -221,7 +221,6 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
             ## adding dummy folder 
-
             # need to have dummy node for all files at root level
             resource = Resource()
             resource.resource_id = constants.ROOT

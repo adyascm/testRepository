@@ -55,7 +55,7 @@ class GetPermission(Resource):
 
 class GetParent(Resource):
     def get(self):
-        print "Get resource from db and process"
+        print "Get parents from google api and process"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],['userEmail'])
