@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-
+import { Link } from 'react-router-dom'
 import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
@@ -26,7 +26,7 @@ class SimpleNumberWidget extends Component {
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
                 return (
-                    <Card>
+                    <Card as={Link} to={this.props.config.link}>
                         <Card.Content>
                             <Statistic label={this.props.config.header} value={this.props[this.props.config.id].data} />
                         </Card.Content>

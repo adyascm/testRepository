@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 
 import { connect } from 'react-redux';
-import { Card } from 'semantic-ui-react'
+import { Card, Container } from 'semantic-ui-react'
 
 import agent from '../utils/agent';
 
@@ -30,14 +30,16 @@ const mapDispatchToProps = dispatch => ({
 class Dashboard extends Component {
   constructor() {
     super();
-    this.widgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget" },
-      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget" },
-      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget" },
-      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget" },
-      { id: "sharedDocsByType", header: "", footer: "Shared docs", renderType: "ChartWidget" },
-      { id: "sharedDocsList", header: "Top 5 visible docs", renderType: "ListWidget" },
-      { id: "externalUsersList", header: "Top 5 external users", renderType: "ListWidget" },
+    this.simpleWidgetConfigs = [
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget" , link:"/users" },
+      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget" , link:"/users" },
+      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link:"/resources"  },
+      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link:"/resources"  },
+    ];
+    this.chartWidgetConfigs = [
+      { id: "sharedDocsByType", header: "", footer: "Shared docs", renderType: "ChartWidget", link:"/resources" },
+      { id: "sharedDocsList", header: "Exposed docs", renderType: "ListWidget", link:"/resources"  },
+      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  },
     ];
   }
 
@@ -51,10 +53,10 @@ class Dashboard extends Component {
 
   render() {
     return (
-      
-      <Card.Group stackable>
+      <Container>
+      <Card.Group itemsPerRow='4'>
         {
-          this.widgetConfigs.map(config => {
+          this.simpleWidgetConfigs.map(config => {
             var widget = null;
             if (config.renderType === "SimpleNumberWidget")
               widget = <SimpleNumberWidget config={config} />
@@ -69,6 +71,24 @@ class Dashboard extends Component {
           })
         }
       </Card.Group>
+      <Card.Group itemsPerRow='3'>
+      {
+        this.chartWidgetConfigs.map(config => {
+          var widget = null;
+          if (config.renderType === "SimpleNumberWidget")
+            widget = <SimpleNumberWidget config={config} />
+          else if (config.renderType === "ChartWidget")
+            widget = <ChartWidget config={config} />
+          else
+            widget = <ListWidget config={config} />
+
+          return (
+            widget
+          )
+        })
+      }
+    </Card.Group>
+    </Container>
     )
   }
 }

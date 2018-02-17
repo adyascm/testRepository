@@ -3,10 +3,7 @@ import { connect } from 'react-redux';
 
 import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
 import {
-    USERS_TREE_LOADED,
-    USERS_TREE_LOAD_START,
-    USERS_TREE_SET_ROW_DATA,
-    SELECTED_USER_PARENTS_NAME
+    USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
@@ -20,14 +17,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLoadStart: () =>
-        dispatch({ type: USERS_TREE_LOAD_START }),
-    onLoad: (payload) =>
-        dispatch({ type: USERS_TREE_LOADED, payload }),
-    setRowData: (payload) =>
-        dispatch({ type: USERS_TREE_SET_ROW_DATA, payload }),
-    setSelectedUserParents: (payload) =>
-        dispatch({ type: SELECTED_USER_PARENTS_NAME, payload })
+    selectUserItem: (payload) =>
+        dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
 class UsersTree extends Component {
@@ -37,7 +28,8 @@ class UsersTree extends Component {
         this.cellExpandedOrCollapsed = this.cellExpandedOrCollapsed.bind(this);
 
         this.state = {
-            cellData: '',
+            rows: undefined,
+            showOnlyExternal: props.showOnlyExternal,
             columnDefs: [{
                 headerName: "Type",
                 field: "type",
@@ -47,7 +39,7 @@ class UsersTree extends Component {
                 cellStyle: { textAlign: "left" }
             },
             {
-                headerName: "Users and Groups",
+                headerName: "Groups",
                 field: "name",
                 sort: "asc",
                 cellStyle: { textAlign: "left" },
@@ -56,6 +48,19 @@ class UsersTree extends Component {
                 cellRendererParams: {
                     cellExpandedOrCollapsed: this.cellExpandedOrCollapsed
                 }
+            },
+            {
+                headerName: "Email",
+                field: "key",
+                cellStyle: { textAlign: "left" },
+                cellRenderer: "agTextCellRenderer"
+            },
+            {
+                headerName: "Type",
+                field: "member_type",
+                hide: true,
+                cellRenderer: "agTextCellRenderer",
+                cellStyle: { textAlign: "left" }
             }]
         };
 
@@ -68,19 +73,13 @@ class UsersTree extends Component {
                         for (let index = 0; index < rowItem.children.length; index++) {
                             var childRowItem = {}
                             if (!rowItem.children[index].type)
-                                childRowItem = Object.assign({}, this.props.usersTree[this.props.emailRowMap[rowItem.children[index]]])
+                                childRowItem = Object.assign({}, this.props.usersTreePayload[rowItem.children[index]])
                             else
                                 childRowItem = Object.assign({}, rowItem.children[index])
                             childRowItem.depth = rowItem.depth + 1
                             childRows.push(childRowItem)
                         }
                         rowItem['children'] = childRows;
-                        return {
-                            group: true,
-                            expanded: rowItem.isExpanded,
-                            children: rowItem.children || [],
-                            key: rowItem.key
-                        }
                     }
                     return {
                         group: true,
@@ -93,37 +92,71 @@ class UsersTree extends Component {
                     return null
             }
         }
+        
     }
 
+    componentWillReceiveProps(nextProps){
+        if(this.state.showOnlyExternal != nextProps.showOnlyExternal)
+        {
+            this.setState({
+                ...this.state,
+                showOnlyExternal: nextProps.showOnlyExternal,
+                rows: undefined
+            })
+        }
+    }
+    setTreeRows() {
+        if(this.props.usersTreePayload)
+        {
+            let rows = []
+            let emailRowMap = {}
+            let keys = Object.keys(this.props.usersTreePayload)
+    
+            for (let index = 0; index < keys.length; index++) {
+                let rowItem = this.props.usersTreePayload[keys[index]]
+                rowItem.key = keys[index]
+                
+                if (rowItem.depth === undefined)
+                    rowItem.depth = 0
+                rowItem.isExpanded = rowItem.isExpanded || false
+                if (!rowItem.name ) {
+                    rowItem.type = rowItem.type || "user";
+                    rowItem.name = rowItem.firstName + " " + rowItem.lastName;
+                }
+                else
+                    rowItem.type = rowItem.type || "group";
+                if(this.state.showOnlyExternal)
+                {
+                    if(rowItem.member_type != 'EXT')
+                        continue;
+                } 
+                else if(rowItem.type == "user") {
+                    continue;
+                }
+                rows.push(rowItem)
+            }
+            this.setState({
+                ...this.state,
+                rows: rows
+            })
+        }
+    }
     onCellClicked(params) {
-        console.log("params data : ", params.data)
-        this.setState({
-            cellData: params.data
-        })
-        this.props.setRowData(params.data);
-        let selectedUserEmail = params.data["key"]
-        let selectedUserParentsEmail = params.data["parents"]
-        let selectedUserParentsName = selectedUserParentsEmail.map((parent, index) => {
-            return this.props.usersTree[this.props.emailRowMap[parent]]["name"]
-        })
-        this.props.setSelectedUserParents(selectedUserParentsName)
+        this.props.selectUserItem(params.data);
     }
 
     cellExpandedOrCollapsed(params) {
         if (!params.data.isExpanded) {
             params.data["isExpanded"] = true
-            this.gridApi.setRowData(this.props.usersTree)
+            this.gridApi.setRowData(this.state.rows)
         }
         else {
             params.data["isExpanded"] = false
-            this.gridApi.setRowData(this.props.usersTree)
+            this.gridApi.setRowData(this.state.rows)
         }
     }
 
-    componentWillMount() {
-        this.props.onLoadStart();
-        this.props.onLoad(agent.Users.getUsersTree());
-    }
+
     onGridReady(params) {
         this.gridApi = params.api;
         this.gridColumnApi = params.columnApi;
@@ -132,34 +165,21 @@ class UsersTree extends Component {
     }
 
     render() {
-        if (!this.props.usersTree) {
-            if (this.props.isLoading) {
-                return (
-                    <div className="ag-theme-fresh" style={{ height: '200px' }}>
-                        <Dimmer active inverted>
-                            <Loader inverted content='Loading' />
-                        </Dimmer>
-                    </div>
-                )
-            }
-            else {
-                return null;
-            }
+        if(!this.state.rows){
+            this.setTreeRows();
         }
-        else {
-            return (
-                <div className="ag-theme-fresh">
-                    <AgGridReact
-                        id="myGrid" domLayout="autoHeight"
-                        columnDefs={this.state.columnDefs}
-                        rowData={this.props.usersTree}
-                        onGridReady={this.onGridReady.bind(this)}
-                        gridOptions={this.gridOptions}
-                    />
-                </div>
-            )
-        }
-
+        return (
+            <div className="ag-theme-fresh">
+                <AgGridReact
+                    id="myGrid" domLayout="autoHeight"
+                    columnDefs={this.state.columnDefs}
+                    rowData={this.state.rows}
+                    enableFilter={true}
+                    onGridReady={this.onGridReady.bind(this)}
+                    gridOptions={this.gridOptions}
+                />
+            </div>
+        )
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(UsersTree);
