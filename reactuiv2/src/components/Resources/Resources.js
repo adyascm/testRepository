@@ -31,22 +31,24 @@ class Users extends Component {
 
   render() {
     let containerStyle = {
-      height: 450
+      height: "100%",
+      textAlign: "left"
     };
     return (
-      <Grid stretched celled='internally'>
-        <Grid.Row>
-          <Grid.Column width={7}>
-            <ResourcesTree />
-          </Grid.Column>
-          <Grid.Column width={9}>
-            <Container fluid >
+      <Container style={containerStyle}>
+        <Grid stretched >
+          <Grid.Row>
+            <Grid.Column width={7}>
+              <ResourcesTree />
+            </Grid.Column>
+            <Grid.Column width={9}>
+              <Container fluid >
                 <ResourcePermissionSection />
-            </Container>
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
-
+              </Container>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+      </Container>
     )
   }
 }

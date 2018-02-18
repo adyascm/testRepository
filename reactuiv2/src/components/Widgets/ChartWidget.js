@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom'
 import { PieChart } from 'react-chartkick';
 import { Statistic, Card, Loader, Segment, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
@@ -25,7 +26,7 @@ class ChartWidget extends Component {
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
                 return (
-                    <Card>
+                    <Card as={Link} to={this.props.config.link}>
                         <Card.Content>
                             <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data} />
 
