@@ -83,34 +83,45 @@ def get_resources(auth_token, user_emails=None):
     resources = []
     if user_emails:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission, and_(ResourcePermission.resource_id == Resource.resource_id,
-                                                                                                        ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
-                                                                                                        ResourcePermission.email.in_(user_emails))).all()
+                                                                                                      ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
+                                                                                                                                                                       ResourcePermission.email.in_(user_emails))).all()
     else:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
-                                                                                and_(ResourcePermission.resource_id == Resource.resource_id,
-                                                                                    ResourcePermission.domain_id == Resource.domain_id)).filter(Resource.domain_id == domain.domain_id).all()
+                                                                             and_(ResourcePermission.resource_id == Resource.resource_id,
+                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(Resource.domain_id == domain.domain_id).all()
 
-    responsedata ={}
+    responsedata = {}
     for resource in resources:
         if resource.ResourcePermission:
             permissionobject = {
-                                    "permissionId":resource.ResourcePermission.permission_id,
-                                    "pemrissionEmail":resource.ResourcePermission.email,
-                                    "permissionType":resource.ResourcePermission.permission_type
-                            }
+                "permissionId": resource.ResourcePermission.permission_id,
+                "pemrissionEmail": resource.ResourcePermission.email,
+                "permissionType": resource.ResourcePermission.permission_type
+            }
         else:
-            permissionobject ={}
+            permissionobject = {}
 
         if not resource.Resource.resource_id in responsedata:
             responsedata[resource.Resource.resource_id] = {
-                "resourceId":resource.Resource.resource_id,
-                "resourceName":resource.Resource.resource_name,
-                "resourceType":resource.Resource.resource_type,
-                "resourceOwnerId":resource.Resource.resource_owner_id,
-                "exposureType":resource.Resource.exposure_type,
-                "permissions":[permissionobject]
+                "resourceId": resource.Resource.resource_id,
+                "resourceName": resource.Resource.resource_name,
+                "resourceType": resource.Resource.resource_type,
+                "resourceOwnerId": resource.Resource.resource_owner_id,
+                "exposureType": resource.Resource.exposure_type,
+                "permissions": [permissionobject]
             }
         else:
-            responsedata[resource.Resource.resource_id]["permissions"].append(permissionobject)
+            responsedata[resource.Resource.resource_id]["permissions"].append(
+                permissionobject)
 
     return responsedata
+
+def search_resources(auth_token, prefix):
+    if not auth_token:
+        return None
+    if not prefix:
+        return []
+    db_session = db_connection().get_session()
+    resources = db_session.query(Resource).filter(and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_name.ilike("%" + prefix + "%"))).filter(LoginUser.auth_token == auth_token).limit(10).all()
+
+    return resources
