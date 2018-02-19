@@ -1,36 +1,54 @@
-import React, {Component} from 'react';
-import {Tab} from 'semantic-ui-react';
+import React, { Component } from 'react';
+import { Tab, Segment, Sticky, Icon } from 'semantic-ui-react';
 import UserDetails from './UserDetails';
-import UserAccess from './UserAccess';
+import UserResource from './UserResource';
 import UserActivity from './UserActivity';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
+import {
+    USER_DETAILS_SECTION_CLOSE 
+} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.users,
     ...state.common
 });
 
+const mapDispatchToProps = dispatch => ({
+    closingDetailsSection: (payload) => dispatch({type:USER_DETAILS_SECTION_CLOSE,payload})
+})
+
 class UsersGroupsDetailsSection extends Component {
     constructor(props) {
         super(props);
+        this.closeDetailsSection = this.closeDetailsSection.bind(this);
+    }
+
+    closeDetailsSection() {
+        this.props.closingDetailsSection(undefined)
     }
 
     render() {
-        let parents = (this.props.selectedUserParents !== undefined)&&(this.props.selectedUserParents.length !== 0)? this.props.selectedUserParents:['None']
+        if (!this.props.selectedUserItem)
+            return null;
+        else {
+            let panes = [
+                { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserResource /></Tab.Pane> },
+                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
 
-        let user = this.props.rowData? this.props.rowData["firstName"]?this.props.rowData["firstName"]+" "+this.props.rowData["lastName"]
-                    : this.props.rowData["name"] : null
-        let panes  = [
-            { menuItem: 'Details', render: () => <Tab.Pane attached={false}><UserDetails user={user} parents={parents} /></Tab.Pane> },
-            { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserAccess /></Tab.Pane> },
-            { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity selectedUser={this.props.rowData}/></Tab.Pane> },
+            ]
+            return (
+                <Segment>
+                    <Sticky>
+                        <Icon name='close' onClick={this.closeDetailsSection} />
+                        <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}/>
+                        <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
+                    </Sticky>
+                </Segment>
+            )
+        }
 
-        ]
-        return (
-            <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
-        )
     }
 
 }
 
-export default connect(mapStateToProps)(UsersGroupsDetailsSection);
+export default connect(mapStateToProps,mapDispatchToProps)(UsersGroupsDetailsSection);

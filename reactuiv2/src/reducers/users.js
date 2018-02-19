@@ -1,76 +1,75 @@
 import {
-    USERS_TREE_LOADED, 
-    USERS_TREE_LOAD_START,
-    USERS_TREE_SET_ROW_DATA,
-    SELECTED_USER_PARENTS_NAME
+    USERS_PAGE_LOADED,
+    USERS_PAGE_LOAD_START,
+    USER_ITEM_SELECTED,
+    USERS_ACTIVITY_LOAD_START,
+    USERS_ACTIVITY_LOADED,
+    USERS_RESOURCE_LOAD_START,
+    USERS_RESOURCE_LOADED,
+    USER_DETAILS_SECTION_CLOSE
 } from '../constants/actionTypes';
 
 
 export default (state = {}, action) => {
     switch (action.type) {
-        case USERS_TREE_LOAD_START:
+        case USERS_PAGE_LOAD_START:
             return {
                 ...state,
                 isLoading: true
-
             }
-        case USERS_TREE_LOADED:
+        case USERS_PAGE_LOADED:
             let usersTreePayload = action.payload
-            let rows = []
-            let emailRowMap = {}
-            let keys = Object.keys(usersTreePayload)
-
-            for (let index=0; index<keys.length; index++) {
-                let rowItem = usersTreePayload[keys[index]]
-                rowItem.key = keys[index]
-                emailRowMap[keys[index]] = index;
-                rowItem.type = "group";
-                if (rowItem.depth === undefined)
-                    rowItem.depth = 0
-                rowItem.isExpanded = rowItem.isExpanded || false
-                if (!rowItem.name) {
-                    rowItem.type = "user";
-                    rowItem.name = rowItem.firstName + " " + rowItem.lastName + " [" + keys[index] + "]";
-                }
-
-                let childRows = []
-                if (rowItem.children) {
-                    for (let index=0; index<rowItem.children.length; index++) {
-                        let childRowItem = usersTreePayload[rowItem.children[index]]
-                        childRowItem.key = rowItem.children[index]
-                        // if (childRowItem.depth === undefined)
-                        //     childRowItem.depth = rowItem.depth+1
-                        childRows.push(childRowItem)
-                    }
-                }
-
-                if (childRows.length > 0) {
-                    let rowItemCopy = Object.assign({},rowItem)
-                    rowItemCopy.children = childRows
-                    rows.push(rowItemCopy)
-                    rowItem = Object.assign({},rowItemCopy)
-                }
-                else 
-                    rows.push(rowItem)
-            }
-
-            console.log("user group nodes : ",rows)
-
             return {
                 ...state,
                 isLoading: false,
-                usersTree: rows,
-                emailRowMap: emailRowMap
+                usersTreePayload: action.payload
             }
-        case USERS_TREE_SET_ROW_DATA:
+        case USER_ITEM_SELECTED:
             return {
                 ...state,
-                rowData: action.payload
+                selectedUserItem: action.payload
             }
-        case SELECTED_USER_PARENTS_NAME:
+        case USER_DETAILS_SECTION_CLOSE:
             return {
                 ...state,
-                selectedUserParents: action.payload
+                selectedUserItem: action.payload
+            }
+        case USERS_ACTIVITY_LOAD_START:
+            return {
+                ...state,
+                isActivitiesLoading: true
+            }
+        case USERS_ACTIVITY_LOADED:
+            state.selectedUserItem.activities = JSON.parse(action.payload);
+            return {
+                ...state,
+                isActivitiesLoading: false,
+            }
+        case USERS_RESOURCE_LOAD_START:
+            return {
+                ...state,
+                isResourcesLoading: true
+            }
+        case USERS_RESOURCE_LOADED:
+            var rows = [];
+            if (action.payload) {
+                var keys = Object.keys(action.payload)
+
+                for (let index = 0; index < keys.length; index++) {
+                    let row = action.payload[keys[index]]
+                    row.myPermission = row.permissions[0].permissionType
+                    row.isExpanded = row.isExpanded || false;
+                    row.key = keys[index];
+                    row.depth = 0;
+                    if (!row.name)
+                        row.name = row.resourceName
+                    rows.push(row)
+                }
+            }
+            state.selectedUserItem.resources = rows;
+            return {
+                ...state,
+                isResourcesLoading: false,
             }
         default:
             return state;

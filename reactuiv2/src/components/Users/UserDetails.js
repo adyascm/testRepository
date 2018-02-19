@@ -1,50 +1,58 @@
 import React, { Component } from 'react';
 
 
-import { Item, Image, Button, Label, Icon, Container, Dropdown } from 'semantic-ui-react'
+import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 'semantic-ui-react'
 import AdyaLogo from '../../AdyaLogo.png'
 
 const UserDetails = props => {
-    const state = {
-        quickActions: [{text:'Transfer ownership of all owned files'},
-                       {text:'Remove external access for all owned files'},
-                       {text:'Remove write access for all un-owned files'},
-                       {text:'Make all owned files private'},
-                       {text:'Watch all my actions'}],
-        parents: props.parents
-    };
+    var quickActions= [{text:'Transfer ownership of all owned files'},
+    {text:'Remove external access for all owned files'},
+    {text:'Remove write access for all un-owned files'},
+    {text:'Make all owned files private'},
+    {text:'Watch all my actions'}];
 
-    let labels = state.parents.map((parent,index) => {
-        return (
-            <Label key={index} as='a'>
-                {parent}
+    var parentGroups = []
+    for(var index = 0; index < props.selectedUserItem.parents.length; index++)
+    {
+        var parentKey = props.selectedUserItem.parents[index];
+        parentGroups.push((
+            <Label key={index} as='a' color='blue'>
+                {props.usersTreePayload[parentKey].name}
                 <Icon name='close' />
             </Label>
-        )
-    })
-    console.log("users details parents prop : ", props.parents)
+        ))
+    }
+    if(parentGroups.length < 1)
+    {
+        parentGroups.push((
+            <Label color='orange'>
+                None
+            </Label>
+        ));
+    }
+
+    console.log("users details parents prop : ", props.selectedUserItem.parents)
     return (
         <Item.Group>
 
             <Item fluid='true'>
-                <Item.Image size='tiny' src={AdyaLogo} />
+                <Item.Image size='tiny'><Label style={{fontSize: '2rem'}} circular >{props.selectedUserItem.name.charAt(0)}</Label></Item.Image>
 
                 <Item.Content >
                     <Item.Header >
-                        {props.user}
+                        {props.selectedUserItem.name}
                     </Item.Header>
-                    <Item.Meta>
-                        Member of
+                    <Item.Meta >
+                        {props.selectedUserItem.key}
                     </Item.Meta>
                     <Item.Description>
-                        <Container fluid={true}>
-                            <Label.Group color='blue'>
-                                {labels}
+                        <Header size="tiny" floated="left">Member of </Header>
+                            <Label.Group >
+                                {parentGroups}
                             </Label.Group>
-                        </Container>
                     </Item.Description>
                     <Item.Extra extra>
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={state.quickActions} />
+                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} />
                     </Item.Extra>
                 </Item.Content>
             </Item>

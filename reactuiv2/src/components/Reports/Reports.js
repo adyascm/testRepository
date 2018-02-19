@@ -8,6 +8,7 @@ import ReportForm from './ReportForm';
 import ReportView from './ReportView';
 import agent from '../../utils/agent';
 import ReportsGrid from './ReportsGrid';
+import Immutable from 'immutable'
 
 import {
   REPORTS_PAGE_LOADED,
@@ -50,7 +51,12 @@ class Reports extends Component {
       reportsData: {},
       fetchScheduledReport: false,
       isRunreport: false,
-      runReportName: ''
+      runReportName: '',
+      reportFormData: [],
+      processedReportsData: {},
+      processreport: false,
+      formType: '',
+      reportDataForReportId: {}
     }
   }
 
@@ -62,16 +68,19 @@ class Reports extends Component {
     //
   }
 
+
   reportForm = () => {
     this.setState({
-      showModal: true
+      showModal: true,
+      formType: 'create_report'
     })
   }
 
   handleClose = () => {
     this.setState({
       showModal: false,
-      isRunreport: false
+      isRunreport: false,
+      reportDataForReportId: {}
     })
     this.props.deleteOldRunReportData()
   }
@@ -95,13 +104,31 @@ class Reports extends Component {
   }
 
   modifyReport = (reportId) => ev => {
+
+    var reportDataForReportId = this.state.processedReportsData[reportId]
      this.setState({
-       showModal: true
+       showModal: true,
+       formType: 'modify_report',
+       reportDataForReportId: reportDataForReportId
      })
+
   }
 
 
   componentWillReceiveProps(nextProps){
+
+    if(nextProps.reports.length>0 && !this.state.processreport){
+        var reportsdata = nextProps.reports
+        var reportsdataMap = {}
+        for(var i =0 ;i<reportsdata.length;i++){
+            reportsdataMap[reportsdata[i]['report_id']] = reportsdata[i]
+          }
+        this.setState({
+            processedReportsData: reportsdataMap,
+            processreport: true
+        })
+    }
+
 
     if(nextProps.scheduledReport !== undefined && !this.state.fetchScheduledReport){
       this.setState({
@@ -113,6 +140,7 @@ class Reports extends Component {
 
 
   render() {
+
 
     if (this.props.currentUser){
       return(
@@ -143,7 +171,6 @@ class Reports extends Component {
                     <Modal className="scrolling"
                      open={this.state.showModal} >
                      <Modal.Header>{this.state.runReportName}</Modal.Header>
-
                       <Modal.Content>
                        No Data Found
                       </Modal.Content>
@@ -160,7 +187,9 @@ class Reports extends Component {
                     <Loader size='mini' active inline />
              :
 
-                <ReportForm showModal={this.state.showModal} close={this.handleClose} showrecent={this.showrecent}/>
+                <ReportForm showModal={this.state.showModal} close={this.handleClose}
+                  showrecent={this.showrecent}  reportsMap={this.state.reportDataForReportId}
+                  formType={this.state.formType} />
           }
         </div>
       )

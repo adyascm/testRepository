@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom'
 import { PieChart } from 'react-chartkick';
 import { Table, Card, Loader, Segment, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
@@ -29,9 +30,9 @@ class ListWidget extends Component {
                 const count = this.props[this.props.config.id].data.totalCount;
                 const footer = "Total " + count;
                 return (
-                    <Card fluid>
+                    <Card as={Link} to={this.props.config.link}>
                         <Card.Content>
-                            <Table celled singleLine>
+                            <Table celled singleline='false'>
                                 <Table.Header>
                                     <Table.Row>
                                         <Table.HeaderCell colSpan='2'>{this.props.config.header}</Table.HeaderCell>
