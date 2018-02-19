@@ -11,8 +11,7 @@ import ResourceCell from './ResourceCell';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA,
-    RESOURCES_TREE_CELL_EXPANDED
+    RESOURCES_TREE_SET_ROW_DATA
 } from '../../constants/actionTypes';
 
 
@@ -22,59 +21,39 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
-    onLoad: (parent, payload) => dispatch({ type: RESOURCES_PAGE_LOADED, parent, payload }),
-    setRowData: (payload) => dispatch({type:RESOURCES_TREE_SET_ROW_DATA,payload}),
-    setCellExpanded: (payload) => dispatch({type:RESOURCES_TREE_CELL_EXPANDED,payload})
+    onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
+    setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload })
 });
 
-class ResourcesTree extends Component {
+class ResourcesList extends Component {
     constructor(props) {
         super(props);
 
-        this.cellExpandedOrCollapsed = this.cellExpandedOrCollapsed.bind(this);
         this.onCellClicked = this.onCellClicked.bind(this);
 
         this.columnDefs = [
             {
-                headerName: "Resource",
-                field: "name",
-                cellStyle: { textAlign: "left" },
-                cellRendererFramework: ResourceCell,
-                cellRendererParams: {
-                    cellExpandedOrCollapsed: this.cellExpandedOrCollapsed,
-                }
+                headerName: "Name",
+                field: "resourceName"
+            },
+            {
+                headerName: "Type",
+                field: "resourceType"
+            },
+            {
+                headerName: "Owner",
+                field: "resourceOwnerId"
             }
         ];
 
         this.gridOptions = {
-            onRowClicked: this.onCellClicked,
-            getNodeChildDetails: rowItem => {
-                if (rowItem.resourceType == 'folder') {
-                    return {
-                        group: true,
-                        expanded: rowItem.isExpanded,
-                        children: rowItem.children || [],
-                        key: rowItem.key
-                    }
-                }
-                return null;
-            }
+            onRowClicked: this.onCellClicked
         }
     }
 
     onCellClicked(params) {
+        console.log("cell clicked data : ", params.data)
         this.props.setRowData(params.data)
-    }
-
-    cellExpandedOrCollapsed(params) {
-        if (!params.data.isExpanded) {
-            this.props.setCellExpanded(true);
-            this.props.onLoad(params.data, agent.Resources.getResourcesTree({ "parentId": params.data["resourceId"] }))
-        }
-        else {
-            this.props.onLoad(params.data,{})
-            this.gridApi.setRowData(this.props.resourceTree)
-        }
     }
 
     onGridReady(params) {
@@ -85,15 +64,11 @@ class ResourcesTree extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(undefined, agent.Resources.getResourcesTree({}))
+        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': []}))
 
     }
 
     render() {
-
-        if (this.gridApi && this.props.cellExpanded !== undefined && !this.props.cellExpanded) {
-            this.gridApi.setRowData(this.props.resourceTree)
-        }
 
         if (this.props.isLoading) {
             return (
@@ -122,4 +97,4 @@ class ResourcesTree extends Component {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ResourcesTree);
+export default connect(mapStateToProps, mapDispatchToProps)(ResourcesList);

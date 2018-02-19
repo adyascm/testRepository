@@ -4,7 +4,7 @@ import {Card, Button, Form, Header, Modal, Checkbox, Input} from 'semantic-ui-re
 import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import UsersTree from '../Users/UsersTree';
-import ResourceTree from '../Resources/ResourcesTree';
+import ResourcesList from '../Resources/ResourcesList';
 import agent from '../../utils/agent';
 import * as Helper from '../reactCron/helpers/index';
 
@@ -211,7 +211,7 @@ class ReportForm extends Component {
                 {this.state.value == 'group'?
                    <Form.Field><UsersTree userTreeHandler={this.userTreeHandler}/>
                     </Form.Field> : null}
-                   {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
+                   {this.state.value == 'resource'? <Form.Field ><ResourcesList /></Form.Field> : null}
             </div>
           </div>
           </Form>
