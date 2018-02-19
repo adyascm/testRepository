@@ -5,7 +5,8 @@ import {
     USERS_ACTIVITY_LOAD_START,
     USERS_ACTIVITY_LOADED,
     USERS_RESOURCE_LOAD_START,
-    USERS_RESOURCE_LOADED
+    USERS_RESOURCE_LOADED,
+    USER_DETAILS_SECTION_CLOSE
 } from '../constants/actionTypes';
 
 
@@ -24,6 +25,11 @@ export default (state = {}, action) => {
                 usersTreePayload: action.payload
             }
         case USER_ITEM_SELECTED:
+            return {
+                ...state,
+                selectedUserItem: action.payload
+            }
+        case USER_DETAILS_SECTION_CLOSE:
             return {
                 ...state,
                 selectedUserItem: action.payload
