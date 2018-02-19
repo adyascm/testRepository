@@ -9,7 +9,8 @@ import agent from '../../utils/agent';
 import * as Helper from '../reactCron/helpers/index';
 
 import {
-  CREATE_SCHEDULED_REPORT
+  CREATE_SCHEDULED_REPORT,
+  UPDATE_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -21,7 +22,11 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     addScheduledReport: (report) => {
       dispatch({ type: CREATE_SCHEDULED_REPORT, payload: agent.Scheduled_Report.createReport(report) })
+    },
+    updateScheduledReport: (report) => {
+      dispatch({ type: UPDATE_SCHEDULED_REPORT, payload: agent.Scheduled_Report.updateReport(report)})
     }
+
   });
 
 const reportOptions = [
@@ -46,7 +51,8 @@ class ReportForm extends Component {
       cronExpressionError: false,
       IsActiveError: false,
       reportTypeError: false,
-      error: ''
+      error: '',
+      dataForParticularReport:{}
 
     }
   }
@@ -62,6 +68,7 @@ class ReportForm extends Component {
   }
 
   handleChange = (e, { value }) => this.setState({value })
+
   submit = () => {
     var errorMessage = ""
     var success = false
@@ -83,6 +90,8 @@ class ReportForm extends Component {
     var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_type":this.state.value}
     var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
                   "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "is_active": this.state.IsActive}
+
+
     console.log("data ", reportData)
     if(!reportData.name){
       errorMessage = "Please enter a name for this report."
@@ -119,12 +128,19 @@ class ReportForm extends Component {
       })
     }
 
-    if(valid){
+    if(valid && this.props.formType === 'modify_report'){
+      reportData['report_id'] = this.props.reportsMap['report_id']
+      success = true
+      this.props.updateScheduledReport(reportData)
+      this.props.close()
+    }
+    else if (valid && this.props.formType === 'create_report') {
       success = true
       this.props.addScheduledReport(reportData)
       this.props.close()
 
     }
+
     if(!success){
       this.setState((state) => ({
         error: errorMessage
@@ -140,47 +156,75 @@ class ReportForm extends Component {
       })
   }
 
+  handleMultipleOptions = (data) => {
+    var value = Object.keys(this.props.reportsMap).length>0 ? JSON.parse(this.props.reportsMap['config'])[data] : null
+    return value
+
+  }
+
+
+
+
   render() {
     let user = this.props.rowData
-    console.log("let user = this.props.rowData ", user)
     const { value } = this.state
+
+    var modalContent = (
+      <div>
+
+        <div style = {{color:'red'}}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{this.state.error}</div>
+          <Form onSubmit={this.submit}>
+          <div className="ui two column very relaxed grid">
+            <div className="column">
+
+              <div className="ui form">
+                  <Form.Field>
+                    <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
+                  </Form.Field>
+                  <Form.Input onChange={(e) => this.setState({reportName: e.target.value})}
+                  label='Name' placeholder='Name'  defaultValue={this.props.reportsMap['name']} />
+                  <Form.Input onChange={(e) => this.setState({reportDescription: e.target.value})} label='Description' placeholder='Description'
+                    defaultValue={this.props.reportsMap['description']}/>
+                  <Form.Select  id='reportType' onChange={(e, data) => this.setState({reportType: data.value})}
+                    label='Report Type' options={reportOptions} placeholder='Report Type'
+                    defaultValue={this.handleMultipleOptions('report_type')} />
+                  <Form.Input onChange={(e) => this.setState({emailTo: e.target.value})}
+                  label='Email To' placeholder='Email To' control={Input}
+                  defaultValue={this.props.reportsMap['receivers']}/>
+                  <Form.Field >
+                    <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
+                  </Form.Field>
+
+              </div>
+
+            </div>
+            <div className="column">
+                <Form.Group inline>
+                  <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'}
+                    onChange={this.handleChange}
+                    checked = {this.handleMultipleOptions('selected_entity_type') == 'resource' ? 'true': null}
+                     />
+                  <Form.Radio label='Group/User' value='group' checked={value === 'group'}
+                    onChange={this.handleChange}
+                    checked = {this.handleMultipleOptions('selected_entity_type') == 'group'? 'true': null}/>
+                </Form.Group>
+                {this.state.value == 'group'?
+                   <Form.Field><UsersTree userTreeHandler={this.userTreeHandler}/>
+                    </Form.Field> : null}
+                   {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
+            </div>
+          </div>
+          </Form>
+      </div>
+    )
+
+
     return(
       <div>
         <Modal className="scrolling"
          open={this.props.showModal}>
           <Modal.Content>
-            <div style = {{color:'red'}}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{this.state.error}</div>
-              <Form onSubmit={this.submit}>
-              <div className="ui two column very relaxed grid">
-                <div className="column">
-                  <div className="ui form">
-                      <Form.Field>
-                        <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
-                      </Form.Field>
-                      <Form.Input onChange={(e) => this.setState({reportName: e.target.value})}
-                      label='Name' placeholder='Name' />
-                      <Form.Input onChange={(e) => this.setState({reportDescription: e.target.value})} label='Description' placeholder='Description'  />
-                      <Form.Select  id='reportType' onChange={(e, data) => this.setState({reportType: data.value})} label='Report Type' options={reportOptions} placeholder='Report Type' />
-                      <Form.Input onChange={(e) => this.setState({emailTo: e.target.value})}
-                      label='Email To' placeholder='Email To' control={Input} />
-                      <Form.Field >
-                        <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
-                      </Form.Field>
-                  </div>
-                </div>
-
-                <div className="column">
-                    <Form.Group inline>
-                      <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'} onChange={this.handleChange} />
-                      <Form.Radio label='Group/User' value='group' checked={value === 'group'} onChange={this.handleChange} />
-                    </Form.Group>
-                    {this.state.value == 'group'?
-                       <Form.Field ><UsersTree userTreeHandler={this.userTreeHandler}/></Form.Field> : null}
-                       {this.state.value == 'resource'? <Form.Field ><ResourceTree /></Form.Field> : null}
-                </div>
-              </div>
-
-              </Form>
+            {modalContent}
           </Modal.Content>
           <Modal.Actions>
             <Button onClick={this.props.close}>Close</Button>

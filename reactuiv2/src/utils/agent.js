@@ -75,7 +75,9 @@ const Scheduled_Report = {
    deleteReport: (report_id) =>
      requests.del('/scheduledreport?reportId=' + report_id),
    getRunReportData: (report_id) =>
-     requests.get('/scheduledreport/runreport?reportId=' + report_id)
+     requests.get('/scheduledreport/runreport?reportId=' + report_id),
+   updateReport: (report) =>
+     requests.get('/scheduledreport', report)
 
 }
 

@@ -4,7 +4,8 @@ import {
     SET_SCHEDULED_REPORTS,
     DELETE_SCHEDULED_REPORT,
     RUN_SCHEDULED_REPORT,
-    DELETE_OLD_SCHEDULED_REPORT
+    DELETE_OLD_SCHEDULED_REPORT,
+    UPDATE_SCHEDULED_REPORT
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -39,6 +40,10 @@ export default (state = {}, action) => {
                runReportData: []
 
              }
+       case UPDATE_SCHEDULED_REPORT:
+            return{
+              ...state
+            }
         default:
             return state;
     }
