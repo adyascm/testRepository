@@ -30,9 +30,8 @@ def get_resource_tree_data(event, context):
     auth_token = req_session.get_auth_token()
 
     payload = req_session.get_body()
-    parentlist = payload.get("parentList")
-    parentId = payload.get("parentId")
-    resource_list = resourceController.get_resource_tree(auth_token,parentId,parentlist)
+    user_emails = payload.get("userEmails")
+    resource_list = resourceController.get_resources(auth_token,user_emails)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 def get_scheduled_reports(event, context):
