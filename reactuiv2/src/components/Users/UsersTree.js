@@ -142,6 +142,7 @@ class UsersTree extends Component {
         }
     }
     onCellClicked(params) {
+        console.log("params data : ", params.data)
         this.props.selectUserItem(params.data);
     }
 

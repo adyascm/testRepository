@@ -84,7 +84,7 @@ def get_resources(auth_token, user_emails=None):
     if user_emails:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission, and_(ResourcePermission.resource_id == Resource.resource_id,
                                                                                                         ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
-                                                                                                        ResourcePermission.email.in_(emailList))).all()
+                                                                                                        ResourcePermission.email.in_(user_emails))).all()
     else:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
                                                                                 and_(ResourcePermission.resource_id == Resource.resource_id,
