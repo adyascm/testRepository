@@ -5,7 +5,7 @@ import UserResource from './UserResource';
 import UserActivity from './UserActivity';
 import { connect } from 'react-redux';
 import {
-    USER_DETAILS_SECTION_CLOSE 
+    USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -14,7 +14,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    closingDetailsSection: (payload) => dispatch({type:USER_DETAILS_SECTION_CLOSE,payload})
+    closingDetailsSection: (payload) => dispatch({type:USER_ITEM_SELECTED,payload})
 })
 
 class UsersGroupsDetailsSection extends Component {
@@ -33,8 +33,7 @@ class UsersGroupsDetailsSection extends Component {
         else {
             let panes = [
                 { menuItem: 'Resources', render: () => <Tab.Pane attached={false}><UserResource /></Tab.Pane> },
-                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
-
+                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> }
             ]
             return (
                 <Segment>

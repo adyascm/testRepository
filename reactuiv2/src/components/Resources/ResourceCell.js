@@ -11,7 +11,7 @@ class ResourceCell extends Component {
         super(props);
     }
     render() {
-        console.log("cell params : ", this.props.data)
+        //console.log("cell params : ", this.props.data)
         let expandIcon = this.props.data.isExpanded?"triangle down":"triangle right"
         var leftMargin = 2 * this.props.data.depth + "em";
         if(this.props.data.resourceType === 'folder')

@@ -5,8 +5,7 @@ import {
     USERS_ACTIVITY_LOAD_START,
     USERS_ACTIVITY_LOADED,
     USERS_RESOURCE_LOAD_START,
-    USERS_RESOURCE_LOADED,
-    USER_DETAILS_SECTION_CLOSE
+    USERS_RESOURCE_LOADED
 } from '../constants/actionTypes';
 
 
@@ -29,11 +28,6 @@ export default (state = {}, action) => {
                 ...state,
                 selectedUserItem: action.payload
             }
-        case USER_DETAILS_SECTION_CLOSE:
-            return {
-                ...state,
-                selectedUserItem: action.payload
-            }
         case USERS_ACTIVITY_LOAD_START:
             return {
                 ...state,
@@ -51,6 +45,7 @@ export default (state = {}, action) => {
                 isResourcesLoading: true
             }
         case USERS_RESOURCE_LOADED:
+            console.log("user resource payload : ", action.payload)
             var rows = [];
             if (action.payload) {
                 var keys = Object.keys(action.payload)
