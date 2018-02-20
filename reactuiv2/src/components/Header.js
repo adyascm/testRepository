@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT } from '../constants/actionTypes';
+import AppSearch from './AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Input, Image, List, Menu, Segment, Icon } from 'semantic-ui-react'
 
@@ -35,7 +36,7 @@ const LoggedInView = props => {
 
                 <Menu.Menu position='right'>
                     <Menu.Item>
-                        <Input icon='search' placeholder='Search...' />
+                        <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
                     <Menu.Item icon='settings' as={Link} to="/datasources" />
                     <Menu.Item icon labelPosition="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'margin-left': '6px'}}/></Menu.Item>

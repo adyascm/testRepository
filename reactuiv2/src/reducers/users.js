@@ -45,6 +45,7 @@ export default (state = {}, action) => {
                 isResourcesLoading: true
             }
         case USERS_RESOURCE_LOADED:
+            console.log("user resource payload : ", action.payload)
             var rows = [];
             if (action.payload) {
                 var keys = Object.keys(action.payload)

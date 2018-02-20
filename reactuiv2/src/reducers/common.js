@@ -8,12 +8,15 @@ import {
   LOGIN_SUCCESS,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
-  SCAN_UPDATE_RECEIVED
+  SCAN_UPDATE_RECEIVED,
+  USERS_PAGE_LOADED,
+  RESOURCES_PAGE_LOADED
 } from '../constants/actionTypes';
 
 const defaultState = {
   appName: 'Adya',
-  viewChangeCounter: 0
+  viewChangeCounter: 0,
+  currentView: ""
 };
 
 export default (state = defaultState, action) => {
@@ -23,16 +26,17 @@ export default (state = defaultState, action) => {
         ...state,
         token: action.token || null,
         appLoaded: true,
-        currentUser: action.error ? null : action.payload
+        currentUser: action.error ? null : action.payload,
+        currentView: ""
       };
     case REDIRECT:
       return { ...state, redirectTo: null };
     case LOGOUT:
-      return { ...state, redirectTo: '/login', token: null, currentUser: null };
+      return { ...state, redirectTo: '/login', token: null, currentUser: null, currentView: "/login" };
     case LOGIN_SUCCESS:
       return {
         ...state,
-        redirectTo: action.error ? null : '/dashboard',
+        redirectTo: action.error ? null : '',
         token: action.error ? null : action.token,
         currentUser: action.error ? null : action.payload
       };
@@ -55,6 +59,16 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasources: state.datasources.concat(action.payload)
+      };
+      case USERS_PAGE_LOADED:
+      return {
+          ...state,
+          currentView: "/users"
+      };
+      case RESOURCES_PAGE_LOADED:
+      return {
+          ...state,
+          currentView: "/resources"
       };
     default:
       return state;
