@@ -64,7 +64,9 @@ const Users = {
 
 const Resources = {
     getResourcesTree: (parentId) =>
-        requests.post('/getresourcetree',parentId)
+        requests.post('/getresourcetree',parentId),
+    searchResources: (prefix) =>
+        requests.get('/getresourcetree?prefix=' + prefix)
 }
 
 const Scheduled_Report = {
@@ -77,7 +79,7 @@ const Scheduled_Report = {
    getRunReportData: (report_id) =>
      requests.get('/scheduledreport/runreport?reportId=' + report_id),
    updateReport: (report) =>
-     requests.get('/scheduledreport', report)
+     requests.put('/scheduledreport', report)
 
 }
 

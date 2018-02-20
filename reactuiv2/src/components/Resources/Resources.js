@@ -1,28 +1,15 @@
 import React, { Component } from 'react';
 
-import { Route, Switch, Redirect } from 'react-router-dom';
-
 import { connect } from 'react-redux';
 import { Grid, Container } from 'semantic-ui-react'
 
-import {
-  RESOURCES_PAGE_LOADED,
-  RESOURCES_PAGE_UNLOADED
-} from '../../constants/actionTypes';
-import ResourcesTree from './ResourcesTree';
+import ResourcesList from './ResourcesList';
 import ResourcePermissionSection from './ResourcePermissionSection';
 
 const mapStateToProps = state => ({
-  appName: state.common.appName,
-  currentUser: state.common.currentUser
+    ...state.resources
 });
 
-const mapDispatchToProps = dispatch => ({
-  onLoad: (tab, pager, payload) =>
-    dispatch({ type: RESOURCES_PAGE_LOADED, tab, pager, payload }),
-  onUnload: () =>
-    dispatch({ type: RESOURCES_PAGE_UNLOADED })
-});
 
 class Users extends Component {
   constructor(props) {
@@ -34,18 +21,26 @@ class Users extends Component {
       height: "100%",
       textAlign: "left"
     };
+    
+    var gridWidth = 16;
+    if (this.props.rowData)
+      gridWidth = 4
+
     return (
       <Container style={containerStyle}>
         <Grid stretched >
-          <Grid.Row>
-            <Grid.Column width={7}>
-              <ResourcesTree />
+          <Grid.Row stretched>
+            <Grid.Column stretched width={gridWidth}>
+              <ResourcesList />
             </Grid.Column>
-            <Grid.Column width={9}>
-              <Container fluid >
-                <ResourcePermissionSection />
-              </Container>
-            </Grid.Column>
+            {
+              this.props.rowData?
+              (<Grid.Column stretched width={16 - gridWidth}>
+                <Container fluid >
+                  <ResourcePermissionSection />
+                </Container>
+              </Grid.Column>) : null
+            }
           </Grid.Row>
         </Grid>
       </Container>
@@ -53,4 +48,4 @@ class Users extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Users);
+export default connect(mapStateToProps)(Users);

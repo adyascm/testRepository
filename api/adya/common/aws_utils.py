@@ -1,12 +1,9 @@
 import boto3
-
 from adya.common import constants
 from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
 
 # create cloudwatch event
-
-
 def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
     try:
         session = boto3.Session()
@@ -52,4 +49,32 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
     except Exception as ex:
         print "Exception occurred while creating the cloudwatch event - " + str(ex)
         return False
+
+
+def send_email(user_list, email_subject, rendered_html):
+    try:
+        session = boto3.Session()
+        ses_client = session.client('ses')
+        ses_client.send_email(
+            Source='service@adya.io',
+            Destination={ 'ToAddresses': user_list },
+            Message={
+                'Subject': {
+                    'Data': email_subject
+                },
+                'Body': {
+                    'Text': {
+                        'Data': email_subject
+                    },
+                    'Html': {
+                        'Data': rendered_html
+                    }
+                }
+            }
+        )
+
+    except Exception as e:
+        print e
+        print "Exception occurred sending ", email_subject, " email to: ", user_list
+
 

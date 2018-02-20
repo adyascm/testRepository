@@ -1,10 +1,15 @@
 import React, {Component} from 'react';
-import {Tab} from 'semantic-ui-react';
+import {Tab,Segment,Sticky,Icon} from 'semantic-ui-react';
 import {connect} from 'react-redux';
 import ResourcePermissions from './ResourcePermissions';
+import {RESOURCES_TREE_SET_ROW_DATA} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.resources
+})
+
+const mapDispatchToProps = dispatch => ({
+    closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload })
 })
 
 class ResourcePermissionSection extends Component {
@@ -13,6 +18,7 @@ class ResourcePermissionSection extends Component {
         this.state = {
             rowData: ''
         }
+        this.closeDetailsSection = this.closeDetailsSection.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -23,14 +29,23 @@ class ResourcePermissionSection extends Component {
         }
     }
 
+    closeDetailsSection() {
+        this.props.closingDetailsSection(undefined)
+    }
+
     render() {
         let panes = [
             { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} /></Tab.Pane> }   
           ]
         return (
-            <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
+            <Segment>
+                <Sticky>
+                    <Icon name='close' onClick={this.closeDetailsSection} />
+                    <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
+                </Sticky>
+            </Segment>
         )
     }
 }
 
-export default connect(mapStateToProps)(ResourcePermissionSection);
+export default connect(mapStateToProps,mapDispatchToProps)(ResourcePermissionSection);

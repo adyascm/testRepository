@@ -13,8 +13,6 @@ from adya.services.flask.domainDataHandler import UserGroupTree
 from adya.services.flask.reports_handler import ScheduledReport, RunReport
 from adya.services.flask.resourceHandler import GetResources
 from adya.services.flask.activities_handler import get_activities_for_user
-from flask_restful import request
-from flask import make_response
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -66,6 +64,7 @@ api.add_resource(RunReport, constants.RUN_SCHEDULED_REPORT)
 
 # activities
 api.add_resource(get_activities_for_user, constants.GET_ACTIVITIES_FOR_USER_PATH)
+
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

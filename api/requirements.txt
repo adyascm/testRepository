@@ -16,4 +16,5 @@ requests_futures
 websocket-client
 boto3
 httplib2
+pystache
 

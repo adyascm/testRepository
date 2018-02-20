@@ -30,16 +30,13 @@ const mapDispatchToProps = dispatch => ({
 class UserResource extends Component {
     constructor(props) {
         super(props);
+
+        this.cellValueChanged = this.cellValueChanged.bind(this);
         this.state = {
             columnDefs: [
                 {
                     headerName: "Resource",
-                    field: "name",
-                    cellStyle: { textAlign: "left" },
-                    cellRendererFramework: ResourceCell,
-                    cellRendererParams: {
-                        cellExpandedOrCollapsed: this.cellExpandedOrCollapsed,
-                    }
+                    field: "name"
                 },
                 {
                     headerName: "Owner",
@@ -47,7 +44,13 @@ class UserResource extends Component {
                 },
                 {
                     headerName: "My permission",
-                    field: "myPermission"
+                    field: "myPermission",
+                    editable: true,
+                    cellEditor: "agSelectCellEditor",
+                    cellEditorParams: {
+                        values: ['Read','Write','None']
+                    },
+                    onCellValueChanged: this.cellValueChanged
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
@@ -64,17 +67,22 @@ class UserResource extends Component {
         };
     }
 
+    cellValueChanged(params) {
+        console.log("Cell column value changed: ", params)
+    }
+
     componentWillReceiveProps(nextProps) {
         if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'parentList': [nextProps.selectedUserItem["key"]]}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]]}))
+        
         }
     }
 
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart(this.props.selectedUserItem["key"])
-            this.props.onLoad(agent.Resources.getResourcesTree({'parentList': [this.props.selectedUserItem["key"]]}))
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]]}))
         }
     }
 

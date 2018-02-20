@@ -53,21 +53,29 @@ def create_report(auth_token, payload):
         report = Report()
         report.domain_id = existing_user.domain_id
         report.report_id = report_id
+        creation_time = datetime.datetime.utcnow().isoformat()
         if payload:
             report.name = payload["name"]
             if 'description' in payload:
                 report.description = payload["description"]
-            report.config = json.dumps(payload["config"])
+
             report.frequency = payload["frequency"]
             report.receivers = payload["receivers"]
-        report.creation_time = datetime.datetime.utcnow().isoformat()
-        report.is_active = payload["is_active"]
+            config_input = {"report_type":payload["report_type"], "selected_entity_type": payload["selected_entity_type"],
+                            "selected_entity": payload["selected_entity"]}
+
+            report.config = json.dumps(config_input)
+            report.is_active = payload["is_active"]
+
+        report.creation_time = creation_time
+
 
         db_session.add(report)
         try:
             db_session.commit()
         except Exception as ex:
             print (ex)
+
         return report
     else:
         return None
@@ -79,7 +87,27 @@ def get_reports(auth_token):
     db_session = db_connection().get_session()
     reports_data = db_session.query(Report).filter(Report.domain_id == LoginUser.domain_id).filter(LoginUser.auth_token ==
                                                                                                 auth_token).all()
-    return reports_data
+
+    response = {}
+    for report in reports_data:
+        config_data = json.loads(report.config)
+        last_trigger_time=''
+        if report.last_trigger_time: last_trigger_time = report.last_trigger_time.strftime('%m/%d/%Y')
+        response[report.report_id] = {
+            "report_id": report.report_id,
+            "name": report.name,
+            "description": report.description,
+            "frequency": report.frequency,
+            "receivers": report.receivers,
+            "creation_time": report.creation_time.strftime('%m/%d/%Y'),
+            "last_trigger_time": last_trigger_time,
+            "is_active": str(report.is_active),
+            "report_type": config_data['report_type'],
+            "selected_entity": config_data['selected_entity'],
+            "selected_entity_type": config_data['selected_entity_type']
+
+        }
+    return response
 
 
 def delete_report(auth_token, report_id):
