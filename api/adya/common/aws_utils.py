@@ -51,13 +51,38 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
         return False
 
 
+def delete_cloudwatch_event(cloudwatch_event_name):
+    try:
+        session = boto3.Session()
+        cloudwatch_client = session.client('events')
+        lambda_client = session.client('lambda')
+        function_name = LAMBDA_FUNCTION_NAME_FOR_CRON
+
+        # remove all the targets from the rule
+        response = cloudwatch_client.remove_targets(
+            Rule=cloudwatch_event_name,
+            Ids=[
+                function_name,
+            ]
+        )
+
+        if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
+            # after removing all the targets , now delete the rule
+            response = cloudwatch_client.delete_rule(
+                Name=cloudwatch_event_name
+            )
+    except Exception as ex:
+        print "Exception occurred while deleting the cloudwatch event - " + str(ex)
+        return False
+
+
 def send_email(user_list, email_subject, rendered_html):
     try:
         session = boto3.Session()
         ses_client = session.client('ses')
         ses_client.send_email(
             Source='service@adya.io',
-            Destination={ 'ToAddresses': user_list },
+            Destination={'ToAddresses': user_list},
             Message={
                 'Subject': {
                     'Data': email_subject
@@ -76,5 +101,3 @@ def send_email(user_list, email_subject, rendered_html):
     except Exception as e:
         print e
         print "Exception occurred sending ", email_subject, " email to: ", user_list
-
-

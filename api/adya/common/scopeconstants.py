@@ -24,6 +24,12 @@ DRIVE_ACTION_SCOPE = [
     'https://www.googleapis.com/auth/drive '
 ]
 
+SERVICE_ACCOUNT_SCOPE = [
+    'email '
+    'https://www.googleapis.com/auth/drive.readonly '
+    'profile '
+]
+
 SCOPE_DICT = {
     "login_scope": LOGIN_SCOPE,
     "drive_scan_scope": DRIVE_SCAN_SCOPE,

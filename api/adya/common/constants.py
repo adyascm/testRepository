@@ -28,6 +28,8 @@ SCAN_RESOURCES = "/scan/resources"
 
 SCAN_PERMISSIONS = "/scan/permisssions"
 
+SCAN_PARENTS = "/scan/parents"
+
 SCAN_DOMAIN_USERS = "/scan/domainusers"
 
 SCAN_DOMAIN_GROUPS = "/scan/domaingroups"

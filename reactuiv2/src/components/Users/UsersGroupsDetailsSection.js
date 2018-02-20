@@ -20,6 +20,7 @@ const mapDispatchToProps = dispatch => ({
 class UsersGroupsDetailsSection extends Component {
     constructor(props) {
         super(props);
+        
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
     }
 
@@ -37,11 +38,11 @@ class UsersGroupsDetailsSection extends Component {
             ]
             return (
                 <Segment>
-                    <Sticky>
+                    {/* <Sticky> */}
                         <Icon name='close' onClick={this.closeDetailsSection} />
                         <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}/>
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
-                    </Sticky>
+                    {/* </Sticky> */}
                 </Segment>
             )
         }
