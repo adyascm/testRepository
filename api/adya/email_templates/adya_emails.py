@@ -206,5 +206,3 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
-send_welcome_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
-send_gdrive_scan_completed_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
