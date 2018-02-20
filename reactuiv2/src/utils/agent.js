@@ -79,7 +79,7 @@ const Scheduled_Report = {
    getRunReportData: (report_id) =>
      requests.get('/scheduledreport/runreport?reportId=' + report_id),
    updateReport: (report) =>
-     requests.get('/scheduledreport', report)
+     requests.put('/scheduledreport', report)
 
 }
 
