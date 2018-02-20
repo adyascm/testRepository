@@ -18,8 +18,8 @@ const DataSourceItem = props => {
     }
 
     if (datasource) {
-        var percent = ((datasource.proccessed_file_permission_count/datasource.file_count)*100)
-        var statusText = "Processed " + datasource.proccessed_file_permission_count + " of " + datasource.file_count + " files"
+        var percent = ((datasource.processed_file_count/datasource.total_file_count)*100)
+        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         return (
             <Card fluid>
                 <Dimmer active={datasource.isDeleting} inverted>

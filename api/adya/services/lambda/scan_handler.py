@@ -145,7 +145,7 @@ def process_group_members(event, context):
     group_key = req_session.get_req_param('groupKey')
     member_response_data = data.get("membersResponseData")
 
-    scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
+    scan.processGroupMembers(req_session.get_auth_token(), group_key, member_response_data, datasource_id , domain_id)
     return req_session.generate_response(202)
 
 

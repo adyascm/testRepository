@@ -93,7 +93,7 @@ def check_if_serviceaccount_enabled(emailid):
 
 def check_if_user_isamdin(credentials,emailid):
     try:
-        directory_service = get_directory_service(credentials)
+        directory_service = get_directory_service(None, credentials)
         users = directory_service.users().get(userKey=emailid)
         return True
     except Exception as ex:
@@ -106,13 +106,11 @@ def get_credentials_object(emailid):
     credentials.refresh(http)
     return credentials
 
-def check_if_external_user(data_source,login_user,email):
-    domainname = get_domain_name_from_email(email)
-    if data_source.is_serviceaccount_enabled:
-        if  domainname == data_source.domain_id:
+def check_if_external_user(domain_id,email):
+    if not '@' in domain_id:
+        if email.endswith(domain_id):
             return False
-        return True
-    elif login_user and login_user.is_admin_user:
-        if domainname == get_domain_name_from_email(login_user.email):
+    else:
+        if email == domain_id:
             return False
     return True
