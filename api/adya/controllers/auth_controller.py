@@ -10,26 +10,26 @@ from adya.email_templates import adya_emails
 def get_user_session(auth_token):
     if not auth_token:
         return None
-    session = db_connection().get_session()
-    user = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    db_session = db_connection().get_session()
+    user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     return user
 
-def get_user(email, session=None):
-    if not session:
-        session = db_connection().get_session()
-    user = session.query(LoginUser).filter(LoginUser.email == email).first()
+def get_user(email, db_session=None):
+    if not db_session:
+        db_session = db_connection().get_session()
+    user = db_session.query(LoginUser).filter(LoginUser.email == email).first()
     return user
 
-def update_user_refresh_token(email, refresh_token, session=None):
-    if not session:
-        session = db_connection().get_session()
-    user = session.query(LoginUser).filter(LoginUser.email == email).update({"refresh_token": refresh_token})
-    session.commit()
+def update_user_refresh_token(email, refresh_token, db_session=None):
+    if not db_session:
+        db_session = db_connection().get_session()
+    user = db_session.query(LoginUser).filter(LoginUser.email == email).update({"refresh_token": refresh_token})
+    db_session.commit()
     return True
 
 
 def create_user(email, first_name, last_name, domain_id, refresh_token, is_enterprise_user):
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
     auth_token = str(uuid.uuid4())
 
@@ -44,6 +44,8 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_enter
     login_user.creation_time = creation_time
     login_user.last_login_time = creation_time
 
+    db_session.add(login_user)
+    db_session.commit()
     session.add(login_user)
     session.commit()
 

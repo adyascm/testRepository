@@ -1,8 +1,24 @@
 from adya.common import aws_utils, constants, utils
 from adya.db.connection import db_connection
+from adya.db.models import LoginUser, DomainUser, Resource
+from sqlalchemy import or_, and_
+import pystache
+import os
 
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission
-from sqlalchemy import func, or_, and_
+
+def get_rendered_html(template_name, template_parameters):
+    try:
+        template_path = os.path.join(os.path.dirname(__file__), template_name, "template.html")
+        with open(template_path) as f:
+            rendered_html = pystache.render(f.read(), template_parameters)
+            if rendered_html:
+                return rendered_html
+            else:
+                raise Exception()
+
+    except Exception as e:
+        print e
+        print "Exception occurred while rendering html."
 
 
 def send_email(auth_token, email_type, params):
@@ -31,9 +47,10 @@ def send_welcome_email(auth_token):
 
         template_name = "welcome"
         template_parameters = get_welcome_parameters(auth_token)
+        rendered_html = get_rendered_html(template_name, template_parameters)
         user_list = [template_parameters['email']]
         email_subject = "Welcome to Adya!"
-        aws_utils.send_email(template_name, user_list, template_parameters, email_subject)
+        aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
         print e
         print "Exception occurred sending welcome email!"
@@ -75,9 +92,10 @@ def send_gdrive_scan_completed_email(auth_token):
 
         template_name = "gdrive_scan_completed"
         template_parameters=get_gdrive_scan_completed_parameters(auth_token)
+        rendered_html = get_rendered_html(template_name, template_parameters)
         user_list = [template_parameters['email']]
         email_subject="Your gdrive scan has completed!"
-        aws_utils.send_email(template_name, user_list, template_parameters, email_subject)
+        aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
         print e
         print "Exception occurred sending gdrive scan completed email"
@@ -188,3 +206,5 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
+send_welcome_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
+send_gdrive_scan_completed_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
