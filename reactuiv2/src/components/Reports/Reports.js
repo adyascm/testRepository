@@ -62,7 +62,6 @@ class Reports extends Component {
     this.setState({
         reportsData: this.props.reports
     })
-    console.log("vv .. ", this.props.reports)
     //
   }
 
@@ -102,9 +101,7 @@ class Reports extends Component {
   }
 
   modifyReport = (reportId) => ev => {
-    console.log("state data ", this.props.reports)
     var reportDataForReportId = this.props.reports[reportId]
-    console.log("modif ", reportDataForReportId)
      this.setState({
        showModal: true,
        formType: 'modify_report',
