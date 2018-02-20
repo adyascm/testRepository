@@ -7,7 +7,6 @@ import UsersTree from '../Users/UsersTree';
 import ResourcesList from '../Resources/ResourcesList';
 import agent from '../../utils/agent';
 import * as Helper from '../reactCron/helpers/index';
-import serializeForm from 'form-serialize';
 
 
 import {
