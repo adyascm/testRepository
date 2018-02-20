@@ -81,10 +81,9 @@ class ResourcesList extends Component {
         }
         else {
             return (
-                <div className="ag-theme-fresh" style={{ "height": document.body.clientHeight }}>
+                <div className="ag-theme-fresh">
                     <AgGridReact
-                        id="myGrid" 
-                        //domLayout="autoHeight"
+                        id="myGrid" domLayout="autoHeight"
                         rowSelection='single' suppressCellSelection='true'
                         rowData={this.props.resourceTree}
                         columnDefs={this.columnDefs}

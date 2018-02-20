@@ -11,57 +11,57 @@ class ReportsGrid extends Component {
     this.columnDefs = [
       {
           headerName: 'File Name',
-          field: 'datasource_id',
+          field: 'resource_name',
           cellRenderer: "agGroupCellRenderer",
-          width: 200,
-          valueGetter: params => {
-            return params.data[1]['resource_name'];
-          }
+          width: 200
       },
       {
         headerName: 'File Type',
-        field: 'datasource_id',
+        field: 'resource_type',
         cellRenderer: "agGroupCellRenderer",
-        width: 100,
-        valueGetter: params => {
-        return params.data[1]['resource_type'];
-        }
+        width: 100
       },
         {
           headerName: 'Size',
-          field: 'datasource_id',
+          field: 'resource_size',
           cellRenderer: "agGroupCellRenderer",
-          width: 100,
-          valueGetter: params => {
-            return params.data[1]['resource_size'];
-          }
+          width: 100
         },
-       {
-         headerName: 'Domain',
-          field: 'datasource_id',
+        {
+          headerName: 'Owner',
+          field: 'resource_owner_id',
           cellRenderer: "agGroupCellRenderer",
-          width: 300,
-          valueGetter: params => {
-            return params.data[0]['domain_id'];
-          }
+          width: 200
+        },
+        {
+          headerName: 'Last Modified Date',
+          field: 'last_modified_time',
+          cellRenderer: "agGroupCellRenderer",
+          width: 200
+        },
+        {
+          headerName: 'Creation Date',
+          field: 'creation_time',
+          cellRenderer: "agGroupCellRenderer",
+          width: 200
         },
         {
           headerName: 'File Exposure',
-          field: 'datasource_id',
+          field: 'exposure_type',
           cellRenderer: "agGroupCellRenderer",
-          width: 100,
-          valueGetter: params => {
-            return params.data[1]['exposure_type'];
-          }
+          width: 100
+        },
+        {
+          headerName: 'Email',
+          field: 'user_email',
+          cellRenderer: "agGroupCellRenderer",
+          width: 100
         },
         {
           headerName: 'Permission',
-          field: 'datasource_id',
+          field: 'permission_type',
           cellRenderer: "agGroupCellRenderer",
-          width: 300,
-          valueGetter: params => {
-            return params.data[0]['permission_type'];
-          }
+          width: 100
         }
 
     ];
