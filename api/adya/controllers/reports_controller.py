@@ -121,6 +121,8 @@ def delete_report(auth_token, report_id):
     except:
         print "Exception occured while delete a report"
 
+    return existing_report
+
 
 def run_report(auth_token, report_id):
     if not auth_token:
