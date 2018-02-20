@@ -3,11 +3,12 @@ from adya.db.connection import db_connection
 from adya.db.models import LoginUser, DomainUser, Resource
 from sqlalchemy import or_, and_
 import pystache
+import os
 
 
 def get_rendered_html(template_name, template_parameters):
     try:
-        template_path = template_name + "/template.html"
+        template_path = os.path.join(os.path.dirname(__file__), template_name, "template.html")
         with open(template_path) as f:
             rendered_html = pystache.render(f.read(), template_parameters)
             if rendered_html:
