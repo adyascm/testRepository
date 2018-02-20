@@ -12,7 +12,8 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import {
     USERS_RESOURCE_LOAD_START,
-    USERS_RESOURCE_LOADED
+    USERS_RESOURCE_LOADED,
+    USERS_RESOURCE_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 
@@ -24,7 +25,9 @@ const mapDispatchToProps = dispatch => ({
     onLoadStart: (payload) =>
         dispatch({ type: USERS_RESOURCE_LOAD_START, payload }),
     onLoad: (payload) =>
-        dispatch({ type: USERS_RESOURCE_LOADED, payload })
+        dispatch({ type: USERS_RESOURCE_LOADED, payload }),
+    onChangePermission: (actionType, resource, newValue) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
 });
 
 class UserResource extends Component {
@@ -69,6 +72,7 @@ class UserResource extends Component {
 
     cellValueChanged(params) {
         console.log("Cell column value changed: ", params)
+        this.props.onChangePermission("resourcePermissionChange", params.data, params.newValue);
     }
 
     componentWillReceiveProps(nextProps) {

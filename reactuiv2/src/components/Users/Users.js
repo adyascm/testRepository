@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { Container, Dimmer, Loader, Grid, Divider, Checkbox, Sticky } from 'semantic-ui-react'
 
 import agent from '../../utils/agent';
+import UserActions from '../actions/UserActions'
 
 
 import {
@@ -41,7 +42,7 @@ class Users extends Component {
   }
   toggleHierarchyView = () => {
     var showOnlyExternal = this.state.showOnlyExternal;
-    if(!this.state.showHierarchy)
+    if (!this.state.showHierarchy)
       showOnlyExternal = false;
     this.setState({
       ...this.state,
@@ -61,8 +62,9 @@ class Users extends Component {
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }
-  handleContextRef = contextRef => this.setState({ 
-     contextRef })
+  handleContextRef = contextRef => this.setState({
+    contextRef
+  })
 
   render() {
     const { contextRef } = this.state
@@ -84,8 +86,8 @@ class Users extends Component {
       )
     }
     else {
-      var flatList = (<UserList showOnlyExternal={this.state.showOnlyExternal}/>)
-      var treeView = (<UsersTree showOnlyExternal={this.state.showOnlyExternal}/>)
+      var flatList = (<UserList showOnlyExternal={this.state.showOnlyExternal} />)
+      var treeView = (<UsersTree showOnlyExternal={this.state.showOnlyExternal} />)
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
@@ -115,8 +117,9 @@ class Users extends Component {
               </Grid.Column>
             </Grid.Row>
           </Grid>
-
+          <UserActions {...this.props.users}/>
         </Container >
+
       )
     }
 
