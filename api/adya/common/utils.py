@@ -1,6 +1,7 @@
 import json
 from adya.db.models import AlchemyEncoder, LoginUser, DataSource
 from adya.common.constants import API_HOST
+import os
 
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
@@ -30,3 +31,8 @@ def get_domain_id(db_session, auth_token):
         LoginUser.auth_token == auth_token).first()
     domain_id = existing_user.domain_id
     return domain_id
+
+def get_env():
+    env = os.environ.get("DB_NAME")
+    return env
+
