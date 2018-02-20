@@ -5,7 +5,7 @@ import uuid
 from adya.db.models import Domain, LoginUser
 from adya.db.connection import db_connection
 from adya.common import utils
-
+from adya.email_templates import adya_emails
 
 def get_user_session(auth_token):
     if not auth_token:
@@ -46,4 +46,7 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_enter
 
     session.add(login_user)
     session.commit()
+
+    adya_emails.send_welcome_email(auth_token)
+    
     return login_user

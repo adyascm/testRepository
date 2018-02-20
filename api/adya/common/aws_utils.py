@@ -55,7 +55,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
 
 def send_email(template_name, user_list, template_parameters, email_subject):
     try:
-        session = boto3.Session(profile_name="adya_prod_east")
+        session = boto3.Session()
         ses_client = session.client('ses')
         template_path = "../email_templates/" + template_name + "/template.html"
         with open(template_path) as f:
