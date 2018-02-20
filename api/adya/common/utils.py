@@ -32,7 +32,4 @@ def get_domain_id(db_session, auth_token):
     domain_id = existing_user.domain_id
     return domain_id
 
-def get_env():
-    env = os.environ.get("DB_NAME")
-    return env
 
