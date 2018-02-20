@@ -8,7 +8,5 @@
         "*_test.py"
     ],
     "python.unitTest.unittestEnabled": true,
-    "python.pythonPath": "/Users/amit/Documents/Adya/Git/adyaapp/api/lib/bin/python",
-
 
 }

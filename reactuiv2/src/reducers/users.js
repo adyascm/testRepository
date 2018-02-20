@@ -5,7 +5,9 @@ import {
     USERS_ACTIVITY_LOAD_START,
     USERS_ACTIVITY_LOADED,
     USERS_RESOURCE_LOAD_START,
-    USERS_RESOURCE_LOADED
+    USERS_RESOURCE_LOADED,
+    USERS_RESOURCE_ACTION_LOAD,
+    USERS_RESOURCE_ACTION_CANCEL
 } from '../constants/actionTypes';
 
 
@@ -65,6 +67,20 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isResourcesLoading: false,
+            }
+        case USERS_RESOURCE_ACTION_LOAD:
+            return {
+                ...state,
+                action: {
+                    actionType: action.actionType,
+                    actionResource: action.resource,
+                    actionNewValue: action.newValue
+                }
+            }
+            case USERS_RESOURCE_ACTION_CANCEL:
+            return {
+                ...state,
+                action: undefined
             }
         default:
             return state;
