@@ -56,6 +56,8 @@ class DataSource(Base):
     creation_time = Column(DateTime)
     file_count = Column(BigInteger, default=0)
     proccessed_file_permission_count = Column(BigInteger, default=0)
+    user_count_for_parent = Column(BigInteger, default=0)
+    proccessed_parent_permission_count = Column(BigInteger, default=0)
     group_count = Column(Integer, default=0)
     proccessed_group_memebers_count = Column(Integer, default=0)
     user_count = Column(Integer, default=0)
@@ -86,12 +88,21 @@ class Resource(Base):
     last_modified_time = Column(DateTime)
     creation_time = Column(DateTime)
     exposure_type = Column(String(10))
-    resource_parent_id = Column(String(100))
 
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
 
+class ResourceParent(Base):
+    __tablename__ = 'resource_parent_table'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36))
+    resource_id = Column(String(100), primary_key=True)
+    email = Column(String(320), primary_key=True)
+    parent_id = Column(String(260))
+
+    def __repr__(self):
+        return "ResourceParent('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
 
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'

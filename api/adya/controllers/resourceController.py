@@ -1,5 +1,5 @@
 from adya.db.connection import db_connection
-from adya.db.models import Resource, ResourcePermission, LoginUser, DataSource, ResourcePermission, Domain
+from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain
 from sqlalchemy import and_
 import json
 from adya.common import utils
