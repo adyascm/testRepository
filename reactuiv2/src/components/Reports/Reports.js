@@ -16,7 +16,8 @@ import {
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
   RUN_SCHEDULED_REPORT,
-  DELETE_OLD_SCHEDULED_REPORT
+  DELETE_OLD_SCHEDULED_REPORT,
+  USERS_PAGE_LOADED
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -26,6 +27,8 @@ const mapStateToProps = state => ({
   });
 
   const mapDispatchToProps = dispatch => ({
+    onLoad: (payload) =>
+      dispatch({ type: USERS_PAGE_LOADED, payload }),
     setreports: (reports) =>
       dispatch({ type: SET_SCHEDULED_REPORTS, payload: reports }),
     addScheduledReport: (report) => {
@@ -58,10 +61,12 @@ class Reports extends Component {
   }
 
   componentWillMount(){
+    this.props.onLoad(agent.Users.getUsersTree());
     this.props.setreports(agent.Scheduled_Report.getReports())
     this.setState({
         reportsData: this.props.reports
     })
+
     //
   }
 
@@ -128,13 +133,14 @@ class Reports extends Component {
     if (this.props.currentUser){
       return(
         <div>
+          <ReportView report={this.props.reports} deleteReport={this.deleteReport}
+            reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
           {this.state.showModal === false?
-            <ReportView report={this.props.reports} deleteReport={this.deleteReport}
-              reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
+             null
             :
             this.state.isRunreport ?
                 this.props.runReportData?
-                    <Modal className="scrolling" open={this.state.showModal} >
+                    <Modal size='large' className="scrolling" open={this.state.showModal} >
                      <Modal.Header>{this.state.runReportName}</Modal.Header>
 
                       <Modal.Content>
