@@ -102,12 +102,14 @@ def get_resources(auth_token, user_emails=None):
             permissionobject = {}
 
         if not resource.Resource.resource_id in responsedata:
+            lastModifiedTime = resource.Resource.last_modified_time.strftime("%Y/%m/%d %H:%M:%S")
             responsedata[resource.Resource.resource_id] = {
                 "resourceId": resource.Resource.resource_id,
                 "resourceName": resource.Resource.resource_name,
                 "resourceType": resource.Resource.resource_type,
                 "resourceOwnerId": resource.Resource.resource_owner_id,
                 "exposureType": resource.Resource.exposure_type,
+                "lastModifiedTime": lastModifiedTime,
                 "permissions": [permissionobject]
             }
         else:
