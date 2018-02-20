@@ -151,7 +151,7 @@ def get_gdrive_scan_completed_parameters(auth_token):
 
         email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
 
-        trial_link = get_trial_link_url()
+        trial_link = constants.UI_HOST
 
         externalDocs = convert_list_pystache_format("name", externalDocsList)
         externalUsers = convert_list_pystache_format("name", externalUserList)
@@ -188,16 +188,3 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
-def get_trial_link_url():
-    env = utils.get_env()
-    redirect_url = 'http://localhost:3000'
-    if env == 'staging':
-        redirect_url = 'https://app.adyatest.com'
-    elif env == 'prod':
-        redirect_url = 'https://app.adya.io'
-
-    return redirect_url
-
-
-#send_gdrive_scan_completed_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
-#send_welcome_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
