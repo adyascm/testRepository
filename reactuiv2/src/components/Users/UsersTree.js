@@ -147,6 +147,7 @@ class UsersTree extends Component {
     }
 
     cellExpandedOrCollapsed(params) {
+        
         if (!params.data.isExpanded) {
             params.data["isExpanded"] = true
             this.gridApi.setRowData(this.state.rows)
@@ -170,9 +171,10 @@ class UsersTree extends Component {
             this.setTreeRows();
         }
         return (
-            <div className="ag-theme-fresh">
+            <div className="ag-theme-fresh" style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
                 <AgGridReact
-                    id="myGrid" domLayout="autoHeight"
+                    id="myGrid" 
+                    domLayout="autoHeight"
                     columnDefs={this.state.columnDefs}
                     rowData={this.state.rows}
                     enableFilter={true}
