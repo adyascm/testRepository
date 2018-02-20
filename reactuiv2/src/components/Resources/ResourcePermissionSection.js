@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Tab,Segment,Sticky,Icon} from 'semantic-ui-react';
 import {connect} from 'react-redux';
 import ResourcePermissions from './ResourcePermissions';
+import ResourceDetails from './ResourceDetails';
 import {RESOURCES_TREE_SET_ROW_DATA} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -39,10 +40,11 @@ class ResourcePermissionSection extends Component {
           ]
         return (
             <Segment>
-                <Sticky>
+                {/* <Sticky> */}
                     <Icon name='close' onClick={this.closeDetailsSection} />
+                    <ResourceDetails rowData={this.props.rowData} />
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
-                </Sticky>
+                {/* </Sticky> */}
             </Segment>
         )
     }

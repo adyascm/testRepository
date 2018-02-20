@@ -45,11 +45,11 @@ const ResourcePermissions = props => {
     return (
         <Grid celled='internally'>
             {permissionUsers}
-            <Grid.Row>
+            {/* <Grid.Row>
                 <Grid.Column width={16}>
                     <Dropdown placeholder='Quick Actions...' fluid selection options={state.quickActions} />
                 </Grid.Column >
-            </Grid.Row>
+            </Grid.Row> */}
         </Grid>
 
     )
