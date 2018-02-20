@@ -31,7 +31,6 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
-    AWS_DEFAULT_REGION: ${self:provider.region}
 
 plugins:
   - serverless-domain-manager
