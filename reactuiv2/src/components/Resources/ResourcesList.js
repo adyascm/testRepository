@@ -89,6 +89,7 @@ class ResourcesList extends Component {
                         columnDefs={this.columnDefs}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}
+                        pagination={true}
                     />
                 </div>
             )
