@@ -1,12 +1,11 @@
 import boto3
-
+import pystache
+from email.mime.text import MIMEText
 from adya.common import constants
 from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
 
 # create cloudwatch event
-
-
 def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
     try:
         session = boto3.Session()
@@ -52,4 +51,35 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
     except Exception as ex:
         print "Exception occurred while creating the cloudwatch event - " + str(ex)
         return False
+
+
+def send_email(template_name, user_list, template_parameters, email_subject):
+    try:
+        session = boto3.Session(profile_name="adya_prod_east")
+        ses_client = session.client('ses')
+        template_path = "../email_templates/" + template_name + "/template.html"
+        with open(template_path) as f:
+            message = pystache.render(f.read(), template_parameters)
+            ses_client.send_email(
+                Source='service@adya.io',
+                Destination={ 'ToAddresses': user_list },
+                Message={
+                    'Subject': {
+                        'Data': email_subject
+                    },
+                    'Body': {
+                        'Text': {
+                            'Data': email_subject
+                        },
+                        'Html': {
+                            'Data': message
+                        }
+                    }
+                }
+            )
+
+    except Exception as e:
+        print e
+        print "Exception occurred sending ", template_name, " email to: ", user_list
+
 

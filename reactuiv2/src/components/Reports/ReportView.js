@@ -4,35 +4,43 @@ import { Button, Card, Image } from 'semantic-ui-react'
 const ReportView = props => {
     const reports = props.report;
 
-    if (reports.length > 0) {
-      let reportCard = reports.map((report) => {
-        return (
-            <Card>
-                <Card.Content>
-                    <Card.Header>
-                        {report.name}
-                    </Card.Header>
-                    <Card.Meta>
-                        Created at <strong>{report.creation_time}</strong>
+    var keys = Object.keys(reports)
+    var reportCard = []
 
-                    </Card.Meta>
-                    <Card.Description>
-                        {report.frequency}
-                        {report.config.report_type}
-                    </Card.Description>
-                </Card.Content>
-                <Card.Content extra>
-                    <div className='ui three buttons'>
-                        <Button basic color='red' onClick={props.deleteReport(report.report_id)}>Delete</Button>
-                        <Button basic color='green' onClick={props.runReport(report.report_id,
-                             report.name)}>Run Report</Button>
-                           <Button basic color='blue' onClick={props.modifyReport(report.report_id)}> Modify </Button>
+    if (keys.length > 0) {
+      for (let index=0; index<keys.length; index++) {
+        let reportDetail = reports[keys[index]]
+        var card = (
+          <Card>
+              <Card.Content>
+                  <Card.Header>
+                      {reportDetail.name}
+                  </Card.Header>
+                  <Card.Meta>
+                      Created at <strong>{reportDetail.creation_time}</strong>
 
-                    </div>
-                </Card.Content>
-            </Card>
-        );
-      })
+                  </Card.Meta>
+                  <Card.Description>
+                      {reportDetail.frequency}
+
+                  </Card.Description>
+              </Card.Content>
+              <Card.Content extra>
+                  <div className='ui three buttons'>
+                      <Button basic color='red' onClick={props.deleteReport(reportDetail.report_id)}>Delete</Button>
+                      <Button basic color='green' onClick={props.runReport(reportDetail.report_id,
+                           reportDetail.name)}>Run Report</Button>
+                         <Button basic color='blue' onClick={props.modifyReport(reportDetail.report_id)}> Modify </Button>
+
+                  </div>
+              </Card.Content>
+          </Card>
+        )
+        reportCard.push(card)
+      }
+    }
+
+    if (reportCard.length > 0) {
 
       return (
         <Card.Group>
@@ -69,7 +77,9 @@ const ReportView = props => {
               </Card>
             </Card.Group>
         );
-    }
+
 };
+
+}
 
 export default ReportView;

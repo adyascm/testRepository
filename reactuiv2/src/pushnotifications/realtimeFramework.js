@@ -13,7 +13,7 @@ const initializePushNotifications = (props) => {
 
         // subscribe a channel to receive messages
         client.subscribe("adya-scan-update", true, (conn, channel, msg) => {
-          //console.log("Message received on adya-scan-update channel - " + msg);
+          // console.log("Message received on adya-scan-update channel - " + msg);
           props.onPushNotification(SCAN_UPDATE_RECEIVED, msg);
         });
       }

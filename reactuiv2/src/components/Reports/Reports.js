@@ -37,9 +37,6 @@ const mapStateToProps = state => ({
     deleteOldRunReportData: () => {
       dispatch({type:DELETE_OLD_SCHEDULED_REPORT })
     }
-    // onLoad: () => {
-    //   dispatch({ type: GET_SCHEDULED_REPORTS, payload: agent.Scheduled_Report.getReports()})
-    // }
 
   });
 
@@ -104,8 +101,7 @@ class Reports extends Component {
   }
 
   modifyReport = (reportId) => ev => {
-
-    var reportDataForReportId = this.state.processedReportsData[reportId]
+    var reportDataForReportId = this.props.reports[reportId]
      this.setState({
        showModal: true,
        formType: 'modify_report',
@@ -116,19 +112,6 @@ class Reports extends Component {
 
 
   componentWillReceiveProps(nextProps){
-
-    if(nextProps.reports.length>0 && !this.state.processreport){
-        var reportsdata = nextProps.reports
-        var reportsdataMap = {}
-        for(var i =0 ;i<reportsdata.length;i++){
-            reportsdataMap[reportsdata[i]['report_id']] = reportsdata[i]
-          }
-        this.setState({
-            processedReportsData: reportsdataMap,
-            processreport: true
-        })
-    }
-
 
     if(nextProps.scheduledReport !== undefined && !this.state.fetchScheduledReport){
       this.setState({

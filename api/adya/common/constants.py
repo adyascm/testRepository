@@ -49,7 +49,6 @@ PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
 RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
 
 
-
 def get_url_from_path(path):
     return API_HOST + path
 

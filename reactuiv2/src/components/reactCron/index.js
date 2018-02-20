@@ -245,7 +245,7 @@ class ReactCron extends Component {
  componentDidUpdate(){
    if(document.getElementById("crondata")){
    var cronExp = document.getElementById("crondata").value
-   this.props.stateSetHandler(cronExp)
+   this.props.stateSetHandler('frequency', cronExp)
  }
  }
 
