@@ -7,6 +7,8 @@ import UsersTree from '../Users/UsersTree';
 import ResourcesList from '../Resources/ResourcesList';
 import agent from '../../utils/agent';
 import * as Helper from '../reactCron/helpers/index';
+import serializeForm from 'form-serialize';
+
 
 import {
   CREATE_SCHEDULED_REPORT,
@@ -38,12 +40,8 @@ class ReportForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      reportName: '',
-      reportDescription: '',
-      emailTo: '',
       value:{},
       cronExpression: '',
-      IsActive: true,
       reportType: '',
       reportNameError: false,
       emailToError: false,
@@ -52,91 +50,83 @@ class ReportForm extends Component {
       IsActiveError: false,
       reportTypeError: false,
       error: '',
-      dataForParticularReport:{}
+      reportDataForReportId: this.props.reportsMap,
+      finalReportObj: {}
 
     }
   }
 
 
-  handleCreateButton(evt) {
-    evt.preventDefault()
-    this.closeModal();
-  }
-
-  getCronValue = () => {
-    const cronValue = this.refs.reactCron.__value;
-  }
-
-  handleChange = (e, { value }) => this.setState({value })
-
   submit = () => {
+
     var errorMessage = ""
     var success = false
     var pattern = /^\s*$/;
     let valid = true
     var emailCheck  = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     var selected_entity;
-    if(this.state.value === "group"){
-      if(this.props.rowData){
-        selected_entity = this.props.rowData.key
+
+    var copyFinalInputObj = {}
+    Object.assign(copyFinalInputObj, this.state.finalReportObj)
+    if(this.state.finalReportObj['selected_entity_type']){
+
+      if(this.state.finalReportObj['selected_entity_type'] === "group" ){
+        if(this.props.rowData){
+          selected_entity = this.props.rowData.key
+        }
       }
-    }
-    else if (this.state.value === "resource") {
-      if(this.props.rowData){
-        selected_entity = this.props.rowData.resourceId
+      else if (this.state.finalReportObj['selected_entity_type'] === "resource") {
+        if(this.props.rowData){
+          selected_entity = this.props.rowData.resourceId
+        }
       }
+     copyFinalInputObj["selected_entity"] = selected_entity
     }
 
-    var config = {'report_type':this.state.reportType, "selected_entity":selected_entity, "selected_entity_type":this.state.value}
-    var reportData = {"name":this.state.reportName, "description":this.state.reportDescription, "config":config,
-                  "frequency":"cron(" + this.state.cronExpression + ")", "receivers":this.state.emailTo, "is_active": this.state.IsActive}
+
+    if(!copyFinalInputObj['is_active']){
+      copyFinalInputObj['is_active'] = 0
+    }
+
+    var populatedDataForParticularReport ={}
+    if(this.props.formType === 'modify_report'){
+      var populatedDataForParticularReport = this.state.reportDataForReportId
+      Object.assign(populatedDataForParticularReport, copyFinalInputObj)
+    }
 
 
-    console.log("data ", reportData)
-    if(!reportData.name){
+    if(!copyFinalInputObj.name && !populatedDataForParticularReport.name){
       errorMessage = "Please enter a name for this report."
       valid = false
     }
-    else if(!reportData.config.report_type){
+    else if(!copyFinalInputObj.report_type && !populatedDataForParticularReport.report_type){
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if(!reportData.config.selected_entity_type){
-      console.log("reportData.config.selected_entity_Type ", reportData.config.selected_entity_Type)
+    else if(!copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type){
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if(!reportData.config.selected_entity){
+    else if(!copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity){
       errorMessage = "Please select the entity "
       valid = false
     }
-    else if(!reportData.receivers){
+    else if(!copyFinalInputObj.receivers && !populatedDataForParticularReport.receivers){
       errorMessage = "Please enter an email address."
       valid = false
     }
-    else if(!reportData.receivers.match(emailCheck)){
 
-      let emails = reportData.receivers.split(',');
-      console.log(emails);
-      emails.map((email) => {
-        let cleaned_email = email.trim();
-        if(!cleaned_email.match(emailCheck) || cleaned_email.match(pattern)){
-          errorMessage = "Please enter a valid email address."
-          valid = false
-        }
-        return errorMessage;
-      })
-    }
 
     if(valid && this.props.formType === 'modify_report'){
-      reportData['report_id'] = this.props.reportsMap['report_id']
+      copyFinalInputObj['report_id'] = this.state.reportDataForReportId['report_id']
+
       success = true
-      this.props.updateScheduledReport(reportData)
+      this.props.updateScheduledReport(copyFinalInputObj)
       this.props.close()
     }
     else if (valid && this.props.formType === 'create_report') {
       success = true
-      this.props.addScheduledReport(reportData)
+      this.props.addScheduledReport(copyFinalInputObj)
       this.props.close()
 
     }
@@ -157,15 +147,50 @@ class ReportForm extends Component {
   }
 
   handleMultipleOptions = (data) => {
-    var value = Object.keys(this.props.reportsMap).length>0 ? JSON.parse(this.props.reportsMap['config'])[data] : null
+
+    var value = Object.keys(this.state.reportDataForReportId).length>0 ?
+                 this.state.reportDataForReportId[data] : null
+
     return value
+  }
+
+  onChangeReportInput = (key, value) => {
+    var copyFinalReportObj = {};
+    Object.assign(copyFinalReportObj, this.state.finalReportObj)
+
+    if(key === 'frequency'){
+      value = "cron(" + value + ")"
+    }
+
+    copyFinalReportObj[key] = value
+
+    if(key === 'selected_entity_type'){
+      if(Object.keys(this.state.reportDataForReportId).length>0){
+          var reportsMapcopy ={}
+          Object.assign(reportsMapcopy, this.state.reportDataForReportId)
+          reportsMapcopy['selected_entity_type'] = "";
+          this.setState({
+            reportDataForReportId: reportsMapcopy
+          })
+      }
+      else {
+
+      }
+
+
+    }
+
+    this.setState({
+      finalReportObj: copyFinalReportObj,
+      value: value
+    })
 
   }
 
 
 
-
   render() {
+
     let user = this.props.rowData
     const { value } = this.state
 
@@ -179,20 +204,24 @@ class ReportForm extends Component {
 
               <div className="ui form">
                   <Form.Field>
-                    <Checkbox onChange={(e, data) => this.setState({isActive: data.checked})} label='IsActive' width={2}/>
+                    <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
+                      />
                   </Form.Field>
-                  <Form.Input onChange={(e) => this.setState({reportName: e.target.value})}
+                  <Form.Input onChange={(e) => this.onChangeReportInput('name', e.target.value)}
                   label='Name' placeholder='Name'  defaultValue={this.props.reportsMap['name']} />
-                  <Form.Input onChange={(e) => this.setState({reportDescription: e.target.value})} label='Description' placeholder='Description'
+
+                  <Form.Input onChange={(e) => this.onChangeReportInput('description', e.target.value)} label='Description' placeholder='Description'
                     defaultValue={this.props.reportsMap['description']}/>
-                  <Form.Select  id='reportType' onChange={(e, data) => this.setState({reportType: data.value})}
+
+                  <Form.Select  id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
                     label='Report Type' options={reportOptions} placeholder='Report Type'
                     defaultValue={this.handleMultipleOptions('report_type')} />
-                  <Form.Input onChange={(e) => this.setState({emailTo: e.target.value})}
+
+                <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}
                   label='Email To' placeholder='Email To' control={Input}
                   defaultValue={this.props.reportsMap['receivers']}/>
                   <Form.Field >
-                    <ReactCron ref='reactCron' stateSetHandler ={this.stateSetHandler} />
+                    <ReactCron ref='reactCron' stateSetHandler ={this.onChangeReportInput} />
                   </Form.Field>
 
               </div>
@@ -200,16 +229,17 @@ class ReportForm extends Component {
             </div>
             <div className="column">
                 <Form.Group inline>
-                  <Form.Radio label='File/Folder' value='resource' checked={value === 'resource'}
-                    onChange={this.handleChange}
-                    checked = {this.handleMultipleOptions('selected_entity_type') == 'resource' ? 'true': null}
+                  <Form.Radio label='File/Folder' value='resource'
+                    checked={this.handleMultipleOptions('selected_entity_type') === 'resource' || value === 'resource'}
+                    onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                      />
-                  <Form.Radio label='Group/User' value='group' checked={value === 'group'}
-                    onChange={this.handleChange}
-                    checked = {this.handleMultipleOptions('selected_entity_type') == 'group'? 'true': null}/>
+                  <Form.Radio label='Group/User' value='group'
+                    checked={this.handleMultipleOptions('selected_entity_type') === 'group' || value === 'group'}
+                    onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
+                    />
                 </Form.Group>
                 {this.state.value == 'group'?
-                   <Form.Field><UsersTree userTreeHandler={this.userTreeHandler}/>
+                   <Form.Field><UsersTree />
                     </Form.Field> : null}
                    {this.state.value == 'resource'? <Form.Field ><ResourcesList /></Form.Field> : null}
             </div>
