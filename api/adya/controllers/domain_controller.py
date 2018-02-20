@@ -52,27 +52,7 @@ def create_datasource(auth_token, payload):
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
         db_session.add(datasource)
-
-        # need to have dummy node for all files at root level
-        resource = Resource()
-        resource.resource_id = constants.ROOT
-        resource.domain_id = existing_user.domain_id
-        resource.datasource_id = datasource_id
-        resource.resource_type = constants.ROOT_MIME_TYPE
-        resource.resource_name = constants.ROOT_NAME
-        resource.resource_owner_id = existing_user.email
-        resource.creation_time = datetime.datetime.utcnow().isoformat()
-        resource.last_modified_time = datetime.datetime.utcnow().isoformat()
-        resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        db_session.add(resource)
-        if not datasource.is_serviceaccount_enabled:
-            resourceparent = ResourceParent()
-            resourceparent.datasource_id = datasource_id
-            resourceparent.domain_id = existing_user.domain_id
-            resourceparent.email = existing_user.email
-            resourceparent.resource_id = constants.ROOT
-            db_session.add(resourceparent)
-
+        
         try:
             db_session.commit()
         except Exception as ex:

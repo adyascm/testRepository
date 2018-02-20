@@ -105,3 +105,14 @@ def get_credentials_object(emailid):
     http = credentials.authorize(httplib2.Http())
     credentials.refresh(http)
     return credentials
+
+def check_if_external_user(data_source,login_user,email):
+    domainname = get_domain_name_from_email(email)
+    if data_source.is_serviceaccount_enabled:
+        if  domainname == data_source.domain_id:
+            return False
+        return True
+    elif login_user and login_user.is_admin_user:
+        if domainname == get_domain_name_from_email(login_user.email):
+            return False
+    return True

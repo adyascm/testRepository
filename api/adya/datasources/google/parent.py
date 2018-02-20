@@ -36,18 +36,17 @@ class GetParents():
                             row["parentId"] = constants.ROOT
                     self.resource_parent_array.append(row)
                 if self.resource_count == request_id:
-                    print "updating parent data"
                     self.update_parents_data_for_resource()
 
     # getting permissison for 100 resourceId
     def get_parent(self):
         drive_service = gutils.get_gdrive_service(self.domain_id,self.user_email)
         batch = drive_service.new_batch_http_request(callback=self.resource_parentscallback)
-
+        quotauser = None if not user_email else user_email[0:41]
         for resource in self.resources:
             permisssion_data_object = drive_service.files().\
                                         get(fileId=resource,
-                                           fields="id, mimeType, parents")
+                                           fields="id, mimeType, parents",quotaUser=quotauser)
             batch.add(permisssion_data_object)
         batch.execute()
 

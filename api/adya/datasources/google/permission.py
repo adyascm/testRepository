@@ -30,12 +30,13 @@ class GetPermission():
     def get_permission(self,user_email):
         drive_service = gutils.get_gdrive_service(self.domain_id,user_email)
         batch = drive_service.new_batch_http_request(callback=self.resource_permissioncallback)
+        quotauser = None if not user_email else user_email[0:41]
 
         for resource in self.resources:
             permisssion_data_object = drive_service.permissions().\
                                         list(fileId=resource,
-                                           fields="permissions(id, emailAddress, role, displayName), nextPageToken",
-                                            pageSize=100,pageToken = None)
+                                        fields="permissions(id, emailAddress, role, displayName), nextPageToken",
+                                            pageSize=100,quotaUser=quotauser, pageToken = None)
             batch.add(permisssion_data_object)
         batch.execute()
 
@@ -100,6 +101,7 @@ class GetPermission():
         try:
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
             db_session.commit()
+            print "Inserted permission data into db"
         except Exception as ex:
             print (ex)
             print("Updating permission for failed")

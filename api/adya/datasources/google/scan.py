@@ -29,24 +29,23 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
     starttime = time.time()
     session = FuturesSession()
     last_future = None
-    querystring =""
+    quotaUser = None
+    queryString = ""
     if user_email:
-        querystring = "'"+ user_email +"' in owners"
+        quotaUser = user_email[0:41]
+        queryString = "'"+ user_email +"' in owners"
     while True:
         try:
-            results = drive_service.files().\
-                list(q=querystring, fields="files(id, name, mimeType, "
-                     "owners, size, createdTime, modifiedTime), "
-                     "nextPageToken", pageSize=1000, pageToken=next_page_token).execute()
-
+            results = drive_service.files().list(q=queryString, fields="files(id, name, mimeType, parents, "
+                            "permissions(id, emailAddress, role, displayName),"
+                            "owners,size,createdTime, modifiedTime), "
+                            "nextPageToken", pageSize=100, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
 
             reosurcedata = results['files']
             update_and_get_count(datasource_id, DataSource.file_count, file_count, True)
-            url = constants.SCAN_RESOURCES + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id
-            if user_email:
-                        url = url + "&userEmail=" + user_email
+            url = constants.SCAN_RESOURCES + "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + (user_email  if user_email else domain_id)
+
             last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
 
             next_page_token = results.get('nextPageToken')
@@ -71,41 +70,89 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
 
 ## processing resource data for fileIds
 def process_resource_data(auth_token, domain_id, datasource_id, user_email, resources):
-    batch_request_file_id_list = []
     resourceList = []
     session = FuturesSession()
     db_session = db_connection().get_session()
+    data_source = db_session.query(DataSource).filter(and_(DataSource.domain_id==domain_id,DataSource.datasource_id==datasource_id)).first()
+    login_user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id==domain_id,LoginUser.email==user_email)).first()
+    data_for_permission_table =[]
+    data_for_parent_table =[]
+    external_user_list = []
     for resourcedata in resources:
-        resource = {}
-        resource["domain_id"] = domain_id
-        resource["datasource_id"] = datasource_id
-        resource["resource_id"] = resourcedata['id']
-        resource["resource_name"] = resourcedata['name']
+        resource = Resource()
+        resource.domain_id = domain_id
+        resource.datasource_id = datasource_id
+        resource_id = resourcedata['id']
+        resource.resource_id = resource_id
+        resource.resource_name = resourcedata['name']
         mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        resource["resource_type"] = mime_type
-        # if resourcedata.get('parents'):
-        #     resource["resource_parent_id"] = resourcedata.get('parents')[0]
-        # else:
-        #     if mime_type != 'folder':
-        #         resource["resource_parent_id"] = constants.ROOT
-        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
-        resource["resource_size"] = resourcedata.get('size')
-        resource["creation_time"] = resourcedata['createdTime'][:-1]
-        resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
-        resource["exposure_type"] = constants.ResourceExposureType.PRIVATE
-        resourceList.append(resource)
-
-        batch_request_file_id_list.append(resourcedata['id'])
-        if len(batch_request_file_id_list) == 100:
-            get_permission_for_fileId(auth_token, user_email,
-                batch_request_file_id_list, domain_id, datasource_id, session)
-            batch_request_file_id_list = []
-    if len(batch_request_file_id_list) > 0:
-        get_permission_for_fileId(auth_token, user_email,
-            batch_request_file_id_list, domain_id, datasource_id, session)
+        resource.resource_type = mime_type
+        resource.resource_owner_id = resourcedata['owners'][0].get('emailAddress')
+        resource.resource_size = resourcedata.get('size')
+        resource.creation_time = resourcedata['createdTime'][:-1]
+        resource.last_modified_time = resourcedata['modifiedTime'][:-1]
+        resource_exposure_type = constants.ResourceExposureType.PRIVATE
+        resource_permissions = resourcedata.get('permissions')
+        if resource_permissions:
+            for permission in resource_permissions:
+                    permission_type = constants.PermissionType.READ
+                    permission_id = permission.get('id')
+                    role = permission['role']
+                    if role == "owner" or role == "writer":
+                        permission_type = constants.PermissionType.WRITE
+                    email_address = permission.get('emailAddress')
+                    display_name = permission.get('displayName')
+                    if email_address:
+                        resource_exposure_type = constants.ResourceExposureType.INTERNAL
+                        if gutils.check_if_external_user(data_source,login_user,email_address):
+                            resource_exposure_type = constants.ResourceExposureType.EXTERNAL
+                            ## inseret non domain user as External user in db, Domain users will be
+                            ## inserted during processing Users
+                            externaluser = DomainUser()
+                            externaluser.domain_id = domain_id
+                            externaluser.datasource_id = datasource_id
+                            externaluser.email = email_address
+                            if display_name and display_name != "":
+                                name_list = display_name.split(' ')
+                                externaluser.first_name = name_list[0]
+                                if len(name_list) > 1:
+                                    externaluser.last_name = name_list[1]
+                            externaluser.member_type = constants.UserMemberType.EXTERNAL
+                            db_session.merge(externaluser)
+                    elif display_name:
+                        resource_exposure_type = constants.ResourceExposureType.DOMAIN
+                        email_address = "__ANYONE__@"+ domain_id
+                    else:
+                        resource_exposure_type = constants.ResourceExposureType.PUBLIC
+                        email_address = constants.ResourceExposureType.PUBLIC
+                    resource_permission = ResourcePermission()
+                    resource_permission.domain_id = domain_id
+                    resource_permission.datasource_id = datasource_id
+                    resource_permission.resource_id = resource_id
+                    resource_permission.email = email_address
+                    resource_permission.permission_id = permission_id
+                    resource_permission.permission_type = permission_type
+                    # data_for_permission_table.append(resource_permission)
+                    db_session.merge(resource_permission)
+        resource.exposure_type = resource_exposure_type
+        resource_parent_data = resourcedata.get('parents')
+        resource_parent = ResourceParent()
+        resource_parent.domain_id = domain_id
+        resource_parent.datasource_id = datasource_id
+        resource_parent.email = user_email
+        resource_parent.resource_id = resource_id
+        resource_parent.parent_id = resource_parent_data[0] if resource_parent_data else None
+        # data_for_parent_table.append(resource_parent)
+        # resourceList.append(resource)
+        db_session.merge(resource)
+        db_session.merge(resource_parent)
     try:
-        db_session.bulk_insert_mappings(models.Resource, resourceList)
+        # db_session.bulk_save_objects(resourceList)
+        # db_session.bulk_save_objects(data_for_permission_table)
+        # db_session.bulk_save_objects(data_for_parent_table)
+        # db_session.bulk_save_objects(external_user_list)
         db_session.commit()
+        print "Inserted resource,permission,parents data into db"
     except Exception as ex:
         print("Resource_update failes", ex)
 
@@ -122,6 +169,7 @@ def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list,
 
 
 def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
+    print ("Started getting parents data", user_email)
     db_session = db_connection().get_session()
     useremail_resources_map = {}
     if user_email:
@@ -207,6 +255,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     session = FuturesSession()
+    user_email_list = []
     lastresult = None
     for user_data in users_data:
         user_email = user_data["emails"][0]["address"]
@@ -220,37 +269,22 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
-            ## adding dummy folder 
-            # need to have dummy node for all files at root level
-            resource = Resource()
-            resource.resource_id = constants.ROOT
-            resource.domain_id = domain_id
-            resource.datasource_id = datasource_id
-            resource.resource_type = constants.ROOT_MIME_TYPE
-            resource.resource_name = constants.ROOT_NAME
-            resource.resource_owner_id = user_email
-            resource.creation_time = datetime.datetime.utcnow().isoformat()
-            resource.last_modified_time = datetime.datetime.utcnow().isoformat()
-            resource.exposure_type = constants.ResourceExposureType.PRIVATE
-            db_session.add(resource)
-
-            resourceparent = ResourceParent()
-            resourceparent.datasource_id = datasource_id
-            resourceparent.domain_id = domain_id
-            resourceparent.email = user_email
-            resourceparent.resource_id = constants.ROOT
-            db_session.add(resourceparent)
-
-            url = constants.SCAN_RESOURCES + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
-            lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
-    if lastresult:
-        lastresult.result()
+            user_email_list.append(user_email)
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_session.commit()
+        print "Inserted domain users data into db"
     except Exception as ex:
         print("User data insertation failed", ex.message)
+    print "Getting user data for service account"
+    if datasource.is_serviceaccount_enabled:
+        lastresult =None
+        for user_email in user_email_list:
+            url = constants.SCAN_RESOURCES + "?domainId=" + \
+                domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
+            lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
+        if lastresult:
+            lastresult.result()
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
@@ -315,6 +349,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session.bulk_insert_mappings(
             models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
+        print "Iserted group data into db"
     except Exception as ex:
         print("User data insertation failed", ex.message)
 
@@ -371,6 +406,7 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id)
         db_session.bulk_insert_mappings(
             models.DirectoryStructure, groupsmembers_db_insert_data)
         db_session.commit()
+        print "Inserted group member data into db"
         update_and_get_count(datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
     except Exception as ex:
         print("Directory data insertation failed", ex.message)
