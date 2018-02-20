@@ -109,7 +109,7 @@ class Users extends Component {
             </Grid.Row>
 
             <Grid.Row stretched>
-              <Grid.Column stretched width={gridWidth}>
+              <Grid.Column stretched width={gridWidth}> 
                 {!this.state.showHierarchy ? flatList : treeView}
               </Grid.Column>
               <Grid.Column width={16 - gridWidth}>

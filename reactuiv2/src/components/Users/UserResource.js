@@ -53,7 +53,8 @@ class UserResource extends Component {
                     cellEditorParams: {
                         values: ['Read','Write','None']
                     },
-                    onCellValueChanged: this.cellValueChanged
+                    onCellValueChanged: this.cellValueChanged,
+                    cellStyle: {"textAlign":"center"}
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
@@ -107,9 +108,10 @@ class UserResource extends Component {
         }
         else if (this.props.selectedUserItem){
             return (
-                <div className="ag-theme-fresh">
+                <div className="ag-theme-fresh"> 
                     <AgGridReact
-                        id="myResourceGrid" domLayout="autoHeight"
+                        id="myResourceGrid" 
+                        domLayout="autoHeight"
                         columnDefs={this.state.columnDefs}
                         rowData={this.props.selectedUserItem.resources}
                         getNodeChildDetails={this.state.getNodeChildDetails}

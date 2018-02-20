@@ -1,7 +1,8 @@
 from flask_restful import Resource, reqparse, request
-from adya.datasources.google import scan, permission
+from adya.datasources.google import scan, permission,parent
 from adya.common import utils
 from adya.common.request_session import RequestSession
+from adya.db.models import DataSource
 
 
 class DriveResources(Resource):
@@ -14,19 +15,19 @@ class DriveResources(Resource):
             return req_error
 
         scan.get_resources(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param(
-            'dataSourceId'), req_session.get_req_param('userEmail'),req_session.get_req_param('nextPageToken'))
+            'dataSourceId'),req_session.get_req_param('nextPageToken'),req_session.get_req_param('userEmail'))
         return req_session.generate_response(202)
 
     def post(self):
         print "Processing Data"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'])
+            True, ['dataSourceId', 'domainId'],['userEmail'])
         if req_error:
             return req_error
 
         scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
-            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_body())
+            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
         return req_session.generate_response(202)
 
 
@@ -35,7 +36,7 @@ class GetPermission(Resource):
         print "Getting Permission Data"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'])
+            True, ['dataSourceId', 'domainId'],['userEmail'])
         if req_error:
             return req_error
 
@@ -43,10 +44,53 @@ class GetPermission(Resource):
         fileIds = requestdata['fileIds']
         domain_id = req_session.get_req_param('domainId')
         datasource_id = req_session.get_req_param('dataSourceId')
+        user_email = req_session.get_req_param('userEmail')
         ## creating the instance of scan_permission class
         scan_permisssion_obj = permission.GetPermission(domain_id, datasource_id , fileIds)
         ## calling get permission api
-        scan_permisssion_obj.get_permission()
+        scan_permisssion_obj.get_permission(user_email)
+        return req_session.generate_response(202)
+
+
+
+class GetParent(Resource):
+    def get(self):
+        print "Get parents from google api and process"
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'],['userEmail'])
+        if req_error:
+            return req_error
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        user_email = req_session.get_req_param('userEmail')
+        auth_token = req_session.get_auth_token()
+        scan.get_parent_for_user(auth_token,domain_id,datasource_id,user_email)
+        return req_session.generate_response(202)
+
+    def post(self):
+        print "Getting Parents Data"
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId'],['userEmail'])
+        if req_error:
+            return req_error
+
+        requestdata = req_session.get_body()
+        file_ids = requestdata['fileIds']
+        domain_id = req_session.get_req_param('domainId')
+        datasource_id = req_session.get_req_param('dataSourceId')
+        user_email = req_session.get_req_param('userEmail')
+        resource_count = len(file_ids)
+        processed_file_count =0
+        while processed_file_count <= resource_count:
+            ## creating the instance of parents class
+            hundred_file = file_ids[processed_file_count:processed_file_count+100]
+            scan_parent_obj = parent.GetParents(domain_id, datasource_id , hundred_file ,user_email)
+            ## calling get parents api
+            scan_parent_obj.get_parent()
+            processed_file_count += 100
+        scan.update_and_get_count(datasource_id, DataSource.proccessed_parent_permission_count, 1, True)
         return req_session.generate_response(202)
 
 
@@ -74,13 +118,13 @@ class GetDomainuser(Resource):
             True, ['dataSourceId', 'domainId'])
         if req_error:
             return req_error
-
+        auth_token =  req_session.get_auth_token()
         domain_id = req_session.get_req_param('domainId')
         datasource_id = req_session.get_req_param('dataSourceId')
 
         data = req_session.get_body()
         users_response_data = data.get("usersResponseData")
-        scan.processUsers(users_response_data, datasource_id, domain_id)
+        scan.processUsers(auth_token,users_response_data, datasource_id, domain_id)
         return req_session.generate_response(202)
 
 

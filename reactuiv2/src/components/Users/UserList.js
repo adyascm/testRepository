@@ -33,9 +33,6 @@ class UserList extends Component {
         }
     }
 
-    componentWillMount() {
-    }
-
     onCardClicked(event, param) {
         this.props.selectUserItem(param.user);
     }
@@ -97,7 +94,7 @@ class UserList extends Component {
             this.setTreeRows();
         }
         return (
-            <Card.Group>
+            <Card.Group style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
                 {userCards}
             </Card.Group>
 

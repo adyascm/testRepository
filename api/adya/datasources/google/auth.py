@@ -62,16 +62,16 @@ def oauth_callback(oauth_code, scopes, error):
 
     login_email = profile_info['email'].lower()
     domain_id = login_email
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
-    existing_user = auth_controller.get_user(login_email, session)
+    existing_user = auth_controller.get_user(login_email, db_session)
     if existing_user:
         auth_token = existing_user.auth_token
         if refresh_token:
-            auth_controller.update_user_refresh_token(login_email, refresh_token, session)
+            auth_controller.update_user_refresh_token(login_email, refresh_token, db_session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
-        existing_domain_user = session.query(DomainUser).filter(DomainUser.email == login_email).first()
+        existing_domain_user = db_session.query(DomainUser).filter(DomainUser.email == login_email).first()
         if existing_domain_user:
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
