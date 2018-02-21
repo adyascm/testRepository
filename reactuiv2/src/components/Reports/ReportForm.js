@@ -220,7 +220,8 @@ class ReportForm extends Component {
                   label='Email To' placeholder='Email To' control={Input}
                   defaultValue={this.props.reportsMap['receivers']}/>
                   <Form.Field >
-                    <ReactCron ref='reactCron' stateSetHandler ={this.onChangeReportInput} />
+                    <ReactCron ref='reactCron' stateSetHandler ={this.onChangeReportInput}
+                      formType={this.props.formType} defaultCronVal = {this.props.reportsMap['frequency']}/>
                   </Form.Field>
 
               </div>
