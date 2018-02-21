@@ -30,7 +30,7 @@ def get_widget_data(auth_token, widget_id):
             and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_type == 'folder')).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
-        data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).group_by(
+        data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(Resource.exposure_type != constants.ResourceExposureType.INTERNAL).group_by(
             Resource.exposure_type).all()
     elif widget_id == 'sharedDocsList':
         data = {}
@@ -109,7 +109,7 @@ def get_reports(auth_token):
             "report_id": report.report_id,
             "name": report.name,
             "description": report.description,
-            "frequency": report.frequency,
+            "frequency": report.frequency[5:len(report.frequency)-1],
             "receivers": report.receivers,
             "creation_time": report.creation_time.strftime('%m/%d/%Y'),
             "last_trigger_time": last_trigger_time,

@@ -90,7 +90,7 @@ class GetParent(Resource):
             ## calling get parents api
             scan_parent_obj.get_parent()
             processed_file_count += 100
-        scan.update_and_get_count(datasource_id, DataSource.proccessed_parent_permission_count, 1, True)
+        scan.update_and_get_count(datasource_id, DataSource.processed_parent_permission_count, 1, True)
         return req_session.generate_response(202)
 
 
@@ -193,5 +193,5 @@ class GetGroupMembers(Resource):
         group_key = req_session.get_req_param('groupKey')
         member_response_data = data.get("membersResponseData")
 
-        scan.processGroupMembers(group_key, member_response_data, datasource_id , domain_id)
+        scan.processGroupMembers(req_session.get_auth_token(), group_key, member_response_data, datasource_id , domain_id)
         return req_session.generate_response(202)

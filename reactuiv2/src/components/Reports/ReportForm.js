@@ -70,8 +70,8 @@ class ReportForm extends Component {
     if(this.state.finalReportObj['selected_entity_type']){
 
       if(this.state.finalReportObj['selected_entity_type'] === "group" ){
-        if(this.props.rowData){
-          selected_entity = this.props.rowData.key
+        if(this.props.selectedUserItem){
+          selected_entity = this.props.selectedUserItem.key
         }
       }
       else if (this.state.finalReportObj['selected_entity_type'] === "resource") {
@@ -220,7 +220,8 @@ class ReportForm extends Component {
                   label='Email To' placeholder='Email To' control={Input}
                   defaultValue={this.props.reportsMap['receivers']}/>
                   <Form.Field >
-                    <ReactCron ref='reactCron' stateSetHandler ={this.onChangeReportInput} />
+                    <ReactCron ref='reactCron' stateSetHandler ={this.onChangeReportInput}
+                      formType={this.props.formType} defaultCronVal = {this.props.reportsMap['frequency']}/>
                   </Form.Field>
 
               </div>

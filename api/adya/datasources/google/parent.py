@@ -42,7 +42,7 @@ class GetParents():
     def get_parent(self):
         drive_service = gutils.get_gdrive_service(self.domain_id,self.user_email)
         batch = drive_service.new_batch_http_request(callback=self.resource_parentscallback)
-        quotauser = None if not user_email else user_email[0:41]
+        quotauser = None if not self.user_email else self.user_email[0:41]
         for resource in self.resources:
             permisssion_data_object = drive_service.files().\
                                         get(fileId=resource,

@@ -22,13 +22,11 @@ class RequestSession():
 
         headers_dict = {}
         if self.isLocal is False:
-            print("Request is understood as a lambda request")
             self.isLocal = False
             headers_dict = self.req["headers"]
             params_dict = self.req["queryStringParameters"]
         #Validate the lambda event object
         else:
-            print("Request is understood as a flask request")
             headers_dict = self.req.headers
             params_dict = self.req.args
 
