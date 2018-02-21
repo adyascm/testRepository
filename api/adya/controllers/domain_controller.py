@@ -114,13 +114,14 @@ def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
     query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
     session = FuturesSession()
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
-    time.sleep(1)
     future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
-    time.sleep(1)
     future_resources = None
     if is_service_account_enabled == 'False':
         future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
-        time.sleep(2)
+        future_resources.result()
+    else:
+        future_users.result()
+        future_groups.result()
     #future_users.result()
     #print "Received the response for get users api call"
     #future_groups.result()
