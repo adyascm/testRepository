@@ -304,7 +304,6 @@ class ReactCron extends Component {
     // {this.formType}
     return (
       <div className={classnames(className, 'cron-row')}>
-        <label className=''>Cron tab</label>
         <div className=''>
           <div className=''>
             Every

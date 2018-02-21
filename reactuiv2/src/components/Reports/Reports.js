@@ -119,7 +119,6 @@ class Reports extends Component {
   componentWillReceiveProps(nextProps){
 
     if(nextProps.scheduledReport !== undefined ){
-
       this.props.deleteOldRunReportData()
       nextProps.setreports(agent.Scheduled_Report.getReports())
     }
@@ -134,14 +133,11 @@ class Reports extends Component {
         <div>
           <ReportView report={this.props.reports} deleteReport={this.deleteReport}
             reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
-          {this.state.showModal === false?
-             null
-            :
+          {this.state.showModal === true?
             this.state.isRunreport ?
                 this.props.runReportData?
                     <Modal size='large' className="scrolling" open={this.state.showModal} >
                      <Modal.Header>{this.state.runReportName}</Modal.Header>
-
                       <Modal.Content>
                         <ReportsGrid reportsData={this.props.runReportData}/>
                       </Modal.Content>
@@ -156,28 +152,30 @@ class Reports extends Component {
                     </Modal>
                  :
                     this.props.runReportData && this.props.runReportData.length === 0 ?
-                    <Modal className="scrolling"
-                     open={this.state.showModal} >
-                     <Modal.Header>{this.state.runReportName}</Modal.Header>
-                      <Modal.Content>
-                       No Data Found
-                      </Modal.Content>
-                      <Modal.Actions>
-                        <Button basic color='green' >
-                         Export to csv
-                        </Button>
-                        <Button basic color='red' onClick={this.handleClose}>
-                          <Icon name='remove' /> Close
-                        </Button>
-                     </Modal.Actions>
-                    </Modal>
+                        <Modal className="scrolling"
+                         open={this.state.showModal} >
+                         <Modal.Header>{this.state.runReportName}</Modal.Header>
+                          <Modal.Content>
+                           No Data Found
+                          </Modal.Content>
+                          <Modal.Actions>
+                            <Button basic color='green' >
+                             Export to csv
+                            </Button>
+                            <Button basic color='red' onClick={this.handleClose}>
+                              <Icon name='remove' /> Close
+                            </Button>
+                         </Modal.Actions>
+                        </Modal>
                     :
-                    <Loader size='mini' active inline />
-             :
+                        <Loader size='mini' active inline />
+              :
 
                 <ReportForm showModal={this.state.showModal} close={this.handleClose}
                   showrecent={this.showrecent}  reportsMap={this.state.reportDataForReportId}
                   formType={this.state.formType} />
+
+            : null
           }
         </div>
       )
