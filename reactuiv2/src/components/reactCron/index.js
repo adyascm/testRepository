@@ -26,6 +26,7 @@ class ReactCron extends Component {
 
   state = {
     cronexp: '',
+    loadPrevState: false,
     selectedPeriod: 'minute',
     selectedHourOption: {
       min: 0
@@ -249,25 +250,64 @@ class ReactCron extends Component {
  }
  }
 
+ cronExpEvaluation = (cronExp) => {
+
+  var cronArray = [];
+  cronArray = cronExp.split(" ")
+
+  {cronArray[0] !== '*'? this.setState({
+    selectedHourOption : {'min': cronArray[0]} ,
+    selectedPeriod: 'hour' }): null
+  };
+  {cronArray[1] !== '*'? this.setState({
+    selectedDayOption : {'hour': cronArray[1],'min': cronArray[0]},
+    selectedPeriod: 'day'}) : null}
+    ;
+  {cronArray[4] !== '*' && cronArray[4] !== '?'? this.setState({
+    selectedWeekOption: {'day': cronArray[4], 'hour': cronArray[1], 'min': cronArray[0] },
+     selectedPeriod: 'week'
+   }) : null
+  };
+  {cronArray[2] !== '*' && cronArray[2] !== '?'? this.setState({
+    selectedWeekOption: {'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0]},
+    selectedPeriod: 'month'}) : null
+  };
+  {cronArray[3] !== '*' ? this.setState({
+    selectedWeekOption: {'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min': cronArray[0]},
+    selectedPeriod: 'year'}) : null
+  };
+
+ }
+
 
   render() {
+
     const { className } = this.props;
     const { selectedPeriod, periodOptions } = this.state;
 
-    const getPeriodPrep = () => {
-      const option = periodOptions.find((o) => (o.value === selectedPeriod));
-      return (
-        <span className='m-l-xs m-r-xs'>{option.prep}</span>
-      );
-    }
+    if (this.props.formType === "modify_report" ) {
+         if(this.props.defaultCronVal && this.state.loadPrevState === false){
+           this.cronExpEvaluation(this.props.defaultCronVal)
+           this.setState({
+             loadPrevState: true
+           })
+         }
+   }
 
+   const getPeriodPrep = () => {
+     const option = periodOptions.find((o) => (o.value === selectedPeriod));
+     return (
+       <span className='m-l-xs m-r-xs'>{option.prep}</span>
+     );
+   }
+
+    // {this.formType}
     return (
       <div className={classnames(className, 'cron-row')}>
-        <label className=''>Cron tab</label>
         <div className=''>
           <div className=''>
             Every
-            <select value={selectedPeriod} onChange={this.onPeriodSelect()} className='m-l-xs'>
+            <select value={selectedPeriod} onChange={this.onPeriodSelect()} className='m-l-xs' >
               {periodOptions.map((t,index) => {
                 return (
                   <option key={`period_option_${index}`} value={t.value}>{t.label}</option>
@@ -282,7 +322,8 @@ class ReactCron extends Component {
             {this.getYearComponent()}
 
           </div>
-          <input id="crondata" type='hidden' className='cron-input'  value={Helper.getCron(this.state)}
+          <input id="crondata" className='cron-input'  value={Helper.getCron(this.state)}
+            defaultValue={this.props.cronVal}
            />
         </div>
       </div>

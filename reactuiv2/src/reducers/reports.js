@@ -43,7 +43,9 @@ export default (state = {}, action) => {
         case DELETE_OLD_SCHEDULED_REPORT:
              return{
                ...state,
-               runReportData: []
+               runReportData: [],
+               scheduledReport: undefined
+
 
              }
        case UPDATE_SCHEDULED_REPORT:

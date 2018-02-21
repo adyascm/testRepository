@@ -5,7 +5,8 @@ import UserResource from './UserResource';
 import UserActivity from './UserActivity';
 import { connect } from 'react-redux';
 import {
-    USER_ITEM_SELECTED
+    USER_ITEM_SELECTED,
+    USERS_RESOURCE_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -14,7 +15,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    closingDetailsSection: (payload) => dispatch({type:USER_ITEM_SELECTED,payload})
+    closingDetailsSection: (payload) => dispatch({type:USER_ITEM_SELECTED,payload}),
+    onChangePermission: (actionType, resource, newValue) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
 })
 
 class UsersGroupsDetailsSection extends Component {
@@ -22,10 +25,16 @@ class UsersGroupsDetailsSection extends Component {
         super(props);
         
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     closeDetailsSection() {
         this.props.closingDetailsSection(undefined)
+    }
+
+    handleChange(event,data) {
+        console.log("item changed: ", data)
+        this.props.onChangePermission("transferOwnership", data, data.value)
     }
 
     render() {
@@ -40,7 +49,7 @@ class UsersGroupsDetailsSection extends Component {
                 <Segment>
                     {/* <Sticky> */}
                         <Icon name='close' onClick={this.closeDetailsSection} />
-                        <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}/>
+                        <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload} handleChange={this.handleChange} />
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                     {/* </Sticky> */}
                 </Segment>

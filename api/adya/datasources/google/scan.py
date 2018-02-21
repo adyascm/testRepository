@@ -78,22 +78,22 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
     data_for_permission_table =[]
     data_for_parent_table =[]
     external_user_map = {}
-    external_user_list = []
+    external_user_list = {}
     resource_count = 0
     for resourcedata in resources:
         resource_count = resource_count + 1
-        resource = Resource()
-        resource.domain_id = domain_id
-        resource.datasource_id = datasource_id
+        resource = {}
+        resource["domain_id"] = domain_id
+        resource["datasource_id"] = datasource_id
         resource_id = resourcedata['id']
-        resource.resource_id = resource_id
-        resource.resource_name = resourcedata['name']
+        resource["resource_id"] = resource_id
+        resource["resource_name"] = resourcedata['name']
         mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        resource.resource_type = mime_type
-        resource.resource_owner_id = resourcedata['owners'][0].get('emailAddress')
-        resource.resource_size = resourcedata.get('size')
-        resource.creation_time = resourcedata['createdTime'][:-1]
-        resource.last_modified_time = resourcedata['modifiedTime'][:-1]
+        resource["resource_type"] = mime_type
+        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
+        resource["resource_size"] = resourcedata.get('size')
+        resource["creation_time"] = resourcedata['createdTime'][:-1]
+        resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
@@ -114,52 +114,47 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                             if not email_address in external_user_map:
                                 external_user_map[email_address] = 1
 
-                                externaluser = DomainUser()
-                                externaluser.domain_id = domain_id
-                                externaluser.datasource_id = datasource_id
-                                externaluser.email = email_address
+                                externaluser = {}
+                                externaluser["domain_id"] = domain_id
+                                externaluser["datasource_id"] = datasource_id
+                                externaluser["email"] = email_address
                                 if display_name and display_name != "":
                                     name_list = display_name.split(' ')
-                                    externaluser.first_name = name_list[0]
+                                    externaluser["first_name"] = name_list[0]
                                     if len(name_list) > 1:
-                                        externaluser.last_name = name_list[1]
-                                externaluser.member_type = constants.UserMemberType.EXTERNAL
-                                external_user_list.append(externaluser)
-                            #db_session.merge(externaluser)
+                                        externaluser["last_name"] = name_list[1]
+                                externaluser["member_type"] = constants.UserMemberType.EXTERNAL
+                                if email_address not in external_user_list:
+                                    external_user_list[email_address]= externaluser
                     elif display_name:
                         resource_exposure_type = constants.ResourceExposureType.DOMAIN
                         email_address = "__ANYONE__@"+ domain_id
                     else:
                         resource_exposure_type = constants.ResourceExposureType.PUBLIC
                         email_address = constants.ResourceExposureType.PUBLIC
-                    resource_permission = ResourcePermission()
-                    resource_permission.domain_id = domain_id
-                    resource_permission.datasource_id = datasource_id
-                    resource_permission.resource_id = resource_id
-                    resource_permission.email = email_address
-                    resource_permission.permission_id = permission_id
-                    resource_permission.permission_type = permission_type
+                    resource_permission = {}
+                    resource_permission["domain_id"] = domain_id
+                    resource_permission["datasource_id"] = datasource_id
+                    resource_permission["resource_id"] = resource_id
+                    resource_permission["email"] = email_address
+                    resource_permission["permission_id"] = permission_id
+                    resource_permission["permission_type"] = permission_type
                     data_for_permission_table.append(resource_permission)
-                    #db_session.merge(resource_permission)
-        resource.exposure_type = resource_exposure_type
+        resource["exposure_type"] = resource_exposure_type
         resource_parent_data = resourcedata.get('parents')
-        resource_parent = ResourceParent()
-        resource_parent.domain_id = domain_id
-        resource_parent.datasource_id = datasource_id
-        resource_parent.email = user_email
-        resource_parent.resource_id = resource_id
-        resource_parent.parent_id = resource_parent_data[0] if resource_parent_data else None
+        resource_parent = {}
+        resource_parent["domain_id"] = domain_id
+        resource_parent["datasource_id"] = datasource_id
+        resource_parent["email"] = user_email
+        resource_parent["resource_id"] = resource_id
+        resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
         data_for_parent_table.append(resource_parent)
         resourceList.append(resource)
-        #db_session.merge(resource)
-        #db_session.merge(resource_parent)
     try:
-        db_session.bulk_save_objects(resourceList)
-        db_session.bulk_save_objects(data_for_permission_table)
-        db_session.bulk_save_objects(data_for_parent_table)
-        for external_user in external_user_list:
-            db_session.merge(external_user)
-        #db_session.bulk_save_objects(external_user_list)
+        db_session.bulk_insert_mappings(Resource, resourceList)
+        db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
+        db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
+        db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_list.values()))
         db_session.commit()
         update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, resource_count, True)
 

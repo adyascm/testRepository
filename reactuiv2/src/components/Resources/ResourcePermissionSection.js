@@ -3,14 +3,16 @@ import {Tab,Segment,Sticky,Icon} from 'semantic-ui-react';
 import {connect} from 'react-redux';
 import ResourcePermissions from './ResourcePermissions';
 import ResourceDetails from './ResourceDetails';
-import {RESOURCES_TREE_SET_ROW_DATA} from '../../constants/actionTypes';
+import {RESOURCES_TREE_SET_ROW_DATA, RESOURCES_ACTION_LOAD} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.resources
 })
 
 const mapDispatchToProps = dispatch => ({
-    closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload })
+    closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload }),
+    onChangePermission: (actionType, resource, newValue) =>
+        dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue })
 })
 
 class ResourcePermissionSection extends Component {
@@ -20,6 +22,7 @@ class ResourcePermissionSection extends Component {
             rowData: ''
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -34,15 +37,24 @@ class ResourcePermissionSection extends Component {
         this.props.closingDetailsSection(undefined)
     }
 
+    handleChange(event,data) {
+        console.log("action event : ", data["value"])
+        
+        if (data["value"] !== "Read" && data["value"] !== "Write")
+            this.props.onChangePermission('transferOwnership',data,data["value"])
+        else 
+            this.props.onChangePermission('resourcePermissionChange',data,data["value"])
+    }
+
     render() {
         let panes = [
-            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} /></Tab.Pane> }   
+            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} /></Tab.Pane> }   
           ]
         return (
             <Segment>
                 {/* <Sticky> */}
                     <Icon name='close' onClick={this.closeDetailsSection} />
-                    <ResourceDetails rowData={this.props.rowData} />
+                    <ResourceDetails rowData={this.props.rowData} handleChange={this.handleChange} />
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 {/* </Sticky> */}
             </Segment>

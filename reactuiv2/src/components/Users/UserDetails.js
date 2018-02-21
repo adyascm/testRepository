@@ -5,11 +5,17 @@ import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 's
 import AdyaLogo from '../../AdyaLogo.png'
 
 const UserDetails = props => {
-    var quickActions= [{text:'Transfer ownership of all owned files'},
-    {text:'Remove external access for all owned files'},
-    {text:'Remove write access for all un-owned files'},
-    {text:'Make all owned files private'},
-    {text:'Watch all my actions'}];
+    var quickActions= [
+    {text:'Transfer ownership of all owned files',
+     value:'Transfer ownership of all owned files'},
+    {text:'Remove external access for all owned files',
+     value:'Remove external access for all owned files'},
+    {text:'Remove write access for all un-owned files',
+     value:'Remove write access for all un-owned files'},
+    {text:'Make all owned files private',
+     value:'Make all owned files private'},
+    {text:'Watch all my actions',
+     value:'Watch all my actions'}];
 
     var parentGroups = []
     for(var index = 0; index < props.selectedUserItem.parents.length; index++)
@@ -52,7 +58,7 @@ const UserDetails = props => {
                             </Label.Group>
                     </Item.Description>
                     <Item.Extra extra>
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} />
+                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} onChange={(event,data) => props.handleChange(event,data)} />
                     </Item.Extra>
                 </Item.Content>
             </Item>
