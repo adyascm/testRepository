@@ -2,6 +2,7 @@ import json
 from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
+from datetime import date, datetime
 
 Base = declarative_base()
 
@@ -13,11 +14,14 @@ class AlchemyEncoder(json.JSONEncoder):
             fields = {}
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                 data = obj.__getattribute__(field)
-                try:
-                    json.dumps(data)  # this will fail on non-encodable values, like other classes
-                    fields[field] = data
-                except TypeError:
-                    fields[field] = None
+                if isinstance(data, (datetime)):
+                    fields[field] = data.isoformat()
+                else:
+                    try:
+                        json.dumps(data)  # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError as ex:
+                        fields[field] = None
             # a json-encodable dict
             return fields
         return json.JSONEncoder.default(self, obj)

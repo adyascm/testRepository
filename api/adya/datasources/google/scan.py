@@ -424,7 +424,7 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
     if last_future:
         last_future.result()
 
-def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
+def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id, domain_id):
     print "Initiating processing of google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
     groupsmembers_db_insert_data = []
     db_session = db_connection().get_session()
@@ -455,7 +455,12 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id)
 
 def update_and_get_count(auth_token, datasource_id, column_name, column_value, send_message=False):
     db_session = db_connection().get_session()
-    rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
+    rows_updated = 0
+    try:
+        rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
+    except Exception as ex:
+        print "Exception occurred while updating the scan status for the datasource."
+        print ex
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id,db_session)
         if get_scan_status(datasource) == 1:
