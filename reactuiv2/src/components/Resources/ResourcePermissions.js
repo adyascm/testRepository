@@ -4,13 +4,9 @@ import { Grid, Button, Icon, Dropdown } from 'semantic-ui-react'
 
 const ResourcePermissions = props => {
     const state = {
-        permissionOptions: [{ text: 'Read' },
-        { text: 'Write' }],
-        quickActions: [{text:'Transfer ownership'},
-        {text:'Remove external access'},
-        {text:'Remove write access'},
-        {text:'Make this private'},
-        {text:'Watch all actions on this file'}]
+        permissionOptions: [
+            { text: 'Read', value: 'Read' },
+            { text: 'Write', value: 'Write' }]
     };
     
     let permissions = props.rowData.permissions
@@ -33,7 +29,7 @@ const ResourcePermissions = props => {
                             {permission["pemrissionEmail"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} />
+                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data)} />
                         </Grid.Column>
                     </Grid.Row>
                 )
@@ -45,11 +41,6 @@ const ResourcePermissions = props => {
     return (
         <Grid celled='internally'>
             {permissionUsers}
-            {/* <Grid.Row>
-                <Grid.Column width={16}>
-                    <Dropdown placeholder='Quick Actions...' fluid selection options={state.quickActions} />
-                </Grid.Column >
-            </Grid.Row> */}
         </Grid>
 
     )

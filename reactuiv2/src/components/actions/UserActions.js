@@ -8,6 +8,7 @@ import authenticate from '../../utils/oauth';
 import {
     USERS_RESOURCE_ACTION_CANCEL
 } from '../../constants/actionTypes';
+
 const mapStateToProps = state => ({
     action: state.users.action,
     selectedUser: state.users.selectedUserItem

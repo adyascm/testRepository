@@ -3,7 +3,9 @@ import {
     RESOURCES_PAGE_UNLOADED,
     RESOURCES_PAGE_LOAD_START,
     RESOURCES_TREE_SET_ROW_DATA,
-    RESOURCES_TREE_CELL_EXPANDED
+    RESOURCES_TREE_CELL_EXPANDED,
+    RESOURCES_ACTION_LOAD,
+    RESOURCES_ACTION_CANCEL
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -76,6 +78,20 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 rowData: action.payload
+            }
+        case RESOURCES_ACTION_LOAD:
+            return {
+                ...state,
+                action: {
+                    actionType: action.actionType,
+                    actionResource: action.resource,
+                    actionNewValue: action.newValue
+                }
+            }
+        case RESOURCES_ACTION_CANCEL:
+            return {
+                ...state,
+                action: undefined
             }
         // case RESOURCES_TREE_CELL_EXPANDED:
         //     return {
