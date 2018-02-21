@@ -1,10 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <style type="text/css">
+  body {
+    margin: 0;
+    padding: 0;
+    font-family:'Raleway', Arial, Helvetica,sans-serif;
+
+  }
+
+  .container {
+    margin: 50px auto;
+    max-width: 750px;
+    border: 2px solid #373E4C;
+  }
+
+  .img_style {
+    text-align: center;
+  }
+  .welcome_header h3 {
+    color:black;
+    text-align: center;
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+  }
+  .confirm_para {
+    text-align: center;
+    height : 30px;
+  }
+
+  hr {
+    opacity: 0.4;
+    max-width: 600px;
+  }
+
+  .msg {
+    text-align: center;
+    font-style: italic;
+    color:rgba(0,0,0,0.8);
+  }
+  .link {
+    font-size: 15px;
+    text-align: center;
+  }
+  .link a {
+    color: rgba(231, 81, 1, 1);
+  }
+  .link a:hover {
+    color: rgba(231, 81, 1, 0.8);
+  }
+
+  .revoke_para .link {
+    font-size: 15px;
+    text-align: center;
+  }
+  .revoke_para {
+    text-align: center;
+  }
+  .revoke a {
+    color: rgba(231, 51, 1, 1);
+  }
+  .revoke a:hover {
+    color: rgba(231, 51, 1, 0.8);
+  }
+</style>
 </head>
 <body>
-    Welcome {{ first_name }} {{ last_name }}
+  <div class="container">
+    <div class="img_style">
+      <img src="https://static.wixstatic.com/media/503ad1_2d5a2a6efb024129bab4ff7bb1a8a508~mv2.png/v1/fill/w_164,h_74,al_c,
+usm_0.66_1.00_0.01/503ad1_2d5a2a6efb024129bab4ff7bb1a8a508~mv2.png"
+      align="middle"  />
+    </div>
+
+    <div class="revoke_para">
+      <div>
+        <p class="link">Hi {{ first_name }} {{ last_name }},</p>
+      </div>
+    </div>
+
+    <div class="welcome_header">
+      <h3> Welcome to Adya!</h3>
+    </div>
+
+
+    <div class="revoke_para">
+      <div>
+        <p class="link">For more details about Adya, please visit our <a target="_blank" href="https://www.adya.io/">website</a>. </p>
+      </div>
+      <div>
+        <p class="link">For the latest news about Adya, we recommend you check out our <a target="_blank" href="https://www.adya.io/blog/">blog</a> and subscribe to our newsletter.</p>
+      </div>
+      <div>
+        <p class="link"> For any questions, please send us a mail at <a href="mailto:support@adya.io?Subject=Hello" target="_top">support@adya.io</a> or use the chat window on our website</p>
+      </div>
+      <div>
+        <p class="link"> We look forward to helping you manage and secure your SaaS apps. Welcome!</p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
+
+
