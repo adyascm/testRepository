@@ -49,8 +49,12 @@ export default (state = defaultState, action) => {
         datasources: action.payload
       };
     case SCAN_UPDATE_RECEIVED:
-      if (state.datasources)
-        state.datasources[0] = JSON.parse(action.payload);
+      if (state.datasources) {
+        var ds = JSON.parse(action.payload);
+        if (ds.datasource_id === state.datasources[0].datasource_id) {
+          state.datasources[0] = ds;
+        }
+      }
       return {
         ...state,
 
@@ -60,15 +64,15 @@ export default (state = defaultState, action) => {
         ...state,
         datasources: state.datasources.concat(action.payload)
       };
-      case USERS_PAGE_LOADED:
+    case USERS_PAGE_LOADED:
       return {
-          ...state,
-          currentView: "/users"
+        ...state,
+        currentView: "/users"
       };
-      case RESOURCES_PAGE_LOADED:
+    case RESOURCES_PAGE_LOADED:
       return {
-          ...state,
-          currentView: "/resources"
+        ...state,
+        currentView: "/resources"
       };
     default:
       return state;

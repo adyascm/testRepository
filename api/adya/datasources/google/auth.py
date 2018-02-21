@@ -80,7 +80,7 @@ def oauth_callback(oauth_code, scopes, error):
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
             is_admin_user = gutils.check_if_user_isamdin(credentials,login_email)
-            if gutils.check_if_serviceaccount_enabled(login_email):
+            if gutils.check_if_serviceaccount_enabled(login_email) or is_admin_user:
                 domain_id = login_email.split('@')[1]
 
             domain = domain_controller.create_domain(domain_id, domain_name)

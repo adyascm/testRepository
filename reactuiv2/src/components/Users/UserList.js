@@ -66,10 +66,16 @@ class UserList extends Component {
                 rows.push(rowItem)
             }
             this.setState({
-                ...this.state,
                 rows: rows
             })
         }
+    }
+    componentWillReceiveProps(nextProps)
+    {
+        this.setState({
+            rows: undefined,
+            showOnlyExternal: nextProps.showOnlyExternal
+        })
     }
     render() {
         if (this.state.rows) {

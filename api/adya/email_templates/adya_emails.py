@@ -1,6 +1,7 @@
 from adya.common import aws_utils, constants, utils
 from adya.db.connection import db_connection
 from adya.db.models import LoginUser, DomainUser, Resource
+from adya.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
 import os
@@ -63,8 +64,7 @@ def get_welcome_parameters(auth_token):
 
         session = db_connection().get_session()
         email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
-        user = session.query(DomainUser.first_name, DomainUser.last_name).filter(LoginUser.domain_id == DomainUser.domain_id)\
-            .filter(LoginUser.auth_token == auth_token).first()
+        user = session.query(DomainUser.first_name, DomainUser.last_name).filter(DomainUser.email == email).first()
 
         first_name = ""
         last_name = ""
@@ -111,80 +111,45 @@ def get_gdrive_scan_completed_parameters(auth_token):
         countDocuments = session.query(Resource).filter(
             and_(Resource.domain_id == LoginUser.domain_id)).filter(LoginUser.auth_token == auth_token).count()
 
-        countExternalData = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id, Resource.exposure_type == constants.ResourceExposureType.EXTERNAL)).filter(
-            LoginUser.auth_token == auth_token).count()
-        countInternalData = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id, Resource.exposure_type == constants.ResourceExposureType.INTERNAL)).filter(
-            LoginUser.auth_token == auth_token).count()
-        countLinkData = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
-                 Resource.exposure_type == constants.ResourceExposureType.PUBLIC)).filter(
-            LoginUser.auth_token == auth_token).count()
-        countDomainData = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
-                 Resource.exposure_type == constants.ResourceExposureType.DOMAIN)).filter(
-                    LoginUser.auth_token == auth_token).count()
+        countSharedDocumentsByType = reports_controller.get_widget_data(auth_token, "sharedDocsByType")
 
-        externalDocsList = session.query(Resource.resource_name).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
-                 or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
-                        LoginUser.auth_token == auth_token).limit(5).all()
-        documentsCountData = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
-                 or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
-            LoginUser.auth_token == auth_token).count()
+        print countSharedDocumentsByType
+        countDomainSharedDocs = 0
+        countExternalSharedDocs = 0
+        countInternalSharedDocs = 0
+        countPublicSharedDocs = 0
 
-        externalUserList = session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
-                                                               DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
-                                                                LoginUser.auth_token == auth_token).limit(5).all()
-        countExternalUsersData = session.query(DomainUser).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
-                                                                     DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
-                                                                        LoginUser.auth_token == auth_token).count()
+        for item in countSharedDocumentsByType:
+            if item[0] == constants.ResourceExposureType.DOMAIN:
+                countDomainSharedDocs = item[1]
+            elif item[0] == constants.ResourceExposureType.EXTERNAL:
+                countExternalSharedDocs = item[1]
+            elif item[0] == constants.ResourceExposureType.INTERNAL:
+                countInternalSharedDocs = item[1]
+            elif item[0] == constants.ResourceExposureType.PUBLIC:
+                countPublicSharedDocs = item[1]
 
-        percentExternalData = 0
-        percentInternalData = 0
-        percentLinkData = 0
-        percentDomainData = 0
-
-        if countDocuments > 0:
-            percentExternalData = round(countExternalData / countDocuments)
-            if countExternalData > 0:
-                percentExternalData = 1
-
-            percentInternalData = round(countInternalData / countDocuments)
-            if countInternalData > 0:
-                percentInternalData = 1
-
-            percentLinkData = round(countLinkData / countDocuments)
-            if countLinkData > 0:
-                percentLinkData = 1
-
-            percentDomainData = round(countDomainData / countDocuments)
-            if countDomainData > 0:
-                percentDomainData = 1
-
+        externalDocsListData = reports_controller.get_widget_data(auth_token, "sharedDocsList")
+        externalUserListData = reports_controller.get_widget_data(auth_token, "externalUsersList")
 
         email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
 
         trial_link = constants.UI_HOST
 
-        externalDocs = convert_list_pystache_format("name", externalDocsList)
-        externalUsers = convert_list_pystache_format("name", externalUserList)
+        externalDocs = convert_list_pystache_format("name", externalDocsListData["rows"])
+        externalUsers = convert_list_pystache_format("name", externalUserListData["rows"])
 
         data = {
             "countDocuments": countDocuments,
-            "percentExternalData": percentExternalData,
-            "percentInternalData": percentInternalData,
-            "percentLinkData": percentLinkData,
+            "countExternalData": countExternalSharedDocs,
+            "countInternalData": countInternalSharedDocs,
+            "countLinkData": countPublicSharedDocs,
             "externalDocs": externalDocs,
-            "documentsCountData": documentsCountData,
+            "documentsCountData": externalDocsListData["totalCount"],
             "externalUsers": externalUsers,
-            "countExternalUsersData": countExternalUsersData,
+            "countExternalUsersData": externalUserListData["totalCount"],
             "email": email,
-            "percentDomainData": percentDomainData,
+            "countDomainData": countDomainSharedDocs,
             "trialLink": trial_link
 
         }
@@ -206,5 +171,3 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
-send_welcome_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')
-send_gdrive_scan_completed_email('467f6620-0fe7-4ccd-9fcf-7d3b7b83400a')

@@ -2,6 +2,7 @@ import json
 from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
+from datetime import date, datetime
 
 Base = declarative_base()
 
@@ -13,11 +14,14 @@ class AlchemyEncoder(json.JSONEncoder):
             fields = {}
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                 data = obj.__getattribute__(field)
-                try:
-                    json.dumps(data)  # this will fail on non-encodable values, like other classes
-                    fields[field] = data
-                except TypeError:
-                    fields[field] = None
+                if isinstance(data, (datetime)):
+                    fields[field] = data.isoformat()
+                else:
+                    try:
+                        json.dumps(data)  # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError as ex:
+                        fields[field] = None
             # a json-encodable dict
             return fields
         return json.JSONEncoder.default(self, obj)
@@ -54,13 +58,16 @@ class DataSource(Base):
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
-    file_count = Column(BigInteger, default=0)
-    proccessed_file_permission_count = Column(BigInteger, default=0)
-    user_count_for_parent = Column(BigInteger, default=0)
-    proccessed_parent_permission_count = Column(BigInteger, default=0)
-    group_count = Column(Integer, default=0)
-    proccessed_group_memebers_count = Column(Integer, default=0)
-    user_count = Column(Integer, default=0)
+    total_file_count = Column(BigInteger, default=0)
+    processed_file_count = Column(BigInteger, default=0)
+    file_scan_status = Column(Integer, default=0)
+    processed_parent_permission_count = Column(BigInteger, default=0)
+    total_group_count = Column(Integer, default=0)
+    processed_group_count = Column(Integer, default=0)
+    group_scan_status = Column(Integer, default=0)
+    total_user_count = Column(Integer, default=0)
+    processed_user_count = Column(BigInteger, default=0)
+    user_scan_status = Column(Integer, default=0)
     is_serviceaccount_enabled = Column(Boolean)
 
 

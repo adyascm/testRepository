@@ -84,11 +84,11 @@ def get_resources(auth_token, user_emails=None):
     if user_emails:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission, and_(ResourcePermission.resource_id == Resource.resource_id,
                                                                                                       ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
-                                                                                                                                                                       ResourcePermission.email.in_(user_emails))).all()
+                                                                                                                                                                       ResourcePermission.email.in_(user_emails))).limit(100).all()
     else:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
                                                                              and_(ResourcePermission.resource_id == Resource.resource_id,
-                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(Resource.domain_id == domain.domain_id).all()
+                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(Resource.domain_id == domain.domain_id).limit(100).all()
 
     responsedata = {}
     for resource in resources:
@@ -102,12 +102,14 @@ def get_resources(auth_token, user_emails=None):
             permissionobject = {}
 
         if not resource.Resource.resource_id in responsedata:
+            lastModifiedTime = resource.Resource.last_modified_time.strftime("%Y/%m/%d %H:%M:%S")
             responsedata[resource.Resource.resource_id] = {
                 "resourceId": resource.Resource.resource_id,
                 "resourceName": resource.Resource.resource_name,
                 "resourceType": resource.Resource.resource_type,
                 "resourceOwnerId": resource.Resource.resource_owner_id,
                 "exposureType": resource.Resource.exposure_type,
+                "lastModifiedTime": lastModifiedTime,
                 "permissions": [permissionobject]
             }
         else:

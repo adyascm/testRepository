@@ -9,23 +9,17 @@ from adya.common.constants import UserMemberType
 from sqlalchemy import and_
 from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
 from adya.common import utils
-from adya.realtimeframework.ortc_conn import RealtimeConnection
+#from adya.realtimeframework.ortc_conn import RealtimeConnection
+from adya.email_templates import adya_emails
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user_email=None):
     # here nextPageToken as none means it is first call for resource
     # useremail None means servie account is not verified and we are scaning data for loggedin user only
-    message = "Started getting data from google "
-    if next_page_token:
-        message = message + "for nextPageToken:- " + next_page_token
-    if user_email:
-        message = message + "for userEmail:- " + user_email
-    
-    print message
+    print "Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
 
     drive_service = gutils.get_gdrive_service(domain_id,user_email)
-    file_count = 0
     starttime = time.time()
     session = FuturesSession()
     last_future = None
@@ -39,11 +33,13 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             results = drive_service.files().list(q=queryString, fields="files(id, name, mimeType, parents, "
                             "permissions(id, emailAddress, role, displayName),"
                             "owners,size,createdTime, modifiedTime), "
-                            "nextPageToken", pageSize=100, quotaUser= quotaUser, pageToken=next_page_token).execute()
+                            "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
 
             reosurcedata = results['files']
-            update_and_get_count(datasource_id, DataSource.file_count, file_count, True)
+            print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
+
+            update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
             url = constants.SCAN_RESOURCES + "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + (user_email  if user_email else domain_id)
 
             last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
@@ -60,8 +56,12 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                         session, url, auth_token).result()
                     break
             else:
+                #Set the scan - fetch status as complete
+                update_and_get_count(auth_token, datasource_id, DataSource.file_scan_status, 1, False)
                 break
         except Exception as ex:
+            update_and_get_count(auth_token, datasource_id, DataSource.file_scan_status, 2, False)
+            print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
             print ex
             break
     if last_future:
@@ -70,15 +70,18 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
 
 ## processing resource data for fileIds
 def process_resource_data(auth_token, domain_id, datasource_id, user_email, resources):
+    print "Initiating processing of drive resources for files using email: {}".format(user_email)
+
     resourceList = []
     session = FuturesSession()
     db_session = db_connection().get_session()
-    data_source = db_session.query(DataSource).filter(and_(DataSource.domain_id==domain_id,DataSource.datasource_id==datasource_id)).first()
-    login_user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id==domain_id,LoginUser.email==user_email)).first()
     data_for_permission_table =[]
     data_for_parent_table =[]
+    external_user_map = {}
     external_user_list = []
+    resource_count = 0
     for resourcedata in resources:
+        resource_count = resource_count + 1
         resource = Resource()
         resource.domain_id = domain_id
         resource.datasource_id = datasource_id
@@ -104,21 +107,25 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                     display_name = permission.get('displayName')
                     if email_address:
                         resource_exposure_type = constants.ResourceExposureType.INTERNAL
-                        if gutils.check_if_external_user(data_source,login_user,email_address):
+                        if gutils.check_if_external_user(domain_id,email_address):
                             resource_exposure_type = constants.ResourceExposureType.EXTERNAL
-                            ## inseret non domain user as External user in db, Domain users will be
+                            ## insert non domain user as External user in db, Domain users will be
                             ## inserted during processing Users
-                            externaluser = DomainUser()
-                            externaluser.domain_id = domain_id
-                            externaluser.datasource_id = datasource_id
-                            externaluser.email = email_address
-                            if display_name and display_name != "":
-                                name_list = display_name.split(' ')
-                                externaluser.first_name = name_list[0]
-                                if len(name_list) > 1:
-                                    externaluser.last_name = name_list[1]
-                            externaluser.member_type = constants.UserMemberType.EXTERNAL
-                            db_session.merge(externaluser)
+                            if not email_address in external_user_map:
+                                external_user_map[email_address] = 1
+
+                                externaluser = DomainUser()
+                                externaluser.domain_id = domain_id
+                                externaluser.datasource_id = datasource_id
+                                externaluser.email = email_address
+                                if display_name and display_name != "":
+                                    name_list = display_name.split(' ')
+                                    externaluser.first_name = name_list[0]
+                                    if len(name_list) > 1:
+                                        externaluser.last_name = name_list[1]
+                                externaluser.member_type = constants.UserMemberType.EXTERNAL
+                                external_user_list.append(externaluser)
+                            #db_session.merge(externaluser)
                     elif display_name:
                         resource_exposure_type = constants.ResourceExposureType.DOMAIN
                         email_address = "__ANYONE__@"+ domain_id
@@ -132,8 +139,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                     resource_permission.email = email_address
                     resource_permission.permission_id = permission_id
                     resource_permission.permission_type = permission_type
-                    # data_for_permission_table.append(resource_permission)
-                    db_session.merge(resource_permission)
+                    data_for_permission_table.append(resource_permission)
+                    #db_session.merge(resource_permission)
         resource.exposure_type = resource_exposure_type
         resource_parent_data = resourcedata.get('parents')
         resource_parent = ResourceParent()
@@ -142,19 +149,26 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         resource_parent.email = user_email
         resource_parent.resource_id = resource_id
         resource_parent.parent_id = resource_parent_data[0] if resource_parent_data else None
-        # data_for_parent_table.append(resource_parent)
-        # resourceList.append(resource)
-        db_session.merge(resource)
-        db_session.merge(resource_parent)
+        data_for_parent_table.append(resource_parent)
+        resourceList.append(resource)
+        #db_session.merge(resource)
+        #db_session.merge(resource_parent)
     try:
-        # db_session.bulk_save_objects(resourceList)
-        # db_session.bulk_save_objects(data_for_permission_table)
-        # db_session.bulk_save_objects(data_for_parent_table)
-        # db_session.bulk_save_objects(external_user_list)
+        db_session.bulk_save_objects(resourceList)
+        db_session.bulk_save_objects(data_for_permission_table)
+        db_session.bulk_save_objects(data_for_parent_table)
+        for external_user in external_user_list:
+            db_session.merge(external_user)
+        #db_session.bulk_save_objects(external_user_list)
         db_session.commit()
-        print "Inserted resource,permission,parents data into db"
+        update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, resource_count, True)
+
+        print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
     except Exception as ex:
-        print("Resource_update failes", ex)
+        update_and_get_count(auth_token, datasource_id, DataSource.file_scan_status, 2, False)
+        print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
+        print ex
+
 
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
@@ -164,8 +178,8 @@ def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list,
     if user_email:
         url = url +"&userEmail=" + user_email
     utils.post_call_with_authorization_header(session,url,auth_token,requestdata).result()
-    proccessed_file_count = len(batch_request_file_id_list)
-    update_and_get_count(datasource_id, DataSource.proccessed_file_permission_count, proccessed_file_count, True)
+    processed_file_count = len(batch_request_file_id_list)
+    update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, processed_file_count, True)
 
 
 def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
@@ -176,7 +190,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         resources_data = db_session.query(Resource.resource_id).distinct(Resource.resource_id)\
                                .filter(and_(Resource.domain_id == domain_id, 
                                Resource.datasource_id == datasource_id,Resource.resource_id != constants.ROOT)).all()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,1)
+        update_and_get_count(auth_token, datasource_id,DataSource.user_count_for_parent,1)
         useremail_resources_map[user_email] = []
         for data in resources_data:
             useremail_resources_map[user_email].append(data.resource_id)
@@ -190,7 +204,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         unique_email_id_count = db_session.query(ResourcePermission.email).distinct(ResourcePermission.email)\
                           .filter(and_(ResourcePermission.domain_id == domain_id,\
                           ResourcePermission.datasource_id == datasource_id,ResourcePermission.email.in_(alluserquery))).count()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,unique_email_id_count)
+        update_and_get_count(auth_token, datasource_id,DataSource.user_count_for_parent,unique_email_id_count)
         for resource_map in queried_data:
             if not resource_map.email in useremail_resources_map:
                 useremail_resources_map[resource_map.email] =[]
@@ -212,22 +226,21 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
 
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
-    print("Getting domain user from google")
-
+    print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
     last_future = None
     while True:
         try:
-            print ("Got users data")
             results = directory_service.users().list(customer='my_customer', maxResults=500, pageToken=next_page_token,
                                                      orderBy='email').execute()
 
             data = {"usersResponseData": results["users"]}
             user_count = len(results["users"])
+            print "Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token)
             # no need to send user count to ui , so passing send_message flag as false
-            update_and_get_count(datasource_id, DataSource.user_count, user_count, False)
+            update_and_get_count(auth_token, datasource_id, DataSource.total_user_count, user_count, False)
             url = constants.SCAN_DOMAIN_USERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
             last_future = utils.post_call_with_authorization_header(session,url,auth_token,data)
@@ -240,9 +253,12 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
                     utils.get_call_with_authorization_header(session, url, auth_token).result()
                     break
             else:
-                update_and_get_count(datasource_id, DataSource.user_count, 0, True)
+                #Set the scan - fetch status as complete
+                update_and_get_count(auth_token, datasource_id, DataSource.user_scan_status, 1, False)
                 break
         except Exception as ex:
+            update_and_get_count(auth_token, datasource_id, DataSource.user_scan_status, 2, False)
+            print "Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
     if last_future:
@@ -250,14 +266,17 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
 
 
 def processUsers(auth_token,users_data, datasource_id, domain_id):
-    print ("Started processing users meta data")
+    print "Initiating processing of google directory users for domain_id: {}".format(domain_id)
+
     user_db_insert_data_dic = []
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     session = FuturesSession()
     user_email_list = []
     lastresult = None
+    user_count = 0
     for user_data in users_data:
+        user_count = user_count + 1
         user_email = user_data["emails"][0]["address"]
         names = user_data["name"]
         user = {}
@@ -273,11 +292,18 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_session.commit()
-        print "Inserted domain users data into db"
+        update_and_get_count(auth_token, datasource_id, DataSource.processed_user_count, user_count, True)
+
+        print "Processed {} google directory users for domain_id: {}".format(user_count, domain_id)
+
     except Exception as ex:
-        print("User data insertation failed", ex.message)
-    print "Getting user data for service account"
+        update_and_get_count(auth_token, datasource_id, DataSource.user_scan_status, 2, False)
+        print "Exception occurred while processing google directory users for domain_id: {}".format(domain_id)
+        print ex
+
+    
     if datasource.is_serviceaccount_enabled:
+        print "Google service account is enabled, starting to fetch files for each processed user"
         lastresult =None
         for user_email in user_email_list:
             url = constants.SCAN_RESOURCES + "?domainId=" + \
@@ -288,7 +314,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
-    print("Getting domain group data from google")
+    print "Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
@@ -299,7 +325,9 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                                                       pageToken=next_page_token).execute()
 
             group_count = len(results["groups"])
-            update_and_get_count(datasource_id, DataSource.group_count, group_count, False)
+            print "Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token)
+            
+            update_and_get_count(auth_token, datasource_id, DataSource.total_group_count, group_count, True)
             data = {"groupsResponseData": results["groups"]}
 
             url = constants.SCAN_DOMAIN_GROUPS + "?domainId=" + \
@@ -317,8 +345,12 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                     utils.get_call_with_authorization_header(session, url, auth_token).result()
                     break
             else:
+                #Set the scan - fetch status as complete
+                update_and_get_count(auth_token, datasource_id, DataSource.group_scan_status, 1, False)
                 break
         except Exception as ex:
+            update_and_get_count(auth_token, datasource_id, DataSource.group_scan_status, 2, False)
+            print "Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
     if last_future:
@@ -326,13 +358,15 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 
 
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
-    print ("Started processing users meta data")
+    print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
     groups_db_insert_data_dic = []
     session = FuturesSession()
 
     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
+    group_count = 0
     for group_data in groups_data:
+        group_count = group_count + 1
         group = {}
         group["domain_id"] = domain_id
         group["datasource_id"] = datasource_id
@@ -349,12 +383,15 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session.bulk_insert_mappings(
             models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
-        print "Iserted group data into db"
+        print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
-        print("User data insertation failed", ex.message)
+        update_and_get_count(auth_token, datasource_id, DataSource.group_scan_status, 2, False)
+        print "Exception occurred while processing google directory groups for domain_id: {}".format(domain_id)
+        print ex
 
 
 def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token):
+    print "Initiating fetching of google directory group members using for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
     directory_service = gutils.get_directory_service(domain_id)
     starttime = time.time()
     session = FuturesSession()
@@ -368,8 +405,6 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
                 url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
                 last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
-            else:
-                update_and_get_count(datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
 
             next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
@@ -382,16 +417,20 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
             else:
                 break
         except Exception as ex:
+            update_and_get_count(auth_token, datasource_id, DataSource.group_scan_status, 2, False)
+            print "Exception occurred while getting google directory group members for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
             print ex
             break
     if last_future:
         last_future.result()
 
-def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id):
+def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id, domain_id):
+    print "Initiating processing of google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
     groupsmembers_db_insert_data = []
     db_session = db_connection().get_session()
+    member_count = 0
     for group_data in group_member_data:
-
+        member_count = member_count + 1
         if group_data.get("type") == "CUSTOMER":
             db_session.query(models.DomainGroup).filter(
                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
@@ -406,30 +445,36 @@ def processGroupMembers(group_key, group_member_data,  datasource_id, domain_id)
         db_session.bulk_insert_mappings(
             models.DirectoryStructure, groupsmembers_db_insert_data)
         db_session.commit()
-        print "Inserted group member data into db"
-        update_and_get_count(datasource_id, DataSource.proccessed_group_memebers_count, 1, True)
+        print "Processed {} google directory group members for domain_id: {} group_key: {}".format(member_count, domain_id, group_key)
+        update_and_get_count(auth_token, datasource_id, DataSource.processed_group_count, 1, False)
     except Exception as ex:
-        print("Directory data insertation failed", ex.message)
-        return errormessage.SCAN_FAILED_ERROR_MESSAGE
+        update_and_get_count(auth_token, datasource_id, DataSource.group_scan_status, 2, False)
+        print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
+        print ex
 
 
-def update_and_get_count(datasource_id, column_name, column_value, send_message=False):
+def update_and_get_count(auth_token, datasource_id, column_name, column_value, send_message=False):
     db_session = db_connection().get_session()
-    rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
+    rows_updated = 0
+    try:
+        rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
+    except Exception as ex:
+        print "Exception occurred while updating the scan status for the datasource."
+        print ex
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id,db_session)
-        if ((str(DataSource.proccessed_file_permission_count) == str(column_name)) and (datasource.file_count == datasource.proccessed_file_permission_count)):
-            session = FuturesSession()
-            url = constants.SCAN_PARENTS + "?domainId=" + str(datasource.domain_id) + "&dataSourceId=" + str(datasource.datasource_id)
+        if get_scan_status(datasource) == 1:
+            # session = FuturesSession()
+            # url = constants.SCAN_PARENTS + "?domainId=" + str(datasource.domain_id) + "&dataSourceId=" + str(datasource.datasource_id)
             
-            if not datasource.is_serviceaccount_enabled:
-                url = url +"&userEmail=" + str(datasource.domain_id)
-            existing_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
-            utils.get_call_with_authorization_header(session,url,existing_user.auth_token)
+            # if not datasource.is_serviceaccount_enabled:
+            #     url = url +"&userEmail=" + str(datasource.domain_id)
+            # existing_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
+            # utils.get_call_with_authorization_header(session,url,existing_user.auth_token)
+            adya_emails.send_gdrive_scan_completed_email(auth_token)
         #if send_message:
         #ortc_client = RealtimeConnection().get_conn()
         # ortc_client.send(datasource_id, datasource)
-    #TODO: handle if update failed
         if send_message:
             session = FuturesSession()
             push_message = {}
@@ -440,3 +485,11 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
 
             session.post(url='http://ortc-developers2-euwest1-s0001.realtime.co/send', json=push_message)
             #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
+
+def get_scan_status(datasource):
+    if datasource.file_scan_status > 1 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
+        return 2 #Failed
+
+    if (datasource.file_scan_status == 1 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
+        return 1 #Complete
+    return 0 #In Progress
