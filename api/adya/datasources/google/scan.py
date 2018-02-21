@@ -154,7 +154,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         db_session.bulk_insert_mappings(Resource, resourceList)
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
         db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
-        db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_list.values()))
+        if external_user_list.length:
+            db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_list.values()))
         db_session.commit()
         update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, resource_count, True)
 
