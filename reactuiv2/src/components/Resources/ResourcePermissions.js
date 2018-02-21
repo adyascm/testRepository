@@ -29,7 +29,7 @@ const ResourcePermissions = props => {
                             {permission["pemrissionEmail"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data)} />
+                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["pemrissionEmail"])} />
                         </Grid.Column>
                     </Grid.Row>
                 )
