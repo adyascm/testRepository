@@ -6,16 +6,21 @@ import AdyaLogo from '../../AdyaLogo.png'
 
 const UserDetails = props => {
     var quickActions= [
-    {text:'Transfer ownership of all owned files',
-     value:'Transfer ownership of all owned files'},
-    {text:'Remove external access for all owned files',
-     value:'Remove external access for all owned files'},
-    {text:'Remove write access for all un-owned files',
-     value:'Remove write access for all un-owned files'},
-    {text:'Make all owned files private',
-     value:'Make all owned files private'},
-    {text:'Watch all my actions',
-     value:'Watch all my actions'}];
+    {key: 'transferOwnership',
+     text: 'Transfer ownership of all owned files',
+     value: 'Transfer ownership of all owned files'},
+    {key: 'removeExternalAccess',
+     text: 'Remove external access for all owned files',
+     value: 'Remove external access for all owned files'},
+    {key: 'removeWriteAccess',
+     text: 'Remove write access for all un-owned files',
+     value: 'Remove write access for all un-owned files'},
+    {key: 'allFilesPrivate',
+     text: 'Make all owned files private',
+     value: 'Make all owned files private'},
+    {key: 'watchAllActions',
+     text: 'Watch all my actions',
+     value: 'Watch all my actions'}];
 
     var parentGroups = []
     for(var index = 0; index < props.selectedUserItem.parents.length; index++)
