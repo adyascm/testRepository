@@ -118,10 +118,9 @@ class Reports extends Component {
 
   componentWillReceiveProps(nextProps){
 
-    if(nextProps.scheduledReport !== undefined && !this.state.fetchScheduledReport){
-      this.setState({
-        fetchScheduledReport: true
-      })
+    if(nextProps.scheduledReport !== undefined ){
+
+      this.props.deleteOldRunReportData()
       nextProps.setreports(agent.Scheduled_Report.getReports())
     }
   }

@@ -70,8 +70,8 @@ class ReportForm extends Component {
     if(this.state.finalReportObj['selected_entity_type']){
 
       if(this.state.finalReportObj['selected_entity_type'] === "group" ){
-        if(this.props.rowData){
-          selected_entity = this.props.rowData.key
+        if(this.props.selectedUserItem){
+          selected_entity = this.props.selectedUserItem.key
         }
       }
       else if (this.state.finalReportObj['selected_entity_type'] === "resource") {
