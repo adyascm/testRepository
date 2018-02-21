@@ -58,8 +58,10 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
-        thread.start()
+        #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
+        #thread.start()
+        query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + datasource.is_serviceaccount_enabled
+        utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
     else:
@@ -105,6 +107,7 @@ def create_domain(domain_id, domain_name):
 
 
 def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
+    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
     query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
     session = FuturesSession()
     future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
@@ -113,9 +116,12 @@ def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
     if not is_service_account_enabled:
         future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
     future_users.result()
+    print "Received the response for get users api call"
     future_groups.result()
+    print "Received the response for get groups api call"
     if future_resources:
         future_resources.result()
+        print "Received the response for get resources api call"
 
 
 
