@@ -62,7 +62,7 @@ def create_datasource(auth_token, payload):
         #thread.start()
         query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + str(datasource.is_serviceaccount_enabled)
         session = FuturesSession()
-        utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token).result()
+        utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token, {}).result()
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
