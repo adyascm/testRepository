@@ -78,7 +78,6 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
     data_for_permission_table =[]
     data_for_parent_table =[]
     external_user_map = {}
-    external_user_list = {}
     resource_count = 0
     for resourcedata in resources:
         resource_count = resource_count + 1
@@ -112,7 +111,6 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                             ## insert non domain user as External user in db, Domain users will be
                             ## inserted during processing Users
                             if not email_address in external_user_map:
-                                external_user_map[email_address] = 1
 
                                 externaluser = {}
                                 externaluser["domain_id"] = domain_id
@@ -124,8 +122,7 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                                     if len(name_list) > 1:
                                         externaluser["last_name"] = name_list[1]
                                 externaluser["member_type"] = constants.UserMemberType.EXTERNAL
-                                if email_address not in external_user_list:
-                                    external_user_list[email_address]= externaluser
+                                external_user_map[email_address]= externaluser
                     elif display_name:
                         resource_exposure_type = constants.ResourceExposureType.DOMAIN
                         email_address = "__ANYONE__@"+ domain_id
@@ -154,7 +151,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         db_session.bulk_insert_mappings(Resource, resourceList)
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
         db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
-        db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_list.values()))
+        if len(external_user_map)>0:
+            db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_session.commit()
         update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, resource_count, True)
 
@@ -355,6 +353,7 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
     print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
     groups_db_insert_data_dic = []
+    groups_alias_db_insert_data_dic =[]
     session = FuturesSession()
 
     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
@@ -365,18 +364,30 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group = {}
         group["domain_id"] = domain_id
         group["datasource_id"] = datasource_id
+        group["group_id"] = group_data["id"]
         groupemail = group_data["email"]
         group["email"] = groupemail
         group["name"] = group_data["name"]
+        group["direct_members_count"] = group_data["directMembersCount"]
+        group["description"] = group_data.get('description')
         groups_db_insert_data_dic.append(group)
+        group_aliases = group_data.get('aliases')
+        if group_aliases:
+            for group_alias in group_aliases:
+                group_alias = {}
+                group_alias["datasource_id"] = datasource_id
+                group_alias["group_email"] = groupemail
+                group_alias["email"] = group_alias
+                groups_alias_db_insert_data_dic.append(group_alias)
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
             session, group_url, auth_token).result()
 
     try:
         db_session = db_connection().get_session()
-        db_session.bulk_insert_mappings(
-            models.DomainGroup, groups_db_insert_data_dic)
+        db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
+        if len(groups_alias_db_insert_data_dic)>0:
+            db_session.bulk_insert_mappings(models.GroupAlias,groups_alias_db_insert_data_dic)
         db_session.commit()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
