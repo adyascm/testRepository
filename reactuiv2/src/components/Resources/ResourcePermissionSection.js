@@ -11,8 +11,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload }),
-    onChangePermission: (actionType, resource, newValue) =>
-        dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue })
+    onChangePermission: (actionType, resource, newValue, email) =>
+        dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue, email })
 })
 
 class ResourcePermissionSection extends Component {
@@ -37,13 +37,14 @@ class ResourcePermissionSection extends Component {
         this.props.closingDetailsSection(undefined)
     }
 
-    handleChange(event,data) {
+    handleChange(event,data,email) {
         console.log("action event : ", data["value"])
+        console.log("permission email: ", email)
         
         if (data["value"] !== "Read" && data["value"] !== "Write")
-            this.props.onChangePermission('transferOwnership',data,data["value"])
+            this.props.onChangePermission('transferOwnership',data,data["value"],undefined)
         else 
-            this.props.onChangePermission('resourcePermissionChange',data,data["value"])
+            this.props.onChangePermission('resourcePermissionChange',data,data["value"],email)
     }
 
     render() {

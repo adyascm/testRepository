@@ -85,7 +85,8 @@ export default (state = {}, action) => {
                 action: {
                     actionType: action.actionType,
                     actionResource: action.resource,
-                    actionNewValue: action.newValue
+                    actionNewValue: action.newValue,
+                    actionEmail: action.email
                 }
             }
         case RESOURCES_ACTION_CANCEL:

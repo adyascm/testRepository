@@ -39,9 +39,9 @@ class ResourcesActions extends Component {
             <Modal open={this.props.action} className="scrolling" >
                 <Modal.Header>Action - Permission change</Modal.Header>
                 <Modal.Content >
-                    <Form.Input fluid label='User' readOnly />
-                    <Form.Input fluid label='File Name' readOnly />
-                    <Form.Input fluid label='New Permission' readOnly />
+                    <Form.Input fluid label='User' placeholder={this.props.action['actionEmail']} readOnly />
+                    <Form.Input fluid label='File Name' placeholder={this.props.rowData['resourceName']} readOnly />
+                    <Form.Input fluid label='New Permission' placeholder={this.props.action['actionNewValue']} readOnly />
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
