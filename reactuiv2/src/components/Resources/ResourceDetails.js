@@ -11,8 +11,8 @@ const ResourceDetails = props => {
      value:'Remove write access'},
     {text:'Make this private',
      value:'Make this private'},
-    {text:'Watch all actions on this file',
-     value:'Watch all actions on this file'}];
+    {text:'Watch all actions',
+     value:'Watch all actions'}];
 
     console.log("resource details row data : ", props.rowData)
 

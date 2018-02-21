@@ -20,9 +20,10 @@ class ResourcesActions extends Component {
     transferOwnershipAction() {
         return (
             <Modal open={this.props.action} className="scrolling" >
-                <Modal.Header>Action - Transfer Ownership</Modal.Header>
+                {/* <Modal.Header>Action - Transfer Ownership</Modal.Header> */}
+                <Modal.Header>Action - {this.props.action['actionNewValue']}</Modal.Header>
                 <Modal.Content >
-                    <Form.Input fluid label='From User' readOnly />
+                    <Form.Input fluid label='For File Name' placeholder={this.props.rowData['resourceName']} readOnly />
                     <Form.Input fluid label='To User' placeholder="Enter the email..." readOnly />
                 </Modal.Content>
                 <Modal.Actions>
@@ -32,6 +33,23 @@ class ResourcesActions extends Component {
                 </Modal.Actions>
             </Modal>
         )
+    }
+
+    otherQuickActions() {
+        return (
+            <Modal open={this.props.action} className="scrolling" >
+                {/* <Modal.Header>Action - Transfer Ownership</Modal.Header> */}
+                <Modal.Header>Action - {this.props.action['actionNewValue']}</Modal.Header>
+                <Modal.Content >
+                    <Form.Input fluid label='For File Name' placeholder={this.props.rowData['resourceName']} readOnly />
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
+                    <Button positive labelPosition='right' 
+                    icon='checkmark' content='Transfer' />
+                </Modal.Actions>
+            </Modal>
+        ) 
     }
 
     resourcePermissionChangeAction() {
@@ -59,6 +77,9 @@ class ResourcesActions extends Component {
             }
             else if (this.props.action.actionType === "resourcePermissionChange") {
                 return this.resourcePermissionChangeAction()
+            }
+            else {
+                return this.otherQuickActions()
             }
         }
         return null;

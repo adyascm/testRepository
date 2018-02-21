@@ -51,7 +51,7 @@ export default (state = defaultState, action) => {
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
         var ds = JSON.parse(action.payload);
-        if (ds.datasource_id === state.datasources[0].datasource_id) {
+        if (state.datasources[0] && ds.datasource_id === state.datasources[0].datasource_id) {
           state.datasources[0] = ds;
         }
       }

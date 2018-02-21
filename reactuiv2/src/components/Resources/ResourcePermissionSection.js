@@ -19,7 +19,12 @@ class ResourcePermissionSection extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            rowData: ''
+            rowData: '',
+            "Transfer ownership": "transferOwnership",
+            "Remove external access": "removeExternalAccess",
+            "Remove write access": "removeWriteAccess",
+            "Make this private": "makePrivate",
+            "Watch all actions": "watchAllActions"  
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -42,7 +47,7 @@ class ResourcePermissionSection extends Component {
         console.log("permission email: ", email)
         
         if (data["value"] !== "Read" && data["value"] !== "Write")
-            this.props.onChangePermission('transferOwnership',data,data["value"],undefined)
+            this.props.onChangePermission(this.state[data.value],data,data["value"],email)
         else 
             this.props.onChangePermission('resourcePermissionChange',data,data["value"],email)
     }
