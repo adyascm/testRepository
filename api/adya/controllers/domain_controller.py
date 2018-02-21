@@ -60,7 +60,7 @@ def create_datasource(auth_token, payload):
         print "Starting the scan"
         #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
         #thread.start()
-        query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + datasource.is_serviceaccount_enabled
+        query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + str(datasource.is_serviceaccount_enabled)
         utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
