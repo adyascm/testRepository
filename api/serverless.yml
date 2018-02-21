@@ -171,6 +171,14 @@ functions:
           method: post
           cors: true
 
+  start_scan:
+    handler: adya.services.lambda.scan_handler.start_scan
+    events:
+      - http:
+          path: scan/start
+          method: post
+          cors: true
+
   get_drive_resources:
     handler: adya.services.lambda.scan_handler.get_drive_resources
     events:

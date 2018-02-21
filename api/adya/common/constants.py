@@ -24,6 +24,7 @@ OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 
+SCAN_START = "/scan/start"
 SCAN_RESOURCES = "/scan/resources"
 
 SCAN_PERMISSIONS = "/scan/permisssions"
