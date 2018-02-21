@@ -31,6 +31,12 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - "ses:SendEmail"
+      Resource:
+        "*"
 
 plugins:
   - serverless-domain-manager
