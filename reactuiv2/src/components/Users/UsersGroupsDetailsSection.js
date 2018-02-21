@@ -23,6 +23,14 @@ const mapDispatchToProps = dispatch => ({
 class UsersGroupsDetailsSection extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            "Transfer ownership of all owned files": "transferOwnership",
+            "Remove external access for all owned files": "removeExternalAccess",
+            "Remove write access for all un-owned files": "removeWriteAccess",
+            "Make all owned files private": "allFilesPrivate",
+            "Watch all my actions": "watchAllActions"
+        }
         
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -33,8 +41,8 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleChange(event,data) {
-        console.log("item changed: ", data)
-        this.props.onChangePermission("transferOwnership", data, data.value)
+        console.log("item changed: ", this.state[data.value])
+        this.props.onChangePermission(this.state[data.value], data, data.value)
     }
 
     render() {
