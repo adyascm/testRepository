@@ -42,8 +42,7 @@ class ResourcesList extends Component {
             },
             {
                 headerName: "Type",
-                field: "resourceType",
-                cellStyle: {textAlign: "center"}
+                field: "resourceType"
             },
             {
                 headerName: "Owner",
@@ -90,7 +89,7 @@ class ResourcesList extends Component {
     }
 
     render() {
-        
+
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>

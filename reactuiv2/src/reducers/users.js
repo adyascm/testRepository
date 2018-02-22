@@ -7,7 +7,8 @@ import {
     USERS_RESOURCE_LOAD_START,
     USERS_RESOURCE_LOADED,
     USERS_RESOURCE_ACTION_LOAD,
-    USERS_RESOURCE_ACTION_CANCEL
+    USERS_RESOURCE_ACTION_CANCEL,
+    USERS_RESOURCE_SET_FILE_SHARE_TYPE
 } from '../constants/actionTypes';
 
 
@@ -77,10 +78,15 @@ export default (state = {}, action) => {
                     actionNewValue: action.newValue
                 }
             }
-            case USERS_RESOURCE_ACTION_CANCEL:
+        case USERS_RESOURCE_ACTION_CANCEL:
             return {
                 ...state,
                 action: undefined
+            }
+        case USERS_RESOURCE_SET_FILE_SHARE_TYPE:
+            return {
+                ...state,
+                exposureType: action.payload
             }
         default:
             return state;
