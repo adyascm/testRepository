@@ -103,7 +103,12 @@ class Resource(Base):
     last_modified_time = Column(DateTime)
     creation_time = Column(DateTime)
     exposure_type = Column(String(10))
-
+    web_content_link = Column(Text)
+    web_view_link = Column(Text)
+    icon_link = Column(Text)
+    thumthumbnail_link = Column(Text)
+    description = Column(Text)
+    last_modifying_user_email = Column(String(255))
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)

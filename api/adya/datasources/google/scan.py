@@ -30,7 +30,8 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
         queryString = "'"+ user_email +"' in owners"
     while True:
         try:
-            results = drive_service.files().list(q=queryString, fields="files(id, name, mimeType, parents, "
+            results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
+                            "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                             "permissions(id, emailAddress, role, displayName),"
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
@@ -93,6 +94,14 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         resource["resource_size"] = resourcedata.get('size')
         resource["creation_time"] = resourcedata['createdTime'][:-1]
         resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
+        resource["web_content_link"] = resourcedata.get("webContentLink")
+        resource["web_view_link"] = resourcedata.get("webViewLink")
+        resource["icon_link"] = resourcedata.get("iconLink")
+        resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
+        resource["description"] = resourcedata.get("description")
+        if resourcedata.get("lastModifyingUser"):
+            resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
+        resource["last_modifying_user_email"] 
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
