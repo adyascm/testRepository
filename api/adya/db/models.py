@@ -132,7 +132,9 @@ class ResourcePermission(Base):
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
-
+    name = Column(Text)
+    expiration_time = Column(DateTime)
+    is_deleted = Column(Boolean, default=False)
     def __repr__(self):
         return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
         

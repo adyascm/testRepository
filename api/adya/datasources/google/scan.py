@@ -32,7 +32,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
         try:
             results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
                             "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
-                            "permissions(id, emailAddress, role, displayName),"
+                            "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
@@ -113,6 +113,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                         permission_type = constants.PermissionType.WRITE
                     email_address = permission.get('emailAddress')
                     display_name = permission.get('displayName')
+                    expiration_time = permission.get('expirationTime')
+                    is_deleted = permission.get('deleted')
                     if email_address:
                         resource_exposure_type = constants.ResourceExposureType.INTERNAL
                         if gutils.check_if_external_user(domain_id,email_address):
@@ -145,6 +147,10 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                     resource_permission["email"] = email_address
                     resource_permission["permission_id"] = permission_id
                     resource_permission["permission_type"] = permission_type
+                    resource_permission["name"] = display_name
+                    if expiration_time:
+                        resource_permission["expiration_time"] = expiration_time[:-1]
+                    resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
         resource["exposure_type"] = resource_exposure_type
         resource_parent_data = resourcedata.get('parents')
