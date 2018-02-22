@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT } from '../constants/actionTypes';
-import AppSearch from './AppSearch'
+import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Input, Image, List, Menu, Segment, Icon } from 'semantic-ui-react'
 
