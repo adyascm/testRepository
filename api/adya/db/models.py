@@ -134,13 +134,8 @@ class DomainGroup(Base):
     direct_members_count = Column(Integer,default=0)
     description = Column(Text)
     include_all_user = Column(Boolean, default=False)
+    aliases = Column(Text)
 
-
-class GroupAlias(Base):
-    __tablename__ = 'group_alias'
-    datasource_id = Column(String(36))
-    group_email = Column(String(320), primary_key=True)
-    email = Column(String(320), primary_key=True)
 
 class DirectoryStructure(Base):
     __tablename__ = 'domain_directory_structure'

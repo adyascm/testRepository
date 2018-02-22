@@ -353,7 +353,6 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
     print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
     groups_db_insert_data_dic = []
-    groups_alias_db_insert_data_dic =[]
     session = FuturesSession()
 
     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
@@ -370,15 +369,10 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group["name"] = group_data["name"]
         group["direct_members_count"] = group_data["directMembersCount"]
         group["description"] = group_data.get('description')
-        groups_db_insert_data_dic.append(group)
         group_aliases = group_data.get('aliases')
         if group_aliases:
-            for group_alias_data in group_aliases:
-                group_alias = {}
-                group_alias["datasource_id"] = datasource_id
-                group_alias["group_email"] = groupemail
-                group_alias["email"] = group_alias_data
-                groups_alias_db_insert_data_dic.append(group_alias)
+            group["aliases"] = ",".join(group_aliases)
+        groups_db_insert_data_dic.append(group)   
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
             session, group_url, auth_token).result()
@@ -386,8 +380,6 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     try:
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
-        if len(groups_alias_db_insert_data_dic)>0:
-            db_session.bulk_insert_mappings(models.GroupAlias,groups_alias_db_insert_data_dic)
         db_session.commit()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
