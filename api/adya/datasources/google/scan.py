@@ -8,7 +8,7 @@ from adya.db import models
 from adya.common.constants import UserMemberType
 from sqlalchemy import and_
 from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
-from adya.common import utils
+from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
 
@@ -41,20 +41,18 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
-            url = constants.SCAN_RESOURCES + "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + (user_email  if user_email else domain_id)
 
-            last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
+            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, reosurcedata)
 
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    url = constants.SCAN_RESOURCES + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
+                    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'nextPageToken': next_page_token}
                     if user_email:
-                        url = url + "&userEmail=" + user_email
-                    utils.get_call_with_authorization_header(
-                        session, url, auth_token).result()
+                        query_params["userEmail"] = user_email
+                    messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -65,8 +63,6 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
             print ex
             break
-    if last_future:
-        last_future.result()
 
 
 ## processing resource data for fileIds
@@ -127,6 +123,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                                 externaluser["domain_id"] = domain_id
                                 externaluser["datasource_id"] = datasource_id
                                 externaluser["email"] = email_address
+                                externaluser["first_name"] = ""
+                                externaluser["last_name"] = ""
                                 if display_name and display_name != "":
                                     name_list = display_name.split(' ')
                                     externaluser["first_name"] = name_list[0]
