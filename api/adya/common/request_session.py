@@ -23,8 +23,13 @@ class RequestSession():
         headers_dict = {}
         if self.isLocal is False:
             self.isLocal = False
-            headers_dict = self.req["headers"]
-            params_dict = self.req["queryStringParameters"]
+            headers_dict = self.req
+            if headers in self.req:
+                headers_dict = self.req["headers"]
+            
+            params_dict = self.req
+            if queryStringParameters in self.req:
+                params_dict = self.req["queryStringParameters"]
         #Validate the lambda event object
         else:
             headers_dict = self.req.headers
@@ -58,10 +63,10 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            if(self.req["body"]):
+            if body in self.req:
                 return json.loads(self.req["body"])
             else:
-                return {}
+                return self.req
 
     def generate_error_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})

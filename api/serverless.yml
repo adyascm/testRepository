@@ -77,21 +77,21 @@ custom:
 #    - exclude-me-dir/**
 
 functions:
-  googleoauthrequet:
+  get-googleoauthlogin:
     handler: adya.services.lambda.auth_handler.google_oauth_request
     events:
       - http:
           path: googleoauthlogin
           method: get
 
-  googleoauthcallback:
+  get-googleoauthcallback:
     handler: adya.services.lambda.auth_handler.google_oauth_callback
     events:
       - http:
           path: googleoauthcallback
           method: get
 
-  currentuser:
+  get-currentuser:
     handler: adya.services.lambda.auth_handler.current_user
     events:
       - http:
@@ -99,7 +99,7 @@ functions:
           method: get
           cors: true
 
-  getdatasource:
+  get-datasources:
     handler: adya.services.lambda.domain_handler.get_datasource
     events:
       - http:
@@ -107,7 +107,7 @@ functions:
           method: get
           cors: true
 
-  postdatasource:
+  post-datasources:
     handler: adya.services.lambda.domain_handler.post_datasource
     events:
       - http:
@@ -115,7 +115,7 @@ functions:
           method: post
           cors: true
 
-  deletedatasource:
+  delete-datasources:
     handler: adya.services.lambda.domain_handler.delete_datasource
     events:
       - http:
@@ -123,7 +123,7 @@ functions:
           method: delete
           cors: true
 
-  getwidgetdata:
+  get-widgets:
     handler: adya.services.lambda.reports_handler.get_widget_data
     events:
       - http:
@@ -131,7 +131,7 @@ functions:
           method: get
           cors: true
 
-  getusertreedata:
+  get-getusertreedata:
     handler: adya.services.lambda.reports_handler.get_user_tree_data
     events:
       - http:
@@ -139,7 +139,7 @@ functions:
           method: get
           cors: true
 
-  getresources:
+  get-getresourcetree:
     handler: adya.services.lambda.reports_handler.get_resources
     events:
       - http:
@@ -147,7 +147,7 @@ functions:
           method: get
           cors: true
 
-  getresourcetreedata:
+  post-getresourcetree:
     handler: adya.services.lambda.reports_handler.get_resource_tree_data
     events:
       - http:
@@ -155,7 +155,7 @@ functions:
           method: post
           cors: true
 
-  getscheduledreports:
+  get-scheduledreport:
     handler: adya.services.lambda.reports_handler.get_scheduled_reports
     events:
       - http:
@@ -163,7 +163,7 @@ functions:
           method: get
           cors: true
 
-  postscheduledreport:
+  post-scheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
     events:
       - http:
@@ -171,7 +171,7 @@ functions:
           method: post
           cors: true
 
-  start_scan:
+  post-scan-start:
     handler: adya.services.lambda.scan_handler.start_scan
     events:
       - http:
@@ -179,7 +179,7 @@ functions:
           method: post
           cors: true
 
-  get_drive_resources:
+  get-scan-resources:
     handler: adya.services.lambda.scan_handler.get_drive_resources
     events:
       - http:
@@ -187,7 +187,7 @@ functions:
           method: get
           cors: true
 
-  process_drive_resources:
+  post-scan-resources:
     handler: adya.services.lambda.scan_handler.process_drive_resources
     events:
       - http:
@@ -195,7 +195,7 @@ functions:
           method: post
           cors: true
 
-  process_resource_permissions:
+  post-scan-permisssions:
     handler: adya.services.lambda.scan_handler.process_resource_permissions
     events:
       - http:
@@ -203,7 +203,7 @@ functions:
           method: post
           cors: true
 
-  get_domain_users:
+  get-scan-domainusers:
     handler: adya.services.lambda.scan_handler.get_domain_users
     events:
       - http:
@@ -211,7 +211,7 @@ functions:
           method: get
           cors: true
 
-  process_domain_users:
+  post-scan-domainusers:
     handler: adya.services.lambda.scan_handler.process_domain_users
     events:
       - http:
@@ -219,7 +219,7 @@ functions:
           method: post
           cors: true
 
-  get_domain_groups:
+  get-scan-domaingroups:
     handler: adya.services.lambda.scan_handler.get_domain_groups
     events:
       - http:
@@ -227,7 +227,7 @@ functions:
           method: get
           cors: true
         
-  process_domain_groups:
+  post-scan-domaingroups:
     handler: adya.services.lambda.scan_handler.process_domain_groups
     events:
       - http:
@@ -235,7 +235,7 @@ functions:
           method: post
           cors: true
 
-  get_group_members:
+  get-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.get_group_members
     events:
       - http:
@@ -243,7 +243,7 @@ functions:
           method: get
           cors: true
         
-  process_group_members:
+  post-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.process_group_members
     events:
       - http:
@@ -251,7 +251,7 @@ functions:
           method: post
           cors: true
 
-  process_gdrive_notifications:
+  post-scan-processnotifications:
     handler: adya.services.lambda.scan_handler.process_gdrive_notifications
     events:
       - http:
@@ -259,7 +259,7 @@ functions:
           method: post
           cors: true
 
-  subscribe_gdrive_notifications:
+  get-scan-subscribenotifications:
     handler: adya.services.lambda.scan_handler.subscribe_gdrive_notifications
     events:
       - http:
@@ -267,7 +267,7 @@ functions:
           method: get
           cors: true
 
-  get_activities_for_user:
+  get-getactivitiesforuser:
     handler: adya.services.lambda.activities_handler.get_activities_for_user
     events:
       - http:
