@@ -1,10 +1,9 @@
 import json
 import datetime
 import uuid
-from adya.common import utils
+from adya.common import utils, messaging
 from threading import Thread
-
-from requests_futures.sessions import FuturesSession
+import time
 
 from adya.common import constants,utils
 from adya.db.connection import db_connection
@@ -58,8 +57,12 @@ def create_datasource(auth_token, payload):
         except Exception as ex:
             print (ex)
         print "Starting the scan"
-        thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
-        thread.start()
+        #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
+        #thread.start()
+        query_params = {"domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
+        messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
+
+        print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
     else:
@@ -105,17 +108,12 @@ def create_domain(domain_id, domain_name):
 
 
 def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
-    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
-    session = FuturesSession()
-    future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
-    future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
-    future_resources = None
-    if not is_service_account_enabled:
-        future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
-    future_users.result()
-    future_groups.result()
-    if future_resources:
-        future_resources.result()
+    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
+    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
+    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
+    if is_service_account_enabled == 'False':
+        messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 
 
 

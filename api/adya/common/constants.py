@@ -1,6 +1,8 @@
 import os
 from enum import Enum
 
+SERVERLESS_SERVICE_NAME = 'adya'
+DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
@@ -24,6 +26,7 @@ OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 
+SCAN_START = "/scan/start"
 SCAN_RESOURCES = "/scan/resources"
 
 SCAN_PERMISSIONS = "/scan/permisssions"

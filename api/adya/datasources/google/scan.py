@@ -30,8 +30,9 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
         queryString = "'"+ user_email +"' in owners"
     while True:
         try:
-            results = drive_service.files().list(q=queryString, fields="files(id, name, mimeType, parents, "
-                            "permissions(id, emailAddress, role, displayName),"
+            results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
+                            "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
+                            "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
@@ -78,22 +79,29 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
     data_for_permission_table =[]
     data_for_parent_table =[]
     external_user_map = {}
-    external_user_list = []
     resource_count = 0
     for resourcedata in resources:
         resource_count = resource_count + 1
-        resource = Resource()
-        resource.domain_id = domain_id
-        resource.datasource_id = datasource_id
+        resource = {}
+        resource["domain_id"] = domain_id
+        resource["datasource_id"] = datasource_id
         resource_id = resourcedata['id']
-        resource.resource_id = resource_id
-        resource.resource_name = resourcedata['name']
+        resource["resource_id"] = resource_id
+        resource["resource_name"] = resourcedata['name']
         mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        resource.resource_type = mime_type
-        resource.resource_owner_id = resourcedata['owners'][0].get('emailAddress')
-        resource.resource_size = resourcedata.get('size')
-        resource.creation_time = resourcedata['createdTime'][:-1]
-        resource.last_modified_time = resourcedata['modifiedTime'][:-1]
+        resource["resource_type"] = mime_type
+        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
+        resource["resource_size"] = resourcedata.get('size')
+        resource["creation_time"] = resourcedata['createdTime'][:-1]
+        resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
+        resource["web_content_link"] = resourcedata.get("webContentLink")
+        resource["web_view_link"] = resourcedata.get("webViewLink")
+        resource["icon_link"] = resourcedata.get("iconLink")
+        resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
+        resource["description"] = resourcedata.get("description")
+        if resourcedata.get("lastModifyingUser"):
+            resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
+        resource["last_modifying_user_email"] 
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
@@ -105,6 +113,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                         permission_type = constants.PermissionType.WRITE
                     email_address = permission.get('emailAddress')
                     display_name = permission.get('displayName')
+                    expiration_time = permission.get('expirationTime')
+                    is_deleted = permission.get('deleted')
                     if email_address:
                         resource_exposure_type = constants.ResourceExposureType.INTERNAL
                         if gutils.check_if_external_user(domain_id,email_address):
@@ -112,54 +122,52 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                             ## insert non domain user as External user in db, Domain users will be
                             ## inserted during processing Users
                             if not email_address in external_user_map:
-                                external_user_map[email_address] = 1
 
-                                externaluser = DomainUser()
-                                externaluser.domain_id = domain_id
-                                externaluser.datasource_id = datasource_id
-                                externaluser.email = email_address
+                                externaluser = {}
+                                externaluser["domain_id"] = domain_id
+                                externaluser["datasource_id"] = datasource_id
+                                externaluser["email"] = email_address
                                 if display_name and display_name != "":
                                     name_list = display_name.split(' ')
-                                    externaluser.first_name = name_list[0]
+                                    externaluser["first_name"] = name_list[0]
                                     if len(name_list) > 1:
-                                        externaluser.last_name = name_list[1]
-                                externaluser.member_type = constants.UserMemberType.EXTERNAL
-                                external_user_list.append(externaluser)
-                            #db_session.merge(externaluser)
+                                        externaluser["last_name"] = name_list[1]
+                                externaluser["member_type"] = constants.UserMemberType.EXTERNAL
+                                external_user_map[email_address]= externaluser
                     elif display_name:
                         resource_exposure_type = constants.ResourceExposureType.DOMAIN
                         email_address = "__ANYONE__@"+ domain_id
                     else:
                         resource_exposure_type = constants.ResourceExposureType.PUBLIC
                         email_address = constants.ResourceExposureType.PUBLIC
-                    resource_permission = ResourcePermission()
-                    resource_permission.domain_id = domain_id
-                    resource_permission.datasource_id = datasource_id
-                    resource_permission.resource_id = resource_id
-                    resource_permission.email = email_address
-                    resource_permission.permission_id = permission_id
-                    resource_permission.permission_type = permission_type
+                    resource_permission = {}
+                    resource_permission["domain_id"] = domain_id
+                    resource_permission["datasource_id"] = datasource_id
+                    resource_permission["resource_id"] = resource_id
+                    resource_permission["email"] = email_address
+                    resource_permission["permission_id"] = permission_id
+                    resource_permission["permission_type"] = permission_type
+                    resource_permission["name"] = display_name
+                    if expiration_time:
+                        resource_permission["expiration_time"] = expiration_time[:-1]
+                    resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
-                    #db_session.merge(resource_permission)
-        resource.exposure_type = resource_exposure_type
+        resource["exposure_type"] = resource_exposure_type
         resource_parent_data = resourcedata.get('parents')
-        resource_parent = ResourceParent()
-        resource_parent.domain_id = domain_id
-        resource_parent.datasource_id = datasource_id
-        resource_parent.email = user_email
-        resource_parent.resource_id = resource_id
-        resource_parent.parent_id = resource_parent_data[0] if resource_parent_data else None
+        resource_parent = {}
+        resource_parent["domain_id"] = domain_id
+        resource_parent["datasource_id"] = datasource_id
+        resource_parent["email"] = user_email
+        resource_parent["resource_id"] = resource_id
+        resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
         data_for_parent_table.append(resource_parent)
         resourceList.append(resource)
-        #db_session.merge(resource)
-        #db_session.merge(resource_parent)
     try:
-        db_session.bulk_save_objects(resourceList)
-        db_session.bulk_save_objects(data_for_permission_table)
-        db_session.bulk_save_objects(data_for_parent_table)
-        for external_user in external_user_list:
-            db_session.merge(external_user)
-        #db_session.bulk_save_objects(external_user_list)
+        db_session.bulk_insert_mappings(Resource, resourceList)
+        db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
+        db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
+        if len(external_user_map)>0:
+            db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_session.commit()
         update_and_get_count(auth_token, datasource_id, DataSource.processed_file_count, resource_count, True)
 
@@ -285,6 +293,16 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["email"] = user_email
         user["first_name"] = names.get("givenName")
         user["last_name"] = names.get("familyName")
+        user["full_name"] = names.get("fullName")
+        user["is_admin"] = user_data.get("isAdmin")
+        user["creation_time"] = user_data["creationTime"][:-1]
+        user["is_suspended"] = user_data.get("suspended")
+        user["primary_email"] = user_data.get("primaryEmail")
+        user["user_id"] = user_data["id"]
+        user["photo_url"] = user_data.get("thumbnailPhotoUrl")
+        aliases = user_data.get("aliases")
+        if aliases:
+            user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
@@ -370,18 +388,23 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group = {}
         group["domain_id"] = domain_id
         group["datasource_id"] = datasource_id
+        group["group_id"] = group_data["id"]
         groupemail = group_data["email"]
         group["email"] = groupemail
         group["name"] = group_data["name"]
-        groups_db_insert_data_dic.append(group)
+        group["direct_members_count"] = group_data["directMembersCount"]
+        group["description"] = group_data.get('description')
+        group_aliases = group_data.get('aliases')
+        if group_aliases:
+            group["aliases"] = ",".join(group_aliases)
+        groups_db_insert_data_dic.append(group)   
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
             session, group_url, auth_token).result()
 
     try:
         db_session = db_connection().get_session()
-        db_session.bulk_insert_mappings(
-            models.DomainGroup, groups_db_insert_data_dic)
+        db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
@@ -431,14 +454,17 @@ def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id
     member_count = 0
     for group_data in group_member_data:
         member_count = member_count + 1
-        if group_data.get("type") == "CUSTOMER":
+        member_type = group_data.get("type")
+        member_id = group_data.get("id")
+        member_role = group_data.get("role")
+        if member_type == "CUSTOMER":
             db_session.query(models.DomainGroup).filter(
                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
                      models.DomainGroup.email == group_key)).update({'include_all_user': True})
             continue
         else:
             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
-                     "parent_email": group_key}
+                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
             groupsmembers_db_insert_data.append(group)
 
     try:

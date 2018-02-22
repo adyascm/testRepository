@@ -74,7 +74,7 @@ from sets import Set
 #     return responsedata
 
 
-def get_resources(auth_token, user_emails=None):
+def get_resources(auth_token, user_emails=None, exposure_type=None):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
@@ -88,7 +88,8 @@ def get_resources(auth_token, user_emails=None):
     else:
         resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
                                                                              and_(ResourcePermission.resource_id == Resource.resource_id,
-                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(Resource.domain_id == domain.domain_id).limit(100).all()
+                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
+                                                                                                                                                    Resource.exposure_type == exposure_type)).limit(100).all()
 
     responsedata = {}
     for resource in resources:

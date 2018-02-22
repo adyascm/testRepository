@@ -31,6 +31,10 @@ class ResourcesList extends Component {
 
         this.onCellClicked = this.onCellClicked.bind(this);
 
+        this.state = {
+            exposureType: undefined
+        }
+
         this.columnDefs = [
             {
                 headerName: "Name",
@@ -38,11 +42,17 @@ class ResourcesList extends Component {
             },
             {
                 headerName: "Type",
-                field: "resourceType"
+                field: "resourceType",
+                cellStyle: {textAlign: "center"}
             },
             {
                 headerName: "Owner",
                 field: "resourceOwnerId"
+            },
+            {
+                headerName: "ExposureType",
+                field: "exposureType",
+                cellStyle: {textAlign: "center"}
             }
         ];
 
@@ -64,12 +74,23 @@ class ResourcesList extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': []}))
+        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': 'EXT'}))
 
     }
 
-    render() {
+    componentWillReceiveProps(nextProps) {
+        if (nextProps !== this.props) {
+            if (nextProps.exposureType && nextProps.exposureType !== this.state.exposureType) {
+                this.setState({
+                    exposureType: nextProps.exposureType
+                })
+                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': nextProps.exposureType}))
+            }
+        }
+    }
 
+    render() {
+        
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>
