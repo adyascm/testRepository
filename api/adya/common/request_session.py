@@ -22,13 +22,14 @@ class RequestSession():
 
         headers_dict = {}
         if self.isLocal is False:
+            print "Dumping the event object - " + json.dumps(self.req)
             self.isLocal = False
             headers_dict = self.req
-            if headers in self.req:
+            if "headers" in self.req:
                 headers_dict = self.req["headers"]
             
             params_dict = self.req
-            if queryStringParameters in self.req:
+            if "queryStringParameters" in self.req:
                 params_dict = self.req["queryStringParameters"]
         #Validate the lambda event object
         else:
@@ -63,7 +64,7 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            if body in self.req:
+            if "body" in self.req:
                 return json.loads(self.req["body"])
             else:
                 return self.req
