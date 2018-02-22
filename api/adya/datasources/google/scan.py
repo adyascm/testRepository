@@ -38,13 +38,17 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             file_count = len(results['files'])
 
             resourcedata = {}
-            resourcedata["resources"] = results['files']
+            resourcedata["resources"] = results['files'][0:50]
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
 
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
             messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
+            if file_count > 50:
+                resourcedata = {}
+                resourcedata["resources"] = results['files'][50:100]
+                messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
 
             next_page_token = results.get('nextPageToken')
             if next_page_token:
