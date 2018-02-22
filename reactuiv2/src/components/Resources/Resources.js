@@ -64,7 +64,8 @@ class Users extends Component {
                 options={this.state.options}
                 selection
                 onChange={this.handleChange}
-                defaultValue="External Shared"
+                defaultValue={!this.props.exposureType || this.props.exposureType === 'EXT'?"External Shared":
+                              this.props.exposureType === 'DOMAIN'?"Domain Shared":"Internally Shared"}
               />
             </Grid.Column>
             <Grid.Column stretched width="5">
