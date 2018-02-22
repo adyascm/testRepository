@@ -25,7 +25,7 @@ const ResourceDetails = props => {
                         {props.rowData['resourceName']}
                     </Item.Header>
                     <Item.Meta >
-                        {props.rowData['lastModifiedTime']}
+                        Last Modified Time: {props.rowData['lastModifiedTime']}
                     </Item.Meta>
                     <Item.Extra extra>
                         <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} onChange={(event,data) => props.handleChange(event,data)} />
