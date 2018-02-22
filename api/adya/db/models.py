@@ -80,6 +80,14 @@ class DomainUser(Base):
     # because if we get External user from other domain provider that might not have Names
     first_name = Column(String(255))
     last_name = Column(String(255))
+    full_name = Column(String(255))
+    is_admin = Column(Boolean, default=False)
+    creation_time = Column(DateTime)
+    is_suspended = Column(Boolean,default=False)
+    primary_email = Column(String(320))
+    user_id = Column(String(260))
+    photo_url = Column(Text)
+    aliases = Column(Text)
     member_type = Column(String(6))
 
 

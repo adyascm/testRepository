@@ -278,6 +278,16 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["email"] = user_email
         user["first_name"] = names.get("givenName")
         user["last_name"] = names.get("familyName")
+        user["full_name"] = names.get("fullName")
+        user["is_admin"] = user_data.get("isAdmin")
+        user["creation_time"] = user_data["creationTime"][:-1]
+        user["is_suspended"] = user_data.get("suspended")
+        user["primary_email"] = user_data.get("primaryEmail")
+        user["user_id"] = user_data["id"]
+        user["photo_url"] = user_data.get("thumbnailPhotoUrl")
+        aliases = user_data.get("aliases")
+        if aliases:
+            user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
