@@ -37,13 +37,14 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
 
-            reosurcedata = results['files']
+            resourcedata = {}
+            resourcedata["resources"] = results['files']
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
 
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
-            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, reosurcedata)
+            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
 
             next_page_token = results.get('nextPageToken')
             if next_page_token:
@@ -66,9 +67,9 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
 
 
 ## processing resource data for fileIds
-def process_resource_data(auth_token, domain_id, datasource_id, user_email, resources):
+def process_resource_data(auth_token, domain_id, datasource_id, user_email, resourcedata):
     print "Initiating processing of drive resources for files using email: {}".format(user_email)
-
+    resources = resourcedata["resources"]
     resourceList = []
     session = FuturesSession()
     db_session = db_connection().get_session()
