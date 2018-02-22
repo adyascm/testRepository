@@ -142,6 +142,9 @@ class DirectoryStructure(Base):
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
     member_email = Column(String(320), primary_key=True)
+    member_id = Column(String(260), nullable=False)
+    member_role =  Column(String(10), nullable=False)
+    member_type =  Column(String(10), nullable=False)
     parent_email = Column(String(320), primary_key=True)
 
 

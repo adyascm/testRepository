@@ -429,14 +429,17 @@ def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id
     member_count = 0
     for group_data in group_member_data:
         member_count = member_count + 1
-        if group_data.get("type") == "CUSTOMER":
+        member_type = group_data.get("type")
+        member_id = group_data.get("id")
+        member_role = group_data.get("role")
+        if member_type == "CUSTOMER":
             db_session.query(models.DomainGroup).filter(
                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
                      models.DomainGroup.email == group_key)).update({'include_all_user': True})
             continue
         else:
             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
-                     "parent_email": group_key}
+                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
             groupsmembers_db_insert_data.append(group)
 
     try:
