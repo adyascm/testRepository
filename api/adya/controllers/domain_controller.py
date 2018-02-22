@@ -9,7 +9,7 @@ from requests_futures.sessions import FuturesSession
 from adya.common import constants,utils
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,\
-                             DomainGroup, DomainUser, ResourcePermission, Resource,ResourceParent
+                             DomainGroup,GroupAlias, DomainUser, ResourcePermission, Resource,ResourceParent
 from adya.datasources.google import gutils
 
 
@@ -62,7 +62,7 @@ def create_datasource(auth_token, payload):
         #thread.start()
         query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + str(datasource.is_serviceaccount_enabled)
         session = FuturesSession()
-        utils.post_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token, json={}).result()
+        utils.post_call_with_authorization_header(session,url=constants.SCAN_START + query_params,auth_token=auth_token, json={}).result()
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
@@ -78,6 +78,7 @@ def delete_datasource(auth_token, datasource_id):
         try:
             db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
             db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+            db_session.query(GroupAlias).filter(GroupAlias.datasource_id == datasource_id).delete()
             db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
             db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
             db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()

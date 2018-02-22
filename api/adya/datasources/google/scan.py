@@ -373,11 +373,11 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         groups_db_insert_data_dic.append(group)
         group_aliases = group_data.get('aliases')
         if group_aliases:
-            for group_alias in group_aliases:
+            for group_alias_data in group_aliases:
                 group_alias = {}
                 group_alias["datasource_id"] = datasource_id
                 group_alias["group_email"] = groupemail
-                group_alias["email"] = group_alias
+                group_alias["email"] = group_alias_data
                 groups_alias_db_insert_data_dic.append(group_alias)
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
