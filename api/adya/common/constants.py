@@ -5,6 +5,10 @@ from enum import Enum
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
 
+DEPLOYMENT_ENV = 'cloud'
+if 'localhost' in UI_HOST:
+    DEPLOYMENT_ENV = 'local'
+
 ROOT = "__root__"
 ROOT_NAME ="dummy"
 ROOT_MIME_TYPE = 'folder'
