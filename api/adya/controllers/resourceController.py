@@ -74,7 +74,7 @@ from sets import Set
 #     return responsedata
 
 
-def get_resources(auth_token, user_emails=None, exposure_type=None):
+def get_resources(auth_token, user_emails=None, exposure_type='EXT'):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
