@@ -5,6 +5,7 @@ import { Grid, Container } from 'semantic-ui-react'
 
 import ResourcesList from './ResourcesList';
 import ResourcePermissionSection from './ResourcePermissionSection';
+import ResourcesActions from '../actions/ResourcesActions';
 
 const mapStateToProps = state => ({
     ...state.resources
@@ -43,6 +44,7 @@ class Users extends Component {
             }
           </Grid.Row>
         </Grid>
+        <ResourcesActions />
       </Container>
     )
   }

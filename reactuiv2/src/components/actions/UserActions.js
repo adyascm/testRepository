@@ -8,6 +8,7 @@ import authenticate from '../../utils/oauth';
 import {
     USERS_RESOURCE_ACTION_CANCEL
 } from '../../constants/actionTypes';
+
 const mapStateToProps = state => ({
     action: state.users.action,
     selectedUser: state.users.selectedUserItem
@@ -42,7 +43,8 @@ class UserActions extends Component {
     transferOwnershipAction() {
         return (
             <Modal open={this.props.action} className="scrolling" >
-                <Modal.Header>Action - Transfer Ownership</Modal.Header>
+                {/* <Modal.Header>Action - Transfer Ownership</Modal.Header> */}
+                <Modal.Header>Action - {this.props.action["actionNewValue"]}</Modal.Header>
                 <Modal.Content >
                     <Form.Input fluid label='From User' placeholder={this.props.selectedUser.key} readOnly />
                     <Form.Input fluid label='To User' placeholder="Enter the email..." readOnly />
@@ -74,6 +76,24 @@ class UserActions extends Component {
         )
 
     }
+
+    otherQuickActions() {
+        return (
+            <Modal open={this.props.action} className="scrolling" >
+                {/* <Modal.Header>Action - Transfer Ownership</Modal.Header> */}
+                <Modal.Header>Action - {this.props.action["actionNewValue"]}</Modal.Header>
+                <Modal.Content >
+                    <Form.Input fluid label='For User' placeholder={this.props.selectedUser.key} readOnly />
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
+                    <Button positive loading={this.state.inProgress} labelPosition='right' 
+                    icon='checkmark' content='Transfer' onClick={this.takeAction(this.transferOwnership)} />
+                </Modal.Actions>
+            </Modal>
+        )
+    }
+
     render() {
         if (this.props.action) {
             if (this.props.action.actionType === "transferOwnership") {
@@ -81,6 +101,9 @@ class UserActions extends Component {
             }
             else if (this.props.action.actionType === "resourcePermissionChange") {
                 return this.resourcePermissionChangeAction()
+            }
+            else {
+                return this.otherQuickActions()
             }
         }
         return null;

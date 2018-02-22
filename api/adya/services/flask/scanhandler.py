@@ -3,7 +3,20 @@ from adya.datasources.google import scan, permission,parent
 from adya.common import utils
 from adya.common.request_session import RequestSession
 from adya.db.models import DataSource
+from adya.controllers import domain_controller
 
+
+class DriveScan(Resource):
+    def post(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId', 'domainId', 'serviceAccountEnabled'])
+        if req_error:
+            return req_error
+
+        domain_controller.start_scan(req_session.get_auth_token(), req_session.get_req_param(
+            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('serviceAccountEnabled'))
+        return req_session.generate_response(202)
 
 class DriveResources(Resource):
     def get(self):

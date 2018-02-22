@@ -5,7 +5,8 @@ import UserResource from './UserResource';
 import UserActivity from './UserActivity';
 import { connect } from 'react-redux';
 import {
-    USER_ITEM_SELECTED
+    USER_ITEM_SELECTED,
+    USERS_RESOURCE_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -14,18 +15,34 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    closingDetailsSection: (payload) => dispatch({type:USER_ITEM_SELECTED,payload})
+    closingDetailsSection: (payload) => dispatch({type:USER_ITEM_SELECTED,payload}),
+    onChangePermission: (actionType, resource, newValue) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
 })
 
 class UsersGroupsDetailsSection extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            "Transfer ownership of all owned files": "transferOwnership",
+            "Remove external access for all owned files": "removeExternalAccess",
+            "Remove write access for all un-owned files": "removeWriteAccess",
+            "Make all owned files private": "allFilesPrivate",
+            "Watch all my actions": "watchAllActions"
+        }
         
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     closeDetailsSection() {
         this.props.closingDetailsSection(undefined)
+    }
+
+    handleChange(event,data) {
+        console.log("item changed: ", this.state[data.value])
+        this.props.onChangePermission(this.state[data.value], data, data.value)
     }
 
     render() {
@@ -40,7 +57,7 @@ class UsersGroupsDetailsSection extends Component {
                 <Segment>
                     {/* <Sticky> */}
                         <Icon name='close' onClick={this.closeDetailsSection} />
-                        <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}/>
+                        <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload} handleChange={this.handleChange} />
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                     {/* </Sticky> */}
                 </Segment>
