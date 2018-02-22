@@ -1,13 +1,11 @@
 import os
 from enum import Enum
 
+SERVERLESS_SERVICE_NAME = 'adya'
+DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
 UI_HOST = os.environ.get('UI_HOST', 'http://localhost:3000')
-
-DEPLOYMENT_ENV = 'cloud'
-if 'localhost' in UI_HOST:
-    DEPLOYMENT_ENV = 'local'
 
 ROOT = "__root__"
 ROOT_NAME ="dummy"

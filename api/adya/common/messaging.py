@@ -11,8 +11,8 @@ def trigger_get_event(endpoint, auth_token, query_params):
         print "Making a GET request on the following url - " + endpoint
         utils.get_call_with_authorization_header(session, endpoint, auth_token)
     else:
-        body = _add_query_params_to_url({}, query_params)
-        endpoint = "get-"+ slugify(endpoint)
+        body = _add_query_params_to_body({}, query_params)
+        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-get-"+ slugify(endpoint)
         print "Making a GET lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, body)
 
@@ -23,8 +23,8 @@ def trigger_post_event(endpoint, auth_token, query_params, body):
         print "Making a POST request on the following url - " + endpoint
         utils.post_call_with_authorization_header(session, endpoint, auth_token, body)
     else:
-        body = _add_query_params_to_url(body, query_params)
-        endpoint = "post-"+ slugify(endpoint)
+        body = _add_query_params_to_body(body, query_params)
+        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
         print "Making a POST lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, body)
 

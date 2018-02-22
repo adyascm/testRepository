@@ -24,6 +24,7 @@ provider:
   profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
   region: ${self:custom.stages.${self:provider.stage}.region}
   timeout: 300
+  versionFunctions: false
   environment:
     UI_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.uiHost}
     API_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.apiHost}
@@ -31,6 +32,7 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
+    DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
