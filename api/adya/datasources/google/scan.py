@@ -8,7 +8,7 @@ from adya.db import models
 from adya.common.constants import UserMemberType
 from sqlalchemy import and_
 from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
-from adya.common import utils
+from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
 
@@ -30,30 +30,34 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
         queryString = "'"+ user_email +"' in owners"
     while True:
         try:
-            results = drive_service.files().list(q=queryString, fields="files(id, name, mimeType, parents, "
-                            "permissions(id, emailAddress, role, displayName),"
+            results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
+                            "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
+                            "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
 
-            reosurcedata = results['files']
+            resourcedata = {}
+            resourcedata["resources"] = results['files'][0:50]
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
-            url = constants.SCAN_RESOURCES + "?domainId=" + domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + (user_email  if user_email else domain_id)
 
-            last_future = utils.post_call_with_authorization_header(session, url, auth_token, reosurcedata)
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
+            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
+            if file_count > 50:
+                resourcedata = {}
+                resourcedata["resources"] = results['files'][50:100]
+                messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
 
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    url = constants.SCAN_RESOURCES + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
+                    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'nextPageToken': next_page_token}
                     if user_email:
-                        url = url + "&userEmail=" + user_email
-                    utils.get_call_with_authorization_header(
-                        session, url, auth_token).result()
+                        query_params["userEmail"] = user_email
+                    messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -64,14 +68,12 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
             print ex
             break
-    if last_future:
-        last_future.result()
 
 
 ## processing resource data for fileIds
-def process_resource_data(auth_token, domain_id, datasource_id, user_email, resources):
+def process_resource_data(auth_token, domain_id, datasource_id, user_email, resourcedata):
     print "Initiating processing of drive resources for files using email: {}".format(user_email)
-
+    resources = resourcedata["resources"]
     resourceList = []
     session = FuturesSession()
     db_session = db_connection().get_session()
@@ -93,6 +95,14 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         resource["resource_size"] = resourcedata.get('size')
         resource["creation_time"] = resourcedata['createdTime'][:-1]
         resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
+        resource["web_content_link"] = resourcedata.get("webContentLink")
+        resource["web_view_link"] = resourcedata.get("webViewLink")
+        resource["icon_link"] = resourcedata.get("iconLink")
+        resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
+        resource["description"] = resourcedata.get("description")
+        if resourcedata.get("lastModifyingUser"):
+            resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
+        resource["last_modifying_user_email"] 
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
@@ -104,6 +114,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                         permission_type = constants.PermissionType.WRITE
                     email_address = permission.get('emailAddress')
                     display_name = permission.get('displayName')
+                    expiration_time = permission.get('expirationTime')
+                    is_deleted = permission.get('deleted')
                     if email_address:
                         resource_exposure_type = constants.ResourceExposureType.INTERNAL
                         if gutils.check_if_external_user(domain_id,email_address):
@@ -116,6 +128,8 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                                 externaluser["domain_id"] = domain_id
                                 externaluser["datasource_id"] = datasource_id
                                 externaluser["email"] = email_address
+                                externaluser["first_name"] = ""
+                                externaluser["last_name"] = ""
                                 if display_name and display_name != "":
                                     name_list = display_name.split(' ')
                                     externaluser["first_name"] = name_list[0]
@@ -136,6 +150,10 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                     resource_permission["email"] = email_address
                     resource_permission["permission_id"] = permission_id
                     resource_permission["permission_type"] = permission_type
+                    resource_permission["name"] = display_name
+                    if expiration_time:
+                        resource_permission["expiration_time"] = expiration_time[:-1]
+                    resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
         resource["exposure_type"] = resource_exposure_type
         resource_parent_data = resourcedata.get('parents')
@@ -278,6 +296,16 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["email"] = user_email
         user["first_name"] = names.get("givenName")
         user["last_name"] = names.get("familyName")
+        user["full_name"] = names.get("fullName")
+        user["is_admin"] = user_data.get("isAdmin")
+        user["creation_time"] = user_data["creationTime"][:-1]
+        user["is_suspended"] = user_data.get("suspended")
+        user["primary_email"] = user_data.get("primaryEmail")
+        user["user_id"] = user_data["id"]
+        user["photo_url"] = user_data.get("thumbnailPhotoUrl")
+        aliases = user_data.get("aliases")
+        if aliases:
+            user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
         if datasource.is_serviceaccount_enabled:
@@ -353,7 +381,6 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
     print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
     groups_db_insert_data_dic = []
-    groups_alias_db_insert_data_dic =[]
     session = FuturesSession()
 
     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
@@ -370,15 +397,10 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         group["name"] = group_data["name"]
         group["direct_members_count"] = group_data["directMembersCount"]
         group["description"] = group_data.get('description')
-        groups_db_insert_data_dic.append(group)
         group_aliases = group_data.get('aliases')
         if group_aliases:
-            for group_alias_data in group_aliases:
-                group_alias = {}
-                group_alias["datasource_id"] = datasource_id
-                group_alias["group_email"] = groupemail
-                group_alias["email"] = group_alias_data
-                groups_alias_db_insert_data_dic.append(group_alias)
+            group["aliases"] = ",".join(group_aliases)
+        groups_db_insert_data_dic.append(group)   
         group_url = url + "&groupKey=" + groupemail
         utils.get_call_with_authorization_header(
             session, group_url, auth_token).result()
@@ -386,8 +408,6 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     try:
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
-        if len(groups_alias_db_insert_data_dic)>0:
-            db_session.bulk_insert_mappings(models.GroupAlias,groups_alias_db_insert_data_dic)
         db_session.commit()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
@@ -437,14 +457,17 @@ def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id
     member_count = 0
     for group_data in group_member_data:
         member_count = member_count + 1
-        if group_data.get("type") == "CUSTOMER":
+        member_type = group_data.get("type")
+        member_id = group_data.get("id")
+        member_role = group_data.get("role")
+        if member_type == "CUSTOMER":
             db_session.query(models.DomainGroup).filter(
                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
                      models.DomainGroup.email == group_key)).update({'include_all_user': True})
             continue
         else:
             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
-                     "parent_email": group_key}
+                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
             groupsmembers_db_insert_data.append(group)
 
     try:

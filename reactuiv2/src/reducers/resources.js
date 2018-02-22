@@ -5,7 +5,8 @@ import {
     RESOURCES_TREE_SET_ROW_DATA,
     RESOURCES_TREE_CELL_EXPANDED,
     RESOURCES_ACTION_LOAD,
-    RESOURCES_ACTION_CANCEL
+    RESOURCES_ACTION_CANCEL,
+    RESOURCES_SET_FILE_SHARE_TYPE
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -93,6 +94,11 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 action: undefined
+            }
+        case RESOURCES_SET_FILE_SHARE_TYPE:
+            return {
+                ...state,
+                exposureType: action.payload
             }
         // case RESOURCES_TREE_CELL_EXPANDED:
         //     return {

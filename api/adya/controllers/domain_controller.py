@@ -1,16 +1,14 @@
 import json
 import datetime
 import uuid
-from adya.common import utils
+from adya.common import utils, messaging
 from threading import Thread
 import time
-
-from requests_futures.sessions import FuturesSession
 
 from adya.common import constants,utils
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,\
-                             DomainGroup,GroupAlias, DomainUser, ResourcePermission, Resource,ResourceParent
+                             DomainGroup, DomainUser, ResourcePermission, Resource,ResourceParent
 from adya.datasources.google import gutils
 
 
@@ -61,9 +59,9 @@ def create_datasource(auth_token, payload):
         print "Starting the scan"
         #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
         #thread.start()
-        query_params = "?domainId=" + datasource.domain_id + "&dataSourceId=" + datasource.datasource_id + "&serviceAccountEnabled=" + str(datasource.is_serviceaccount_enabled)
-        session = FuturesSession()
-        utils.post_call_with_authorization_header(session,url=constants.SCAN_START + query_params,auth_token=auth_token, json={}).result()
+        query_params = {"domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
+        messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
+
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
@@ -79,7 +77,6 @@ def delete_datasource(auth_token, datasource_id):
         try:
             db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
             db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-            db_session.query(GroupAlias).filter(GroupAlias.datasource_id == datasource_id).delete()
             db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
             db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
             db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
@@ -112,24 +109,11 @@ def create_domain(domain_id, domain_name):
 
 def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
     print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
-    query_params = "?domainId=" + domain_id + "&dataSourceId=" + datasource_id
-    session = FuturesSession()
-    future_users = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_USERS + query_params,auth_token=auth_token)
-    future_groups = utils.get_call_with_authorization_header(session,url=constants.SCAN_DOMAIN_GROUPS + query_params,auth_token=auth_token)
-    future_resources = None
+    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
+    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
     if is_service_account_enabled == 'False':
-        future_resources = utils.get_call_with_authorization_header(session,url=constants.SCAN_RESOURCES + query_params,auth_token=auth_token)
-        future_resources.result()
-    else:
-        future_users.result()
-        future_groups.result()
-    #future_users.result()
-    #print "Received the response for get users api call"
-    #future_groups.result()
-    #print "Received the response for get groups api call"
-    #if future_resources:
-    #    future_resources.result()
-    #    print "Received the response for get resources api call"
+        messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 
 
 

@@ -1,5 +1,6 @@
 from flask_restful import request
 import json
+import constants
 
 from adya.db.models import AlchemyEncoder
 
@@ -14,21 +15,23 @@ class RequestSession():
     def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[], headers = []):
         #Validate the flask request
         params_dict = {}
-        try:
-            ctx = self.req['requestContext']
-            self.isLocal = False
-        except Exception as ex:
-            self.isLocal = True
+        self.isLocal = True
 
         headers_dict = {}
-        if self.isLocal is False:
-            self.isLocal = False
-            headers_dict = self.req["headers"]
-            params_dict = self.req["queryStringParameters"]
-        #Validate the lambda event object
-        else:
+        if constants.DEPLOYMENT_ENV == "local":
             headers_dict = self.req.headers
             params_dict = self.req.args
+        else:
+            print "Dumping the event object - " + json.dumps(self.req)
+            self.isLocal = False
+            headers_dict = self.req
+            if "headers" in self.req:
+                headers_dict = self.req["headers"]
+            
+            params_dict = self.req
+            if "queryStringParameters" in self.req:
+                params_dict = self.req["queryStringParameters"]
+            
 
         self.auth_token = headers_dict.get("Authorization")
         if validateAuth and not self.auth_token:
@@ -58,10 +61,10 @@ class RequestSession():
         if self.isLocal:
             return self.req.get_json()
         else:
-            if(self.req["body"]):
+            if "body" in self.req:
                 return json.loads(self.req["body"])
             else:
-                return {}
+                return self.req
 
     def generate_error_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})

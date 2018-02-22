@@ -1,4 +1,5 @@
 import boto3
+import json
 from adya.common import constants
 from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
@@ -47,7 +48,8 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
             return False
 
     except Exception as ex:
-        print "Exception occurred while creating the cloudwatch event - " + str(ex)
+        print "Exception occurred while creating the cloudwatch event - " + \
+            str(ex)
         return False
 
 
@@ -72,7 +74,8 @@ def delete_cloudwatch_event(cloudwatch_event_name):
                 Name=cloudwatch_event_name
             )
     except Exception as ex:
-        print "Exception occurred while deleting the cloudwatch event - " + str(ex)
+        print "Exception occurred while deleting the cloudwatch event - " + \
+            str(ex)
         return False
 
 
@@ -101,3 +104,20 @@ def send_email(user_list, email_subject, rendered_html):
     except Exception as e:
         print e
         print "Exception occurred sending ", email_subject, " email to: ", user_list
+
+
+def invoke_lambda(function_name, auth_token, body):
+    try:
+        if not body:
+            body = {}
+        body['Authorization'] = auth_token
+        client = boto3.client('lambda')
+        response = client.invoke(
+            FunctionName=function_name,
+            InvocationType='Event',
+            LogType='None',
+            Payload=bytes(json.dumps(body))
+        )
+    except Exception as ex:
+        print "Exception occurred while invoking lambda function {}".format(function_name)
+        print ex

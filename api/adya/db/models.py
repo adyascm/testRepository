@@ -80,6 +80,14 @@ class DomainUser(Base):
     # because if we get External user from other domain provider that might not have Names
     first_name = Column(String(255))
     last_name = Column(String(255))
+    full_name = Column(String(255))
+    is_admin = Column(Boolean, default=False)
+    creation_time = Column(DateTime)
+    is_suspended = Column(Boolean,default=False)
+    primary_email = Column(String(320))
+    user_id = Column(String(260))
+    photo_url = Column(Text)
+    aliases = Column(Text)
     member_type = Column(String(6))
 
 
@@ -95,7 +103,12 @@ class Resource(Base):
     last_modified_time = Column(DateTime)
     creation_time = Column(DateTime)
     exposure_type = Column(String(10))
-
+    web_content_link = Column(Text)
+    web_view_link = Column(Text)
+    icon_link = Column(Text)
+    thumthumbnail_link = Column(Text)
+    description = Column(Text)
+    last_modifying_user_email = Column(String(255))
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
@@ -119,7 +132,9 @@ class ResourcePermission(Base):
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
-
+    name = Column(Text)
+    expiration_time = Column(DateTime)
+    is_deleted = Column(Boolean, default=False)
     def __repr__(self):
         return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
         
@@ -134,19 +149,17 @@ class DomainGroup(Base):
     direct_members_count = Column(Integer,default=0)
     description = Column(Text)
     include_all_user = Column(Boolean, default=False)
+    aliases = Column(Text)
 
-
-class GroupAlias(Base):
-    __tablename__ = 'group_alias'
-    datasource_id = Column(String(36))
-    group_email = Column(String(320), primary_key=True)
-    email = Column(String(320), primary_key=True)
 
 class DirectoryStructure(Base):
     __tablename__ = 'domain_directory_structure'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
     member_email = Column(String(320), primary_key=True)
+    member_id = Column(String(260), nullable=False)
+    member_role =  Column(String(10), nullable=False)
+    member_type =  Column(String(10), nullable=False)
     parent_email = Column(String(320), primary_key=True)
 
 
