@@ -13,24 +13,40 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class AppSearch extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: false,
+      value: '',
+      results: []
+
+    }
+  }
+
     componentWillMount() {
-        
+
         this.resetComponent(this.props.common.currentView)
     }
 
     resultRenderer = (r) => {
-        return <Link to={this.state.currentView || "/resources"}>{r.resource_name} </Link>
+        return <Link to={this.props.common.currentView || "/resources"}>{r.resource_name} </Link>
     }
 
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
-    handleResultSelect = (e, { result }) => this.setState({
-
-    })
+    handleResultSelect = (e, { result }) => {
+      console.log("search result : ", result)
+      var resultset = [];
+      resultset.push(result)
+      this.setState({
+            results: resultset
+      })
+    }
 
     handleSearchChange = (e, { value }) => {
         this.setState({ isLoading: true, value })
-        
+
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
             console.log(this.props.common.currentView);
@@ -72,6 +88,7 @@ class AppSearch extends Component {
 
     render() {
         const { isLoading, value, results } = this.state
+        console.log();
 
         return (
             <Search aligned="left"
