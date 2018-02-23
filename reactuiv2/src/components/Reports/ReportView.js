@@ -18,7 +18,10 @@ const ReportView = props => {
                   </Card.Header>
                   <Card.Meta>
                       Created at <strong>{reportDetail.creation_time}</strong>
-
+                  </Card.Meta>
+                  <Card.Meta>
+                       Last run <strong>{reportDetail.last_trigger_time === ""?
+                         'never run' : reportDetail.last_trigger_time}</strong>
                   </Card.Meta>
                   <Card.Description>
                       {reportDetail.frequency}
