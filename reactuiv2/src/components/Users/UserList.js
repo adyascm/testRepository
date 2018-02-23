@@ -76,6 +76,14 @@ class UserList extends Component {
             showOnlyExternal: nextProps.showOnlyExternal
         })
     }
+
+    shouldComponentUpdate(nextProps,nextState) {
+        if (!nextProps.userDetailsViewActive)
+            return true
+        else 
+            return false
+    }
+
     render() {
         if (this.state.rows) {
             var userCards = this.state.rows.map(row => {
@@ -86,7 +94,7 @@ class UserList extends Component {
                     image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{row.name.charAt(0)}</Label></Image>
                 }
                 return ((
-                    <Card user={row} onClick={this.onCardClicked.bind(this)}>
+                    <Card user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':''}>
                         <Card.Content>
                             {image}
 

@@ -72,10 +72,13 @@ class Users extends Component {
       height: "100%",
       textAlign: "left"
     };
+
     var gridWidth = 16;
+    
     if (this.props.users.selectedUserItem) {
       gridWidth = 4;
     }
+
     if (this.props.isLoading) {
       return (
         <Container style={containerStyle}>
