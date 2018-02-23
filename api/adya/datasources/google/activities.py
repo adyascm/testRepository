@@ -6,28 +6,30 @@ from sqlalchemy import and_
 from datetime import datetime, timedelta
 
 
-def get_activities_for_user(domain_id, datasource_id, user_email):
+def get_activities_for_user(domain_id, datasource_id, user_email, start_time):
     try:
         reports_service = gutils.get_gdrive_reports_service(domain_id=domain_id)
 
         if reports_service:
             print "Got reports service!"
 
-
         db_session = db_connection().get_session()
         datasource_name = db_session.query(DataSource).filter(and_(DataSource.domain_id == domain_id,
-                                                               DataSource.datasource_id == datasource_id)).first().display_name
+                                                                   DataSource.datasource_id == datasource_id)).first().display_name
 
-        start_time = datetime.today() - timedelta(days=7)
+        if not start_time:
+            start_time = datetime.today() - timedelta(days=7)
+
         start_time_string = start_time.isoformat("T") + "Z"
 
         results = reports_service.activities().list(userKey=user_email, applicationName='drive',
-                                                startTime=start_time_string).execute()
+                                                    startTime=start_time_string).execute()
         payload = process_user_activity(domain_id, datasource_name, user_email, results)
         while results.get('nextPageToken') is not None:
             reports_page_token = results.get('nextPageToken')
             results = reports_service.activities().list(userKey=user_email, applicationName='drive',
-                                    startTime=start_time_string, page_token=reports_page_token).execute()
+                                                        startTime=start_time_string,
+                                                        page_token=reports_page_token).execute()
             payload += process_user_activity(domain_id, datasource_name, user_email, results)
 
         return payload[:100]
@@ -47,7 +49,10 @@ def process_user_activity(domain_id, datasource_name, user_email, activities):
 
             for activity in activity_log_list:
                 activity_events = activity['events']
-                ip_address = activity['ipAddress']
+
+                ip_address = "unknown"
+                if "ipAddress" in activity:
+                    ip_address = activity['ipAddress']
 
                 activity_timestamp = activity['id']['time']
                 for event in activity_events:
@@ -62,13 +67,19 @@ def process_user_activity(domain_id, datasource_name, user_email, activities):
 
                             for entries in activity_events_parameters:
                                 if entries['name'] == 'doc_title':
-                                    #resource_id = entries['value']
-                                    resource_name = entries['value']
+
+                                    # resource_id = entries['value']
+                                    resource_name = entries[
+                                        'value']  # db_session.query(Resource).filter(and_(Resource.domain_id == domain_id,
+                                    # Resource.resource_id == resource_id)).first().resource_name
                                 elif entries['name'] == 'doc_type':
                                     resource_type = entries['value']
 
                             if resource_name is not None and resource_type is not None:
-                                processed_activities.append([activity_timestamp, event_name, datasource_name, resource_name, resource_type, ip_address])
+                                processed_activities.append(
+                                    [activity_timestamp, event_name, datasource_name, resource_name, resource_type,
+                                     ip_address])
+
         return processed_activities
 
     except Exception as e:

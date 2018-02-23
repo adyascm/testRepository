@@ -4,6 +4,8 @@ import uuid
 
 from flask import request
 
+from adya.controllers import domain_controller
+from adya.datasources.google import activities
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission
 from adya.db.connection import db_connection
 from adya.common import utils, constants, request_session
@@ -30,7 +32,8 @@ def get_widget_data(auth_token, widget_id):
             and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_type == 'folder')).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
-        data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(Resource.exposure_type != constants.ResourceExposureType.INTERNAL).group_by(
+        data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
+            Resource.exposure_type != constants.ResourceExposureType.INTERNAL).group_by(
             Resource.exposure_type).all()
     elif widget_id == 'sharedDocsList':
         data = {}
@@ -109,7 +112,7 @@ def get_reports(auth_token):
             "report_id": report.report_id,
             "name": report.name,
             "description": report.description,
-            "frequency": report.frequency[5:len(report.frequency)-1],
+            "frequency": report.frequency[5:len(report.frequency) - 1],
             "receivers": report.receivers,
             "creation_time": report.creation_time.strftime('%m/%d/%Y'),
             "last_trigger_time": last_trigger_time,
@@ -136,20 +139,25 @@ def delete_report(auth_token, report_id):
     return existing_report
 
 
-def run_report(auth_token, report_id):
+def run_report(domain_id, datasource_id, auth_token, report_id):
     if not auth_token:
         return None
     session = db_connection().get_session()
 
-    get_report_info = session.query(Report.config).filter(and_(Report.domain_id == LoginUser.domain_id,
-                                                               Report.report_id == report_id)). \
+    get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description).filter(
+        and_(Report.domain_id == LoginUser.domain_id,
+             Report.report_id == report_id)). \
         filter(LoginUser.auth_token == auth_token).one()
 
     config_data = json.loads(get_report_info[0])
+    email_list = get_report_info[1]
+    last_run_time = get_report_info[2]
+    report_desc = get_report_info[3]
+
     report_type = config_data.get('report_type')
     selected_entity = config_data.get('selected_entity')
     selected_entity_type = config_data.get('selected_entity_type')
-    response_data = {}
+    response_data = []
     if report_type == "Permission":
         if selected_entity_type == "group":
             query_string = ResourcePermission.email == selected_entity
@@ -159,12 +167,12 @@ def run_report(auth_token, report_id):
         get_perms_report = session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
                                                                                    LoginUser.domain_id, query_string,
                                                                                    Resource.resource_id
-                                                                                   == ResourcePermission.resource_id)).filter(
-                                                                                                LoginUser.auth_token
-                                                                                                == auth_token).all()
+                                                                                   == ResourcePermission.resource_id)). \
+            filter(LoginUser.auth_token
+                   == auth_token).all()
 
         for perm_Report in get_perms_report:
-            response_data[perm_Report.Resource.resource_id] = {
+            data_map = {
                 "resource_name": perm_Report.Resource.resource_name,
                 "resource_type": perm_Report.Resource.resource_type,
                 "resource_size": perm_Report.Resource.resource_size,
@@ -176,12 +184,26 @@ def run_report(auth_token, report_id):
                 "permission_type": perm_Report.ResourcePermission.permission_type
             }
 
-        return response_data
+            response_data.append(data_map)
 
+    elif report_type == "Activity":
+        if selected_entity_type == "group":
+            get_activity_report = activities.get_activities_for_user(domain_id, datasource_id, selected_entity,
+                                                                     last_run_time)
+            for datalist in get_activity_report:
+                data_map = {
+                    "date": datalist[0],
+                    "operation": datalist[1],
+                    "datasource": datalist[2],
+                    "resource": datalist[3],
+                    "type": datalist[4],
+                    "ip_address": datalist[5]
 
-        # elif report_type == "Activity":
-        #
-        #     get_activity_report = session.query(Activity)
+                }
+
+                response_data.append(data_map)
+
+    return response_data, email_list, report_type, report_desc
 
 
 def update_report(auth_token, payload):
@@ -198,3 +220,42 @@ def update_report(auth_token, payload):
         return "successful update "
     else:
         return None
+
+
+def generate_csv_report(auth_token, report_id):
+    data_source = domain_controller.get_datasource(auth_token, None)
+
+    domain_id = data_source[0].domain_id
+    datasource_id = data_source[0].datasource_id
+
+    report_data, email_list, report_type, report_desc = run_report(domain_id, datasource_id, auth_token, report_id)
+    csv_records = ""
+
+    if report_type == "Permission":
+
+        perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
+                           "File Exposure", "User Email", "Permission"]
+
+        perm_report_data_header = ["resource_type", "resource_name", "resource_size", "resource_owner_id",
+                                   "last_modified_time", "creation_time",
+                                   "exposure_type", "user_email", "permission_type"]
+
+        csv_records += ",".join(perm_csv_display_header) + "\n"
+        for data in report_data:
+            for header in perm_report_data_header:
+                csv_records += ",".join(data[header])
+            csv_records += "\n"
+
+    elif report_type == "Activity":
+
+        activity_csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
+
+        activity_report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
+
+        csv_records += ",".join(activity_csv_display_header) + "\n"
+        for data in report_data:
+            for header in activity_report_data_header:
+                csv_records += ",".join(data[header])
+            csv_records += "\n"
+
+    return csv_records, email_list, report_desc

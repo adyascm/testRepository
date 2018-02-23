@@ -7,97 +7,100 @@ from sqlalchemy import and_
 from adya.common import constants
 import requests
 import uuid
+import datetime
 
-def subscribe(domain_id, auth_token):
+def subscribe(domain_id, datasource_id, user_email):
 
     try:
         db_session = db_connection().get_session()
-        existing_subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.domain_id == domain_id,PushNotificationsSubscription.channel_id == auth_token)).first()
-        if existing_subscription:
-            return
-        drive_service = gutils.get_gdrive_service(domain_id=domain_id)
+        existing_subscriptions_count = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.domain_id == domain_id,PushNotificationsSubscription.datasource_id == datasource_id)).count()
+        subscription_exist = False
+        if existing_subscriptions_count > 0:
+            subscription_exist = True
+            if user_email:
+                existing_subscription_count_for_user = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.domain_id == domain_id,PushNotificationsSubscription.datasource_id == datasource_id, PushNotificationsSubscription.channel_id == user_email)).count()
+                subscription_exist = existing_subscription_count_for_user > 0
 
-        if drive_service:
-            print "Got drive service!"
+        if subscription_exist:
+            print "Push notification subscription already exist for domain_id: {} datasource_id: {} user_email: {}".format(domain_id, datasource_id, user_email)
+            return
+        
+        drive_service = gutils.get_gdrive_service(domain_id=domain_id, user_email=user_email)
 
         root_file = drive_service.files().get(fileId='root').execute()
         print("Subscribe : Got Drive root ", root_file)
         root_file_id = root_file['id']
 
-        channel_id = str(uuid.uuid4())
-
-        if auth_token:
-            channel_id = auth_token
-
+        channel_id = datasource_id
+        if user_email:
+            channel_id = user_email
 
         body = {
             "id": channel_id,
             "type": "web_hook",
             "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-            "token": domain_id,
+            "token": datasource_id,
             "payload": "true",
             "params": {"ttl": 1800}
 
         }
-
+        print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} user_email: {}".format(domain_id, datasource_id, user_email)
         response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
-        print response
+        print "Response for push notifications subscription request for domain_id: {} datasource_id: {} user_email: {} - {}".format(domain_id, datasource_id, user_email, response)
+
 
         response = drive_service.changes().getStartPageToken().execute()
         print 'Start token: %s' % response.get('startPageToken')
-        page_token = response.get('startPageToken')
 
         push_notifications_subscription = PushNotificationsSubscription()
-
         push_notifications_subscription.domain_id = domain_id
+        push_notifications_subscription.datasource_id = datasource_id
         push_notifications_subscription.channel_id = channel_id
-        push_notifications_subscription.page_token = page_token
-
+        push_notifications_subscription.page_token = response.get('startPageToken')
+        push_notifications_subscription.in_progress = 0
+        push_notifications_subscription.stale = 0
 
         db_session.add(push_notifications_subscription)
         db_session.commit()
     except Exception as e:
-        print "Exception occurred while requesting push notifications: ", e
+        print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} user_email: {} - {}".format(domain_id, datasource_id, user_email, e)
 
-
-
-def process_notifications(domain_id, channel_id):
+def process_notifications(datasource_id, channel_id):
     try:
-        drive_service = gutils.get_gdrive_service(domain_id=domain_id)
-
-        if drive_service:
-            print "Got drive service!"
-
-        datasource = domain_controller.get_datasource(channel_id, '')
-
-        print datasource
-        datasource_id = datasource[0].datasource_id
-
-        if datasource_id:
-            print "Got datasource_id: "
+        datasource = domain_controller.get_datasource(None, datasource_id)
+        user_email = None
+        if datasource.datasource_id != channel_id:
+            user_email = channel_id
+        drive_service = gutils.get_gdrive_service(datasource.domain_id, user_email)
 
         db_session = db_connection().get_session()
+        subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
+                                                               PushNotificationsSubscription.datasource_id == datasource_id)).first()
+        if not subscription:
+            print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(datasource_id, channel_id)
 
-        in_progress = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                               PushNotificationsSubscription.domain_id == domain_id)).first().in_progress
-
-        if in_progress == 1:
-            pns = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                               PushNotificationsSubscription.domain_id == domain_id)) \
-                                                                .first()
-            pns.stale = 1
-
-            db_session.commit()
+        if subscription.in_progress == 1:
+            if subscription.stale == 0:
+                subscription.stale = 1
+                db_session.commit()
+                print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(datasource_id, channel_id)
+            else:
+                print "Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(datasource_id, channel_id)
 
             return
 
-
-        page_token = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                               PushNotificationsSubscription.domain_id == domain_id)).first().page_token
-
+        should_mark_in_progress = True
+        page_token = subscription.page_token
         while page_token is not None:
             response = drive_service.changes().list(pageToken=page_token,
                                               spaces='drive').execute()
+            #Mark Inprogress
+            if should_mark_in_progress:
+                db_session.refresh(subscription)
+                subscription.in_progress = 1
+                db_session.commit()
+                should_mark_in_progress = False
+
             print response
             for change in response.get('changes'):
                 # Process change
@@ -105,46 +108,30 @@ def process_notifications(domain_id, channel_id):
                 print 'Change found for file: %s' % fileId
                 print change
 
-                handle_change(drive_service, domain_id, datasource_id, fileId)
+                handle_change(drive_service, datasource.domain_id, datasource.datasource_id, fileId)
 
             if 'newStartPageToken' in response:
                 # Last page, save this token for the next polling interval
-                saved_start_page_token = response.get('newStartPageToken')
-
-                pns = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                    PushNotificationsSubscription.domain_id == domain_id)).first()
-                pns.page_token = saved_start_page_token
-                db_session.commit()
-
                 page_token = response.get('nextPageToken')
 
-        pns = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                               PushNotificationsSubscription.domain_id == domain_id)).first()
-        pns.in_progress = 0
+        db_session.refresh(subscription)
+        if page_token != subscription.page_token:
+            subscription.page_token = page_token
+        subscription.last_accessed = datetime.datetime.utcnow().isoformat()
+        subscription.in_progress = 0
         db_session.commit()
 
-
-        stale = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                        PushNotificationsSubscription.domain_id == domain_id)).first().stale
-
-        if stale == 1:
-            pns = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                        PushNotificationsSubscription.domain_id == domain_id)).first()
-            pns.stale = 0
+        db_session.refresh(subscription)
+        if subscription.stale == 1:
+            subscription.stale = 0
             db_session.commit()
-
-
             response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                    headers={"X-Goog-Channel-Token": domain_id,
+                                    headers={"X-Goog-Channel-Token": datasource_id,
                                              "X-Goog-Channel-ID": channel_id})
             print response
 
-
-
-
     except Exception as e:
-        print "Exception occurred: ", e
-
+        print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(datasource_id, channel_id, e)
 
 def handle_change(drive_service, domain_id, datasource_id, file_id):
     immediate_parent = ""

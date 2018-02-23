@@ -3,7 +3,7 @@ import uuid
 from flask_restful import Resource, request
 
 from adya.common import aws_utils
-from adya.controllers import reports_controller
+from adya.controllers import reports_controller, domain_controller
 from adya.common.request_session import RequestSession
 
 
@@ -70,6 +70,16 @@ class RunReport(Resource):
         if req_error:
             return req_error
 
-        run_report_data = reports_controller.run_report(req_session.get_auth_token(),
+        auth_token = req_session.get_auth_token()
+        data_source = domain_controller.get_datasource(auth_token, None)
+
+        domain_id = data_source[0].domain_id
+        datasource_id = data_source[0].datasource_id
+
+        run_report_data, email_list, report_type, report_desc = reports_controller.run_report(domain_id, datasource_id, auth_token,
                                                         req_session.get_req_param('reportId'))
+
+        print run_report_data
+
         return req_session.generate_sqlalchemy_response(200, run_report_data)
+
