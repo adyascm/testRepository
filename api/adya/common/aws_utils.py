@@ -1,3 +1,8 @@
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from mimify import CHARSET
+
 import boto3
 import json
 from adya.common import constants
@@ -106,6 +111,30 @@ def send_email(user_list, email_subject, rendered_html):
         print "Exception occurred sending ", email_subject, " email to: ", user_list
 
 
+def send_email_with_attachment(user_list, csv_data, report_desc):
+    try:
+        msg = MIMEMultipart('mixed')
+        msg['Subject'] = report_desc
+        msg['From'] = "service@adya.io"
+        att = MIMEApplication(csv_data)
+        att.add_header('Content-Disposition', 'attachment', filename="report.csv")
+        msg.attach(att)
+
+        session = boto3.Session()
+        ses_client = session.client('ses')
+        ses_client.send_raw_email(
+                Source='service@adya.io',
+                Destinations= user_list,
+                RawMessage={
+                    'Data': msg.as_string()
+                },
+        )
+
+    except Exception as e:
+        print e
+        print "Exception occurred sending  email to: ", user_list
+
+
 def invoke_lambda(function_name, auth_token, body):
     try:
         if not body:
@@ -121,3 +150,4 @@ def invoke_lambda(function_name, auth_token, body):
     except Exception as ex:
         print "Exception occurred while invoking lambda function {}".format(function_name)
         print ex
+

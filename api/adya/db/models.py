@@ -180,6 +180,7 @@ class Report(Base):
 class PushNotificationsSubscription(Base):
     __tablename__ = 'push_notifications_subscription'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
     channel_id = Column(String(100), primary_key=True)
     page_token = Column(Integer)
     in_progress = Column(Boolean)

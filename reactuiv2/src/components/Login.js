@@ -38,7 +38,10 @@ class Login extends Component {
             this.props.onLoginStart()
             authenticate("login_scope").then(data => {
                 this.props.onSignInComplete(data)
-            }).catch(({ errors }) => { this.props.onSignInError(errors) });
+            }).catch(({ errors }) => { 
+                console.log("login error : ", errors['Failed'])
+                this.props.onSignInError(errors) 
+            });
         };
     }
     componentWillUnmount() {
@@ -62,8 +65,8 @@ class Login extends Component {
                                     <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
                                 </Button.Group>
+                                <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p>
                             </Segment>
-
                         </Grid.Column>
                     </Grid>
                 </div>

@@ -1,4 +1,4 @@
-from adya.controllers import reports_controller, domainDataController, resourceController
+from adya.controllers import reports_controller, domainDataController, resourceController, domain_controller
 from adya.common import aws_utils
 from adya.common.request_session import RequestSession
 
@@ -110,7 +110,28 @@ def run_scheduled_report(event, context):
     if req_error:
         return req_error
 
-    run_report_data = reports_controller.run_report(req_session.get_auth_token(),
-                                                    req_session.get_req_param('reportId'))
+    auth_token = req_session.get_auth_token()
+    data_source = domain_controller.get_datasource(auth_token, None)
+
+    domain_id = data_source[0].domain_id
+    datasource_id = data_source[0].datasource_id
+
+    run_report_data, email_list, report_type, report_desc = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
+                                                                req_session.get_req_param('reportId'))
     return req_session.generate_sqlalchemy_response(200, run_report_data)
 
+
+def execute_cron_report(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True, ["reportId"])
+    if req_error:
+        return req_error
+
+    if req_error:
+        return req_error
+
+    csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_auth_token(), req_session.get_req_param('reportId'))
+
+    aws_utils.send_email_with_attachment(email_list, csv_records, report_desc)
+
+    return req_session.generate_response(200)

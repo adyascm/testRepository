@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 // import '../../App.css';
 import { Route, Switch, Redirect } from 'react-router-dom';
-import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader} from 'semantic-ui-react'
+import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader, Dimmer} from 'semantic-ui-react'
 import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
@@ -53,7 +53,8 @@ class Reports extends Component {
       processedReportsData: {},
       processreport: false,
       formType: '',
-      reportDataForReportId: {}
+      reportDataForReportId: {},
+      reportType: ''
     }
   }
 
@@ -90,13 +91,14 @@ class Reports extends Component {
     });
   }
 
-  runReport = (reportId, name) => ev => {
+  runReport = (reportId, name, reportType) => ev => {
 
    this.props.runScheduledReport(reportId)
    this.setState({
      showModal: true,
      isRunreport: true,
-     runReportName: name
+     runReportName: name,
+     reportType: reportType
    })
 
   }
@@ -123,7 +125,6 @@ class Reports extends Component {
 
   render() {
 
-
     if (this.props.currentUser){
       return(
         <div>
@@ -131,16 +132,14 @@ class Reports extends Component {
             reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
           {this.state.showModal === true?
             this.state.isRunreport ?
-                this.props.runReportData?
+                this.props.runReportData ?
                     <Modal size='large' className="scrolling" open={this.state.showModal} >
                      <Modal.Header>{this.state.runReportName}</Modal.Header>
                       <Modal.Content>
-                        <ReportsGrid reportsData={this.props.runReportData}/>
+                        <ReportsGrid reportsData={this.props.runReportData}
+                          reportType={this.state.reportType} runReportName={this.state.runReportName}/>
                       </Modal.Content>
                       <Modal.Actions>
-                        <Button basic color='green' >
-                         Export to csv
-                        </Button>
                         <Button basic color='red' onClick={this.handleClose}>
                           <Icon name='remove' /> Close
                         </Button>
@@ -164,7 +163,11 @@ class Reports extends Component {
                          </Modal.Actions>
                         </Modal>
                     :
-                        <Loader size='mini' active inline />
+
+                      <Dimmer active inverted>
+                        <Loader inverted content='Loading' />
+                      </Dimmer>
+
               :
 
                 <ReportForm showModal={this.state.showModal} close={this.handleClose}

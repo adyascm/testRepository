@@ -30,20 +30,14 @@ export default (state = {}, action) => {
                 ...state
               }
         case RUN_SCHEDULED_REPORT:
-            let keys = Object.keys(action.payload)
-            let rows = []
-
-            for (let index=0; index<keys.length; index++) {
-                rows.push(action.payload[keys[index]])
-            }
              return{
                ...state,
-               runReportData: rows
+               runReportData: action.payload
              }
         case DELETE_OLD_SCHEDULED_REPORT:
              return{
                ...state,
-               runReportData: [],
+               runReportData: undefined,
                scheduledReport: undefined
 
 
