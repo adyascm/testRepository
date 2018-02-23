@@ -26,8 +26,8 @@ def get_user_group_tree(auth_token):
             parent_email = parent_child_data.parent_email
             child_email = parent_child_data.member_email
             if child_email in users_groups:
-                users_groups[child_email]["parents"].append(parent_email)
-                users_groups[parent_email]["children"].append(child_email)
+                users_groups[child_email].parents.append(parent_email)
+                users_groups[parent_email].children.append(child_email)
         #userGrouptrees[datasource_id] = users_groups
     return users_groups
 
@@ -36,12 +36,14 @@ def getUsersData(users_groups,db_session, domain_id, datasource_id):
     usersData = db_session.query(DomainUser)\
             .filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).all()
     for userdata in usersData:
-        users_groups[userdata.email] ={"firstName":userdata.first_name,"lastName":userdata.last_name,"member_type":userdata.member_type,"parents":[]}
+        userdata.parents = []
+        users_groups[userdata.email] = userdata
 
 
 def getGroupData(users_groups,db_session, domain_id, datasource_id):
     groupsData = db_session.query(DomainGroup) \
         .filter(and_(DomainGroup.domain_id == domain_id, DomainGroup.datasource_id == datasource_id)).all()
     for groupdata in groupsData:
-        users_groups[groupdata.email] = {"name": groupdata.name, "includeAllUsers": groupdata.include_all_user,
-                                   "parents": [], "children": []}
+        groupdata.parents = []
+        groupdata.children = []
+        users_groups[groupdata.email] = groupdata

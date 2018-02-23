@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent';
-import GroupSearch  from './GroupSearch';
-import ResourceSearch  from './ResourceSearch';
+import GroupSearch from './GroupSearch';
+import ResourceSearch from './ResourceSearch';
 
 
 const mapStateToProps = state => ({
@@ -17,7 +17,6 @@ const mapDispatchToProps = dispatch => ({
 
 class AppSearch extends Component {
 
-
     componentWillMount() {
 
         this.resetComponent(this.props.common.currentView)
@@ -25,18 +24,12 @@ class AppSearch extends Component {
 
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
-
     render() {
-
-        console.log();
-        return(
-          <div>
-          {this.props.common.currentView === "/users" ?   <GroupSearch /> : <ResourceSearch />}
-
-          </div>
+        return (
+            <div style={{textAlign: 'left'}}>
+                {this.props.common.currentView === "/users" ? <GroupSearch /> : <ResourceSearch />}
+            </div>
         )
-
-
     }
 }
 

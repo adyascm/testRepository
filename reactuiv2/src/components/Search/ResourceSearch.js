@@ -14,35 +14,35 @@ const mapDispatchToProps = dispatch => ({
 
 class ResourceSearch extends Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      value: '',
-      results: []
+    constructor(props) {
+        super(props);
+        this.state = {
+            isLoading: false,
+            value: '',
+            results: []
 
+        }
     }
-  }
 
-  resultRenderer = (r) => {
-      return <div>{r.resource_name}</div>
-  }
+    resultRenderer = (r) => {
+        return <div>{r.resource_name}</div>
+    }
 
 
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-      console.log("search result : ", result)
-      if(this.props.onChangeReportInput){
-        this.props.onChangeReportInput("selected_entity", result.resource_id)
+        console.log("search result : ", result)
+        if (this.props.onChangeReportInput) {
+            this.props.onChangeReportInput("selected_entity", result.resource_id)
 
 
 
-      }
+        }
 
-      this.setState({
-              value: result.resource_name
-      })
+        this.setState({
+            value: result.resource_name
+        })
     }
 
     handleSearchChange = (e, { value }) => {
@@ -65,21 +65,21 @@ class ResourceSearch extends Component {
                     results: [],
                 })
             });
-            }, 1000)
-          }
+        }, 1000)
+    }
 
     render() {
         const { isLoading, value, results } = this.state
 
         return (
-          <Search aligned="left"
-              loading={isLoading}
-              onResultSelect={this.handleResultSelect}
-              onSearchChange={this.handleSearchChange.bind(this)}
-              results={results}
-              value={value}
-              resultRenderer={this.resultRenderer}
-              {...this.props} />
+            <Search aligned="left"
+                loading={isLoading}
+                onResultSelect={this.handleResultSelect}
+                onSearchChange={this.handleSearchChange.bind(this)}
+                results={results}
+                value={value}
+                resultRenderer={this.resultRenderer}
+                {...this.props} />
         )
     }
 }

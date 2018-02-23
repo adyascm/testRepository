@@ -19,6 +19,8 @@ const DataSourceItem = props => {
 
     if (datasource) {
         var percent = ((datasource.processed_file_count/datasource.total_file_count)*100)
+        if(datasource.total_file_count == 0)
+            percent = 0;
         var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         return (
             <Card fluid>
@@ -41,7 +43,7 @@ const DataSourceItem = props => {
                 <Card.Content extra>
                     <div className='ui buttons'>
                         {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
-                        <Button basic color='red' onClick={deleteDatasource(datasource)}>Delete</Button>
+                        <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
                     </div>
                 </Card.Content>
             </Card>

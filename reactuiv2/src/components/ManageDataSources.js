@@ -12,6 +12,7 @@ import {
   API_ROOT,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
+  DELETE_DATASOURCE_START,
   DASHBOARD_PAGE_LOADED,
   DASHBOARD_PAGE_UNLOADED,
   SCAN_UPDATE_RECEIVED
@@ -30,6 +31,9 @@ const mapDispatchToProps = dispatch => ({
   addDataSource: (name) => {
     dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name }) })
   },
+  onDeleteDataSource: (datasource) => {
+    dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
+  },
   onPushNotification: (actionType, msg) => {
     dispatch({ type: actionType, payload: msg })
   }
@@ -44,7 +48,7 @@ class ManageDataSources extends Component {
       authenticate("drive_scan_scope").then(data => this.props.addDataSource("Testing")).catch(({ errors }) => { this.props.onSignInError(errors) });
     };
     this.deleteDataSource = (datasource) => {
-      datasource.isDeleting = true;
+      this.props.onDeleteDataSource(datasource);
       agent.Setting.deleteDataSource(datasource).then(res => {
         this.props.setDataSources(agent.Setting.getDataSources())
       });
