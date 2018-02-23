@@ -29,7 +29,7 @@ const ReportView = props => {
                   <div className='ui three buttons'>
                       <Button basic color='red' onClick={props.deleteReport(reportDetail.report_id)}>Delete</Button>
                       <Button basic color='green' onClick={props.runReport(reportDetail.report_id,
-                           reportDetail.name)}>Run Report</Button>
+                           reportDetail.name, reportDetail.report_type)}>Run Report</Button>
                          <Button basic color='blue' onClick={props.modifyReport(reportDetail.report_id)}> Modify </Button>
 
                   </div>
