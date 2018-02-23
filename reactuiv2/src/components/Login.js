@@ -9,6 +9,7 @@ import {
     UPDATE_FIELD_AUTH,
     LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
     LOGIN_PAGE_UNLOADED,
+    LOGIN_START,
     API_ROOT
 } from '../constants/actionTypes';
 
@@ -23,6 +24,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: LOGIN_ERROR, error: errors }),
     onSignInComplete: (data) =>
         dispatch({ type: LOGIN_SUCCESS, ...data }),
+    onLoginStart: () => 
+        dispatch({ type: LOGIN_START }),
     onUnload: () =>
         dispatch({ type: LOGIN_PAGE_UNLOADED })
 });
@@ -32,7 +35,13 @@ class Login extends Component {
         super();
         this.signInGoogle = () => ev => {
             ev.preventDefault();
-            authenticate("login_scope").then(data => this.props.onSignInComplete(data)).catch(({ errors }) => { this.props.onSignInError(errors) });
+            this.props.onLoginStart()
+            authenticate("login_scope").then(data => {
+                this.props.onSignInComplete(data)
+            }).catch(({ errors }) => { 
+                console.log("login error : ", errors['Failed'])
+                this.props.onSignInError(errors) 
+            });
         };
     }
     componentWillUnmount() {
@@ -52,12 +61,12 @@ class Login extends Component {
                             </Header>
                             <Segment >
                                 <Button.Group>
-                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} />
+                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress?true:false} />
                                     <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
                                 </Button.Group>
+                                <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p>
                             </Segment>
-
                         </Grid.Column>
                     </Grid>
                 </div>

@@ -4,7 +4,8 @@ import {
     LOGIN_SUCCESS,
     LOGIN_ERROR,
     LOGIN_PAGE_UNLOADED,
-    ASYNC_START
+    ASYNC_START,
+    LOGIN_START
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -14,11 +15,16 @@ export default (state = {}, action) => {
                 ...state,
                 errors: action.error ? {"": action.payload} : null
             };
+        case LOGIN_START:
+            return {
+                ...state,
+                inProgress: true,
+                errors: null
+            }
         case LOGIN_SUCCESS:
         case LOGIN:
             return {
-                ...state,
-                inProgress: true
+                ...state
             };
         case LOGIN_SUCCESS:
         case LOGIN_ERROR:

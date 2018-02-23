@@ -39,6 +39,7 @@ export const LOGIN = 'LOGIN';
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const LOGIN_ERROR = 'LOGIN_ERROR';
 export const LOGOUT = 'LOGOUT';
+export const LOGIN_START = 'LOGIN_START';
 
 export const LOGIN_PAGE_UNLOADED = 'LOGIN_PAGE_UNLOADED';
 
@@ -47,6 +48,7 @@ export const ASYNC_END = 'ASYNC_END';
 
 export const SET_DATASOURCES = 'SET_DATASOURCES';
 export const CREATE_DATASOURCE = 'CREATE_DATASOURCE';
+export const DELETE_DATASOURCE_START = 'DELETE_DATASOURCE';
 export const SCAN_UPDATE_RECEIVED = 'SCAN_UPDATE_RECEIVED';
 
 export const REPORTS_CRON_EXP = 'REPORTS_CRON_EXP';

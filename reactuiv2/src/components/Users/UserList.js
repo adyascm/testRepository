@@ -52,7 +52,7 @@ class UserList extends Component {
                 rowItem.isExpanded = rowItem.isExpanded || false
                 if (!rowItem.name) {
                     rowItem.type = rowItem.type || "user";
-                    rowItem.name = rowItem.firstName + " " + rowItem.lastName;
+                    rowItem.name = rowItem.first_name + " " + rowItem.last_name;
                 }
                 else
                     rowItem.type = rowItem.type || "group";
@@ -70,20 +70,33 @@ class UserList extends Component {
             })
         }
     }
-    componentWillReceiveProps(nextProps)
-    {
+    componentWillReceiveProps(nextProps) {
         this.setState({
             rows: undefined,
             showOnlyExternal: nextProps.showOnlyExternal
         })
     }
+
+    shouldComponentUpdate(nextProps,nextState) {
+        if (!nextProps.userDetailsViewActive)
+            return true
+        else 
+            return false
+    }
+
     render() {
         if (this.state.rows) {
             var userCards = this.state.rows.map(row => {
+                var image = null;
+                if (row.photo_url) {
+                    image = <Image inline floated='right' size='mini' src={row.photo_url} circular></Image>
+                } else {
+                    image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{row.name.charAt(0)}</Label></Image>
+                }
                 return ((
-                    <Card user={row} onClick={this.onCardClicked.bind(this)}>
+                    <Card user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':''}>
                         <Card.Content>
-                            <Image floated='right' size='tiny'><Label style={{ fontSize: '1rem' }} circular >{row.name.charAt(0)}</Label></Image>
+                            {image}
 
                             <Card.Header>
                                 {row.name}
@@ -96,7 +109,7 @@ class UserList extends Component {
                 ))
             });
         }
-        else{
+        else {
             this.setTreeRows();
         }
         return (

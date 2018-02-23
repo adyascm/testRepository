@@ -18,7 +18,7 @@ const initializePushNotifications = (props) => {
         });
       }
 
-      this.realtime.setClusterUrl("https://ortc-developers.realtime.co/server/2.1/");
+      this.realtime.setClusterUrl("https://ortc-developers.realtime.co/server/ssl/2.1/");
       this.realtime.connect('QQztAk', 'token');
     }
   });

@@ -59,6 +59,7 @@ def get_url_from_path(path):
 
 SUCCESS_STATUS_CODE = 200
 
+REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
 class ResourceExposureType(Enum):
     PRIVATE = "PVT"
@@ -81,3 +82,23 @@ class UserMemberType(Enum):
 class GroupMemberType(Enum):
     INTERNAL = "INT"
     EXTERNAL = "EXT"
+
+class EmailType(Enum):
+    USER = 'user'
+    GROUP = 'group'
+    DOMAIN = 'domain'
+    ANYONE = 'anyone'
+
+
+class Role(Enum):
+    ORGANIZER = 'organizer'
+    OWNER = 'owner'
+    WRITER = 'writer'
+    COMMENTER = 'commenter'
+    READER = 'reader'
+
+class ActionType(Enum):
+    ADD = 'add'
+    CHANGE = 'change'
+    DELETE = 'delete'
+

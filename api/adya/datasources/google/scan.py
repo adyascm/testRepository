@@ -512,7 +512,7 @@ def update_and_get_count(auth_token, datasource_id, column_name, column_value, s
             push_message["C"] = "adya-scan-update"
             push_message["M"] = json.dumps(datasource, cls=models.AlchemyEncoder)
 
-            session.post(url='http://ortc-developers2-euwest1-s0001.realtime.co/send', json=push_message)
+            session.post(url=constants.REAL_TIME_URL, json=push_message)
             #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
 
 def get_scan_status(datasource):

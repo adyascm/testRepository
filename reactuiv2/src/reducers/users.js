@@ -27,9 +27,11 @@ export default (state = {}, action) => {
                 usersTreePayload: action.payload
             }
         case USER_ITEM_SELECTED:
+            console.log("selected user : ", action.payload)
             return {
                 ...state,
-                selectedUserItem: action.payload
+                selectedUserItem: action.payload,
+                userDetailsViewActive: true
             }
         case USERS_ACTIVITY_LOAD_START:
             return {

@@ -1,6 +1,6 @@
 import json
 from adya.db.models import AlchemyEncoder, LoginUser, DataSource
-from adya.common.constants import API_HOST
+from adya.common.constants import API_HOST, Role
 import os
 
 def get_call_with_authorization_header(session, url, auth_token):
@@ -31,5 +31,18 @@ def get_domain_id(db_session, auth_token):
         LoginUser.auth_token == auth_token).first()
     domain_id = existing_user.domain_id
     return domain_id
+
+def get_role_type(role):
+    role = role.lower()
+    if role == "write":
+        return Role.WRITER
+    elif role == "read":
+        return Role.READER
+    elif role == "commenter":
+        return Role.COMMENTER
+    elif role == "organizer":
+        return Role.ORGANIZER
+    elif role == "owner":
+        return Role.OWNER
 
 

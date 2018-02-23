@@ -45,12 +45,18 @@ class Users extends Component {
   }
 
   handleChange(event,data) {
-    if (data && this.state.fileExposureType[data.value])
+    if (data && this.state.fileExposureType[data.value]) 
       this.props.setFileExposureType(this.state.fileExposureType[data.value])
     else {
-      this.setState({
-        filterInputValue: event.target.value
-      })
+      if (event.target.value === '')
+        this.setState({
+          filterInputValue: '',
+          fileResourceType: ''
+        })
+      else 
+        this.setState({
+          filterInputValue: event.target.value
+        })
     }
   }
 
