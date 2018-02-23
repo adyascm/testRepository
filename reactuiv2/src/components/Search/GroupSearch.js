@@ -3,7 +3,7 @@ import { Search, Grid } from 'semantic-ui-react'
 import { Link } from 'react-router-dom'
 
 import { connect } from 'react-redux';
-import agent from '../utils/agent'
+import agent from '../../utils/agent'
 
 const mapStateToProps = state => ({
     ...state
@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 });
 
-class AppSearch extends Component {
+class GroupSearch extends Component {
 
   constructor(props) {
     super(props);
@@ -24,23 +24,19 @@ class AppSearch extends Component {
     }
   }
 
-    componentWillMount() {
-
-        this.resetComponent(this.props.common.currentView)
-    }
-
-    resultRenderer = (r) => {
-        return <Link to={this.props.common.currentView || "/resources"}>{r.resource_name} </Link>
-    }
+  resultRenderer = (r) => {
+      return <div>{r.resource_name}</div>
+  }
 
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
       console.log("search result : ", result)
-      var resultset = [];
-      resultset.push(result)
+      if(this.props.onChangeReportInput){
+        this.props.onChangeReportInput("selected_entity", result.resource_name)
+      }
       this.setState({
-            results: resultset
+            value: result.resource_name
       })
     }
 
@@ -49,46 +45,28 @@ class AppSearch extends Component {
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
-            console.log(this.props.common.currentView);
             const re = new RegExp(this.state.value, 'i')
 
             var results = [];
-            if (this.props.common.currentView === "/users") {
-                var keys = Object.keys(this.props.users.usersTreePayload)
-
-                for (let index = 0; index < keys.length; index++) {
-                    let row = this.props.users.usersTreePayload[keys[index]]
-                    if (keys[index].match(re))
+            var keys = Object.keys(this.props.users.usersTreePayload)
+            for (let index = 0; index < keys.length; index++) {
+                  let row = this.props.users.usersTreePayload[keys[index]]
+                  if (keys[index].match(re))
                     {
                         row.resource_name = keys[index];
                         results.push(row);
                     }
-                }
+                  }
                 this.setState({
                     isLoading: false,
                     results: results,
                 })
-            }
-            else {
-                agent.Resources.searchResources(this.state.value).then(res => {
-                    this.setState({
-                        isLoading: false,
-                        results: res,
-                    })
-                }, error => {
-                    this.setState({
-                        isLoading: false,
-                        results: [],
-                    })
-                });
-            }
-
-        }, 1000)
-    }
+            }, 1000)
+          }
 
     render() {
         const { isLoading, value, results } = this.state
-        console.log();
+        console.log("this.props.defaultValue ", this.props.defaultValue);
 
         return (
             <Search aligned="left"
@@ -104,4 +82,4 @@ class AppSearch extends Component {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppSearch);
+export default connect(mapStateToProps, mapDispatchToProps)(GroupSearch);
