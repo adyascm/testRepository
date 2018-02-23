@@ -16,8 +16,7 @@ import {
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
   RUN_SCHEDULED_REPORT,
-  DELETE_OLD_SCHEDULED_REPORT,
-  USERS_PAGE_LOADED
+  DELETE_OLD_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -27,8 +26,6 @@ const mapStateToProps = state => ({
   });
 
   const mapDispatchToProps = dispatch => ({
-    onLoad: (payload) =>
-      dispatch({ type: USERS_PAGE_LOADED, payload }),
     setreports: (reports) =>
       dispatch({ type: SET_SCHEDULED_REPORTS, payload: reports }),
     addScheduledReport: (report) => {
@@ -61,7 +58,6 @@ class Reports extends Component {
   }
 
   componentWillMount(){
-    this.props.onLoad(agent.Users.getUsersTree());
     this.props.setreports(agent.Scheduled_Report.getReports())
     this.setState({
         reportsData: this.props.reports

@@ -37,5 +37,6 @@ class GetResources(Resource):
         payload = req_session.get_body()
         user_emails = payload.get("userEmails")
         exposure_type = payload.get("exposureType")
-        resource_list = resourceController.get_resources(auth_token,user_emails,exposure_type)
+        resource_type = payload.get("resourceType")
+        resource_list = resourceController.get_resources(auth_token,user_emails,exposure_type,resource_type)
         return req_session.generate_sqlalchemy_response(200, resource_list)

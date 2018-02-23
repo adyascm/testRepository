@@ -23,7 +23,8 @@ class Users extends Component {
     super(props);
 
     this.handleChange = this.handleChange.bind(this);
-
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    
     this.state = {
       options: [
         {text: 'External Shared',
@@ -37,12 +38,35 @@ class Users extends Component {
         'External Shared': 'EXT',
         'Domain Shared': 'DOMAIN',
         'Internally Shared': 'INT'
-      }
+      },
+      filterInputValue: '',
+      fileResourceType: undefined
     }
   }
 
   handleChange(event,data) {
-    this.props.setFileExposureType(this.state.fileExposureType[data.value])
+    if (data && this.state.fileExposureType[data.value]) 
+      this.props.setFileExposureType(this.state.fileExposureType[data.value])
+    else {
+      if (event.target.value === '')
+        this.setState({
+          filterInputValue: '',
+          fileResourceType: ''
+        })
+      else 
+        this.setState({
+          filterInputValue: event.target.value
+        })
+    }
+  }
+
+  handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      console.log("captured form value : ", this.state.filterInputValue)
+      this.setState({
+        fileResourceType: this.state.filterInputValue
+      })
+    }
   }
 
   render() {
@@ -64,20 +88,21 @@ class Users extends Component {
                 options={this.state.options}
                 selection
                 onChange={this.handleChange}
-                defaultValue="External Shared"
+                defaultValue={!this.props.exposureType || this.props.exposureType === 'EXT'?"External Shared":
+                              this.props.exposureType === 'DOMAIN'?"Domain Shared":"Internally Shared"}
               />
             </Grid.Column>
             <Grid.Column stretched width="5">
               <Form>
                 <Form.Field>
-                  <input placeholder='Filter by File type ...' />
+                  <input placeholder='Filter by File type ...' value={this.state.filterInputValue} onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
                 </Form.Field>
               </Form>
             </Grid.Column>
           </Grid.Row>
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              <ResourcesList />
+              <ResourcesList resourceType={this.state.fileResourceType} />
             </Grid.Column>
             {
               this.props.rowData?

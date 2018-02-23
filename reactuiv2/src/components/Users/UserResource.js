@@ -55,6 +55,10 @@ class UserResource extends Component {
                     },
                     onCellValueChanged: this.cellValueChanged,
                     cellStyle: {"textAlign":"center"}
+                },
+                {
+                    headerName: "ExposureType",
+                    field: "exposureType"
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
@@ -67,7 +71,8 @@ class UserResource extends Component {
                     }
                 }
                 return null;
-            }
+            },
+            exposureType: undefined
         };
     }
 
@@ -79,15 +84,22 @@ class UserResource extends Component {
     componentWillReceiveProps(nextProps) {
         if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]]}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'}))
         
+        }
+        if (nextProps.exposureType !== this.state.exposureType) {
+            this.setState({
+                exposureType: nextProps.exposureType
+            })
+            nextProps.onLoadStart(nextProps.selectedUserItem["key"])
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType}))
         }
     }
 
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart(this.props.selectedUserItem["key"])
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]]}))
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'}))
         }
     }
 
@@ -108,7 +120,7 @@ class UserResource extends Component {
         }
         else if (this.props.selectedUserItem){
             return (
-                <div className="ag-theme-fresh"> 
+                <div className="ag-theme-fresh" style={{width: '100%'}}> 
                     <AgGridReact
                         id="myResourceGrid" 
                         domLayout="autoHeight"

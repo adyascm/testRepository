@@ -11,7 +11,8 @@ import ResourceCell from './ResourceCell';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA
+    RESOURCES_TREE_SET_ROW_DATA,
+    RESOURCES_SET_FILE_SHARE_TYPE
 } from '../../constants/actionTypes';
 
 
@@ -22,7 +23,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
     onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
-    setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload })
+    setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
+    setFileExposureType: (payload) => dispatch({ type: RESOURCES_SET_FILE_SHARE_TYPE, payload })
 });
 
 class ResourcesList extends Component {
@@ -30,9 +32,10 @@ class ResourcesList extends Component {
         super(props);
 
         this.onCellClicked = this.onCellClicked.bind(this);
-
+    
         this.state = {
-            exposureType: undefined
+            exposureType: undefined,
+            resourceType: undefined
         }
 
         this.columnDefs = [
@@ -42,8 +45,7 @@ class ResourcesList extends Component {
             },
             {
                 headerName: "Type",
-                field: "resourceType",
-                cellStyle: {textAlign: "center"}
+                field: "resourceType"
             },
             {
                 headerName: "Owner",
@@ -74,6 +76,7 @@ class ResourcesList extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
+        this.props.setFileExposureType('EXT')
         this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': 'EXT'}))
 
     }
@@ -84,13 +87,18 @@ class ResourcesList extends Component {
                 this.setState({
                     exposureType: nextProps.exposureType
                 })
-                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': nextProps.exposureType}))
+                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': nextProps.exposureType, 'resourceType': nextProps.resourceType?nextProps.resourceType:''}))
+            }
+            if (nextProps.resourceType !== undefined && nextProps.resourceType !== this.state.resourceType) {
+                this.setState({
+                    resourceType: nextProps.resourceType
+                })
+                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.exposureType, 'resourceType': nextProps.resourceType}))
             }
         }
     }
 
     render() {
-        
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>

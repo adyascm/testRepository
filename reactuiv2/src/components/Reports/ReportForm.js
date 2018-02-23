@@ -7,6 +7,9 @@ import UsersTree from '../Users/UsersTree';
 import ResourcesList from '../Resources/ResourcesList';
 import agent from '../../utils/agent';
 import * as Helper from '../reactCron/helpers/index';
+import GroupSearch from '../Search/GroupSearch';
+import ResourceSearch from '../Search/ResourceSearch';
+
 
 
 import {
@@ -67,21 +70,6 @@ class ReportForm extends Component {
 
     var copyFinalInputObj = {}
     Object.assign(copyFinalInputObj, this.state.finalReportObj)
-    if(this.state.finalReportObj['selected_entity_type']){
-
-      if(this.state.finalReportObj['selected_entity_type'] === "group" ){
-        if(this.props.selectedUserItem){
-          selected_entity = this.props.selectedUserItem.key
-        }
-      }
-      else if (this.state.finalReportObj['selected_entity_type'] === "resource") {
-        if(this.props.rowData){
-          selected_entity = this.props.rowData.resourceId
-        }
-      }
-     copyFinalInputObj["selected_entity"] = selected_entity
-    }
-
 
     if(!copyFinalInputObj['is_active']){
       copyFinalInputObj['is_active'] = 0
@@ -192,6 +180,7 @@ class ReportForm extends Component {
 
     let user = this.props.rowData
     const { value } = this.state
+    console.log("this.props.reportsMap ", this.props.reportsMap)
 
     var modalContent = (
       <div>
@@ -230,18 +219,25 @@ class ReportForm extends Component {
             <div className="column">
                 <Form.Group inline>
                   <Form.Radio label='File/Folder' value='resource'
-                    checked={this.handleMultipleOptions('selected_entity_type') === 'resource' || value === 'resource'}
+                    checked={this.handleMultipleOptions('selected_entity_type') === 'resource' ||
+                      this.state.finalReportObj['selected_entity_type'] === 'resource'}
                     onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                      />
                   <Form.Radio label='Group/User' value='group'
-                    checked={this.handleMultipleOptions('selected_entity_type') === 'group' || value === 'group'}
+                    checked={this.handleMultipleOptions('selected_entity_type') === 'group' ||
+                      this.state.finalReportObj['selected_entity_type'] === 'group'}
                     onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                     />
                 </Form.Group>
-                {this.state.value == 'group'?
-                   <Form.Field><UsersTree />
+                {this.state.finalReportObj['selected_entity_type'] === 'group' ||
+                  this.handleMultipleOptions('selected_entity_type') === 'group'?
+                   <Form.Field><GroupSearch onChangeReportInput={this.onChangeReportInput}
+                     defaultValue={this.state.reportDataForReportId['selected_entity'] }/>
                     </Form.Field> : null}
-                   {this.state.value == 'resource'? <Form.Field ><ResourcesList /></Form.Field> : null}
+                   {this.state.finalReportObj['selected_entity_type'] === 'resource' ||
+                     this.handleMultipleOptions('selected_entity_type') === 'resource'?
+                     <Form.Field ><ResourceSearch onChangeReportInput={this.onChangeReportInput}
+                       defaultValue={this.state.reportDataForReportId['selected_entity']} /></Form.Field> : null}
             </div>
           </div>
           </Form>

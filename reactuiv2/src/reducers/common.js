@@ -8,6 +8,7 @@ import {
   LOGIN_SUCCESS,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
+  DELETE_DATASOURCE_START,
   SCAN_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED
@@ -63,6 +64,14 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasources: state.datasources.concat(action.payload)
+      };
+    case DELETE_DATASOURCE_START:
+      if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {
+        action.payload.isDeleting = true;
+        state.datasources[0] = action.payload;
+      }
+      return {
+        ...state
       };
     case USERS_PAGE_LOADED:
       return {
