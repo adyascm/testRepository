@@ -110,21 +110,34 @@ class ReportsGrid extends Component {
   onGridReady(params) {
     this.api = params.api;
     this.api.sizeColumnsToFit();
-  }
 
-  handleClose = () => {
 
   }
+
+  onBtExport = () => {
+    var params = {
+        skipHeader: true,
+        fileName: this.props.runReportName
+      }
+       this.api.exportDataAsCsv(params)
+
+  };
 
   render() {
-    console.log("Reports grid data : ", this.props.reportsData);
+  
     return(
       <div className="ag-theme-fresh" style={{height: '500px'}}>
         <AgGridReact onGridReady={this.onGridReady}
-                   columnDefs={this.props.reportType === 'Permission'? this.columnDefsForPerms : this.columnDefsForActivity }
+                   columnDefs={this.props.reportType === 'Permission'?
+                     this.columnDefsForPerms : this.columnDefsForActivity }
                    rowData={this.props.reportsData}
                    />
-
+                 <div>
+                   <Button style={{marginTop: "3.5%", float: "right"}}basic color='green'
+                     onClick={this.onBtExport} >
+                    Export to csv
+                   </Button>
+                 </div>
 
       </div>
     )

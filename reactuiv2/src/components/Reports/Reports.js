@@ -136,12 +136,10 @@ class Reports extends Component {
                     <Modal size='large' className="scrolling" open={this.state.showModal} >
                      <Modal.Header>{this.state.runReportName}</Modal.Header>
                       <Modal.Content>
-                        <ReportsGrid reportsData={this.props.runReportData} reportType={this.state.reportType}/>
+                        <ReportsGrid reportsData={this.props.runReportData}
+                          reportType={this.state.reportType} runReportName={this.state.runReportName}/>
                       </Modal.Content>
                       <Modal.Actions>
-                        <Button basic color='green' >
-                         Export to csv
-                        </Button>
                         <Button basic color='red' onClick={this.handleClose}>
                           <Icon name='remove' /> Close
                         </Button>
