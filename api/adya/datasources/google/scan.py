@@ -107,11 +107,7 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
             for permission in resource_permissions:
-                    permission_type = constants.PermissionType.READ
                     permission_id = permission.get('id')
-                    role = permission['role']
-                    if role == "owner" or role == "writer":
-                        permission_type = constants.PermissionType.WRITE
                     email_address = permission.get('emailAddress')
                     display_name = permission.get('displayName')
                     expiration_time = permission.get('expirationTime')
@@ -149,7 +145,7 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
                     resource_permission["resource_id"] = resource_id
                     resource_permission["email"] = email_address
                     resource_permission["permission_id"] = permission_id
-                    resource_permission["permission_type"] = permission_type
+                    resource_permission["permission_type"] = permission['role']
                     resource_permission["name"] = display_name
                     if expiration_time:
                         resource_permission["expiration_time"] = expiration_time[:-1]
