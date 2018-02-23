@@ -4,6 +4,7 @@ import { Button, Header, Modal, Form } from 'semantic-ui-react'
 import { connect } from 'react-redux';
 
 import authenticate from '../../utils/oauth';
+import GroupSearch from '../Search/GroupSearch';
 
 import {
     USERS_RESOURCE_ACTION_CANCEL
@@ -77,6 +78,25 @@ class UserActions extends Component {
 
     }
 
+    resourceOwnerPermissionChangeAction() {
+        return (
+            <Modal open={this.props.action} className="scrolling">
+                <Modal.Header>Action - Owner change</Modal.Header>
+                <Modal.Content >
+                    <Form.Input fluid label='File Name' placeholder={this.props.action.actionResource.name} readOnly />
+                    <Form.Input fluid label='Current File Owner' placeholder={this.props.action.actionResource['resourceOwnerId']} readOnly /> 
+                    Search New Owner
+                    <Form.Field fluid><GroupSearch style={{height: '100px', overflow: 'auto'}} /></Form.Field>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
+                    <Button positive loading={this.state.inProgress} labelPosition='right' 
+                    icon='checkmark' content='Change' onClick={this.takeAction(this.transferOwnership)} />
+                </Modal.Actions>
+            </Modal>
+        )
+    }
+
     otherQuickActions() {
         return (
             <Modal open={this.props.action} className="scrolling" >
@@ -101,6 +121,9 @@ class UserActions extends Component {
             }
             else if (this.props.action.actionType === "resourcePermissionChange") {
                 return this.resourcePermissionChangeAction()
+            }
+            else if (this.props.action.actionType === "resourceOwnerPermissionChange") {
+                return this.resourceOwnerPermissionChangeAction()
             }
             else {
                 return this.otherQuickActions()

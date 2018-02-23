@@ -43,7 +43,9 @@ class UserResource extends Component {
                 },
                 {
                     headerName: "Owner",
-                    field: "resourceOwnerId"
+                    field: "resourceOwnerId",
+                    editable: true,
+                    onCellValueChanged: this.cellValueChanged
                 },
                 {
                     headerName: "My permission",
@@ -78,7 +80,10 @@ class UserResource extends Component {
 
     cellValueChanged(params) {
         console.log("Cell column value changed: ", params)
-        this.props.onChangePermission("resourcePermissionChange", params.data, params.newValue);
+        if (['Read','Write','None'].indexOf(params.newValue) !== -1)
+            this.props.onChangePermission("resourcePermissionChange", params.data, params.newValue);
+        else
+            this.props.onChangePermission("resourceOwnerPermissionChange", params.data, params.oldValue)
     }
 
     componentWillReceiveProps(nextProps) {
