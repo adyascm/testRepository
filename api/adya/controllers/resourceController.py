@@ -74,7 +74,7 @@ from sets import Set
 #     return responsedata
 
 
-def get_resources(auth_token, user_emails=None, exposure_type='EXT'):
+def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_type='None'):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
@@ -87,7 +87,13 @@ def get_resources(auth_token, user_emails=None, exposure_type='EXT'):
                                                                                                                                                                        ResourcePermission.email.in_(user_emails)
                                                                                                                                                                        )).filter(Resource.exposure_type == exposure_type).limit(100).all()
     else:
-        resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
+        if resource_type:
+            resources = resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
+                                                                             and_(ResourcePermission.resource_id == Resource.resource_id,
+                                                                                  ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
+                                                                                                                                                    Resource.exposure_type == exposure_type)).filter(Resource.resource_type == resource_type).limit(100).all()
+        else:
+            resources = db_session.query(Resource, ResourcePermission).outerjoin(ResourcePermission,
                                                                              and_(ResourcePermission.resource_id == Resource.resource_id,
                                                                                   ResourcePermission.domain_id == Resource.domain_id)).filter(and_(Resource.domain_id == domain.domain_id,
                                                                                                                                                     Resource.exposure_type == exposure_type)).limit(100).all()
