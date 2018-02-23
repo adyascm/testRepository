@@ -39,7 +39,6 @@ def get_activities_for_user(domain_id, datasource_id, user_email):
 
 def process_user_activity(domain_id, datasource_name, user_email, activities):
     try:
-        db_session = db_connection().get_session()
         print "got activities: ", activities
         processed_activities = []
         if activities.get('items'):
@@ -64,15 +63,12 @@ def process_user_activity(domain_id, datasource_name, user_email, activities):
                             for entries in activity_events_parameters:
                                 if entries['name'] == 'doc_title':
                                     #resource_id = entries['value']
-                                    resource_name = entries['value']#db_session.query(Resource).filter(and_(Resource.domain_id == domain_id,
-                                                     #           Resource.resource_id == resource_id)).first().resource_name
+                                    resource_name = entries['value']
                                 elif entries['name'] == 'doc_type':
                                     resource_type = entries['value']
 
                             if resource_name is not None and resource_type is not None:
                                 processed_activities.append([activity_timestamp, event_name, datasource_name, resource_name, resource_type, ip_address])
-
-        print processed_activities
         return processed_activities
 
     except Exception as e:
