@@ -120,7 +120,7 @@ def send_email_with_attachment(user_list, csv_data, report_desc):
         att.add_header('Content-Disposition', 'attachment', filename="report.csv")
         msg.attach(att)
 
-        session = boto3.Session(profile_name='adya_prod_east')
+        session = boto3.Session()
         ses_client = session.client('ses')
         ses_client.send_raw_email(
                 Source='service@adya.io',
