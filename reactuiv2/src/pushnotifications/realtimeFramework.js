@@ -1,6 +1,6 @@
 import React from 'react';
 import Realtime from 'realtime-messaging';
-import {SCAN_UPDATE_RECEIVED} from '../constants/actionTypes'
+import {SCAN_UPDATE_RECEIVED, SCAN_INCREMENTAL_UPDATE_RECEIVED} from '../constants/actionTypes'
 
 
 const initializePushNotifications = (props) => {
@@ -15,6 +15,10 @@ const initializePushNotifications = (props) => {
         client.subscribe("adya-scan-update", true, (conn, channel, msg) => {
           // console.log("Message received on adya-scan-update channel - " + msg);
           props.onPushNotification(SCAN_UPDATE_RECEIVED, msg);
+        });
+
+        client.subscribe("adya-scan-incremental-update", true, (conn, channel, msg) => {
+          props.onPushNotification(SCAN_INCREMENTAL_UPDATE_RECEIVED, msg);
         });
       }
 

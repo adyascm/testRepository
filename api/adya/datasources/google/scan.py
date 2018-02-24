@@ -495,14 +495,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         #ortc_client = RealtimeConnection().get_conn()
         # ortc_client.send(datasource_id, datasource)
         if send_message:
-            session = FuturesSession()
-            push_message = {}
-            push_message["AK"] = "QQztAk"
-            push_message["PK"] = "WDcLMrV4LQgt"
-            push_message["C"] = "adya-scan-update"
-            push_message["M"] = json.dumps(datasource, cls=models.AlchemyEncoder)
-
-            session.post(url=constants.REAL_TIME_URL, json=push_message)
+            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=models.AlchemyEncoder))
             #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
 
 def get_scan_status(datasource):
