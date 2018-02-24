@@ -39,7 +39,7 @@ class DriveResources(Resource):
         if req_error:
             return req_error
 
-        scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
+        scan.process_resource_data(req_session.get_req_param(
             'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
         return req_session.generate_response(202)
 

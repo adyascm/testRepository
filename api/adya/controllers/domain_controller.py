@@ -110,6 +110,11 @@ def create_domain(domain_id, domain_name):
 def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
     print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+
+    if constants.DEPLOYMENT_ENV != "local":
+        print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(domain_id, datasource_id)
+        messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH,auth_token, query_params, {})
+
     messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
     messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
     if is_service_account_enabled == 'False':
