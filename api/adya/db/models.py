@@ -69,6 +69,7 @@ class DataSource(Base):
     processed_user_count = Column(BigInteger, default=0)
     user_scan_status = Column(Integer, default=0)
     is_serviceaccount_enabled = Column(Boolean)
+    is_push_notifications_enabled = Column(Boolean)
 
 
 class DomainUser(Base):
