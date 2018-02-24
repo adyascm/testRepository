@@ -17,7 +17,8 @@ import {
 const mapStateToProps = state => ({
     ...state.auth,
     token: state.common.token,
-    currentUser: state.common.currentUser
+    currentUser: state.common.currentUser,
+    errorMessage: state.common.errMessage
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -65,7 +66,7 @@ class Login extends Component {
                             </Header>
                             <Segment >
                                 <Button.Group>
-                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress?true:false} />
+                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false} />
                                     <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
                                 </Button.Group>

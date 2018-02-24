@@ -21,7 +21,6 @@ class GlobalError extends Component {
     }
 
     handleDismiss() {
-        console.log("Error dismissed")
         this.props.clearError()
     }
 
