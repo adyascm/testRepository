@@ -28,6 +28,7 @@ class ResourcePermissionSection extends Component {
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -52,9 +53,15 @@ class ResourcePermissionSection extends Component {
             this.props.onChangePermission('resourcePermissionChange',data,data["value"],email)
     }
 
+    handleClick(event,userEmail,permissionType) {
+        console.log("remove event called: ", userEmail)
+        console.log("remove event called: ", permissionType)
+        this.props.onChangePermission('resourcePermissionDelete',permissionType,undefined,userEmail)
+    }
+
     render() {
         let panes = [
-            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} /></Tab.Pane> }   
+            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} handleClick={this.handleClick} /></Tab.Pane> }   
           ]
         return (
             <Segment>

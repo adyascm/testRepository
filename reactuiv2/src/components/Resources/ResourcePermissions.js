@@ -18,7 +18,7 @@ const ResourcePermissions = props => {
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red'>
+                            <Button animated='vertical' basic color='red' onClick={(event) => props.handleClick(event,permission["pemrissionEmail"],permission["permissionType"] === "W"?"Write":"Read")}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
