@@ -55,7 +55,7 @@ class LoginUser(Base):
     is_admin_user = Column(Boolean, default=True)
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
-
+    authorize_scope_name = Column(String(50))
 
 class DataSource(Base):
     __tablename__ = 'data_source'

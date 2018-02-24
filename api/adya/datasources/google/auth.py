@@ -23,6 +23,7 @@ def oauth_request(scopes):
     scope = LOGIN_SCOPE
     if scopes in SCOPE_DICT:
         scope = SCOPE_DICT[scopes]
+    state = scopes
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         gutils.CLIENT_SECRETS_FILE, scopes=scope)
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
@@ -31,12 +32,12 @@ def oauth_request(scopes):
         # re-prompting the user for permission. Recommended for web server apps.
         access_type='offline',
         # Enable incremental authorization. Recommended as a best practice.
-        include_granted_scopes='true')
+        include_granted_scopes='true',state=state)
 
     return authorization_url
 
 
-def oauth_callback(oauth_code, scopes, error):
+def oauth_callback(oauth_code, scopes,state, error):
     redirect_url = ""
     if error or not oauth_code:
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
@@ -44,9 +45,9 @@ def oauth_callback(oauth_code, scopes, error):
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         gutils.CLIENT_SECRETS_FILE, scopes=scopes)
     flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
-
+    # in state we are passing the login scope name
+    scope_name = state
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
-
     flow.fetch_token(code=oauth_code)
 
     credentials = flow.credentials
@@ -69,13 +70,14 @@ def oauth_callback(oauth_code, scopes, error):
         auth_token = existing_user.auth_token
         if refresh_token:
             auth_controller.update_user_refresh_token(login_email, refresh_token, db_session)
+            auth_controller.update_user_scope_name(login_email,scope_name,db_session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
         existing_domain_user = db_session.query(DomainUser).filter(DomainUser.email == login_email).first()
         if existing_domain_user:
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
-                                                     refresh_token, True)
+                                                     refresh_token, True,scope_name)
         else:
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
@@ -86,7 +88,7 @@ def oauth_callback(oauth_code, scopes, error):
             domain = domain_controller.create_domain(domain_id, domain_name)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
-                                                     is_admin_user)
+                                                     is_admin_user,scope_name)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
