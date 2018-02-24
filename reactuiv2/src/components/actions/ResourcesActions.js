@@ -70,6 +70,23 @@ class ResourcesActions extends Component {
         )
     }
 
+    resourcePermissionDeleteAction() {
+        return (
+            <Modal open={this.props.action} className="scrolling" >
+                <Modal.Header>Action - Delete Permission for User</Modal.Header>
+                <Modal.Content >
+                    <Form.Input fluid label='User' placeholder={this.props.action['actionEmail']} readOnly />
+                    <Form.Input fluid label='Current Permission Type' placeholder={this.props.action['actionResource']} readOnly />
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
+                    <Button positive labelPosition='right' 
+                    icon='checkmark' content='Change' />
+                </Modal.Actions>
+            </Modal>
+        )
+    }
+
     render() {
         if (this.props.action) {
             if (this.props.action.actionType === "transferOwnership") {
@@ -77,6 +94,9 @@ class ResourcesActions extends Component {
             }
             else if (this.props.action.actionType === "resourcePermissionChange") {
                 return this.resourcePermissionChangeAction()
+            }
+            else if (this.props.action.actionType === "resourcePermissionDelete") {
+                return this.resourcePermissionDeleteAction()
             }
             else {
                 return this.otherQuickActions()
