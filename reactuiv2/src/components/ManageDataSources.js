@@ -15,11 +15,14 @@ import {
   DELETE_DATASOURCE_START,
   DASHBOARD_PAGE_LOADED,
   DASHBOARD_PAGE_UNLOADED,
-  SCAN_UPDATE_RECEIVED
+  SCAN_UPDATE_RECEIVED,
+  LOGIN_START,
+  LOGIN_ERROR
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
 const mapStateToProps = state => ({
+  ...state.auth,
   appName: state.common.appName,
   currentUser: state.common.currentUser,
   dataSources: state.common.dataSources
@@ -36,7 +39,11 @@ const mapDispatchToProps = dispatch => ({
   },
   onPushNotification: (actionType, msg) => {
     dispatch({ type: actionType, payload: msg })
-  }
+  },
+  onLoginStart: () => 
+    dispatch({ type: LOGIN_START }),
+  onSignInError: (errors) =>
+    dispatch({ type: LOGIN_ERROR, error: errors }),
 
 });
 
@@ -45,7 +52,12 @@ class ManageDataSources extends Component {
     super();
     this.addNewDatasource = () => ev => {
       ev.preventDefault();
-      authenticate("drive_scan_scope").then(data => this.props.addDataSource("Testing")).catch(({ errors }) => { this.props.onSignInError(errors) });
+      this.props.onLoginStart()
+      authenticate("drive_scan_scope").then(data => {
+        this.props.addDataSource("Testing")
+      }).catch(({ errors }) => { 
+        this.props.onSignInError(errors) 
+      });
     };
     this.deleteDataSource = (datasource) => {
       this.props.onDeleteDataSource(datasource);
@@ -73,7 +85,7 @@ class ManageDataSources extends Component {
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()}>Scan</Button>
+                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress?true:false}>Scan</Button>
                 </div>
               </Card.Content>
             </Card>
