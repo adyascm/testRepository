@@ -55,6 +55,11 @@ class ResourcesList extends Component {
                 headerName: "ExposureType",
                 field: "exposureType",
                 cellStyle: {textAlign: "center"}
+            },
+            {
+                headerName: "Parent Folder",
+                field: "parent",
+                cellStyle: {textAlign: "left"}
             }
         ];
 
