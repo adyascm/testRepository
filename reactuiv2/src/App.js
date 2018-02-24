@@ -14,8 +14,9 @@ import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
+import GlobalError from './GlobalError';
 
-import { Container, Message } from 'semantic-ui-react'
+import { Container, Message, Segment } from 'semantic-ui-react'
 
 
 import { APP_LOAD, REDIRECT } from './constants/actionTypes';
@@ -28,7 +29,8 @@ const mapStateToProps = state => {
     appName: state.common.appName,
     currentUser: state.common.currentUser,
     redirectTo: state.common.redirectTo,
-    appMessage: state.common.appMessage
+    appMessage: state.common.appMessage,
+    errorMessage: state.common.errorMessage
   }
 };
 
@@ -67,9 +69,10 @@ class App extends Component {
     if (this.props.appLoaded) {
       return (
         <div className="App">
-          <Header appName={this.props.appName} currentUser={this.props.currentUser} />
+          <Header appName={this.props.appName} currentUser={this.props.currentUser}/>
           <Switch>
             <Container fluid style={{ marginTop: '6em', height: '100%' }}>
+            {this.props.errorMessage?<GlobalError />:''}
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
               <Route exact path="/login" component={Login} />
               <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />

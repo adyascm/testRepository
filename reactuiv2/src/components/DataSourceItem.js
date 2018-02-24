@@ -31,6 +31,7 @@ const DataSourceItem = props => {
     }
 
     if (datasource) {
+        console.log("datasource payload : ", datasource.creation_time)
         var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         var status = getScanStatus(datasource);
         var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
