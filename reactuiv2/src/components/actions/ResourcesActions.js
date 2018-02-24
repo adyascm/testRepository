@@ -76,6 +76,7 @@ class ResourcesActions extends Component {
                 <Modal.Header>Action - Delete Permission for User</Modal.Header>
                 <Modal.Content >
                     <Form.Input fluid label='User' placeholder={this.props.action['actionEmail']} readOnly />
+                    <Form.Input fluid label='File Name' placeholder={this.props.rowData['resourceName']} readOnly />
                     <Form.Input fluid label='Current Permission Type' placeholder={this.props.action['actionResource']} readOnly />
                 </Modal.Content>
                 <Modal.Actions>
