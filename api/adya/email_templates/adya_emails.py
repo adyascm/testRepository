@@ -101,19 +101,18 @@ def send_gdrive_scan_completed_email(auth_token):
         print "Exception occurred sending gdrive scan completed email"
 
 
-def get_gdrive_scan_completed_parameters(auth_token):
+def get_gdrive_scan_completed_parameters(datasource_id):
     try:
         if not auth_token:
             return "Invalid auth_token! Aborting..."
 
         session = db_connection().get_session()
+        datasource = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        all_users = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).all()
+        
+        emails = ",".join(user.email for user in all_users)
+        countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
 
-        countDocuments = session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id)).filter(LoginUser.auth_token == auth_token).count()
-
-        countSharedDocumentsByType = reports_controller.get_widget_data(auth_token, "sharedDocsByType")
-
-        print countSharedDocumentsByType
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
         countInternalSharedDocs = 0
@@ -129,10 +128,9 @@ def get_gdrive_scan_completed_parameters(auth_token):
             elif item[0] == constants.ResourceExposureType.PUBLIC:
                 countPublicSharedDocs = item[1]
 
-        externalDocsListData = reports_controller.get_widget_data(auth_token, "sharedDocsList")
-        externalUserListData = reports_controller.get_widget_data(auth_token, "externalUsersList")
-
-        email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
+        countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs
+        externalDocsListData = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsList")
+        externalUserListData = reports_controller.get_widget_data(all_users[0].auth_token, "externalUsersList")
 
         trial_link = constants.UI_HOST
 
@@ -148,7 +146,7 @@ def get_gdrive_scan_completed_parameters(auth_token):
             "documentsCountData": externalDocsListData["totalCount"],
             "externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
-            "email": email,
+            "email": emails,
             "countDomainData": countDomainSharedDocs,
             "trialLink": trial_link
 

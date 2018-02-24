@@ -123,7 +123,12 @@ def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_ty
         else:
             responsedata[resource.Resource.resource_id]["permissions"].append(
                 permissionobject)
-
+    parents_data =  db_session.query(Resource,ResourceParent).outerjoin(ResourceParent, 
+                                    and_(Resource.domain_id ==ResourceParent.domain_id,
+                                     Resource.resource_id == ResourceParent.parent_id )).filter(and_(ResourceParent.resource_id.in_(responsedata.keys()),
+                                     ResourceParent.domain_id == domain.domain_id)).all()
+    for parents in parents_data:
+        responsedata[parents.ResourceParent.resource_id]["parents"] = {"parentId":parents.Resource.resource_id,"parentName":parents.Resource.resource_name}
     return responsedata
 
 def search_resources(auth_token, prefix):

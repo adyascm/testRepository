@@ -36,7 +36,7 @@ def process_drive_resources(event, context):
     if req_error:
         return req_error
 
-    scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
+    scan.process_resource_data(req_session.get_req_param(
         'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
     return req_session.generate_response(202)
 
@@ -162,15 +162,13 @@ def process_group_members(event, context):
 
 
 def subscribe_gdrive_notifications(event, context):
-        req_session = RequestSession(event)
-        req_error = req_session.validate_authorized_request()
-        if req_error:
-            return req_error
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True, ["domainId", "dataSourceId"])
+    if req_error:
+        return req_error
 
-        domain_id = req_session.get_req_param('domain_id')
-        print "Subscribing push notifications for domain_id: ", domain_id
-        incremental_scan.subscribe(domain_id)
-        return req_session.generate_response(202, "Subscription successful")
+    incremental_scan.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
+    return req_session.generate_response(202, "Subscription successful")
 
 
 def process_gdrive_notifications(event, context):
@@ -179,9 +177,9 @@ def process_gdrive_notifications(event, context):
     if req_error:
         return req_error
 
-    domain_id = req_session.get_req_header('X-Goog-Channel-Token')
+    datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-    print "Processing notifications for ", domain_id, " on channel: ", channel_id
-    incremental_scan.process_notifications(domain_id, channel_id)
+    print "Processing notifications for ", datasource_id, " on channel: ", channel_id
+    incremental_scan.process_notifications(datasource_id, channel_id)
     return req_session.generate_response(202, "Finished processing notifications. ")
 
