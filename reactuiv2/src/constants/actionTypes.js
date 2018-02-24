@@ -62,3 +62,4 @@ export const UPDATE_SCHEDULED_REPORT= 'UPDATE_SCHEDULED_REPORT';
 
 export const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://127.0.0.1:5000';
 export const API_ERROR = 'API_ERROR';
+export const CLEAR_ERROR = 'CLEAR_ERROR';

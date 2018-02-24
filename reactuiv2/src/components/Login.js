@@ -10,7 +10,8 @@ import {
     LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
     LOGIN_PAGE_UNLOADED,
     LOGIN_START,
-    API_ROOT
+    API_ROOT,
+    API_ERROR
 } from '../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -27,7 +28,9 @@ const mapDispatchToProps = dispatch => ({
     onLoginStart: () => 
         dispatch({ type: LOGIN_START }),
     onUnload: () =>
-        dispatch({ type: LOGIN_PAGE_UNLOADED })
+        dispatch({ type: LOGIN_PAGE_UNLOADED }),
+    loginError: (errors) =>
+        dispatch({ type: API_ERROR, errors })
 });
 
 class Login extends Component {
@@ -41,6 +44,7 @@ class Login extends Component {
             }).catch(({ errors }) => { 
                 console.log("login error : ", errors['Failed'])
                 this.props.onSignInError(errors) 
+                this.props.loginError(errors)
             });
         };
     }
@@ -65,7 +69,7 @@ class Login extends Component {
                                     <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
                                 </Button.Group>
-                                <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p>
+                                {/* <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p> */}
                             </Segment>
                         </Grid.Column>
                     </Grid>

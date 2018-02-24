@@ -12,7 +12,8 @@ import {
   SCAN_INCREMENTAL_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED,
-  API_ERROR
+  API_ERROR,
+  CLEAR_ERROR
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -99,7 +100,12 @@ export default (state = defaultState, action) => {
     case API_ERROR:
       return {
         ...state,
-        errorMessage: action.payload
+        errMessage: action.errors
+      }
+    case CLEAR_ERROR:
+      return {
+        ...state,
+        errMessage: undefined
       }
     default:
       return state;
