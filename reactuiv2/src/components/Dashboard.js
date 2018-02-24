@@ -72,22 +72,22 @@ class Dashboard extends Component {
         }
       </Card.Group>
       <Card.Group itemsPerRow='3'>
-      {
-        this.chartWidgetConfigs.map(config => {
-          var widget = null;
-          if (config.renderType === "SimpleNumberWidget")
-            widget = <SimpleNumberWidget config={config} />
-          else if (config.renderType === "ChartWidget")
-            widget = <ChartWidget config={config} />
-          else
-            widget = <ListWidget config={config} />
+        {
+          this.chartWidgetConfigs.map(config => {
+            var widget = null;
+            if (config.renderType === "SimpleNumberWidget")
+              widget = <SimpleNumberWidget config={config} />
+            else if (config.renderType === "ChartWidget")
+              widget = <ChartWidget config={config} />
+            else
+              widget = <ListWidget config={config} />
 
-          return (
-            widget
-          )
-        })
-      }
-    </Card.Group>
+            return (
+              widget
+            )
+          })
+        }
+      </Card.Group>
     </Container>
     )
   }
