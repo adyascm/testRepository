@@ -198,3 +198,23 @@ class PushNotificationsSubscription(Base):
     expire_at = Column(DateTime)
 
 
+class Action(Base):
+    __tablename__ = 'action'
+    datasource_type = Column(String(255), primary_key=True)
+    name = Column(String(200), primary_key=True)
+    description = Column(String(1000))
+    parameters = Column(String(1000))
+    is_admin_only = Column(Boolean)
+
+
+class AuditLog(Base):
+    __tablename__ = 'audit_log'
+    log_id = Column(Integer, autoincrement=True, primary_key=True)
+    domain_id = Column(String(255))
+    datasource_id = Column(String(255))
+    initiated_by = Column(String(100))
+    action_name = Column(String(200))
+    parameters = Column(String(1000))
+    affected_entity = Column(String(255))
+    affected_entity_type = Column(String(100))
+    timestamp = Column(DateTime)
