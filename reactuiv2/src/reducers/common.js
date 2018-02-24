@@ -2,7 +2,6 @@ import {
   APP_LOAD,
   REDIRECT,
   LOGOUT,
-  LOGIN,
   DASHBOARD_PAGE_UNLOADED,
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
@@ -10,6 +9,7 @@ import {
   CREATE_DATASOURCE,
   DELETE_DATASOURCE_START,
   SCAN_UPDATE_RECEIVED,
+  SCAN_INCREMENTAL_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED
 } from '../constants/actionTypes';
@@ -59,6 +59,18 @@ export default (state = defaultState, action) => {
       return {
         ...state,
 
+      };
+      case SCAN_INCREMENTAL_UPDATE_RECEIVED:
+      var updateMessage = JSON.parse(action.payload);
+      if(state.datasources && updateMessage.datasource_id === state.datasources[0].datasource_id)
+      {
+        return {
+          ...state,
+          appMessage: "Update received for a file, please refresh the app to see the latest changes..."
+        };
+      }
+      return {
+        ...state
       };
     case CREATE_DATASOURCE:
       return {

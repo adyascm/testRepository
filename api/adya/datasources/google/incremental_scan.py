@@ -175,6 +175,7 @@ def handle_change(drive_service, domain_id, datasource_id, channel_id, file_id):
                         'dataSourceId': datasource_id, 'userEmail': channel_id}
         messaging.trigger_post_event(
             constants.SCAN_RESOURCES, auth_token, query_params, resourcedata)
+        messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "channel_id": channel_id, "file_id": file_id}))
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} channel_id: {} file_id: {} - {}".format(
             domain_id, datasource_id, channel_id, file_id, e)

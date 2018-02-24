@@ -16,6 +16,12 @@ class AlchemyEncoder(json.JSONEncoder):
                 data = obj.__getattribute__(field)
                 if isinstance(data, (datetime)):
                     fields[field] = data.isoformat()
+                elif isinstance(data, list):
+                    try:
+                        json.dumps(data, cls=AlchemyEncoder)  # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError as ex:
+                        fields[field] = None
                 else:
                     try:
                         json.dumps(data)  # this will fail on non-encodable values, like other classes
@@ -49,7 +55,7 @@ class LoginUser(Base):
     is_admin_user = Column(Boolean, default=True)
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
-
+    authorize_scope_name = Column(String(50))
 
 class DataSource(Base):
     __tablename__ = 'data_source'
@@ -110,6 +116,8 @@ class Resource(Base):
     thumthumbnail_link = Column(Text)
     description = Column(Text)
     last_modifying_user_email = Column(String(255))
+    parent_id = Column(String(100), nullable=True)
+    permissions = relationship("ResourcePermission", backref="resource")
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
@@ -129,7 +137,7 @@ class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
-    resource_id = Column(String(100), primary_key=True)
+    resource_id = Column(String(100), ForeignKey('resource.resource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
@@ -190,3 +198,23 @@ class PushNotificationsSubscription(Base):
     expire_at = Column(DateTime)
 
 
+class Action(Base):
+    __tablename__ = 'action'
+    datasource_type = Column(String(255), primary_key=True)
+    name = Column(String(200), primary_key=True)
+    description = Column(String(1000))
+    parameters = Column(String(1000))
+    is_admin_only = Column(Boolean)
+
+
+class AuditLog(Base):
+    __tablename__ = 'audit_log'
+    log_id = Column(Integer, autoincrement=True, primary_key=True)
+    domain_id = Column(String(255))
+    datasource_id = Column(String(255))
+    initiated_by = Column(String(100))
+    action_name = Column(String(200))
+    parameters = Column(String(1000))
+    affected_entity = Column(String(255))
+    affected_entity_type = Column(String(100))
+    timestamp = Column(DateTime)

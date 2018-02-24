@@ -41,24 +41,29 @@ class ResourcesList extends Component {
         this.columnDefs = [
             {
                 headerName: "Name",
-                field: "resourceName"
+                field: "resource_name"
             },
             {
                 headerName: "Type",
-                field: "resourceType"
+                field: "resource_type"
             },
             {
                 headerName: "Owner",
-                field: "resourceOwnerId"
+                field: "resource_owner_id"
             },
             {
                 headerName: "ExposureType",
-                field: "exposureType",
+                field: "exposure_type",
                 cellStyle: {textAlign: "center"}
             },
             {
                 headerName: "Parent Folder",
-                field: "parent",
+                field: "parent_name",
+                cellStyle: {textAlign: "left"}
+            },
+            {
+                headerName: "Last Modified",
+                field: "last_modified_time",
                 cellStyle: {textAlign: "left"}
             }
         ];

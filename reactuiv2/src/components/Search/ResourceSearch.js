@@ -25,7 +25,10 @@ class ResourceSearch extends Component {
     }
 
     resultRenderer = (r) => {
-        return <div>{r.resource_name}</div>
+        var parent = ""
+        if(r.parent_name)
+            parent = " (under " + r.parent_name + ")";
+        return <div>{r.resource_name}{parent}</div>
     }
 
 

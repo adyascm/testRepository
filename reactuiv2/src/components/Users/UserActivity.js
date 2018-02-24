@@ -77,7 +77,7 @@ class UserActivity extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.activities) {
+        if (this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.activities) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
             nextProps.onLoad(agent.Activity.getActivitiesForUser(nextProps.selectedUserItem["key"]))
         }

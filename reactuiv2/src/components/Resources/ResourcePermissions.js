@@ -12,9 +12,9 @@ const ResourcePermissions = props => {
     let permissions = props.rowData.permissions
     let permissionUsers = []
     
-    if (permissions !== undefined && permissions.length > 0) {
+    if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission,index) => {
-            if (permission["permissionId"] !== undefined)
+            if (permission["permission_id"] !== undefined)
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
@@ -26,10 +26,10 @@ const ResourcePermissions = props => {
                             </Button>
                         </Grid.Column>
                         <Grid.Column width={10}>
-                            {permission["pemrissionEmail"]}
+                            {permission["email"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={permission["permissionType"] === "W"?"Write":"Read"} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["pemrissionEmail"])} />
+                            <Dropdown fluid text={permission["permission_type"]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["permission_type"])} />
                         </Grid.Column>
                     </Grid.Row>
                 )

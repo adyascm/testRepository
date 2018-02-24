@@ -4,6 +4,16 @@ import aws_utils
 from slugify import slugify
 from requests_futures.sessions import FuturesSession
 
+def send_push_notification(queue_name, string_payload):
+    session = FuturesSession()
+    push_message = {}
+    push_message["AK"] = "QQztAk"
+    push_message["PK"] = "WDcLMrV4LQgt"
+    push_message["C"] = queue_name
+    push_message["M"] = string_payload
+
+    session.post(url=constants.REAL_TIME_URL, json=push_message)
+
 def trigger_get_event(endpoint, auth_token, query_params):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()

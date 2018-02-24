@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { LOGOUT } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
-import { Container, Input, Image, List, Menu, Segment, Icon } from 'semantic-ui-react'
+import { Container, Image, Menu, Icon } from 'semantic-ui-react'
 
 const LoggedOutView = props => {
     if (!props.currentUser) {

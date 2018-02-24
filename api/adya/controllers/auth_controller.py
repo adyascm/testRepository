@@ -27,8 +27,13 @@ def update_user_refresh_token(email, refresh_token, db_session=None):
     db_session.commit()
     return True
 
+def update_user_scope_name(email, scope_name, db_session):
+    user = db_session.query(LoginUser).filter(LoginUser.email == email).update({"authorize_scope_name": scope_name})
+    db_session.commit()
+    return True
 
-def create_user(email, first_name, last_name, domain_id, refresh_token, is_enterprise_user):
+
+def create_user(email, first_name, last_name, domain_id, refresh_token, is_enterprise_user,scope_name):
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
     auth_token = str(uuid.uuid4())
@@ -43,7 +48,7 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_enter
     login_user.is_enterprise_user = is_enterprise_user
     login_user.creation_time = creation_time
     login_user.last_login_time = creation_time
-
+    login_user.authorize_scope_name = scope_name
     db_session.add(login_user)
     db_session.commit()
 

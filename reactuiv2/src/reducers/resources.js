@@ -62,26 +62,26 @@ export default (state = {}, action) => {
             //     rowData: {}
             // }
 
-            console.log("resources payload : ", action.payload)
-            let keys = Object.keys(action.payload)
-            let rows = []
+            // console.log("resources payload : ", action.payload)
+            // let keys = Object.keys(action.payload)
+            // let rows = []
             
-            for (let index=0; index<keys.length; index++) {
-                var row = action.payload[keys[index]];
-                var parent = ""
-                if(row.parents)
-                {
-                    parent = row.parents.parentName;
-                }
+            // for (let index=0; index<keys.length; index++) {
+            //     var row = action.payload[keys[index]];
+            //     var parent = ""
+            //     if(row.parents)
+            //     {
+            //         parent = row.parents.parentName;
+            //     }
                     
-                row.parent = parent;
-                rows.push(row)
-            }
+            //     row.parent = parent;
+            //     rows.push(row)
+            // }
 
             return {
                 ...state,
                 isLoading: false,
-                resourceTree: rows
+                resourceTree: action.payload
             }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {

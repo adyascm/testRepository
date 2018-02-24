@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom'
 import { PieChart } from 'react-chartkick';
-import { Statistic, Card, Loader, Segment, Dimmer, Label } from 'semantic-ui-react'
+import { Card, Loader, Segment, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
