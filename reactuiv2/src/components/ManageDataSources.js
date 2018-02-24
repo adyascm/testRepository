@@ -17,7 +17,8 @@ import {
   DASHBOARD_PAGE_UNLOADED,
   SCAN_UPDATE_RECEIVED,
   LOGIN_START,
-  LOGIN_ERROR
+  LOGIN_ERROR,
+  API_ERROR
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
@@ -25,7 +26,8 @@ const mapStateToProps = state => ({
   ...state.auth,
   appName: state.common.appName,
   currentUser: state.common.currentUser,
-  dataSources: state.common.dataSources
+  dataSources: state.common.dataSources,
+  errorMessage: state.common.errMessage
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -44,6 +46,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: LOGIN_START }),
   onSignInError: (errors) =>
     dispatch({ type: LOGIN_ERROR, error: errors }),
+  onScanError: (errors) => 
+    dispatch({ type: API_ERROR, errors })
 
 });
 
@@ -56,7 +60,8 @@ class ManageDataSources extends Component {
       authenticate("drive_scan_scope").then(data => {
         this.props.addDataSource("Testing")
       }).catch(({ errors }) => { 
-        this.props.onSignInError(errors) 
+        this.props.onSignInError(errors)
+        this.props.onScanError(errors)
       });
     };
     this.deleteDataSource = (datasource) => {
@@ -85,7 +90,7 @@ class ManageDataSources extends Component {
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress?true:false}>Scan</Button>
+                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Scan</Button>
                 </div>
               </Card.Content>
             </Card>
