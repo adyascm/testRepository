@@ -152,19 +152,20 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                     resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
         resource["exposure_type"] = resource_exposure_type
-        resource_parent_data = resourcedata.get('parents')
-        resource_parent = {}
-        resource_parent["domain_id"] = domain_id
-        resource_parent["datasource_id"] = datasource_id
-        resource_parent["email"] = user_email
-        resource_parent["resource_id"] = resource_id
-        resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
-        data_for_parent_table.append(resource_parent)
+        resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
+        # resource_parent_data = resourcedata.get('parents')
+        # resource_parent = {}
+        # resource_parent["domain_id"] = domain_id
+        # resource_parent["datasource_id"] = datasource_id
+        # resource_parent["email"] = user_email
+        # resource_parent["resource_id"] = resource_id
+        # resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
+        # data_for_parent_table.append(resource_parent)
         resourceList.append(resource)
     try:
         db_session.bulk_insert_mappings(Resource, resourceList)
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
-        db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
+        # db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_session.commit()

@@ -2,10 +2,6 @@ import React, { Component } from 'react';
 import { Icon } from 'semantic-ui-react';
 
 class UserGroupCell extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let expandIcon = this.props.data.isExpanded ? "triangle down" : "triangle right"
         var leftMargin = 2 * this.props.data.depth + "em";
@@ -18,7 +14,7 @@ class UserGroupCell extends Component {
                 </span>
             )
         }
-        else if (this.props.data.type == "group") {
+        else if (this.props.data.type === "group") {
             return (
                 <span style={{ "marginLeft": leftMargin }}>
                     <Icon />

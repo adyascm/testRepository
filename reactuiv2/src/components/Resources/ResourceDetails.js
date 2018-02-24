@@ -14,18 +14,28 @@ const ResourceDetails = props => {
     {text:'Watch all actions',
      value:'Watch all actions'}];
 
-    console.log("resource details row data : ", props.rowData)
-
+     var image = null;
+     if (props.rowData.icon_link) {
+         image = <Item.Image inline floated='right' size='tiny' src={props.rowData.icon_link}></Item.Image>
+     } else {
+         image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} >{props.rowData.resource_name.charAt(0).toUpperCase()}</Label></Item.Image>
+     }
     return (
         <Item.Group>
             <Item fluid='true'>
-                <Item.Image size='tiny'><Label style={{fontSize: '2rem'}} circular >{props.rowData['resourceName'][0].toUpperCase()}</Label></Item.Image>
+                {image}
                 <Item.Content >
                     <Item.Header >
-                        {props.rowData['resourceName']}
+                        {props.rowData['resource_name']}
                     </Item.Header>
                     <Item.Meta >
-                        Last Modified Time: {props.rowData['lastModifiedTime']}
+                    <div><Label basic>Owner: {props.rowData['resource_owner_id']}</Label></div>
+                        <div><Label basic>Last Modified at {props.rowData['last_modified_time']} by {props.rowData['last_modifying_user_email']}</Label></div>
+                        
+                        <div style={{margin: "5px"}}>
+                        <Label primary><a href={props.rowData['web_view_link']}>View</a></Label>
+                        <Label primary><a href={props.rowData['web_content_link']}>Download</a></Label>
+                        </div>
                     </Item.Meta>
                     <Item.Extra extra>
                         <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} onChange={(event,data) => props.handleChange(event,data)} />

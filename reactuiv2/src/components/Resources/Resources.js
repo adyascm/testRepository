@@ -27,7 +27,7 @@ class Users extends Component {
     
     this.state = {
       options: [
-        {text: 'External Shared',
+        {text: 'Externally Shared',
          value: 'External Shared'},
         {text: 'Domain Shared',
          value: 'Domain Shared'},

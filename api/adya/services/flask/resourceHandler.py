@@ -24,7 +24,7 @@ class GetResources(Resource):
             return req_error
         auth_token = req_session.get_auth_token()
 
-        resource_list = resourceController.search_resources(auth_token, req_session.get_req_param("prefix"))
+        resource_list = resourceController.get_resources(auth_token, None, "", "", req_session.get_req_param("prefix"))
         return req_session.generate_sqlalchemy_response(200, resource_list)
 
     def post(Resource):

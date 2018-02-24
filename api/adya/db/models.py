@@ -16,6 +16,12 @@ class AlchemyEncoder(json.JSONEncoder):
                 data = obj.__getattribute__(field)
                 if isinstance(data, (datetime)):
                     fields[field] = data.isoformat()
+                elif isinstance(data, list):
+                    try:
+                        json.dumps(data, cls=AlchemyEncoder)  # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError as ex:
+                        fields[field] = None
                 else:
                     try:
                         json.dumps(data)  # this will fail on non-encodable values, like other classes
@@ -110,6 +116,8 @@ class Resource(Base):
     thumthumbnail_link = Column(Text)
     description = Column(Text)
     last_modifying_user_email = Column(String(255))
+    parent_id = Column(String(100), nullable=True)
+    permissions = relationship("ResourcePermission", backref="resource")
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
@@ -129,7 +137,7 @@ class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36))
-    resource_id = Column(String(100), primary_key=True)
+    resource_id = Column(String(100), ForeignKey('resource.resource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
