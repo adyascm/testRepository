@@ -67,7 +67,15 @@ export default (state = {}, action) => {
             let rows = []
             
             for (let index=0; index<keys.length; index++) {
-                rows.push(action.payload[keys[index]])
+                var row = action.payload[keys[index]];
+                var parent = ""
+                if(row.parents)
+                {
+                    parent = row.parents.parentName;
+                }
+                    
+                row.parent = parent;
+                rows.push(row)
             }
 
             return {
