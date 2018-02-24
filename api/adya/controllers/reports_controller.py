@@ -49,9 +49,11 @@ def get_widget_data(auth_token, widget_id):
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'externalUsersList':
         data = {}
-        data["rows"] = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
-                                                                      DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
-            LoginUser.auth_token == auth_token).limit(5).all()
+        data["rows"] = db_session.query(DomainUser.email, func.count(ResourcePermission.email)).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
+                                                                      DomainUser.member_type == constants.UserMemberType.EXTERNAL,
+                                                            ResourcePermission.domain_id == LoginUser.domain_id ,
+                                                            ResourcePermission.email == DomainUser.email)).filter(
+            LoginUser.auth_token == auth_token).group_by(DomainUser.email).order_by(func.count(ResourcePermission.email).desc()).limit(5).all()
         data["totalCount"] = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
                                                                             DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
             LoginUser.auth_token == auth_token).count()
