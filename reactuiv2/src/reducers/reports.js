@@ -21,9 +21,17 @@ export default (state = {}, action) => {
                scheduledReport: action.payload
              }
         case SET_SCHEDULED_REPORTS:
+              var error;
+              if(action.error === undefined){
+                error = false
+              }
+              else {
+                error = true
+              }
               return{
                 ...state,
-                reports: action.payload
+                reports: action.payload,
+                getreportError: error
               }
         case DELETE_SCHEDULED_REPORT:
               return{

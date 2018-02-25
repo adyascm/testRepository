@@ -7,7 +7,8 @@ const ReportView = props => {
     var keys = Object.keys(reports)
     var reportCard = []
 
-    if (keys.length > 0) {
+
+    if (keys.length > 0 && !props.getReportError) {
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         var card = (
