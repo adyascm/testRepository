@@ -97,7 +97,7 @@ def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_ty
         resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
     if prefix:
         limit = 10
-        resources_query = resources_query.filter(Resource.resource_name.ilike("%" + prefix + "%"))
+        resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
 
     resources = resources_query.filter(resource_alias.domain_id == domain.domain_id).order_by(desc(resource_alias.last_modified_time)).limit(limit).all()
     result = []
