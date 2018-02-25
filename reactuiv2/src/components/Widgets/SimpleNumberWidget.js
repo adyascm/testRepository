@@ -37,18 +37,15 @@ class SimpleNumberWidget extends Component {
             }
             else {
                 return (
-                    <Segment>
-                        <Dimmer active inverted>
-                            <Loader inverted content='Loading' />
-                        </Dimmer>
-                        <Card>
-
-                            <Card.Content>
-                            </Card.Content>
-                            <Card.Content extra>
-                            </Card.Content>
-                        </Card>
-                    </Segment>
+                    <Card>
+                        <Card.Content>
+                            <Dimmer active inverted>
+                                <Loader inverted />
+                            </Dimmer>
+                        </Card.Content>
+                        <Card.Content extra>
+                        </Card.Content>
+                    </Card>
                 )
             }
         }
