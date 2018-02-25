@@ -11,7 +11,7 @@ const ReportView = props => {
     var keys = Object.keys(reports)
     var reportCard = []
 
-    if (keys.length > 0) {
+    if (keys.length > 0 && !props.getReportError) {
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         console.log(reportDetail.frequency)
@@ -87,7 +87,9 @@ const ReportView = props => {
     } else {
         return (
           <div>
-
+            {  props.getReportError? <Header>
+              There's something not right , we'll be back shortly..
+            </Header> : null }
               <Card.Group>
                 <Card>
                   <Card.Content>
