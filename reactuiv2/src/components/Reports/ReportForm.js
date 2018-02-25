@@ -149,7 +149,18 @@ class ReportForm extends Component {
       value = "cron(" + value + ")"
     }
 
-    copyFinalReportObj[key] = value
+    if (typeof(key) !== "string"){
+      for(var i in key){
+        for (var j in value){
+          copyFinalReportObj[key[i]] = value[j]
+        }
+
+      }
+    }
+    else if(typeof(key) === "string"){
+      copyFinalReportObj[key] = value
+    }
+
 
     if(key === 'selected_entity_type'){
       if(Object.keys(this.state.reportDataForReportId).length>0){
@@ -237,7 +248,7 @@ class ReportForm extends Component {
                    {this.state.finalReportObj['selected_entity_type'] === 'resource' ||
                      this.handleMultipleOptions('selected_entity_type') === 'resource'?
                      <Form.Field ><ResourceSearch onChangeReportInput={this.onChangeReportInput}
-                       defaultValue={this.state.reportDataForReportId['selected_entity']} /></Form.Field> : null}
+                       defaultValue={this.state.reportDataForReportId['selected_entity_name']} /></Form.Field> : null}
             </div>
           </div>
           </Form>
