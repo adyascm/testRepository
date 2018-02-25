@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 // import '../../App.css';
 import { Route, Switch, Redirect } from 'react-router-dom';
-import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader, Dimmer} from 'semantic-ui-react'
+import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader, Dimmer, Container} from 'semantic-ui-react'
 import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
@@ -127,7 +127,7 @@ class Reports extends Component {
 
     if (this.props.currentUser){
       return(
-        <div>
+        <Container>
           <ReportView report={this.props.reports} deleteReport={this.deleteReport}
             reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
           {this.state.showModal === true?
@@ -176,7 +176,7 @@ class Reports extends Component {
 
             : null
           }
-        </div>
+        </Container>
       )
     }
     else{
