@@ -87,7 +87,8 @@ def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_ty
     parent_alias = aliased(Resource)
     resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, resource_alias.parent_id == parent_alias.resource_id)
     if user_emails:
-        resources_query = resources_query.outerjoin(ResourcePermission, ResourcePermission.email.in_(user_emails))
+        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.domain_id == domain.domain_id, ResourcePermission.email.in_(user_emails)))
+        resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
     else:
         resources_query = resources_query.join("permissions")
     if resource_type:
