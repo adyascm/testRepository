@@ -322,7 +322,7 @@ class ReactCron extends Component {
             {this.getYearComponent()}
 
           </div>
-          <input id="crondata" className='cron-input'  value={Helper.getCron(this.state)}
+          <input id="crondata" type="hidden" className='cron-input'  value={Helper.getCron(this.state)}
             defaultValue={this.props.cronVal}
            />
         </div>

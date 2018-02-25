@@ -12,6 +12,8 @@
     "ag-grid-react": "^16.0.0",
     "chart.js": "^2.7.1",
     "chartkick": "^2.2.4",
+    "cron-to-quartz": "^1.4.1",
+    "cronstrue": "^1.1.0",
     "react": "^16.2.0",
     "react-chartkick": "^0.1.6",
     "react-cron": "0.0.1",

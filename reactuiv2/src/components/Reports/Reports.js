@@ -129,7 +129,8 @@ class Reports extends Component {
       return(
         <Container>
           <ReportView report={this.props.reports} deleteReport={this.deleteReport}
-            reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}/>
+            reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}
+            getReportError = {this.props.getreportError}/>
           {this.state.showModal === true?
             this.state.isRunreport ?
                 this.props.runReportData ?

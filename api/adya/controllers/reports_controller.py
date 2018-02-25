@@ -79,7 +79,7 @@ def create_report(auth_token, payload):
             report.receivers = payload["receivers"]
             config_input = {"report_type": payload["report_type"],
                             "selected_entity_type": payload["selected_entity_type"],
-                            "selected_entity": payload["selected_entity"]}
+                            "selected_entity": payload["selected_entity"], "selected_entity_name": payload["selected_entity_name"]}
 
             report.config = json.dumps(config_input)
             report.is_active = payload["is_active"]
@@ -121,7 +121,8 @@ def get_reports(auth_token):
             "is_active": str(report.is_active),
             "report_type": config_data['report_type'],
             "selected_entity": config_data['selected_entity'],
-            "selected_entity_type": config_data['selected_entity_type']
+            "selected_entity_type": config_data['selected_entity_type'],
+            "selected_entity_name": config_data['selected_entity_name']
 
         }
     return response

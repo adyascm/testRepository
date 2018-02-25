@@ -31,6 +31,7 @@ const DataSourceItem = props => {
     }
 
     if (datasource) {
+        console.log("datasource payload : ", datasource.creation_time.split('T').join(' '))
         var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         var status = getScanStatus(datasource);
         var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
@@ -48,7 +49,7 @@ const DataSourceItem = props => {
                         {syncStatus}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
-                        Created at: <strong>{datasource.creation_time}</strong>
+                        Created at: <strong>{datasource.creation_time.split('T').join(' ')}</strong>
                     </Card.Meta>
                     <Card.Description>
                         {statusText}

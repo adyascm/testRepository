@@ -24,7 +24,7 @@ class GroupSearch extends Component {
         super(props);
         this.state = {
             isLoading: false,
-            value: '',
+            value: this.props.defaultValue ? this.props.defaultValue : '',
             results: []
 
         }
