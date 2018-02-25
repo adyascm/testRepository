@@ -262,12 +262,12 @@ functions:
           method: post
           cors: true
 
-  get-scan-subscribenotifications:
+  post-scan-subscribenotifications:
     handler: adya.services.lambda.scan_handler.subscribe_gdrive_notifications
     events:
       - http:
           path: scan/subscribenotifications
-          method: get
+          method: post
           cors: true
 
   get-getactivitiesforuser:

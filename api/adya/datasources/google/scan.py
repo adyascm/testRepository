@@ -64,7 +64,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                 update_and_get_count(datasource_id, DataSource.file_scan_status, 1, False)
                 break
         except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.file_scan_status, 2, False)
+            update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
             print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
             print ex
             break
@@ -173,7 +173,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
 
         print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 2, False)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
 
@@ -499,9 +499,9 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
             #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
 
 def get_scan_status(datasource):
-    if datasource.file_scan_status > 1 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
+    if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
         return 2 #Failed
 
-    if (datasource.file_scan_status == 1 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
+    if (datasource.file_scan_status > 0 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
         return 1 #Complete
     return 0 #In Progress

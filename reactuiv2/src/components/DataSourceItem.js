@@ -22,10 +22,10 @@ const DataSourceItem = props => {
         if (datasource.total_file_count == 0)
             percent = 0;
 
-        if (datasource.file_scan_status > 1 || datasource.user_scan_status > 1 || datasource.group_scan_status > 1)
+        if (datasource.file_scan_status > 10000 || datasource.user_scan_status > 1 || datasource.group_scan_status > 1)
             return <Progress size='small' precision='0' percent={percent} error />; //Failed
 
-        if ((datasource.file_scan_status == 1 && datasource.total_file_count == datasource.processed_file_count) && (datasource.user_scan_status == 1 && datasource.total_user_count == datasource.processed_user_count) && (datasource.group_scan_status == 1 && datasource.total_group_count == datasource.processed_group_count))
+        if ((datasource.file_scan_status > 0 && datasource.total_file_count == datasource.processed_file_count) && (datasource.user_scan_status == 1 && datasource.total_user_count == datasource.processed_user_count) && (datasource.group_scan_status == 1 && datasource.total_group_count == datasource.processed_group_count))
             return <Progress size='small' precision='0' percent={percent} success />; //Complete
         return <Progress size='small' precision='0' percent={percent} active />; //In Progress
     }

@@ -39,11 +39,11 @@ class UserResource extends Component {
             columnDefs: [
                 {
                     headerName: "Resource",
-                    field: "name"
+                    field: "resource_name"
                 },
                 {
                     headerName: "Owner",
-                    field: "resourceOwnerId",
+                    field: "resource_owner_id",
                     editable: true,
                     onCellValueChanged: this.cellValueChanged
                 },
@@ -60,7 +60,7 @@ class UserResource extends Component {
                 },
                 {
                     headerName: "ExposureType",
-                    field: "exposureType"
+                    field: "exposure_type"
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {

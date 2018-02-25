@@ -43,8 +43,8 @@ class ListWidget extends Component {
                                         data.map(row => {
                                             return (
                                                 <Table.Row>
-                                                    <Table.Cell collapsing>{row[Object.keys(row)[0]] && row[Object.keys(row)[0]].length>26?row[Object.keys(row)[0]].substring(0,25)+'...':row[Object.keys(row)[0]]}</Table.Cell>
-                                                    <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]] && row[Object.keys(row)[1]].length>10?row[Object.keys(row)[1]].substring(0,7)+'...':row[Object.keys(row)[1]]}</Table.Cell>
+                                                    <Table.Cell collapsing>{row[Object.keys(row)[0]] && row[Object.keys(row)[0]].length > 26 ? row[Object.keys(row)[0]].substring(0, 25) + '...' : row[Object.keys(row)[0]]}</Table.Cell>
+                                                    <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]] && row[Object.keys(row)[1]].length > 10 ? row[Object.keys(row)[1]].substring(0, 7) + '...' : row[Object.keys(row)[1]]}</Table.Cell>
                                                 </Table.Row>
                                             )
                                         }
@@ -63,18 +63,15 @@ class ListWidget extends Component {
             }
             else {
                 return (
-                    <Segment>
-                        <Dimmer active inverted>
-                            <Loader inverted content='Loading' />
-                        </Dimmer>
-                        <Card>
-
-                            <Card.Content>
-                            </Card.Content>
-                            <Card.Content extra>
-                            </Card.Content>
-                        </Card>
-                    </Segment>
+                    <Card>
+                        <Card.Content>
+                            <Dimmer active inverted>
+                                <Loader inverted />
+                            </Dimmer>
+                        </Card.Content>
+                        <Card.Content extra>
+                        </Card.Content>
+                    </Card>
                 )
             }
         }
