@@ -38,6 +38,7 @@ provider:
       Action:
         - "ses:SendEmail"
         - "lambda:InvokeFunction"
+        - "lambda:GetFunction"
       Resource:
         "*"
 
