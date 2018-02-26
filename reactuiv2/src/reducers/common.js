@@ -12,7 +12,9 @@ import {
   SCAN_UPDATE_RECEIVED,
   SCAN_INCREMENTAL_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
-  RESOURCES_PAGE_LOADED
+  RESOURCES_PAGE_LOADED,
+  DATASOURCE_LOAD_START,
+  DATASOURCE_LOAD_END
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -78,6 +80,16 @@ export default (state = defaultState, action) => {
       return {
         ...state
       };
+    case DATASOURCE_LOAD_START:
+      return {
+        ...state,
+        datasourceLoading: true
+      }
+    case DATASOURCE_LOAD_END:
+      return {
+        ...state,
+        datasourceLoading: false
+      }
     case CREATE_DATASOURCE:
       return {
         ...state,
