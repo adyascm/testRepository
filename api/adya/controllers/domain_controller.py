@@ -126,42 +126,40 @@ def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
         messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 
 def create_dummy_datasource(db_session,domain_id,datasource_id):
-    try:
-        file_names = ['resource','user','group','directory_structure','resource_permission']
-        for filename in file_names:
-            results = []
-            with open( gutils.dir_path + "/dummy_datasource/" + filename +".csv" ) as csvDataFile:
-                csvReader = csv.reader(csvDataFile)
-                tablename = get_table(filename)
-                columns = tablename.__table__.columns
-                firstrow = True
-                for row in csvReader:
-                    if firstrow:
-                        firstrow=False
-                        continue
-                    datarow ={}
-                    for cellvalue, column in zip(row,columns) :
-                        column_name = column.name
-                        column_type = column.type
-                        if cellvalue =='NULL':
-                            datarow[column_name] =None
-                        elif isinstance(column_type, Boolean):
-                            if cellvalue =='0':
-                               datarow[column_name] = False
-                            else:
-                               datarow[column_name] = True 
-                        elif column_name=='domain_id':
-                            datarow[column_name] = domain_id
-                        elif column_name == 'datasource_id':
-                            datarow[column_name] = datasource_id
+    file_names = ['resource','user','group','directory_structure','resource_permission']
+    for filename in file_names:
+        results = []
+        with open( gutils.dir_path + "/dummy_datasource/" + filename +".csv" ) as csvDataFile:
+            csvReader = csv.reader(csvDataFile)
+            tablename = get_table(filename)
+            columns = tablename.__table__.columns
+            firstrow = True
+            for row in csvReader:
+                if firstrow:
+                    firstrow=False
+                    continue
+                datarow ={}
+                for cellvalue, column in zip(row,columns) :
+                    column_name = column.name
+                    column_type = column.type
+                    if cellvalue =='NULL':
+                        datarow[column_name] =None
+                    elif isinstance(column_type, Boolean):
+                        if cellvalue =='0':
+                            datarow[column_name] = False
                         else:
-                            datarow[column_name] = cellvalue
-                    results.append(datarow)
-            db_session.bulk_insert_mappings(tablename,results)
-        db_session.commit()
-        update_datasource_column_count(db_session,domain_id,datasource_id)
-    except Exception as ex:
-        print(ex)
+                            datarow[column_name] = True 
+                    elif column_name=='domain_id':
+                        datarow[column_name] = domain_id
+                    elif column_name == 'datasource_id':
+                        datarow[column_name] = datasource_id
+                    else:
+                        datarow[column_name] = cellvalue
+                results.append(datarow)
+        db_session.bulk_insert_mappings(tablename,results)
+    db_session.commit()
+    update_datasource_column_count(db_session,domain_id,datasource_id)
+
 def update_datasource_column_count(db_session,domain_id,datasource_id):
     datasouorce = db_session.query(DataSource).filter(and_(DataSource.domain_id ==domain_id,DataSource.datasource_id == datasource_id)).first()
     filecount = db_session.query(Resource.resource_id).distinct(Resource.resource_id).\
