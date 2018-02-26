@@ -38,6 +38,7 @@ provider:
       Action:
         - "ses:SendEmail"
         - "lambda:InvokeFunction"
+        - "lambda:GetFunction"
       Resource:
         "*"
 
@@ -283,4 +284,28 @@ functions:
       - http:
           path: getauditlog
           method: get
+          cors: true
+  get-executescheduledreport:
+     handler: adya.services.lambda.reports_handler.execute_cron_report
+
+  delete-scheduledreport:
+    handler: adya.services.lambda.reports_handler.delete_scheduled_report
+    events:
+      - http:
+          path: scheduledreport
+          method: delete
+          cors: true
+  get-runscheduledreport:
+    handler: adya.services.lambda.reports_handler.run_scheduled_report
+    events:
+      - http:
+          path: scheduledreport/runreport
+          method: get
+          cors: true
+  put-modifyscheduledreport:
+    handler: adya.services.lambda.reports_handler.modify_scheduled_report
+    events:
+      - http:
+          path: scheduledreport
+          method: put
           cors: true

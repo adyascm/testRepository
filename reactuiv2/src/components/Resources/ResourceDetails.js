@@ -16,9 +16,9 @@ const ResourceDetails = props => {
 
      var image = null;
      if (props.rowData.icon_link) {
-         image = <Item.Image inline floated='right' size='tiny' src={props.rowData.icon_link}></Item.Image>
+         image = <Item.Image inline floated='right' size='mini' src={props.rowData.icon_link}></Item.Image>
      } else {
-         image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} >{props.rowData.resource_name.charAt(0).toUpperCase()}</Label></Item.Image>
+         image = <Item.Image floated='right' size='mini' ><Label style={{ fontSize: '2rem' }} >{props.rowData.resource_name.charAt(0).toUpperCase()}</Label></Item.Image>
      }
     return (
         <Item.Group>
