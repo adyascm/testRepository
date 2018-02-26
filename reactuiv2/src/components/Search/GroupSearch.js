@@ -37,23 +37,16 @@ class GroupSearch extends Component {
     resultRenderer = (r) => {
         var image = null;
                 if (r.photo_url) {
-                    image = <Image inline floated='right' size='mini' src={r.photo_url} circular></Image>
+                    image = <Image inline avatar src={r.photo_url} floated='left'></Image>
                 } else {
-                    image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
+                    image = <Image inline floated='left'><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
                 }
 
         return (
-            <Card >
-                <Card.Content>
-                    {image}
-                    <Card.Header>
-                        {r.name}
-                    </Card.Header>
-                    <Card.Description>
-                        {r.email}
-                    </Card.Description>
-                </Card.Content>
-            </Card>
+            <div>
+                {/* {image} */}
+                <span>{r.email}</span>
+                </div>
         )
     }
 
