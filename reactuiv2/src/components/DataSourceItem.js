@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Image, Dimmer, Segment, Loader, Progress, Label } from 'semantic-ui-react'
+import { Button, Card, Image, Dimmer, Segment, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import agent from '../utils/agent';
 
 
@@ -37,13 +37,17 @@ const DataSourceItem = props => {
         var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
         if (datasource.is_push_notifications_enabled)
             syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
+        var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
+        if(datasource.is_dummy_datasource)
+            datasourceImage = <Image circular floated='left' size='small'><Label content='Dummy' icon='lab' /></Image>
         return (
             <Card fluid >
                 <Dimmer active={datasource.isDeleting} inverted>
                     <Loader inverted content='Deleting...' />
                 </Dimmer>
                 <Card.Content>
-                    <Image floated='left' size='small' src='/images/GSuite.png' />
+                    <Header >{datasource.domain_id}</Header>
+                    {datasourceImage}
                     <Card.Header textAlign='right'>
                         {datasource.display_name}
                         {syncStatus}
