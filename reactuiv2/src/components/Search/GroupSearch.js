@@ -55,7 +55,10 @@ class GroupSearch extends Component {
     handleResultSelect = (e, { result }) => {
         console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
-            this.props.onChangeReportInput("selected_entity", result.email)
+          var entityinfokey = ["selected_entity",  "selected_entity_name"]
+          var entityinfovalue = [result.email, result.email]
+           this.props.onChangeReportInput(entityinfokey, entityinfovalue)
+            
         }
         this.setState({
             value: result.email

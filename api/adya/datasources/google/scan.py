@@ -113,9 +113,13 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                     expiration_time = permission.get('expirationTime')
                     is_deleted = permission.get('deleted')
                     if email_address:
-                        resource_exposure_type = constants.ResourceExposureType.INTERNAL
+                        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
+                            and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
+                            and resource_exposure_type != constants.ResourceExposureType.DOMAIN :
+                                resource_exposure_type = constants.ResourceExposureType.INTERNAL
                         if gutils.check_if_external_user(domain_id,email_address):
-                            resource_exposure_type = constants.ResourceExposureType.EXTERNAL
+                            if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+                                resource_exposure_type = constants.ResourceExposureType.EXTERNAL
                             ## insert non domain user as External user in db, Domain users will be
                             ## inserted during processing Users
                             if not email_address in external_user_map:
@@ -134,7 +138,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                                 externaluser["member_type"] = constants.UserMemberType.EXTERNAL
                                 external_user_map[email_address]= externaluser
                     elif display_name:
-                        resource_exposure_type = constants.ResourceExposureType.DOMAIN
+                        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
+                            resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+                            resource_exposure_type = constants.ResourceExposureType.DOMAIN
                         email_address = "__ANYONE__@"+ domain_id
                     else:
                         resource_exposure_type = constants.ResourceExposureType.PUBLIC

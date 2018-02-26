@@ -22,6 +22,9 @@ DRIVE_ACTION_SCOPE = [
     'https://www.googleapis.com/auth/admin.directory.group.readonly '
     'https://www.googleapis.com/auth/admin.reports.audit.readonly '
     'https://www.googleapis.com/auth/drive '
+    'https://www.googleapis.com/auth/admin.datatransfer '
+    'https://www.googleapis.com/auth/admin.datatransfer.readonly '
+
 ]
 
 SERVICE_ACCOUNT_SCOPE = [

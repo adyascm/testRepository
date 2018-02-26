@@ -15,7 +15,7 @@ class AlchemyEncoder(json.JSONEncoder):
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                 data = obj.__getattribute__(field)
                 if isinstance(data, (datetime)):
-                    fields[field] = data.isoformat()
+                    fields[field] = data.strftime("%Y-%m-%dT%H:%M:%SZ")
                 elif isinstance(data, list):
                     try:
                         json.dumps(data, cls=AlchemyEncoder)  # this will fail on non-encodable values, like other classes
