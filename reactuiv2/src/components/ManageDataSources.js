@@ -33,8 +33,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setDataSources: (datasources) =>
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
-  addDataSource: (name) => {
-    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name }) })
+  addDataSource: (name,isdummy=false) => {
+    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name,"isDummyDatasource":isdummy }) })
   },
   onDeleteDataSource: (datasource) => {
     dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
@@ -64,6 +64,12 @@ class ManageDataSources extends Component {
         this.props.onScanError(errors)
       });
     };
+
+    this.addDummyDatasource = () => ev => {
+      ev.preventDefault();
+      this.props.addDataSource("Testing",true);
+    };
+
     this.deleteDataSource = (datasource) => {
       this.props.onDeleteDataSource(datasource);
       agent.Setting.deleteDataSource(datasource).then(res => {
@@ -90,7 +96,8 @@ class ManageDataSources extends Component {
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                  <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Scan</Button>
+                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Scan</Button>
+                <Button basic color='yellow' disabled={this.newDataSourceName} onClick={this.addDummyDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Dummy DataSource</Button>
                 </div>
               </Card.Content>
             </Card>
