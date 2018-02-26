@@ -109,14 +109,14 @@ def get_reports(auth_token):
     for report in reports_data:
         config_data = json.loads(report.config)
         last_trigger_time = ''
-        if report.last_trigger_time: last_trigger_time = report.last_trigger_time.strftime('%m/%d/%Y')
+        if report.last_trigger_time: last_trigger_time = report.last_trigger_time.strftime("%Y-%m-%dT%H:%M:%SZ")
         response[report.report_id] = {
             "report_id": report.report_id,
             "name": report.name,
             "description": report.description,
             "frequency": report.frequency[5:len(report.frequency) - 1],
             "receivers": report.receivers,
-            "creation_time": report.creation_time.strftime('%m/%d/%Y'),
+            "creation_time": report.creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_trigger_time": last_trigger_time,
             "is_active": str(report.is_active),
             "report_type": config_data['report_type'],
