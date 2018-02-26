@@ -6,7 +6,7 @@ import dashboard from './reducers/dashboard';
 import users from './reducers/users';
 import reports from './reducers/reports'
 import resources from './reducers/resources'
-import error from './reducers/error'
+import message from './reducers/message'
 
 export default combineReducers({
   auth,
@@ -15,5 +15,5 @@ export default combineReducers({
   users,
   resources,
   reports,
-  error
+  message
 });

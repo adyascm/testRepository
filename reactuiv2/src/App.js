@@ -14,7 +14,7 @@ import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
-import GlobalError from './GlobalError';
+import GlobalMessage from './GlobalMessage';
 
 import { Container, Message, Segment } from 'semantic-ui-react'
 
@@ -71,7 +71,7 @@ class App extends Component {
           <Header appName={this.props.appName} currentUser={this.props.currentUser}/>
           <Switch>
             <Container fluid style={{ marginTop: '6em', height: '100%' }}>
-            <GlobalError />
+            <GlobalMessage />
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
               <Route exact path="/login" component={Login} />
               <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
