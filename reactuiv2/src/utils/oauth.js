@@ -27,6 +27,7 @@ function listenForCredentials (popup, resolve, reject) {
         let currentUser = agent.Auth.current();
         resolve({"token": token, "payload": currentUser});
       } else if(error) {
+        popup.close();
         reject({errors: {Failed: error}});
       }else if (popup.closed) {
         reject({errors: {Failed:"Authentication was cancelled."}})
