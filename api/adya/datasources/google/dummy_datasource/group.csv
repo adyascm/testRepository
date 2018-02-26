@@ -1,0 +1,22 @@
+domain_id,datasource_id,group_id,email,name,direct_members_count,description,include_all_user,aliases
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,02lwamvv1lyqm5g,all@serendipity-technologies.com,all,2,,0,"test1@serendipity-technologies.com,test2@serendipity-technologies.com"
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,040ew0vw3aznvll,email_testing@serendipity-technologies.com,"Test Email1",0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,00tyjcwt40udbun,engineering@serendipity-technologies.com,Engineering,2,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,03ygebqi0rbi27j,group1@serendipity-technologies.com,Group1,2,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,00lnxbz93wcfwep,group2@serendipity-technologies.com,Group2,2,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,01egqt2p3bd8gos,hr@serendipity-technologies.com,HR,3,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,03o7alnk40k2rxp,insideva@serendipity-technologies.com,"inside Testing VA",2,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,049x2ik50v8rzl4,insideva1@serendipity-technologies.com,"inside testing VA2",1,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,02grqrue2j7a7se,marketing@serendipity-technologies.com,Marketing,1,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,00qsh70q40d6m9x,mhr@serendipity-technologies.com,"Marketing HR",0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,0111kx3o0j7eygy,sales@serendipity-technologies.com,Sales,3,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,039kk8xu4cd2f4i,test_email_3@serendipity-technologies.com,"test email 3",0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,0147n2zr1kswmp5,test_email_4_unverified@serendipity-technologies.com,test_email_4,0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,00zu0gcz2soryks,test_email_5@serendipity-technologies.com,test_email_5,0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,04anzqyu1qsoj9r,test_email_6@serendipity-technologies.com,test_email_6,0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,017dp8vu3z9ad8w,test_email_8@serendipity-technologies.com,test_email_8,0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,03s49zyc0wjfaos,test@serendipity-technologies.com,Test,1,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,01opuj5n0u2imti,testgroup1@serendipity-technologies.com,TestGroup1,1,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,01x0gk373cs4qgw,testing_email_2@serendipity-technologies.com,"test email 2",0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,01hmsyys2mr6vh9,thr@serendipity-technologies.com,"Techinical HR",0,,0,NULL
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,03s49zyc1hsbp3f,vatest@serendipity-technologies.com,"Testing VA",2,,0,NULL
