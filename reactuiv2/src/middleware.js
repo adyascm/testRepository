@@ -32,9 +32,9 @@ import {
                   console.log('ERROR', error);
                   action.error = true;
                   //if(error.response)
-                    action.payload = error.response || error.message;
+                  action.payload = error.response || error.message;
                   if (!action.skipTracking) {
-                    store.dispatch({ type: ASYNC_END, promise: action.payload });
+                    store.dispatch({ type: ASYNC_END, promise: action.payload, errors: error.message });
                   }
                   store.dispatch(action);
               }

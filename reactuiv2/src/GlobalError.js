@@ -1,12 +1,12 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 
-import {Message} from 'semantic-ui-react';
+import {Message,Container} from 'semantic-ui-react';
 
 import {CLEAR_ERROR} from './constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.common
+    ...state.error
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -25,11 +25,17 @@ class GlobalError extends Component {
     }
 
     render() {
-        return (
-            <Message negative fluid size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
-                {this.props.errorMessage['Failed']?this.props.errorMessage['Failed']:this.props.errorMessage}
-            </Message>
-        )
+
+        if (this.props.errMessage)
+            return (
+                <Container>
+                    <Message negative fluid size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
+                        {this.props.errMessage}
+                    </Message>
+                </Container>
+            )
+        else 
+            return null
     }
 }
 

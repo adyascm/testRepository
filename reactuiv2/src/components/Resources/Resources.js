@@ -18,7 +18,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 
-class Users extends Component {
+class Resources extends Component {
   constructor(props) {
     super(props);
 
@@ -120,4 +120,4 @@ class Users extends Component {
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(Users);
+export default connect(mapStateToProps,mapDispatchToProps)(Resources);

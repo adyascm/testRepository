@@ -29,8 +29,7 @@ const mapStateToProps = state => {
     appName: state.common.appName,
     currentUser: state.common.currentUser,
     redirectTo: state.common.redirectTo,
-    appMessage: state.common.appMessage,
-    errorMessage: state.common.errMessage
+    appMessage: state.common.appMessage
   }
 };
 
@@ -72,7 +71,7 @@ class App extends Component {
           <Header appName={this.props.appName} currentUser={this.props.currentUser}/>
           <Switch>
             <Container fluid style={{ marginTop: '6em', height: '100%' }}>
-            {this.props.errorMessage?<GlobalError errorMessage={this.props.errorMessage} />:''}
+            <GlobalError />
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
               <Route exact path="/login" component={Login} />
               <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
