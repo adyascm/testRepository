@@ -14,6 +14,7 @@ import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
+import AuditLog from './components/AuditLog'
 import GlobalError from './GlobalError';
 
 import { Container, Message, Segment } from 'semantic-ui-react'
@@ -79,6 +80,7 @@ class App extends Component {
               <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
               <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
               <Route path="/datasources" component={SecuredView(ManageDataSources)} />
+              <Route path="/auditlog" component={SecuredView(DataSourceVerifiedView(AuditLog))} />
               <Route path="/oauthstatus/:status" component={Dashboard} />
             </Container>
           </Switch>

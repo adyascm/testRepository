@@ -91,5 +91,10 @@ const Scheduled_Report = {
 
 }
 
+const AuditLog = {
+    getAuditLogList: () => 
+        requests.get('/getauditlog')
+}
 
-export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, Activity, Actions, setToken: _token => { token = _token; } };
+
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, setToken: _token => { token = _token; } };

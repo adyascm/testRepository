@@ -32,6 +32,7 @@ const LoggedInView = props => {
                     <Menu.Item as={Link} to="/users">Users</Menu.Item>
                     <Menu.Item as={Link} to="/resources">Resources</Menu.Item>
                     <Menu.Item as={Link} to="/reports">Reports</Menu.Item>
+                    <Menu.Item as={Link} to="/auditlog">AuditLog</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
