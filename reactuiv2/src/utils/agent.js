@@ -30,7 +30,7 @@ const requests = {
 };
 
 const Auth = {
-    current: () =>
+  current  : () =>
         requests.get('/user'),
     save: user =>
         requests.put('/user', { user })
@@ -46,6 +46,14 @@ const Setting = {
     processNotifications: () =>
         requests.get('/scan/processnotifications')
 };
+
+const Actions = {
+  getAllActions: () =>
+    requests.get('/getallactions'),
+  initiateAction: (action_payload) =>
+    requests.post('/initiateaction', action_payload)
+
+}
 
 const Activity = {
     getActivitiesForUser: (user_email) =>
@@ -84,4 +92,4 @@ const Scheduled_Report = {
 }
 
 
-export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, Activity, setToken: _token => { token = _token; } };
+export default { Auth, Setting, Dashboard, Users, Resources, Scheduled_Report, Activity, Actions, setToken: _token => { token = _token; } };

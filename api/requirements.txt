@@ -18,4 +18,3 @@ boto3
 httplib2
 pystache
 python-slugify
-csv

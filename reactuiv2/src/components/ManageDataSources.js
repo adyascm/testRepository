@@ -4,7 +4,7 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Card, Button, Form, Container } from 'semantic-ui-react'
+import { Card, Button, Form, Container, Label } from 'semantic-ui-react'
 import Realtime from 'realtime-messaging';
 
 
@@ -58,7 +58,7 @@ class ManageDataSources extends Component {
       ev.preventDefault();
       this.props.onLoginStart()
       authenticate("drive_scan_scope").then(data => {
-        this.props.addDataSource("Testing")
+        this.props.addDataSource("GSuite")
       }).catch(({ errors }) => { 
         this.props.onSignInError(errors)
         this.props.onScanError(errors)
@@ -67,7 +67,7 @@ class ManageDataSources extends Component {
 
     this.addDummyDatasource = () => ev => {
       ev.preventDefault();
-      this.props.addDataSource("Testing",true);
+      this.props.addDataSource("Dummy readonly playground",true);
     };
 
     this.deleteDataSource = (datasource) => {
@@ -91,13 +91,13 @@ class ManageDataSources extends Component {
             <Card fluid>
               <Card.Content>
                 <Card.Description>
-                  No datasource connected yet, please click below to start scanning your Google Suite...
-                      </Card.Description>
+                Welcome  {this.props.currentUser.first_name}!, Let us get started by connecting your first GSuite connection by clicking the Scan button below. <br></br>
+                If you are still deciding, you can also create a <Label as='a' basic onClick={this.addDummyDatasource()}>dummy playground</Label> which will enable a read-only version of this app to get you familiar with different features.
+                </Card.Description>
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Scan</Button>
-                <Button basic color='yellow' disabled={this.newDataSourceName} onClick={this.addDummyDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Dummy DataSource</Button>
+                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Connect your GSuite</Button>
                 </div>
               </Card.Content>
             </Card>

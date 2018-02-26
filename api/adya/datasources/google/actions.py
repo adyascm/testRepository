@@ -4,6 +4,7 @@ from adya.db.connection import db_connection
 from adya.db import models
 from adya.common import constants
 from sqlalchemy import and_
+from adya.controllers import resourceController
 from requests_futures.sessions import FuturesSession
 
 
@@ -31,7 +32,7 @@ def get_applicationDataTransfers_for_gdrive(domain_id, datatransfer_service):
         print "Exception occurred while getting applications for domain: ", domain_id
 
 
-def transfer_ownership(domain_id, old_user_email, new_user_email):
+def transfer_ownership(domain_id, old_owner_email, new_owner_email):
     try:
         datatransfer_service = gutils.get_gdrive_datatransfer_service(domain_id=domain_id)
 
@@ -42,9 +43,9 @@ def transfer_ownership(domain_id, old_user_email, new_user_email):
         applicationDataTransfers = get_applicationDataTransfers_for_gdrive(domain_id, datatransfer_service)
 
         directory_service = gutils.get_directory_service(domain_id=domain_id)
-        old_user_id = directory_service.users().get(userKey=old_user_email).execute()
+        old_user_id = directory_service.users().get(userKey=old_owner_email).execute()
         old_user_id = old_user_id.get('id')
-        new_user_id = directory_service.users().get(userKey = new_user_email).execute()
+        new_user_id = directory_service.users().get(userKey = new_owner_email).execute()
         new_user_id = new_user_id.get('id')
 
 
@@ -54,11 +55,159 @@ def transfer_ownership(domain_id, old_user_email, new_user_email):
         response = datatransfer_service.transfers().insert(body=transfersResource).execute()
         print response
         # handle failure in response
-        return errormessage.ACTION_EXECUTION_SUCCESS
+        return response
 
     except Exception as e:
         print e
         print "Exception occurred while transferring ownership from ", old_user_id, " to ", new_user_id, " on domain: ", domain_id
+
+
+def transfer_ownership_of_resource(domain_id, datasource_id, resource_id, old_owner_email, new_owner_email):
+    try:
+        print ""
+        permission_object = {
+            "role": constants.Role.OWNER,
+            "type": "user",
+            "emailAddress": new_owner_email
+        }
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id, permission_object, old_owner_email)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+
+    except Exception as e:
+        print e
+
+
+def remove_external_access_for_all_files_owned_by_user(auth_token, domain_id, datasource_id, user_email):
+    try:
+        print ""
+        #file_list = resource_controller.get_all_externally_shared_files_of_user(domain_id, datasource_id, user_email)
+        file_list = resourceController.get_resources(auth_token, user_emails=[user_email])
+        print "file_list : " , file_list
+
+        for resource in file_list:
+            resource_id = resource['resource_id']
+            permissions_object = resource['permissions_object']
+
+            for permission in permissions_object:
+                permission['role'] == ""
+
+            resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permissions_object, user_email)
+            response = resource_actions_handler.add_or_update_permission()
+            print response
+
+    except Exception as e:
+        print e
+
+
+def remove_external_access_to_resource(domain_id, datasource_id, resource_id):
+    try:
+        print ""
+        resource_permissions = resourceController.get_external_permissions_for_resource(domain_id, datasource_id, resource_id)
+        resource_id = resource_permissions['resource_id']
+        permissions_object = resource_permissions['permissions_object']
+        resource_owner = resource_permissions['resource_owner']
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permissions_object, resource_owner)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+
+
+    except Exception as e:
+        print e
+
+
+def make_all_files_owned_by_user_private(domain_id, datasource_id, user_email):
+    try:
+        print ""
+        file_list = resourceController.get_all_shared_files_of_user(domain_id, datasource_id, user_email)
+
+        for resource in file_list:
+            resource_id = resource['resource_id']
+            permissions_object = resource['permissions_object']
+
+            for permission in permissions_object:
+                permission['role'] == ""
+
+            resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permissions_object, user_email)
+            response = resource_actions_handler.add_or_update_permission()
+            print response
+
+    except Exception as e:
+        print e
+
+
+def make_resource_private(domain_id, datasource_id, resource_id):
+    try:
+        print ""
+        resource_permissions = resourceController.get_all_permissions_for_resource(domain_id, datasource_id, resource_id)
+        resource_id = resource_permissions['resource_id']
+        permissions_object = resource_permissions['permissions_object']
+        resource_owner = resource_permissions['resource_owner']
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permissions_object, resource_owner)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+
+    except Exception as e:
+        print e
+
+
+def remove_permissions_of_user_to_resource(domain_id, datasource_id, resource_id, user_email, resource_owner_email):
+    try:
+        print ""
+
+        permission_id = resourceController.get_permission_id_for_user_resource(domain_id, datasource_id, user_email,
+                                                                               resource_id)
+        print "Got permission_id: {}".format(permission_id)
+
+        permission_object = {
+            "permissionId": permission_id,
+            "type": "user",
+            "emailAddress": user_email
+        }
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permission_object, resource_owner_email)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+    except Exception as e:
+        print e
+
+
+def update_permissions_of_user_to_resource(domain_id, datasource_id, resource_id, user_email, new_permission_role, resource_owner_email):
+    try:
+        print ""
+
+        permission_id = resourceController.get_permission_id_for_user_resource(domain_id, datasource_id, user_email, resource_id)
+        print "Got permission_id: {}".format(permission_id)
+
+
+        permission_object = {
+            "permissionId" : permission_id,
+            "role": new_permission_role,
+            "type": "user",
+            "emailAddress": user_email
+        }
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permission_object, resource_owner_email)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+
+    except Exception as e:
+        print e
+
 
 
 # This class takes at max 100 resource id and update the permission
@@ -79,9 +228,9 @@ class AddOrUpdatePermisssionForResource():
         
     def add_or_update_permission(self):
         if len(self.batch_data) == 1:
-            permissiondata = self.get_permission_data_object(permission_object[0])
+            permissiondata = self.get_permission_data_object(self.batch_data[0])
             return permissiondata.execute()
-        batch_service = self.drive_service.new_batch_http_request(callback=add_or_update_permission_callback)
+        batch_service = self.drive_service.new_batch_http_request(callback=self.add_or_update_permission_callback)
         i =0
         for permission_object in self.batch_data:
             permissiondata = self.get_permission_data_object(permission_object)
@@ -124,23 +273,24 @@ class AddOrUpdatePermisssionForResource():
         return data
  
     def change_permisssion_for_resource(self,drive_service, permission_object):
+        permission_id = permission_object.get("permissionId")
         role = permission_object['role']
         user_permission = {
             'role':role,
         }
         if role == constants.Role.OWNER:
             permission_object['role'] = constants.Role.WRITER
-            add_permission_response = add_permission_response(self.drive_service,permission_object).execute()
-            data = drive_service.permissions().update(fileId=resource_id,
+            add_permission_response = self.add_permisssion_for_resuorce(self.drive_service,permission_object).execute()
+            data = drive_service.permissions().update(fileId=self.resource_id,
                                                        permissionId=add_permission_response['id'],transferOwnership=True,
                                                        body=user_permission,
                                                        fields='id')
         else:
-            data = drive_service.permissions().update(fileId=resource_id, permissionId =permission_id,
+            data = drive_service.permissions().update(fileId=self.resource_id, permissionId =permission_id,
                                                       body = user_permission,fields='id')
         return data
 
-    def delete_permisssion_for_resource(drive_service,resource_id,permission_object):
+    def delete_permisssion_for_resource(self, drive_service,resource_id,permission_object):
         permission_id = permission_object["permissionId"]
         data = drive_service.permissions().delete(fileId=self.resource_id, permissionId=permission_id)
         return data

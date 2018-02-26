@@ -5,14 +5,15 @@ import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 's
 import AdyaLogo from '../../AdyaLogo.png'
 
 const UserDetails = props => {
+
     var quickActions = [
         {
-            key: 'transferOwnership',
+            key: 'transfer_ownership',
             text: 'Transfer ownership of all owned files',
             value: 'Transfer ownership of all owned files'
         },
         {
-            key: 'removeExternalAccess',
+            key: 'remove_external_access',
             text: 'Remove external access for all owned files',
             value: 'Remove external access for all owned files'
         },
@@ -22,7 +23,7 @@ const UserDetails = props => {
             value: 'Remove write access for all un-owned files'
         },
         {
-            key: 'allFilesPrivate',
+            key: 'make_all_files_private',
             text: 'Make all owned files private',
             value: 'Make all owned files private'
         },
