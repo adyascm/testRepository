@@ -10,8 +10,6 @@ from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,\
                              DomainGroup, DomainUser, ResourcePermission, Resource,ResourceParent,get_table
 from adya.datasources.google import gutils
-import pyexcel,csv
-from itertools import product
 from sqlalchemy import String,Boolean,and_
 
 def get_datasource(auth_token, datasource_id, db_session=None):
