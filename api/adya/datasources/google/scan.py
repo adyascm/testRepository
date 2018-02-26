@@ -434,7 +434,9 @@ def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_t
                 url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
                 last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
-
+            else:
+                update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
+ 
             next_page_token = groupmemberresponse.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime

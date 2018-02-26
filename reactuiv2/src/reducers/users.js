@@ -20,7 +20,7 @@ export default (state = {}, action) => {
                 isLoading: true
             }
         case USERS_PAGE_LOADED:
-            let usersTreePayload = action.payload
+            let usersTreePayload = !action.error?action.payload:[]
             return {
                 ...state,
                 isLoading: false,
@@ -52,21 +52,24 @@ export default (state = {}, action) => {
         case USERS_RESOURCE_LOADED:
             console.log("user resource payload : ", action.payload)
             var rows = [];
-            if (action.payload) {
-                var keys = Object.keys(action.payload)
-
-                for (let index = 0; index < keys.length; index++) {
-                    let row = action.payload[keys[index]]
-                    row.myPermission = row.permissions[0].permission_type
-                    row.isExpanded = row.isExpanded || false;
-                    row.key = keys[index];
-                    row.depth = 0;
-                    if (!row.name)
-                        row.name = row.resource_name
-                    rows.push(row)
+            if (!action.error) {
+                if (action.payload) {
+                    var keys = Object.keys(action.payload)
+    
+                    for (let index = 0; index < keys.length; index++) {
+                        let row = action.payload[keys[index]]
+                        row.myPermission = row.permissions[0].permission_type
+                        row.isExpanded = row.isExpanded || false;
+                        row.key = keys[index];
+                        row.depth = 0;
+                        if (!row.name)
+                            row.name = row.resource_name
+                        rows.push(row)
+                    }
                 }
             }
             state.selectedUserItem.resources = rows;
+            
             return {
                 ...state,
                 isResourcesLoading: false,

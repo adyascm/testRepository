@@ -14,7 +14,7 @@ from adya.services.flask.reports_handler import ScheduledReport, RunReport
 from adya.services.flask.resourceHandler import GetResources
 from adya.services.flask.activities_handler import get_activities_for_user
 from adya.services.flask.actions_handler import get_all_actions, initiate_action
-
+from adya.services.flask.auditlog_handler import get_audit_log
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app = Flask(__name__)
@@ -70,7 +70,7 @@ api.add_resource(get_activities_for_user, constants.GET_ACTIVITIES_FOR_USER_PATH
 # actions
 api.add_resource(get_all_actions, constants.GET_ALL_ACTIONS_PATH)
 api.add_resource(initiate_action, constants.INITIATE_ACTION_PATH)
-
+api.add_resource(get_audit_log ,constants.GET_AUDITLOG_PATH)
 
 
 

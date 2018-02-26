@@ -78,11 +78,11 @@ export default (state = {}, action) => {
             //     rows.push(row)
             // }
 
-            return {
-                ...state,
-                isLoading: false,
-                resourceTree: action.payload
-            }
+                return {
+                    ...state,
+                    isLoading: false,
+                    resourceTree: !action.error?action.payload:[]
+                }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {
                 ...state,

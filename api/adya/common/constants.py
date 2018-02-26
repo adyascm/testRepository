@@ -56,6 +56,8 @@ RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
 GET_ALL_ACTIONS_PATH = '/getallactions'
 INITIATE_ACTION_PATH = '/initiateaction'
 
+GET_AUDITLOG_PATH = '/getauditlog'
+
 
 def get_url_from_path(path):
     return API_HOST + path

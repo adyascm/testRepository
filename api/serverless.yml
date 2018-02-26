@@ -278,3 +278,10 @@ functions:
           path: getactivitiesforuser
           method: get
           cors: true
+  get-getauditlog:
+    handler: adya.services.lambda.auditlog_handler.get_audit_log
+    events:
+      - http:
+          path: getauditlog
+          method: get
+          cors: true
