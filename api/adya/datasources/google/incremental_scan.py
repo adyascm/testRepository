@@ -1,7 +1,7 @@
 from adya.datasources.google import gutils
 from adya.datasources.google.permission import GetPermission
 from adya.db.connection import db_connection
-from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser
+from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, ResourceParent, DomainUser
 from adya.controllers import domain_controller
 from sqlalchemy import and_
 from adya.common import constants
@@ -9,6 +9,7 @@ from adya.common import utils, messaging
 import requests
 import uuid
 import datetime
+import json
 
 
 def subscribe(domain_id, datasource_id):
@@ -36,7 +37,7 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
 
 
-def _subscribe_for_user(db_sesion, datasource, user_email):
+def _subscribe_for_user(db_session, datasource, user_email):
     drive_service = gutils.get_gdrive_service(datasource.domain_id, user_email)
     root_file = drive_service.files().get(fileId='root').execute()
     print("Subscribe : Got Drive root ", root_file)
@@ -73,7 +74,7 @@ def _subscribe_for_user(db_sesion, datasource, user_email):
     db_session.add(push_notifications_subscription)
 
 
-def process_notifications(datasource_id, channel_id):
+def process_notifications(auth_token, datasource_id, channel_id):
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         user_email = None
@@ -120,7 +121,7 @@ def process_notifications(datasource_id, channel_id):
                 print 'Change found for file: %s' % fileId
                 print change
 
-                handle_change(drive_service, datasource.domain_id,
+                handle_change(auth_token, drive_service, datasource.domain_id,
                               datasource.datasource_id, channel_id, fileId)
 
             if 'newStartPageToken' in response:
@@ -148,7 +149,7 @@ def process_notifications(datasource_id, channel_id):
             datasource_id, channel_id, e)
 
 
-def handle_change(drive_service, domain_id, datasource_id, channel_id, file_id):
+def handle_change(auth_token, drive_service, domain_id, datasource_id, channel_id, file_id):
     try:
         db_session = db_connection().get_session()
         results = drive_service.files() \
@@ -168,8 +169,6 @@ def handle_change(drive_service, domain_id, datasource_id, channel_id, file_id):
 
         resourcedata = {}
         resourcedata["resources"] = results['files']
-        print "Received drive resources for {} files using email: {} next_page_token: {}".format(
-            file_count, user_email, next_page_token)
 
         query_params = {'domainId': domain_id,
                         'dataSourceId': datasource_id, 'userEmail': channel_id}

@@ -1,6 +1,5 @@
 from adya.datasources.google import gutils
-from adya.common import constants
-from adya.db.models import Resource, DataSource
+from adya.db.models import DataSource
 from adya.db.connection import db_connection
 from sqlalchemy import and_
 from datetime import datetime, timedelta

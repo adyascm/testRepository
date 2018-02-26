@@ -27,10 +27,10 @@ class UsersGroupsDetailsSection extends Component {
         super(props);
 
         this.state = {
-            "Transfer ownership of all owned files": "transferOwnership",
-            "Remove external access for all owned files": "removeExternalAccess",
+            "Transfer ownership of all owned files": "transfer_ownership",
+            "Remove external access for all owned files": "remove_external_access",
             "Remove write access for all un-owned files": "removeWriteAccess",
-            "Make all owned files private": "allFilesPrivate",
+            "Make all owned files private": "make_all_files_private",
             "Watch all my actions": "watchAllActions",
             options: [
                 {text: 'External Shared',
@@ -46,7 +46,7 @@ class UsersGroupsDetailsSection extends Component {
                 'Internally Shared': 'INT'
               }
         }
-        
+
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
     }
@@ -59,14 +59,14 @@ class UsersGroupsDetailsSection extends Component {
         console.log("item changed: ", this.state[data.value])
         if (this.state.fileExposureType[data.value])
             this.props.setFileExposureType(this.state.fileExposureType[data.value])
-        else 
+        else
             this.props.onChangePermission(this.state[data.value], data, data.value)
     }
 
     render() {
         var resourceLayout = (
             <Container stretched>
-                <Grid stretched> 
+                <Grid stretched>
                     <Grid.Row stretched>
                         <Dropdown
                             options={this.state.options}
@@ -82,7 +82,7 @@ class UsersGroupsDetailsSection extends Component {
                 </Grid>
             </Container>
         )
-        
+
         if (!this.props.selectedUserItem)
             return null;
         else {

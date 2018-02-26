@@ -7,7 +7,7 @@ import authenticate from '../utils/oauth';
 import { Segment, Header, Button, Grid, Image, Message } from 'semantic-ui-react';
 import {
     UPDATE_FIELD_AUTH,
-    LOGIN, LOGIN_ERROR, LOGIN_SUCCESS,
+    LOGIN, LOGIN_ERROR, LOGIN_SUCCESS, GET_ALL_ACTIONS,
     LOGIN_PAGE_UNLOADED,
     LOGIN_START,
     API_ROOT,
@@ -16,6 +16,7 @@ import {
 
 const mapStateToProps = state => ({
     ...state.auth,
+    ...state.all_actions_list,
     token: state.common.token,
     currentUser: state.common.currentUser,
     errorMessage: state.common.errMessage
@@ -26,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: LOGIN_ERROR, error: errors }),
     onSignInComplete: (data) =>
         dispatch({ type: LOGIN_SUCCESS, ...data }),
-    onLoginStart: () => 
+    onLoginStart: () =>
         dispatch({ type: LOGIN_START }),
     onUnload: () =>
         dispatch({ type: LOGIN_PAGE_UNLOADED }),
@@ -42,13 +43,14 @@ class Login extends Component {
             this.props.onLoginStart()
             authenticate("login_scope").then(data => {
                 this.props.onSignInComplete(data)
-            }).catch(({ errors }) => { 
+            }).catch(({ errors }) => {
                 console.log("login error : ", errors['Failed'])
-                this.props.onSignInError(errors) 
+                this.props.onSignInError(errors)
                 this.props.loginError(errors)
             });
         };
     }
+
     componentWillUnmount() {
         this.props.onUnload();
     }
