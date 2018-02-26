@@ -1,7 +1,5 @@
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from mimify import CHARSET
 
 import boto3
 import json
@@ -10,12 +8,12 @@ from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
 
 # create cloudwatch event
-def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
+def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
         lambda_client = session.client('lambda')
-        function_name = LAMBDA_FUNCTION_NAME_FOR_CRON
+        function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
         lambda_function = lambda_client.get_function(
             FunctionName=function_name
         )
@@ -31,11 +29,12 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
             ScheduleExpression=cron_expression,
             State='ENABLED'
         )
-        print "Created cloud watch event with response - " + response
+        print "Created cloud watch event with response - " + str(response)
 
-        if response and response['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
+        if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
+            inputdata = {'report_id': report_id}
             # Adds the specified targets to the specified rule
             response = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
@@ -43,10 +42,11 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression):
                     {
                         'Arn': arn,
                         'Id': function_name,
+                        'Input': json.dumps(inputdata)
                     }
                 ]
             )
-            print "Attached the cloud watch event target to the lambda - " + response
+            print "Attached the cloud watch event target to the lambda - " + str(response)
             return True
         else:
             print "Unable to create cloudwatch event"
@@ -62,7 +62,6 @@ def delete_cloudwatch_event(cloudwatch_event_name):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
-        lambda_client = session.client('lambda')
         function_name = LAMBDA_FUNCTION_NAME_FOR_CRON
 
         # remove all the targets from the rule
@@ -150,4 +149,5 @@ def invoke_lambda(function_name, auth_token, body):
     except Exception as ex:
         print "Exception occurred while invoking lambda function {}".format(function_name)
         print ex
+
 

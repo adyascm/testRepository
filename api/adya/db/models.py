@@ -15,7 +15,7 @@ class AlchemyEncoder(json.JSONEncoder):
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
                 data = obj.__getattribute__(field)
                 if isinstance(data, (datetime)):
-                    fields[field] = data.isoformat()
+                    fields[field] = data.strftime("%Y-%m-%dT%H:%M:%SZ")
                 elif isinstance(data, list):
                     try:
                         json.dumps(data, cls=AlchemyEncoder)  # this will fail on non-encodable values, like other classes
@@ -76,6 +76,7 @@ class DataSource(Base):
     user_scan_status = Column(Integer, default=0)
     is_serviceaccount_enabled = Column(Boolean)
     is_push_notifications_enabled = Column(Boolean)
+    is_dummy_datasource = Column(Boolean,default=False)
 
 
 class DomainUser(Base):
@@ -196,7 +197,7 @@ class PushNotificationsSubscription(Base):
     stale = Column(Boolean)
     last_accessed = Column(DateTime)
     expire_at = Column(DateTime)
-
+  
 
 class Action(Base):
     __tablename__ = 'action'
@@ -218,3 +219,15 @@ class AuditLog(Base):
     affected_entity = Column(String(255))
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
+
+def get_table(tablename):
+    if tablename == 'resource':
+        return Resource
+    elif tablename == 'user':
+        return DomainUser
+    elif tablename == 'group':
+        return DomainGroup
+    elif tablename == 'directory_structure':
+        return DirectoryStructure
+    elif tablename == 'resource_permission':
+        return ResourcePermission

@@ -14,6 +14,9 @@ GOOGLE_HEADERS = {'content-type': 'application/x-www-form-urlencoded'}
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 CLIENT_SECRETS_FILE = dir_path + "/client_secrets.json"
+CLIENT_JSON_FILE_DATA = json.load(open(CLIENT_SECRETS_FILE))
+CLIENT_ID = CLIENT_JSON_FILE_DATA['web']['client_id']
+CLIENT_SECRET =  CLIENT_JSON_FILE_DATA['web']['client_secret']
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
                                                                 SERVICE_ACCOUNT_SCOPE)
@@ -32,12 +35,10 @@ def get_credentials(domain_id,user_email=None):
         ## we need to pass client_id and client_secret in session to avoid dbcall/file access calls
         db_session = db_connection().get_session()
         user = db_session.query(LoginUser).filter(LoginUser.domain_id == domain_id).first()
-        client_id = '675474472628-87uc3fnbmojup9ur2a1b9ie7qfd5i732.apps.googleusercontent.com'
-        client_secret = '8DcZ_BxYCd8cBKKEoXdLwwdk'
         credentials = Credentials(None, refresh_token= user.refresh_token,
                                 token_uri=GOOGLE_TOKEN_URI,
-                                client_id=client_id,
-                                client_secret=client_secret)
+                                client_id=CLIENT_ID,
+                                client_secret=CLIENT_SECRET)
     return credentials
 
 

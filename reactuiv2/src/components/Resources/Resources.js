@@ -24,7 +24,7 @@ class Resources extends Component {
 
     this.handleChange = this.handleChange.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
-    
+
     this.state = {
       options: [
         {text: 'Externally Shared',
@@ -45,7 +45,7 @@ class Resources extends Component {
   }
 
   handleChange(event,data) {
-    if (data && this.state.fileExposureType[data.value]) 
+    if (data && this.state.fileExposureType[data.value])
       this.props.setFileExposureType(this.state.fileExposureType[data.value])
     else {
       if (event.target.value === '')
@@ -53,7 +53,7 @@ class Resources extends Component {
           filterInputValue: '',
           fileResourceType: ''
         })
-      else 
+      else
         this.setState({
           filterInputValue: event.target.value
         })
@@ -74,7 +74,7 @@ class Resources extends Component {
       height: "100%",
       textAlign: "left"
     };
-    
+
     var gridWidth = 16;
     if (this.props.rowData)
       gridWidth = 4

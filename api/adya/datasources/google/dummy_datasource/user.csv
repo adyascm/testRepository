@@ -1,0 +1,15 @@
+domain_id,datasource_id,email,first_name,last_name,full_name,is_admin,creation_time,is_suspended,primary_email,user_id,photo_url,aliases,member_type
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,abhra.dey@adya.io,Abhra,Dey,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,adyatest11@gmail.com,Adya,Test,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,bhanu.mallya@adya.io,Bhanu,Mallya,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,bhanu.mallya@serendipity-technologies.com,bhanu,mallya,"bhanu mallya",1,"2017-02-17 10:43:25",0,bhanu.mallya@serendipity-technologies.com,118066116629481815541,NULL,NULL,INT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,deepak@adya.io,Deepak,Balakrishna,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,deepak@adyatest.com,Deepak,Balakrishna,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,deepak@serendipity-technologies.com,Deepak,Balakrishna,"Deepak Balakrishna",1,"2017-01-03 10:08:44",0,deepak@serendipity-technologies.com,116341573173385427584,NULL,NULL,INT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,pdas@serendipity-technologies.com,Piyush,Gupta,"Piyush Gupta",0,"2017-01-03 10:30:37",0,pdas@serendipity-technologies.com,113106462693446853148,NULL,NULL,INT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,purnimagupta@serendipity-technologies.com,Purnima,Gupta,"Purnima Gupta",1,"2017-10-17 06:46:17",0,purnimagupta@serendipity-technologies.com,101886204358685944530,NULL,NULL,INT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,purnimaguptapccs@gmail.com,Purnima,Gupta,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,rashmi.singh@adya.io,Rashmi,Singh,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,rashmi.singh@serendipity-technologies.com,Rashmi,Singh,"Rashmi Singh",1,"2017-02-15 10:31:11",0,rashmi.singh@serendipity-technologies.com,115052414264436569152,NULL,NULL,INT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,tinkesh.kumar@adya.io,Tinkesh,Kumar,NULL,0,NULL,0,NULL,NULL,NULL,NULL,EXT
+serendipity-technologies.com,01faecf8-1578-4ef3-978e-d33b6b96cbb1,tinkesh@serendipity-technologies.com,Tinkesh,Kumar,"Tinkesh Kumar",0,"2017-10-17 06:51:04",0,tinkesh@serendipity-technologies.com,107116101843018062638,NULL,NULL,INT

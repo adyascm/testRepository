@@ -47,3 +47,5 @@ def getGroupData(users_groups,db_session, domain_id, datasource_id):
         groupdata.parents = []
         groupdata.children = []
         users_groups[groupdata.email] = groupdata
+
+

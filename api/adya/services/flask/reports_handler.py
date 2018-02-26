@@ -28,7 +28,7 @@ class ScheduledReport(Resource):
 
         frequency = report.frequency
         cloudwatch_eventname = report.name + "_" + report.report_id  #TODO: if someone changes the report_name
-        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency)
+        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
         return req_session.generate_sqlalchemy_response(201, report)
 
     def get(self):
@@ -59,7 +59,7 @@ class ScheduledReport(Resource):
 
         # frequency = report.frequency
         # cloudwatch_eventname = report.name + "_" + report.report_id  # TODO: if someone changes the report_name
-        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency)
+        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
         return req_session.generate_sqlalchemy_response(201, update_record)
 
 

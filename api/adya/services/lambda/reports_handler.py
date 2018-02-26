@@ -72,7 +72,7 @@ def post_scheduled_report(event, context):
     report_name = report.name
     cloudwatch_event_name = report_id + '-' + report_name
 
-    aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression)
+    aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id)
 
     return req_session.generate_sqlalchemy_response(201, report)
 
@@ -87,7 +87,7 @@ def modify_scheduled_report(event, context):
 
     # frequency = report.frequency
     # cloudwatch_eventname = report.name + "_" + report.report_id  # TODO: if someone changes the report_name
-    # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency)
+    # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
 
@@ -123,14 +123,14 @@ def run_scheduled_report(event, context):
 
 def execute_cron_report(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True, ["reportId"])
+    req_error = req_session.validate_authorized_request(True, ["report_id"])
     if req_error:
         return req_error
 
     if req_error:
         return req_error
 
-    csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_auth_token(), req_session.get_req_param('reportId'))
+    csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_auth_token(), req_session.get_req_param('report_id'))
 
     aws_utils.send_email_with_attachment(email_list, csv_records, report_desc)
 

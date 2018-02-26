@@ -20,11 +20,11 @@ class ResourcePermissionSection extends Component {
         super(props);
         this.state = {
             rowData: '',
-            "Transfer ownership": "transferOwnership",
-            "Remove external access": "removeExternalAccess",
+            "Transfer ownership": "change_owner",
+            "Remove external access": "remove_external_access_to_resource",
             "Remove write access": "removeWriteAccess",
-            "Make this private": "makePrivate",
-            "Watch all actions": "watchAllActions"  
+            "Make this private": "make_resource_private",
+            "Watch all actions": "watchAllActions"
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -44,12 +44,14 @@ class ResourcePermissionSection extends Component {
     }
 
     handleChange(event,data,email) {
-        console.log("action event : ", data["value"])
+        console.log("action event : ", data)
         console.log("permission email: ", email)
-        
-        if (data["value"] !== "Read" && data["value"] !== "Write")
-            this.props.onChangePermission(this.state[data.value],data,data["value"],email)
-        else 
+
+        if (data["value"] !== "Read" && data["value"] !== "Write") {
+            console.log("actionType: ", this.state[data["value"]]);
+            this.props.onChangePermission(this.state[data["value"]],data,data["value"],email)
+        }
+        else
             this.props.onChangePermission('resourcePermissionChange',data,data["value"],email)
     }
 
@@ -61,7 +63,7 @@ class ResourcePermissionSection extends Component {
 
     render() {
         let panes = [
-            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} handleClick={this.handleClick} /></Tab.Pane> }   
+            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} handleClick={this.handleClick} /></Tab.Pane> }
           ]
         return (
             <Segment>
