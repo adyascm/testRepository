@@ -175,12 +175,12 @@ def update_datasource_column_count(db_session,domain_id,datasource_id):
                 filter(and_(DomainGroup.domain_id == domain_id,DomainGroup.datasource_id == datasource_id)).count()
     datasouorce.total_group_count = group_count
     datasouorce.processed_group_count = group_count
-    datasouorce.group_scan_status = 2
+    datasouorce.group_scan_status = 1
     user_count = db_session.query(DomainUser).distinct(DomainUser.user_id).\
                 filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).count()
     datasouorce.total_user_count = user_count
     datasouorce.processed_user_count = user_count
-    datasouorce.user_scan_status =2
+    datasouorce.user_scan_status = 1
 
     db_session.add(datasouorce)
     db_session.commit()
