@@ -29,24 +29,24 @@ class AuditLog extends Component {
 
         this.columnDefs = [
             {
-                headerName: "ActionName",
+                headerName: "Time",
+                field: "timestamp"
+            },
+            {
+                headerName: "Action Name",
                 field: "action_name"
+            },
+            {
+                headerName: "Performed On",
+                field: "affected_entity"
+            },
+            {
+                headerName: "Type",
+                field: "affected_entity_type"
             },
             {
                 headerName: "Parameters",
                 field: "parameters"
-            },
-            {
-                headerName: "AffectedEntity",
-                field: "affected_entity"
-            },
-            {
-                headerName: "AffectedEntityType",
-                field: "affected_entity_type"
-            },
-            {
-                headerName: "Timestamp",
-                field: "timestamp"
             }
         ];
     }
