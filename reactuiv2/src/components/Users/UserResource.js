@@ -65,6 +65,13 @@ class UserResource extends Component {
                 {
                     headerName: "ExposureType",
                     field: "exposure_type"
+                },
+                {
+                    headerName: "View",
+                    field: "web_view_link",
+                    cellRenderer: (params) => {
+                        return '<a href='+params.value+' target="_blank">'+params.value+'</a>'
+                    }
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
@@ -93,15 +100,15 @@ class UserResource extends Component {
     componentWillReceiveProps(nextProps) {
         if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            //nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'}))
-            let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'})
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'}))
+            // let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'})
             
-            if (getResourcesTree['statusCode'] !== 200) {
-                console.log("getResourcesTree['statusText']: ", getResourcesTree['statusText'])
-                this.props.onLoadError(getResourcesTree['statusText'])
-            }
-            else 
-                nextProps.onLoad(getResourcesTree)
+            // if (getResourcesTree['statusCode'] !== 200) {
+            //     console.log("getResourcesTree['statusText']: ", getResourcesTree['statusText'])
+            //     this.props.onLoadError(getResourcesTree['statusText'])
+            // }
+            // else 
+            //     nextProps.onLoad(getResourcesTree)
         }
         if (nextProps.exposureType !== this.state.exposureType) {
             this.setState({
@@ -115,15 +122,15 @@ class UserResource extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart(this.props.selectedUserItem["key"])
-            //this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'}))
-            let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'})
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'}))
+            // let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'})
             
-            if (getResourcesTree['statusCode'] !== 200) {
-                console.log("getResourcesTree : ", getResourcesTree)
-                this.props.onLoadError("API ERROR")
-            }
-            else 
-                this.props.onLoad(getResourcesTree)    
+            // if (getResourcesTree['statusCode'] !== 200) {
+            //     console.log("getResourcesTree : ", getResourcesTree)
+            //     this.props.onLoadError("API ERROR")
+            // }
+            // else 
+            //     this.props.onLoad(getResourcesTree)    
         }
     }
 
