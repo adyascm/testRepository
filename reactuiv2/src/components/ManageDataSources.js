@@ -18,7 +18,9 @@ import {
   SCAN_UPDATE_RECEIVED,
   LOGIN_START,
   LOGIN_ERROR,
-  API_ERROR
+  DATASOURCE_LOAD_START,
+  DATASOURCE_LOAD_END,
+  ASYNC_END
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
@@ -27,7 +29,8 @@ const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser,
   dataSources: state.common.dataSources,
-  errorMessage: state.common.errMessage
+  errorMessage: state.common.errMessage,
+  datasourceLoading: state.common.datasourceLoading
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -46,9 +49,12 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: LOGIN_START }),
   onSignInError: (errors) =>
     dispatch({ type: LOGIN_ERROR, error: errors }),
-  onScanError: (errors) => 
-    dispatch({ type: API_ERROR, errors })
-
+  onDataSourceLoad: () => 
+    dispatch({ type: DATASOURCE_LOAD_START }),
+  onDataSourceLoadError: () =>
+    dispatch({ type: DATASOURCE_LOAD_END }),
+  displayErrorMessage: (error) =>
+    dispatch({ type: ASYNC_END, errors: error.message?error.message:error['Failed'] })
 });
 
 class ManageDataSources extends Component {
@@ -56,12 +62,14 @@ class ManageDataSources extends Component {
     super();
     this.addNewDatasource = () => ev => {
       ev.preventDefault();
-      this.props.onLoginStart()
+      this.props.onDataSourceLoad()
       authenticate("drive_scan_scope").then(data => {
         this.props.addDataSource("GSuite")
       }).catch(({ errors }) => { 
-        this.props.onSignInError(errors)
-        this.props.onScanError(errors)
+        console.log("errors : ", errors)
+        // this.props.onSignInError(errors)
+        this.props.onDataSourceLoadError(errors),
+        this.props.displayErrorMessage(errors)
       });
     };
 
@@ -97,7 +105,7 @@ class ManageDataSources extends Component {
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false}>Connect your GSuite</Button>
+                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading?true:false}>Connect your GSuite</Button>
                 </div>
               </Card.Content>
             </Card>
