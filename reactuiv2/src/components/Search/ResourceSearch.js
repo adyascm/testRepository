@@ -18,7 +18,7 @@ class ResourceSearch extends Component {
         super(props);
         this.state = {
             isLoading: false,
-            value: '',
+            value: this.props.defaultValue? this.props.defaultValue : '',
             results: []
 
         }
@@ -37,7 +37,10 @@ class ResourceSearch extends Component {
     handleResultSelect = (e, { result }) => {
         console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
-            this.props.onChangeReportInput("selected_entity", result.resource_id)
+           var entityinfokey = ["selected_entity",  "selected_entity_name"]
+           var entityinfovalue = [result.resource_id, result.resource_name]
+            this.props.onChangeReportInput(entityinfokey, entityinfovalue)
+
 
 
 

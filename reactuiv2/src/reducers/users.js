@@ -57,12 +57,12 @@ export default (state = {}, action) => {
 
                 for (let index = 0; index < keys.length; index++) {
                     let row = action.payload[keys[index]]
-                    row.myPermission = row.permissions[0].permissionType
+                    row.myPermission = row.permissions[0].permission_type
                     row.isExpanded = row.isExpanded || false;
                     row.key = keys[index];
                     row.depth = 0;
                     if (!row.name)
-                        row.name = row.resourceName
+                        row.name = row.resource_name
                     rows.push(row)
                 }
             }

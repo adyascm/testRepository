@@ -33,8 +33,8 @@ const ResourceDetails = props => {
                         <div><Label basic>Last Modified at {props.rowData['last_modified_time']} by {props.rowData['last_modifying_user_email']}</Label></div>
                         
                         <div style={{margin: "5px"}}>
-                        <Label primary><a href={props.rowData['web_view_link']}>View</a></Label>
-                        <Label primary><a href={props.rowData['web_content_link']}>Download</a></Label>
+                        <Label primary><a href={props.rowData['web_view_link']} target="_blank">View</a></Label>
+                        <Label primary><a href={props.rowData['web_content_link']} target="_blank">Download</a></Label>
                         </div>
                     </Item.Meta>
                     <Item.Extra extra>
