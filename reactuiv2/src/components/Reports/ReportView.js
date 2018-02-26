@@ -2,11 +2,12 @@ import React from 'react';
 import { Button, Card, Image, Header } from 'semantic-ui-react';
 import cronstrue from 'cronstrue';
 import cronQuartz from 'cron-to-quartz'
+import {IntlProvider,FormattedDate} from 'react-intl'
 
 
 const ReportView = props => {
     const reports = props.report;
-
+    const locale =  'en';
 
     var keys = Object.keys(reports)
     var reportCard = []
@@ -38,11 +39,36 @@ const ReportView = props => {
                       {reportDetail.name}
                   </Card.Header>
                   <Card.Meta>
-                      Created at <strong>{reportDetail.creation_time}</strong>
+                      Created at:
+                      <strong>
+                      <IntlProvider locale={locale}  >
+                     <FormattedDate
+                      value={new Date(reportDetail.creation_time)}
+                      year='numeric'
+                      month='long'
+                      day='2-digit'
+                      hour='2-digit'
+                      minute = '2-digit'
+                      second = '2-digit'
+                     />
+                   </IntlProvider>
+                      </strong>
                   </Card.Meta>
                   <Card.Meta>
                        Last run <strong>{reportDetail.last_trigger_time === ""?
-                         'never run' : reportDetail.last_trigger_time}</strong>
+                         'never run' :
+                         <IntlProvider locale={locale}  >
+                        <FormattedDate
+                         value={new Date(reportDetail.creation_time)}
+                         year='numeric'
+                         month='long'
+                         day='2-digit'
+                         hour='2-digit'
+                         minute = '2-digit'
+                         second = '2-digit'
+                        />
+                      </IntlProvider>
+                    }</strong>
                   </Card.Meta>
                   <Card.Description>
                       {interval}

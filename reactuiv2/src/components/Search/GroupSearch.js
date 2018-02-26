@@ -37,23 +37,16 @@ class GroupSearch extends Component {
     resultRenderer = (r) => {
         var image = null;
                 if (r.photo_url) {
-                    image = <Image inline floated='right' size='mini' src={r.photo_url} circular></Image>
+                    image = <Image inline avatar src={r.photo_url} floated='left'></Image>
                 } else {
-                    image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
+                    image = <Image inline floated='left'><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
                 }
 
         return (
-            <Card >
-                <Card.Content>
-                    {image}
-                    <Card.Header>
-                        {r.name}
-                    </Card.Header>
-                    <Card.Description>
-                        {r.email}
-                    </Card.Description>
-                </Card.Content>
-            </Card>
+            <div>
+                {/* {image} */}
+                <span>{r.email}</span>
+                </div>
         )
     }
 
@@ -62,7 +55,10 @@ class GroupSearch extends Component {
     handleResultSelect = (e, { result }) => {
         console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
-            this.props.onChangeReportInput("selected_entity", result.email)
+          var entityinfokey = ["selected_entity",  "selected_entity_name"]
+          var entityinfovalue = [result.email, result.email]
+           this.props.onChangeReportInput(entityinfokey, entityinfovalue)
+            
         }
         this.setState({
             value: result.email
