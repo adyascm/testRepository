@@ -3,17 +3,17 @@ import {connect} from 'react-redux';
 
 import {Message,Container} from 'semantic-ui-react';
 
-import {CLEAR_ERROR} from './constants/actionTypes';
+import {CLEAR_MESSAGE} from './constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.error
 })
 
 const mapDispatchToProps = dispatch => ({
-    clearError: () => dispatch({ type: CLEAR_ERROR })
+    clearMessage: () => dispatch({ type: CLEAR_MESSAGE })
 })
 
-class GlobalError extends Component {
+class GlobalMessage extends Component {
     constructor(props) {
         super(props);
 
@@ -21,16 +21,24 @@ class GlobalError extends Component {
     }
 
     handleDismiss() {
-        this.props.clearError()
+        this.props.clearMessage()
     }
 
     render() {
 
-        if (this.props.errMessage)
+        if (this.props.errorMessage)
             return (
                 <Container>
                     <Message negative fluid size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
-                        {this.props.errMessage}
+                        {this.props.errorMessage}
+                    </Message>
+                </Container>
+            )
+        if (this.props.infoMessage)
+            return (
+                <Container>
+                    <Message warning fluid size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
+                        {this.props.infoMessage}
                     </Message>
                 </Container>
             )
@@ -39,4 +47,4 @@ class GlobalError extends Component {
     }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(GlobalError);
+export default connect(mapStateToProps,mapDispatchToProps)(GlobalMessage);

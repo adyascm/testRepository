@@ -4,7 +4,7 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Card, Button, Form, Container, Label } from 'semantic-ui-react'
+import { Card, Button, Form, Container, Header, Divider } from 'semantic-ui-react'
 import Realtime from 'realtime-messaging';
 
 
@@ -36,8 +36,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setDataSources: (datasources) =>
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
-  addDataSource: (name,isdummy=false) => {
-    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name,"isDummyDatasource":isdummy }) })
+  addDataSource: (name, isdummy = false) => {
+    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name, "isDummyDatasource": isdummy }) })
   },
   onDeleteDataSource: (datasource) => {
     dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
   onPushNotification: (actionType, msg) => {
     dispatch({ type: actionType, payload: msg })
   },
-  onLoginStart: () => 
+  onLoginStart: () =>
     dispatch({ type: LOGIN_START }),
   onSignInError: (errors) =>
     dispatch({ type: LOGIN_ERROR, error: errors }),
@@ -67,7 +67,6 @@ class ManageDataSources extends Component {
         this.props.addDataSource("GSuite")
       }).catch(({ errors }) => { 
         console.log("errors : ", errors)
-        // this.props.onSignInError(errors)
         this.props.onDataSourceLoadError(errors),
         this.props.displayErrorMessage(errors)
       });
@@ -75,7 +74,8 @@ class ManageDataSources extends Component {
 
     this.addDummyDatasource = () => ev => {
       ev.preventDefault();
-      this.props.addDataSource("Dummy readonly playground",true);
+      this.props.onDataSourceLoad()
+      this.props.addDataSource("Dummy readonly playground", true);
     };
 
     this.deleteDataSource = (datasource) => {
@@ -99,8 +99,12 @@ class ManageDataSources extends Component {
             <Card fluid>
               <Card.Content>
                 <Card.Description>
-                Welcome  {this.props.currentUser.first_name}!, Let us get started by connecting your first GSuite connection by clicking the Scan button below. <br></br>
-                If you are still deciding, you can also create a <Label as='a' basic onClick={this.addDummyDatasource()}>dummy playground</Label> which will enable a read-only version of this app to get you familiar with different features.
+                  <Header>Welcome  {this.props.currentUser.first_name}!, Let us get started by connecting your first GSuite account by clicking the button below. </Header>
+                  <Divider />
+                  We only require <b>read-only</b> permission at this point and would ask for incremental permissions when you take actions from our app.<br />
+                  If you are still deciding, you can also create a dummy
+                <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>playground</Button>
+                  which will enable a read-only version of this app with dummy data to get you familiar with different features.
                 </Card.Description>
               </Card.Content>
               <Card.Content extra>
