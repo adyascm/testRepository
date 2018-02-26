@@ -16,7 +16,7 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
-LAMBDA_FUNCTION_NAME_FOR_CRON = os.environ.get("LAMBDA_FUNCTION_NAME", "execute_cron_report")
+LAMBDA_FUNCTION_NAME_FOR_CRON = os.environ.get("LAMBDA_FUNCTION_NAME", "get-executescheduledreport")
 
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
 GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
@@ -57,6 +57,7 @@ GET_ALL_ACTIONS_PATH = '/getallactions'
 INITIATE_ACTION_PATH = '/initiateaction'
 
 GET_AUDITLOG_PATH = '/getauditlog'
+
 
 
 def get_url_from_path(path):

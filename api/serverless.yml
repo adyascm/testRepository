@@ -285,3 +285,6 @@ functions:
           path: getauditlog
           method: get
           cors: true
+  get-executescheduledreport:
+     handler: adya.services.lambda.reports_handler.execute_cron_report
+    
