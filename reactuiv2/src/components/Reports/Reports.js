@@ -127,7 +127,7 @@ class Reports extends Component {
 
     if (this.props.currentUser){
       return(
-        <div>
+        <Container>
           <ReportView report={this.props.reports} deleteReport={this.deleteReport}
             reportForm={this.reportForm} runReport={this.runReport} modifyReport={this.modifyReport}
             getReportError = {this.props.getreportError}/>
@@ -177,7 +177,7 @@ class Reports extends Component {
 
             : null
           }
-        </div>
+        </Container>
       )
     }
     else{
