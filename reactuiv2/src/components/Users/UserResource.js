@@ -64,14 +64,16 @@ class UserResource extends Component {
                 },
                 {
                     headerName: "ExposureType",
-                    field: "exposure_type"
+                    field: "exposure_type",
+                    cellStyle: {"textAlign":"center"}
                 },
                 {
-                    headerName: "View",
+                    headerName: "",
                     field: "web_view_link",
                     cellRenderer: (params) => {
-                        return '<a href='+params.value+' target="_blank">'+params.value+'</a>'
-                    }
+                        return '<a href='+params.value+' target="_blank">View</a>'
+                    },
+                    cellStyle: {"textAlign":"center"}
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
