@@ -8,7 +8,7 @@ import { Card, Container } from 'semantic-ui-react'
 import agent from '../utils/agent';
 
 import {
-  DASHBOARD_PAGE_LOADED,
+  DASHBOARD_PAGE_LOADED, GET_ALL_ACTIONS,
   DASHBOARD_PAGE_UNLOADED
 } from '../constants/actionTypes';
 import SimpleNumberWidget from './Widgets/SimpleNumberWidget';
@@ -24,7 +24,9 @@ const mapDispatchToProps = dispatch => ({
   onLoad: (widgetId, payload) =>
     dispatch({ type: DASHBOARD_PAGE_LOADED, widgetId, payload }),
   onUnload: () =>
-    dispatch({ type: DASHBOARD_PAGE_UNLOADED })
+    dispatch({ type: DASHBOARD_PAGE_UNLOADED }),
+  onLoginSuccess: (payload) =>
+        dispatch({ type: GET_ALL_ACTIONS, payload})
 });
 
 class Dashboard extends Component {
@@ -43,12 +45,13 @@ class Dashboard extends Component {
     ];
   }
 
-  componentWillMount() {
+  componentDidMount() {
     // var index = 0;
     // for(index = 0; index < this.widgetConfigs.length; index++)
     // {
     //   this.props.onLoad(this.widgetConfigs[index].id, agent.Dashboard.getWidgetData(this.widgetConfigs[index].id));
     // }
+    this.props.onLoginSuccess(agent.Actions.getAllActions())
   }
 
   render() {

@@ -5,6 +5,7 @@ import {
   DASHBOARD_PAGE_UNLOADED,
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
+  GET_ALL_ACTIONS,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
   DELETE_DATASOURCE_START,
@@ -43,6 +44,11 @@ export default (state = defaultState, action) => {
         token: action.error ? null : action.token,
         currentUser: action.error ? null : action.payload
       };
+    case GET_ALL_ACTIONS:
+      return {
+        ...state,
+        all_actions_list: JSON.parse(action.payload)
+      }
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
       return { ...state, viewChangeCounter: state.viewChangeCounter + 1 };
