@@ -13,12 +13,14 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 import {
     USERS_RESOURCE_LOAD_START,
     USERS_RESOURCE_LOADED,
-    USERS_RESOURCE_ACTION_LOAD
+    USERS_RESOURCE_ACTION_LOAD,
+    API_ERROR
 } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
-    ...state.users
+    ...state.users,
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -27,7 +29,9 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (payload) =>
         dispatch({ type: USERS_RESOURCE_LOADED, payload }),
     onChangePermission: (actionType, resource, newValue) =>
-        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue }),
+    onLoadError: (errors) => 
+        dispatch({ type: API_ERROR, errors })
 });
 
 class UserResource extends Component {
@@ -60,7 +64,16 @@ class UserResource extends Component {
                 },
                 {
                     headerName: "ExposureType",
-                    field: "exposure_type"
+                    field: "exposure_type",
+                    cellStyle: {"textAlign":"center"}
+                },
+                {
+                    headerName: "",
+                    field: "web_view_link",
+                    cellRenderer: (params) => {
+                        return '<a href='+params.value+' target="_blank">View</a>'
+                    },
+                    cellStyle: {"textAlign":"center"}
                 }
             ],
             getNodeChildDetails: function getNodeChildDetails(rowItem) {
@@ -90,7 +103,14 @@ class UserResource extends Component {
         if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'}))
-        
+            // let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'})
+            
+            // if (getResourcesTree['statusCode'] !== 200) {
+            //     console.log("getResourcesTree['statusText']: ", getResourcesTree['statusText'])
+            //     this.props.onLoadError(getResourcesTree['statusText'])
+            // }
+            // else 
+            //     nextProps.onLoad(getResourcesTree)
         }
         if (nextProps.exposureType !== this.state.exposureType) {
             this.setState({
@@ -105,6 +125,14 @@ class UserResource extends Component {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart(this.props.selectedUserItem["key"])
             this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'}))
+            // let getResourcesTree = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'})
+            
+            // if (getResourcesTree['statusCode'] !== 200) {
+            //     console.log("getResourcesTree : ", getResourcesTree)
+            //     this.props.onLoadError("API ERROR")
+            // }
+            // else 
+            //     this.props.onLoad(getResourcesTree)    
         }
     }
 
