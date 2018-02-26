@@ -77,12 +77,12 @@ class UserList extends Component {
         })
     }
 
-    shouldComponentUpdate(nextProps,nextState) {
-        if (!nextProps.userDetailsViewActive)
-            return true
-        else 
-            return false
-    }
+    // shouldComponentUpdate(nextProps,nextState) {
+    //     if (!nextProps.userDetailsViewActive)
+    //         return true
+    //     else 
+    //         return false
+    // }
 
     render() {
         if (this.state.rows) {

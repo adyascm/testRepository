@@ -27,7 +27,7 @@ class GlobalError extends Component {
     render() {
         return (
             <Message negative fluid size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
-                {this.props.errorMessage['Failed']}
+                {this.props.errorMessage['Failed']?this.props.errorMessage['Failed']:this.props.errorMessage}
             </Message>
         )
     }
