@@ -67,7 +67,6 @@ class ManageDataSources extends Component {
         this.props.addDataSource("GSuite")
       }).catch(({ errors }) => { 
         console.log("errors : ", errors)
-        // this.props.onSignInError(errors)
         this.props.onDataSourceLoadError(errors),
         this.props.displayErrorMessage(errors)
       });
@@ -75,7 +74,7 @@ class ManageDataSources extends Component {
 
     this.addDummyDatasource = () => ev => {
       ev.preventDefault();
-      this.props.onLoginStart()
+      this.props.onDataSourceLoad()
       this.props.addDataSource("Dummy readonly playground", true);
     };
 
