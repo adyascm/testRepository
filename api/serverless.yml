@@ -43,6 +43,7 @@ provider:
         - "events:PutTargets"
         - "lambda:AddPermission"
         - "events:*"
+        - "iam:PassRole"
       Resource:
         "*"
 
