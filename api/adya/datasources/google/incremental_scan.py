@@ -27,7 +27,7 @@ def subscribe(domain_id, datasource_id):
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
                 print "Subscribing for push notification for user {}".format(user.email)
-                _subscribe_for_user(db_session, datasource, user.email)
+                _subscribe_for_user(db_session, datasource, user)
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
             _subscribe_for_user(db_session, datasource, None)
@@ -39,53 +39,57 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
 
 
-def _subscribe_for_user(db_session, datasource, user_email):
-    drive_service = gutils.get_gdrive_service(datasource.domain_id, user_email)
-    root_file = drive_service.files().get(fileId='root').execute()
-    print("Subscribe : Got Drive root ", root_file)
-    root_file_id = root_file['id']
+def _subscribe_for_user(db_session, datasource, user):
+    try:
+        drive_service = gutils.get_gdrive_service(datasource.domain_id, user.email)
+        root_file = drive_service.files().get(fileId='root').execute()
+        print("Subscribe : Got Drive root ", root_file)
+        root_file_id = root_file['id']
 
-    channel_id = datasource.datasource_id
-    if user_email:
-        channel_id = user_email
+        channel_id = datasource.datasource_id
+        if user:
+            channel_id = user.user_id
 
-    body = {
-        "id": channel_id,
-        "type": "web_hook",
-        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-        "token": datasource.datasource_id,
-        "payload": "true",
-        "params": {"ttl": 1800}
-    }
-    print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
-        datasource.domain_id, datasource.datasource_id, channel_id)
-    response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
-    print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
-        datasource.domain_id, datasource.datasource_id, channel_id, response)
+        body = {
+            "id": channel_id,
+            "type": "web_hook",
+            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "token": datasource.datasource_id,
+            "payload": "true",
+            "params": {"ttl": 1800}
+        }
+        print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+            datasource.domain_id, datasource.datasource_id, channel_id)
+        response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
+        print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+            datasource.domain_id, datasource.datasource_id, channel_id, response)
 
-    response = drive_service.changes().getStartPageToken().execute()
-    print 'Start token: %s' % response.get('startPageToken')
+        response = drive_service.changes().getStartPageToken().execute()
+        print 'Start token: %s' % response.get('startPageToken')
 
-    push_notifications_subscription = PushNotificationsSubscription()
-    push_notifications_subscription.domain_id = datasource.domain_id
-    push_notifications_subscription.datasource_id = datasource.datasource_id
-    push_notifications_subscription.channel_id = channel_id
-    push_notifications_subscription.page_token = response.get('startPageToken')
-    push_notifications_subscription.in_progress = 0
-    push_notifications_subscription.stale = 0
-    db_session.add(push_notifications_subscription)
+        push_notifications_subscription = PushNotificationsSubscription()
+        push_notifications_subscription.domain_id = datasource.domain_id
+        push_notifications_subscription.datasource_id = datasource.datasource_id
+        push_notifications_subscription.channel_id = channel_id
+        push_notifications_subscription.page_token = response.get('startPageToken')
+        push_notifications_subscription.in_progress = 0
+        push_notifications_subscription.stale = 0
+        db_session.add(push_notifications_subscription)
+    except Exception as ex:
+        print 'Exception occurred while subscribing for datasource_id: {} and channel_id: {} - {}'.format(datasource.datasource_id, channel_id, ex)
 
 
 def process_notifications(auth_token, datasource_id, channel_id):
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         user_email = None
+        db_session = db_connection().get_session()
         if datasource.datasource_id != channel_id:
-            user_email = channel_id
+            user_email = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first().email
         drive_service = gutils.get_gdrive_service(
             datasource.domain_id, user_email)
 
-        db_session = db_connection().get_session()
+        
         subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
                                                                                    PushNotificationsSubscription.datasource_id == datasource_id)).first()
         if not subscription:

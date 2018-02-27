@@ -53,6 +53,8 @@ class ResourcesActions extends Component {
           let parameters = act['Parameters'];
           if (populate) {
             for(let key of Object.keys(parameters)) {
+              console.log("key: ", key);
+              console.log("map: ", this.state.parameters_map);
               parameters[key] = this.state.parameters_map[key];
             }
           }
@@ -65,6 +67,7 @@ class ResourcesActions extends Component {
 
 
   build_action_payload_and_post = () => {
+    console.log("build_action_payload_and_post called...");
     let parameters = this.getActionParameters(true)
     let payload = {}
     payload['action_name'] = this.props.action['actionType']
@@ -97,6 +100,7 @@ class ResourcesActions extends Component {
                 updateState={this.updateState}
                 isUserAction={this.state.isUserAction}
                 rowData={this.props.rowData}
+                action={this.props.action}
              />
             </Modal.Content>
 
@@ -190,15 +194,19 @@ class ResourcesActions extends Component {
     }
 
     render() {
-        console.log("Action is: " + this.props.action);
+        console.log("Action is: ")
+        console.log( this.props.action);
+        console.log(this.props.rowData)
         if (this.props.action) {
             if (this.props.action.actionType === "change_owner" ||
                 this.props.action.actionType === "remove_external_access_to_resource" ||
-                this.props.action.actionType === "make_resource_private") {
-                return this.actionModal()
-            }
-            else if (this.props.action.actionType === "resourcePermissionChange") {
-                return this.resourcePermissionChangeAction()
+                this.props.action.actionType === "make_resource_private" ||
+                this.props.action.actionType === "update_permission_for_user" ||
+                this.props.action.actionType === "delete_permission_for_user"
+                ) {
+                //  return null;
+                console.log(this.props.action)
+                 return this.actionModal()
             }
             else if (this.props.action.actionType === "resourcePermissionDelete") {
                 return this.resourcePermissionDeleteAction()

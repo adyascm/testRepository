@@ -76,7 +76,7 @@ class DeletePermissionForUserAction():
     DatasourceType = "GSUITE"
     Name = ActionNames.DELETE_PERMISSION_FOR_USER
     Description = "Remove access granted to a user for a resource"
-    Parameters = { "user_email": "", "resource_owner": "", "resource_id": "" }
+    Parameters = { "user_email": "", "resource_owner_id": "", "resource_id": "" }
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
@@ -86,7 +86,7 @@ class UpdatePermissionForUserAction():
     DatasourceType = "GSUITE"
     Name = ActionNames.UPDATE_PERMISSION_FOR_USER
     Description = "Update the permission granted to a user for a resource"
-    Parameters = {"user_email": "", "resource_owner": "", "resource_id": "", "new_permission_role": ""}
+    Parameters = {"user_email": "", "resource_owner_id": "", "resource_id": "", "new_permission_role": ""}
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,

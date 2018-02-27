@@ -6,7 +6,8 @@ import {
     RESOURCES_TREE_CELL_EXPANDED,
     RESOURCES_ACTION_LOAD,
     RESOURCES_ACTION_CANCEL,
-    RESOURCES_SET_FILE_SHARE_TYPE
+    RESOURCES_SET_FILE_SHARE_TYPE,
+    RESOURCES_SET_FILE_TYPE
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -78,6 +79,7 @@ export default (state = {}, action) => {
             //     rows.push(row)
             // }
 
+                console.log("resource tree : ", action.payload)
                 return {
                     ...state,
                     isLoading: false,
@@ -107,6 +109,11 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 exposureType: action.payload
+            }
+        case RESOURCES_SET_FILE_TYPE:
+            return {
+                ...state,
+                resourcesType: action.payload
             }
         // case RESOURCES_TREE_CELL_EXPANDED:
         //     return {
