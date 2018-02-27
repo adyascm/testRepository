@@ -42,6 +42,7 @@ provider:
         - "events:PutRule"
         - "events:PutTargets"
         - "lambda:AddPermission"
+        - "events:*"
       Resource:
         "*"
 
