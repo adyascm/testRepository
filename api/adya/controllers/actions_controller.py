@@ -102,11 +102,11 @@ def execute_action(auth_token, domain_id, datasource_id, action_to_take, action_
             response = actions.remove_external_access_to_resource(domain_id, datasource_id, resource_id)
         elif action.Name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
             user_email = action_parameters['user_email']
-            response = actions.remove_external_access_for_all_files_owned_by_user(auth_token, domain_id, datasource_id, user_email)
+            response = actions.remove_external_access_for_all_files_owned_by_user(domain_id, datasource_id, user_email)
         elif action.Name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
-            resource_owner = action_parameters['resource_owner']
+            resource_owner = action_parameters['resource_owner_id']
             new_permission_role = action_parameters['new_permission_role']
             response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role, resource_owner)

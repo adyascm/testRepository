@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload }),
-    onChangePermission: (actionType, resource, newValue, email) =>
+    onChangePermissionForResource: (actionType, resource, newValue, email) =>
         dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue, email })
 })
 
@@ -49,21 +49,21 @@ class ResourcePermissionSection extends Component {
 
         if (data["value"] !== "Read" && data["value"] !== "Write") {
             console.log("actionType: ", this.state[data["value"]]);
-            this.props.onChangePermission(this.state[data["value"]],data,data["value"],email)
+            this.props.onChangePermissionForResource(this.state[data["value"]],data,data["value"],email)
         }
         else
-            this.props.onChangePermission('resourcePermissionChange',data,data["value"],email)
+            this.props.onChangePermissionForResource('update_permission_for_user',data,data["value"],email)
     }
 
     handleClick(event,userEmail,permissionType) {
         console.log("remove event called: ", userEmail)
         console.log("remove event called: ", permissionType)
-        this.props.onChangePermission('resourcePermissionDelete',permissionType,undefined,userEmail)
+        this.props.onChangePermissionForResource('delete_permission_for_user',permissionType,undefined,userEmail)
     }
 
     render() {
         let panes = [
-            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} handleClick={this.handleClick} /></Tab.Pane> }
+            { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions rowData={this.state.rowData} handleChange={this.handleChange} handleClick={this.handleClick}/></Tab.Pane> }
           ]
         return (
             <Segment>

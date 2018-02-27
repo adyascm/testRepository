@@ -8,17 +8,17 @@ const ResourcePermissions = props => {
             { text: 'Read', value: 'Read' },
             { text: 'Write', value: 'Write' }]
     };
-    
+
     let permissions = props.rowData.permissions
     let permissionUsers = []
-    
+
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission,index) => {
             if (permission["permission_id"] !== undefined)
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red' onClick={(event) => props.handleClick(event,permission["pemrissionEmail"],permission["permissionType"] === "W"?"Write":"Read")}>
+                            <Button animated='vertical' basic color='red' onClick={(event) => props.handleClick(event,permission["email"],permission["permission_type"])}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
@@ -29,15 +29,15 @@ const ResourcePermissions = props => {
                             {permission["email"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={permission["permission_type"]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["permission_type"])} />
+                            <Dropdown fluid text={permission["permission_type"]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["email"])} />
                         </Grid.Column>
                     </Grid.Row>
                 )
-            else 
+            else
                 return ("")
         })
     }
-    
+
     return (
         <Grid celled='internally'>
             {permissionUsers}
