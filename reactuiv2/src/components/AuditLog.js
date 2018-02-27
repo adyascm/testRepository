@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer } from 'semantic-ui-react';
+import { Loader, Dimmer, Container } from 'semantic-ui-react';
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
@@ -63,6 +63,11 @@ class AuditLog extends Component {
     }
 
     render() {
+        let containerStyle = {
+            height: "100%",
+            textAlign: "left"
+        };
+
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>
@@ -74,6 +79,7 @@ class AuditLog extends Component {
         }
         else {
             return (
+                <Container style={containerStyle}>
                 <div className="ag-theme-fresh" style={{ "height": document.body.clientHeight }}>
                     <AgGridReact
                         id="myGrid" 
@@ -86,6 +92,7 @@ class AuditLog extends Component {
                         //pagination={true}
                     />
                 </div>
+                </Container>
             )
         }
 
