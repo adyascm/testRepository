@@ -15,7 +15,7 @@ import Users from './components/Users/Users.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
 import AuditLog from './components/AuditLog'
-import GlobalError from './GlobalError';
+import GlobalMessage from './GlobalMessage';
 
 import { Container, Message, Segment } from 'semantic-ui-react'
 
