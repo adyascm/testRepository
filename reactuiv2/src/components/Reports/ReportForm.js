@@ -20,7 +20,8 @@ import {
 const mapStateToProps = state => ({
   ...state.reports,
   ...state.users,
-  ...state.resources
+  ...state.resources,
+  ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -68,6 +69,7 @@ class ReportForm extends Component {
     var emailCheck = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     var selected_entity;
 
+
     var copyFinalInputObj = {}
     Object.assign(copyFinalInputObj, this.state.finalReportObj)
 
@@ -103,6 +105,7 @@ class ReportForm extends Component {
       valid = false
     }
 
+    copyFinalInputObj.datasource_id = this.props.datasources[0]['datasource_id']
 
     if (valid && this.props.formType === 'modify_report') {
       copyFinalInputObj['report_id'] = this.state.reportDataForReportId['report_id']
