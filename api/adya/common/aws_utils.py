@@ -1,3 +1,4 @@
+import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
@@ -47,6 +48,17 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                 ]
             )
             print "Attached the cloud watch event target to the lambda - " + str(response)
+
+            uuidfor = str(uuid.uuid4())
+            response = lambda_client.add_permission(
+                FunctionName=function_name,
+                StatementId=uuidfor,
+                Action='lambda:InvokeFunction',
+                Principal='events.amazonaws.com'
+
+            )
+
+            print "add permission to lambda - " + str(response)
             return True
         else:
             print "Unable to create cloudwatch event"
