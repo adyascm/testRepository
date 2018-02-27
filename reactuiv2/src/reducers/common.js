@@ -59,9 +59,14 @@ export default (state = defaultState, action) => {
       };
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
-        var ds = JSON.parse(action.payload);
-        if (state.datasources[0] && ds.datasource_id === state.datasources[0].datasource_id) {
-          state.datasources[0] = ds;
+        var newDS = JSON.parse(action.payload);
+        var oldDS = state.datasources[0];
+        if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
+          if(newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
+            || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status)
+          {
+            state.datasources[0] = newDS;
+          }
         }
       }
       return {
