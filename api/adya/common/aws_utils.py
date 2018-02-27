@@ -141,6 +141,7 @@ def send_email_with_attachment(user_list, csv_data, report_desc):
                 },
         )
 
+        print "email sent "
     except Exception as e:
         print e
         print "Exception occurred sending  email to: ", user_list

@@ -231,7 +231,10 @@ def generate_csv_report(auth_token, report_id):
     domain_id = data_source[0].domain_id
     datasource_id = data_source[0].datasource_id
 
+    print "generate_csv_report :  start"
+
     report_data, email_list, report_type, report_desc = run_report(domain_id, datasource_id, auth_token, report_id)
+    print "generate_csv_report : report data : ", report_data
     csv_records = ""
 
     if report_type == "Permission":
@@ -261,4 +264,5 @@ def generate_csv_report(auth_token, report_id):
                 csv_records += ",".join(data[header])
             csv_records += "\n"
 
+    print "csv_ record ", csv_records
     return csv_records, email_list, report_desc

@@ -130,7 +130,11 @@ def execute_cron_report(event, context):
     if req_error:
         return req_error
 
+    print "call generate_csv_report function "
+    print "report id ", req_session.get_req_param('report_id')
     csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_auth_token(), req_session.get_req_param('report_id'))
+
+    print "call send_email_with_attachment function "
 
     aws_utils.send_email_with_attachment(email_list, csv_records, report_desc)
 
