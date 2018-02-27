@@ -35,7 +35,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
-            inputdata = {'report_id': report_id}
+            inputdata = {'report_id': report_id, 'datasource_id': datasource_id}
             # Adds the specified targets to the specified rule
             targetresponse = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
