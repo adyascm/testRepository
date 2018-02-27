@@ -39,6 +39,7 @@ provider:
         - "ses:SendEmail"
         - "lambda:InvokeFunction"
         - "lambda:GetFunction"
+        - "events:PutRule"
       Resource:
         "*"
 
