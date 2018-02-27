@@ -43,13 +43,13 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                     {
                         'Arn': arn,
                         'Id': function_name,
-                        'Input': json.dumps(inputdata)
+                        'Input': json.dumps(inputdata),
+                        'RoleArn': 'arn:aws:iam::709745100410:role/adya-dev-us-east-1-lambdaRole'
                     }
                 ]
             )
             print "Attached the cloud watch event target to the lambda - " + str(response)
 
-            print "add permission to lambda - " + str(response)
             return True
         else:
             print "Unable to create cloudwatch event"
