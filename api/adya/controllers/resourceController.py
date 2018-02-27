@@ -129,22 +129,25 @@ def get_all_shared_files_of_user(domain_id, datasource_id, user_email):
                                Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
                                Resource.exposure_type == constants.ResourceExposureType.DOMAIN))
 
-        resources_object_list = db_session.query(Resource.resource_id).filter(resource_filter)\
+        resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter)\
                             .outerjoin(ResourcePermission,
                                        and_(ResourcePermission.resource_id == Resource.resource_id,
                                             ResourcePermission.domain_id == Resource.domain_id,
                                             ResourcePermission.datasource_id == Resource.datasource_id)).all()
 
-        response_data = []
+        response_data = {}
         for resource in resources_object_list:
             if resource.ResourcePermission:
-                if resource.ResourcePermission.email != user_email:
+                if resource.ResourcePermission.email != resource.Resource.resource_owner_id:
                     permissions_object = {
                         "permissionId": resource.ResourcePermission.permission_id,
                         "emailAddress": resource.ResourcePermission.email,
                         "role": resource.ResourcePermission.permission_type
                     }
-                    response_data.append({ "resource_id": resource.resource_id, "permissions_object": permissions_object})
+                    if resource.Resource.resource_id not in response_data:
+                        response_data[resource.Resource.resource_id] = []
+
+                    response_data[resource.Resource.resource_id].append(permissions_object)
 
         return response_data
 
@@ -175,7 +178,7 @@ def get_all_externally_shared_files_of_user(domain_id, datasource_id, user_email
                                               DomainUser.email == ResourcePermission.email,
                                           DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
 
-        response_data = []
+        response_data =  { }
         for resource in resources_object_list:
             if resource.ResourcePermission:
                 permissions_object = {
@@ -183,7 +186,10 @@ def get_all_externally_shared_files_of_user(domain_id, datasource_id, user_email
                     "emailAddress": resource.ResourcePermission.email,
                     "role": resource.ResourcePermission.permission_type
                 }
-                response_data.append({ "resource_id": resource.resource_id, "permissions_object": permissions_object})
+                if resource.Resource.resource_id not in response_data:
+                    response_data[resource.Resource.resource_id] = []
+
+                response_data[resource.Resource.resource_id].append(permissions_object)
 
         return response_data
 
@@ -209,18 +215,24 @@ def get_external_permissions_for_resource(domain_id, datasource_id, resource_id)
                        and_(ResourcePermission.resource_id == Resource.resource_id,
                             ResourcePermission.domain_id == Resource.domain_id,
                             ResourcePermission.datasource_id == Resource.datasource_id)) \
-            .join(DomainUser, (DomainUser.email == ResourcePermission.email,
+            .join(DomainUser, and_(DomainUser.domain_id == ResourcePermission.domain_id,
+                                DomainUser.datasource_id == ResourcePermission.datasource_id,
+                                DomainUser.email == ResourcePermission.email,
                                DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
 
-        response_data = []
+        response_data = {}
         for resource in resources_object_list:
             if resource.ResourcePermission:
                 permissions_object = {
+                    "resource_owner_id": resource.Resource.resource_owner_id,
                     "permissionId": resource.ResourcePermission.permission_id,
                     "emailAddress": resource.ResourcePermission.email,
                     "role": resource.ResourcePermission.permission_type
                 }
-                response_data.append({"resource_id": resource.resource_id, "resource_owner": resource.resource_owner_id, "permissions_object": permissions_object})
+                if resource.Resource.resource_id not in response_data:
+                    response_data[resource.Resource.resource_id] = []
+
+                response_data[resource.Resource.resource_id].append(permissions_object)
 
         return response_data
 
@@ -240,25 +252,28 @@ def get_all_permissions_for_resource(domain_id, datasource_id, resource_id):
                                Resource.datasource_id == datasource_id,
                                Resource.resource_id == resource_id)
 
-        resources_object_list = db_session.query(Resource.resource_id).filter(resource_filter)\
+        resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter)\
                             .outerjoin(ResourcePermission,
                                        and_(ResourcePermission.resource_id == Resource.resource_id,
                                             ResourcePermission.domain_id == Resource.domain_id,
                                             ResourcePermission.datasource_id == Resource.datasource_id)).all()
 
-        response_data = []
+        response_data = {}
         for resource in resources_object_list:
             if resource.ResourcePermission:
-                if resource.ResourcePermission.email != resource.resource_owner_id:
+                if resource.ResourcePermission.email != resource.Resource.resource_owner_id:
                     permissions_object = {
+                        "resource_owner_id": resource.Resource.resource_owner_id,
                         "permissionId": resource.ResourcePermission.permission_id,
                         "emailAddress": resource.ResourcePermission.email,
                         "role": resource.ResourcePermission.permission_type
                     }
-                    response_data.append({ "resource_id": resource.resource_id, "resource_owner": resource.resource_owner_id, "permissions_object": permissions_object})
+                    if resource.Resource.resource_id not in response_data:
+                        response_data[resource.Resource.resource_id] = []
+
+                    response_data[resource.Resource.resource_id].append(permissions_object)
 
         return response_data
-
 
     except Exception as e:
         print e
