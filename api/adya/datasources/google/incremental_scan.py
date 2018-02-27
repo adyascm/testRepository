@@ -23,7 +23,8 @@ def subscribe(domain_id, datasource_id):
         datasource.is_push_notifications_enabled = False
         db_session.commit()
         if datasource.is_serviceaccount_enabled:
-            domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.member_type == 'INT')).all()
+            domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
+            print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
                 print "Subscribing for push notification for user {}".format(user.email)
                 _subscribe_for_user(db_session, datasource, user.email)
