@@ -23,11 +23,13 @@ def subscribe(domain_id, datasource_id):
         datasource.is_push_notifications_enabled = False
         db_session.commit()
         if datasource.is_serviceaccount_enabled:
-            domain_users = db_session.query(DomainUser).filter(
-                DomainUser.datasource_id == datasource_id).all()
+            domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
+            print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
-                _subscribe_for_user(db_session, datasource, user.email)
+                print "Subscribing for push notification for user {}".format(user.email)
+                _subscribe_for_user(db_session, datasource, user)
         else:
+            print "Service account is not enabled, subscribing for push notification using logged in user's creds"
             _subscribe_for_user(db_session, datasource, None)
 
         datasource.is_push_notifications_enabled = True
@@ -37,15 +39,15 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
 
 
-def _subscribe_for_user(db_session, datasource, user_email):
-    drive_service = gutils.get_gdrive_service(datasource.domain_id, user_email)
+def _subscribe_for_user(db_session, datasource, user):
+    drive_service = gutils.get_gdrive_service(datasource.domain_id, user.email)
     root_file = drive_service.files().get(fileId='root').execute()
     print("Subscribe : Got Drive root ", root_file)
     root_file_id = root_file['id']
 
     channel_id = datasource.datasource_id
-    if user_email:
-        channel_id = user_email
+    if user:
+        channel_id = user.user_id
 
     body = {
         "id": channel_id,
@@ -78,12 +80,13 @@ def process_notifications(auth_token, datasource_id, channel_id):
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         user_email = None
+        db_session = db_connection().get_session()
         if datasource.datasource_id != channel_id:
-            user_email = channel_id
+            user_email = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first().email
         drive_service = gutils.get_gdrive_service(
             datasource.domain_id, user_email)
 
-        db_session = db_connection().get_session()
+        
         subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
                                                                                    PushNotificationsSubscription.datasource_id == datasource_id)).first()
         if not subscription:

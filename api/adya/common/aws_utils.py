@@ -1,3 +1,4 @@
+import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
@@ -34,9 +35,9 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
-            inputdata = {'report_id': report_id}
+            inputdata = {'report_id': report_id, 'datasource_id': datasource_id}
             # Adds the specified targets to the specified rule
-            response = cloudwatch_client.put_targets(
+            targetresponse = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
                 Targets=[
                     {
@@ -46,7 +47,18 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                     }
                 ]
             )
-            print "Attached the cloud watch event target to the lambda - " + str(response)
+            print "Attached the cloud watch event target to the lambda - " + str(targetresponse)
+
+            response = lambda_client.add_permission(
+                Action='lambda:InvokeFunction',
+                FunctionName=function_name,
+                Principal='events.amazonaws.com',
+                SourceArn=response['RuleArn'],
+                StatementId=str(uuid.uuid4()),
+            )
+
+            print "adding permission for lambda - " + str(response)
+
             return True
         else:
             print "Unable to create cloudwatch event"
@@ -129,6 +141,7 @@ def send_email_with_attachment(user_list, csv_data, report_desc):
                 },
         )
 
+        print "email sent "
     except Exception as e:
         print e
         print "Exception occurred sending  email to: ", user_list

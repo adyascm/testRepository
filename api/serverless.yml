@@ -39,6 +39,11 @@ provider:
         - "ses:SendEmail"
         - "lambda:InvokeFunction"
         - "lambda:GetFunction"
+        - "events:PutRule"
+        - "events:PutTargets"
+        - "lambda:AddPermission"
+        - "events:*"
+        - "iam:PassRole"
       Resource:
         "*"
 

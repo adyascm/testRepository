@@ -6,6 +6,7 @@ import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 import ResourcesList from './ResourcesList';
 import ResourcePermissionSection from './ResourcePermissionSection';
 import ResourcesActions from '../actions/ResourcesActions';
+import TestResourcesList from './TestResourcesList';
 
 import {RESOURCES_SET_FILE_SHARE_TYPE} from '../../constants/actionTypes';
 
@@ -103,6 +104,7 @@ class Resources extends Component {
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
               <ResourcesList resourceType={this.state.fileResourceType} />
+              {/* <TestResourcesList /> */}
             </Grid.Column>
             {
               this.props.rowData?
