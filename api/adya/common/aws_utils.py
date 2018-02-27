@@ -54,7 +54,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                 FunctionName=function_name,
                 Principal='events.amazonaws.com',
                 SourceArn=response['RuleArn'],
-                StatementId=uuid.uuid4(),
+                StatementId=json.dumps(uuid.uuid4()),
             )
 
             print "adding permission for lambda - " + str(response)
