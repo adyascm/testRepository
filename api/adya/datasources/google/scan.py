@@ -499,6 +499,12 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         datasource = get_datasource(None, datasource_id,db_session)
         if get_scan_status(datasource) == 1:
             adya_emails.send_gdrive_scan_completed_email(datasource_id)
+
+            if constants.DEPLOYMENT_ENV != "local":
+                query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
+                print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id)
+                messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret", query_params, {})
+
         #if send_message:
         #ortc_client = RealtimeConnection().get_conn()
         # ortc_client.send(datasource_id, datasource)
