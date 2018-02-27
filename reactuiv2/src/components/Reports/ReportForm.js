@@ -115,6 +115,9 @@ class ReportForm extends Component {
       this.props.close()
     }
     else if (valid && this.props.formType === 'create_report') {
+      if(copyFinalInputObj['frequency'] === undefined){
+        copyFinalInputObj.frequency = "cron(* * ? * * *)"
+      }
       success = true
       this.props.addScheduledReport(copyFinalInputObj)
       this.props.close()
