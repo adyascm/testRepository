@@ -41,7 +41,7 @@ provider:
         - "lambda:GetFunction"
         - "events:PutRule"
         - "events:PutTargets"
-        - "lambda:AddPermission
+        - "lambda:AddPermission"
       Resource:
         "*"
 
