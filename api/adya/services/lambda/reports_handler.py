@@ -122,6 +122,7 @@ def run_scheduled_report(event, context):
 
 
 def execute_cron_report(event, context):
+    print "execute_cron_report : event ", event
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True, ["report_id"])
     if req_error:
