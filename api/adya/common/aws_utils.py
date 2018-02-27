@@ -37,7 +37,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
             arn = lambda_function['Configuration']['FunctionArn']
             inputdata = {'report_id': report_id}
             # Adds the specified targets to the specified rule
-            response = cloudwatch_client.put_targets(
+            targetresponse = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
                 Targets=[
                     {
@@ -47,7 +47,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                     }
                 ]
             )
-            print "Attached the cloud watch event target to the lambda - " + str(response)
+            print "Attached the cloud watch event target to the lambda - " + str(targetresponse)
 
             response = lambda_client.add_permission(
                 Action='lambda:InvokeFunction',
