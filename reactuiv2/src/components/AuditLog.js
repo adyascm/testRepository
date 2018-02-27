@@ -60,7 +60,6 @@ class AuditLog extends Component {
     componentWillMount() {
         this.props.onLoadStart()
         this.props.onLoad(agent.AuditLog.getAuditLogList())
-
     }
 
     render() {
@@ -81,10 +80,10 @@ class AuditLog extends Component {
                         //domLayout="autoHeight"
                         rowSelection='single' 
                         suppressCellSelection='true'
-                        rowData={this.props.auditLog}
+                        rowData={this.props.auditlog}
                         columnDefs={this.columnDefs}
                         onGridReady={this.onGridReady.bind(this)}
-                        pagination={true}
+                        //pagination={true}
                     />
                 </div>
             )
