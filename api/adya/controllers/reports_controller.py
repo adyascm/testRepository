@@ -6,7 +6,7 @@ from flask import request
 
 from adya.controllers import domain_controller
 from adya.datasources.google import activities
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission
+from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource
 from adya.db.connection import db_connection
 from adya.common import utils, constants, request_session
 from sqlalchemy import func, or_, and_
@@ -79,7 +79,8 @@ def create_report(auth_token, payload):
             report.receivers = payload["receivers"]
             config_input = {"report_type": payload["report_type"],
                             "selected_entity_type": payload["selected_entity_type"],
-                            "selected_entity": payload["selected_entity"], "selected_entity_name": payload["selected_entity_name"]}
+                            "selected_entity": payload["selected_entity"],
+                            "selected_entity_name": payload["selected_entity_name"], "datasource_id": payload["datasource_id"]}
 
             report.config = json.dumps(config_input)
             report.is_active = payload["is_active"]
@@ -143,14 +144,13 @@ def delete_report(auth_token, report_id):
 
 
 def run_report(domain_id, datasource_id, auth_token, report_id):
-    if not auth_token:
-        return None
+    # if not auth_token:
+    #     return None
     session = db_connection().get_session()
 
     get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description).filter(
         and_(Report.domain_id == LoginUser.domain_id,
-             Report.report_id == report_id)). \
-        filter(LoginUser.auth_token == auth_token).one()
+             Report.report_id == report_id)).one()
 
     config_data = json.loads(get_report_info[0])
     email_list = get_report_info[1]
@@ -160,6 +160,14 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
     report_type = config_data.get('report_type')
     selected_entity = config_data.get('selected_entity')
     selected_entity_type = config_data.get('selected_entity_type')
+
+    if not datasource_id:
+         datasource_id = config_data.get('datasource_id')
+    if not domain_id:
+         domain = session.query(DataSource.domain_id).filter(DataSource.datasource_id == datasource_id).one()
+         domain_id = domain[0]
+
+
     response_data = []
     if report_type == "Permission":
         if selected_entity_type == "group":
@@ -170,9 +178,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
         get_perms_report = session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
                                                                                    LoginUser.domain_id, query_string,
                                                                                    Resource.resource_id
-                                                                                   == ResourcePermission.resource_id)). \
-            filter(LoginUser.auth_token
-                   == auth_token).all()
+                                                                                   == ResourcePermission.resource_id)).all()
 
         for perm_Report in get_perms_report:
             data_map = {
@@ -225,13 +231,11 @@ def update_report(auth_token, payload):
         return None
 
 
-def generate_csv_report(auth_token, report_id):
-    data_source = domain_controller.get_datasource(auth_token, None)
+def generate_csv_report(report_id):
+    print "generate_csv_report :  start"
 
-    domain_id = data_source[0].domain_id
-    datasource_id = data_source[0].datasource_id
-
-    report_data, email_list, report_type, report_desc = run_report(domain_id, datasource_id, auth_token, report_id)
+    report_data, email_list, report_type, report_desc = run_report(None, None, None, report_id)
+    print "generate_csv_report : report data : ", report_data
     csv_records = ""
 
     if report_type == "Permission":
@@ -261,4 +265,5 @@ def generate_csv_report(auth_token, report_id):
                 csv_records += ",".join(data[header])
             csv_records += "\n"
 
+    print "csv_ record ", csv_records
     return csv_records, email_list, report_desc
