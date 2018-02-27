@@ -67,7 +67,7 @@ class UsersGroupsDetailsSection extends Component {
         var resourceLayout = (
             <Container stretched>
                 <Grid stretched>
-                    <Grid.Row stretched>
+                    <Grid.Row stretched style={{marginLeft: '5px'}}>
                         <Dropdown
                             options={this.state.options}
                             selection
@@ -76,7 +76,7 @@ class UsersGroupsDetailsSection extends Component {
                                         this.props.exposureType === 'DOMAIN'?"Domain Shared":"Internally Shared"}
                         />
                     </Grid.Row>
-                    <Grid.Row stretched>
+                    <Grid.Row stretched style={{marginLeft: '5px', marginRight: '5px'}}>
                         <UserResource />
                     </Grid.Row>
                 </Grid>
