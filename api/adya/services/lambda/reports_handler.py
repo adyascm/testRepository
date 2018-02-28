@@ -120,7 +120,7 @@ def run_scheduled_report(event, context):
     domain_id = data_source[0].domain_id
     datasource_id = data_source[0].datasource_id
 
-    run_report_data, email_list, report_type, report_desc = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
+    run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
                                                                 req_session.get_req_param('reportId'))
     return req_session.generate_sqlalchemy_response(200, run_report_data)
 
@@ -137,10 +137,10 @@ def execute_cron_report(event, context):
 
     print "call generate_csv_report function "
     print "report id ", req_session.get_req_param('report_id')
-    csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
+    csv_records, email_list, report_desc, report_name = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
 
     print "call send_email_with_attachment function "
 
-    aws_utils.send_email_with_attachment(email_list, csv_records, report_desc)
+    aws_utils.send_email_with_attachment(email_list, csv_records, report_desc, report_name)
 
     return req_session.generate_response(200)

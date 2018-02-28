@@ -78,7 +78,7 @@ class RunReport(Resource):
         domain_id = data_source[0].domain_id
         datasource_id = data_source[0].datasource_id
 
-        run_report_data, email_list, report_type, report_desc = reports_controller.run_report(domain_id, datasource_id, auth_token,
+        run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(domain_id, datasource_id, auth_token,
                                                         req_session.get_req_param('reportId'))
 
         print run_report_data

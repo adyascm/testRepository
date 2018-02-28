@@ -148,7 +148,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
     #     return None
     session = db_connection().get_session()
 
-    get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description).filter(
+    get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description, Report.name).filter(
         and_(Report.domain_id == LoginUser.domain_id,
              Report.report_id == report_id)).one()
 
@@ -157,6 +157,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
     email_list = emails.split(',')
     last_run_time = get_report_info[2]
     report_desc = get_report_info[3]
+    report_name = get_report_info[4]
 
     report_type = config_data.get('report_type')
     selected_entity = config_data.get('selected_entity')
@@ -213,7 +214,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
 
                 response_data.append(data_map)
 
-    return response_data, email_list, report_type, report_desc
+    return response_data, email_list, report_type, report_desc, report_name
 
 
 def update_report(auth_token, payload):
@@ -235,7 +236,7 @@ def update_report(auth_token, payload):
 def generate_csv_report(report_id):
     print "generate_csv_report :  start"
 
-    report_data, email_list, report_type, report_desc = run_report(None, None, None, report_id)
+    report_data, email_list, report_type, report_desc, report_name = run_report(None, None, None, report_id)
     print "generate_csv_report : report data : ", report_data
     csv_records = ""
     print "report type : ", report_type
@@ -278,4 +279,4 @@ def generate_csv_report(report_id):
         print csv_records
 
     print "csv_ record ", csv_records
-    return csv_records, email_list, report_desc
+    return csv_records, email_list, report_desc, report_name

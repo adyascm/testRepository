@@ -122,15 +122,16 @@ def send_email(user_list, email_subject, rendered_html):
         print "Exception occurred sending ", email_subject, " email to: ", user_list
 
 
-def send_email_with_attachment(user_list, csv_data, report_desc):
+def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
 
     print "sending raw email start : "
     try:
+        filename = str(report_name) + ".csv"
         msg = MIMEMultipart('mixed')
         msg['Subject'] = report_desc
         msg['From'] = "service@adya.io"
         att = MIMEApplication(csv_data)
-        att.add_header('Content-Disposition', 'attachment', filename="report.csv")
+        att.add_header('Content-Disposition', 'attachment', filename=filename)
         msg.attach(att)
 
         session = boto3.Session()
