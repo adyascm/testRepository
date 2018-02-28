@@ -4,6 +4,9 @@ from email.mime.multipart import MIMEMultipart
 
 import boto3
 import json
+
+from slugify import slugify
+
 from adya.common import constants
 from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
@@ -169,3 +172,6 @@ def invoke_lambda(function_name, auth_token, body):
         print ex
 
 
+def get_lambda_name(httpmethod, endpoint):
+    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + str(httpmethod)+ slugify(endpoint)
+    return lambda_name

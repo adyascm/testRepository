@@ -1,6 +1,8 @@
 import os
 from enum import Enum
 
+from adya.common.aws_utils import get_lambda_name
+
 SERVERLESS_SERVICE_NAME = 'adya'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
@@ -16,7 +18,8 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
-LAMBDA_FUNCTION_NAME_FOR_CRON = os.environ.get("LAMBDA_FUNCTION_NAME", "adya-dev-get-executescheduledreport")
+
+LAMBDA_FUNCTION_NAME_FOR_CRON = get_lambda_name('get', 'executescheduledreport')
 
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
 GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
