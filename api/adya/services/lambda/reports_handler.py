@@ -1,6 +1,6 @@
 import json
 
-from adya.common.aws_utils import get_lambda_name
+from adya.common.aws_utils import get_lambda_name, get_Cloudwatchevent_name_for_report
 from adya.controllers import reports_controller, domainDataController, resourceController, domain_controller
 from adya.common import aws_utils, constants
 from adya.common.request_session import RequestSession
@@ -76,7 +76,7 @@ def post_scheduled_report(event, context):
     cron_expression = report.frequency
     report_id = report.report_id
     report_name = report.name
-    cloudwatch_event_name = report_id + '-' + report_name
+    cloudwatch_event_name = get_Cloudwatchevent_name_for_report(report_id, report_name)
 
     payload = {'report_id': report_id}
     function_name = get_lambda_name('get', 'executescheduledreport')
@@ -97,7 +97,7 @@ def modify_scheduled_report(event, context):
     # frequency = report.frequency
     # payload = {'report_id': report.report_id }
     # function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
-    # cloudwatch_eventname = report.report_id + "_" + report.name  # TODO: if someone changes the report_name
+    # cloudwatch_eventname = get_Cloudwatchevent_name_for_report(report.report_id, report.name ) # TODO: if someone changes the report_name
     # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
@@ -110,7 +110,7 @@ def delete_scheduled_report(event, context):
     deleted_report = reports_controller.delete_report(req_session.get_auth_token(),
                                                       req_session.get_req_param('reportId'))
 
-    cloudwatch_eventname = deleted_report.report_id + "_" + deleted_report.name
+    cloudwatch_eventname = get_Cloudwatchevent_name_for_report(deleted_report.report_id, deleted_report.name)
     function_name = get_lambda_name('get', 'executescheduledreport')
     aws_utils.delete_cloudwatch_event(cloudwatch_eventname, function_name)
     return req_session.generate_response(200)

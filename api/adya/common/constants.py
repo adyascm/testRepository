@@ -110,3 +110,4 @@ class ActionType(Enum):
     DELETE = 'delete'
 
 PAGE_LIMIT = 100
+

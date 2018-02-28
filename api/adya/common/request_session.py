@@ -4,6 +4,7 @@ import constants
 
 from adya.db.models import AlchemyEncoder
 
+
 class RequestSession():
     def __init__(self, req):
         self.req = req
@@ -12,8 +13,8 @@ class RequestSession():
         self.headers = {}
         self.isLocal = True
 
-    def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[], headers = []):
-        #Validate the flask request
+    def validate_authorized_request(self, validateAuth=True, mandatory_params=[], optional_params=[], headers=[]):
+        # Validate the flask request
         params_dict = {}
         self.isLocal = True
 
@@ -27,15 +28,14 @@ class RequestSession():
             headers_dict = self.req
             if "headers" in self.req:
                 headers_dict = self.req["headers"]
-            
+
             params_dict = self.req
             if "queryStringParameters" in self.req:
                 params_dict = self.req["queryStringParameters"]
-            
 
         self.auth_token = headers_dict.get("Authorization")
         if validateAuth and not self.auth_token:
-                return self.generate_error_response(401, "Not authenticated")
+            return self.generate_error_response(401, "Not authenticated")
         for param in mandatory_params:
             value = params_dict.get(param)
             if not value:
@@ -86,7 +86,7 @@ class RequestSession():
             json_payload = json_string_payload
         return self.generate_response(http_code, json_payload)
 
-    def generate_response(self, http_code, payload = None):
+    def generate_response(self, http_code, payload=None):
         if self.isLocal:
             return payload, http_code
         else:
