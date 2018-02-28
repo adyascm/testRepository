@@ -144,8 +144,6 @@ def delete_report(auth_token, report_id):
 
 
 def run_report(domain_id, datasource_id, auth_token, report_id):
-    # if not auth_token:
-    #     return None
     session = db_connection().get_session()
 
     get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description, Report.name).filter(
