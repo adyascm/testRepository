@@ -100,9 +100,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         resource["icon_link"] = resourcedata.get("iconLink")
         resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
         resource["description"] = resourcedata.get("description")
+        resource["last_modifying_user_email"] = ""
         if resourcedata.get("lastModifyingUser"):
             resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
-        resource["last_modifying_user_email"] 
         resource_exposure_type = constants.ResourceExposureType.PRIVATE
         resource_permissions = resourcedata.get('permissions')
         if resource_permissions:
