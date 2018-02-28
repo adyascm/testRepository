@@ -173,7 +173,7 @@ def subscribe_gdrive_notifications(event, context):
 
 def process_gdrive_notifications(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
+    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[] headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
     if req_error:
         return req_error
 

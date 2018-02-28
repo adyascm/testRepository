@@ -160,6 +160,6 @@ export function getCron(state) {
   case 'year':
     return getYearCron(selectedYearOption);
   default:
-    return '* * * * *';
+    return '* * ? * * *';
   }
 }
