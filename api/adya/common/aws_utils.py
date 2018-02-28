@@ -123,6 +123,8 @@ def send_email(user_list, email_subject, rendered_html):
 
 
 def send_email_with_attachment(user_list, csv_data, report_desc):
+
+    print "sending raw email start : "
     try:
         msg = MIMEMultipart('mixed')
         msg['Subject'] = report_desc

@@ -44,6 +44,7 @@ provider:
         - "lambda:AddPermission"
         - "events:*"
         - "iam:PassRole"
+        - "ses:SendRawEmail"
       Resource:
         "*"
 

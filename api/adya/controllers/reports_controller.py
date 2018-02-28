@@ -153,7 +153,8 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
              Report.report_id == report_id)).one()
 
     config_data = json.loads(get_report_info[0])
-    email_list = get_report_info[1]
+    emails = str(get_report_info[1])
+    email_list = emails.split(',')
     last_run_time = get_report_info[2]
     report_desc = get_report_info[3]
 
@@ -237,21 +238,28 @@ def generate_csv_report(report_id):
     report_data, email_list, report_type, report_desc = run_report(None, None, None, report_id)
     print "generate_csv_report : report data : ", report_data
     csv_records = ""
-
+    print "report type : ", report_type
     if report_type == "Permission":
 
         perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
-                           "File Exposure", "User Email", "Permission"]
+                                   "File Exposure", "User Email", "Permission"]
 
-        perm_report_data_header = ["resource_type", "resource_name", "resource_size", "resource_owner_id",
+        perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
                                    "last_modified_time", "creation_time",
-                                   "exposure_type", "user_email", "permission_type"]
+                                  "exposure_type", "user_email", "permission_type"]
+
+        print "making csv "
 
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
-            for header in perm_report_data_header:
-                csv_records += ",".join(data[header])
+            for i in range(len(perm_report_data_header)):
+                if i == len(perm_report_data_header) - 1:
+                    csv_records += (str(data[perm_report_data_header[i]]))
+                else:
+                    csv_records += (str(data[perm_report_data_header[i]])) + ','
             csv_records += "\n"
+
+        print csv_records
 
     elif report_type == "Activity":
 
@@ -261,9 +269,13 @@ def generate_csv_report(report_id):
 
         csv_records += ",".join(activity_csv_display_header) + "\n"
         for data in report_data:
-            for header in activity_report_data_header:
-                csv_records += ",".join(data[header])
+            for i in range(len(activity_report_data_header)):
+                if i == len(activity_report_data_header) - 1:
+                    csv_records += (str(data[activity_report_data_header[i]]))
+                else:
+                    csv_records += (str(data[activity_report_data_header[i]])) + ','
             csv_records += "\n"
+        print csv_records
 
     print "csv_ record ", csv_records
     return csv_records, email_list, report_desc
