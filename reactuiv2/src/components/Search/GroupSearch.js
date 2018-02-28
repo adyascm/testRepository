@@ -53,7 +53,7 @@ class GroupSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        console.log("search result : ", result)
+        this.props.onUsersLoad(this.state.results)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
@@ -81,6 +81,7 @@ class GroupSearch extends Component {
                     results.push(row);
                 }
             }
+
             this.setState({
                 isLoading: false,
                 results: results,

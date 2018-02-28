@@ -114,7 +114,8 @@ class UsersTree extends Component {
     
             for (let index = 0; index < keys.length; index++) {
                 let rowItem = this.props.usersTreePayload[keys[index]]
-                rowItem.key = keys[index]
+                if (!rowItem.key)
+                    rowItem.key = keys[index]
                 
                 if (rowItem.depth === undefined)
                     rowItem.depth = 0

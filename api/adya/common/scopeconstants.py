@@ -31,6 +31,11 @@ SERVICE_ACCOUNT_SCOPE = [
     'email '
     'https://www.googleapis.com/auth/drive.readonly '
     'https://www.googleapis.com/auth/drive '
+    'https://www.googleapis.com/auth/admin.directory.user.readonly '
+    'https://www.googleapis.com/auth/admin.directory.group.readonly '
+    'https://www.googleapis.com/auth/admin.reports.audit.readonly '
+    'https://www.googleapis.com/auth/admin.datatransfer '
+    'https://www.googleapis.com/auth/admin.datatransfer.readonly '
     'profile '
 ]
 

@@ -31,7 +31,7 @@ class RequestSession():
 
             params_dict = self.req
             if "queryStringParameters" in self.req:
-                params_dict = self.req["queryStringParameters"]
+                params_dict = self.req["queryStringParameters"] or {}
 
         self.auth_token = headers_dict.get("Authorization")
         if validateAuth and not self.auth_token:
