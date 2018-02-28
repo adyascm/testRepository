@@ -9,12 +9,11 @@ from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
 
 # create cloudwatch event
-def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
+def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
         lambda_client = session.client('lambda')
-        function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
         lambda_function = lambda_client.get_function(
             FunctionName=function_name
         )
@@ -35,7 +34,6 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
-            inputdata = {'report_id': report_id}
             # Adds the specified targets to the specified rule
             targetresponse = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
@@ -43,7 +41,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                     {
                         'Arn': arn,
                         'Id': function_name,
-                        'Input': json.dumps(inputdata)
+                        'Input': json.dumps(payload)
                     }
                 ]
             )
@@ -70,11 +68,10 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         return False
 
 
-def delete_cloudwatch_event(cloudwatch_event_name):
+def delete_cloudwatch_event(cloudwatch_event_name, function_name):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
-        function_name = LAMBDA_FUNCTION_NAME_FOR_CRON
 
         # remove all the targets from the rule
         response = cloudwatch_client.remove_targets(
