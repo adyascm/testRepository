@@ -9,12 +9,11 @@ from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
 
 
 # create cloudwatch event
-def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
+def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
         lambda_client = session.client('lambda')
-        function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
         lambda_function = lambda_client.get_function(
             FunctionName=function_name
         )
@@ -35,7 +34,6 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
             arn = lambda_function['Configuration']['FunctionArn']
-            inputdata = {'report_id': report_id}
             # Adds the specified targets to the specified rule
             targetresponse = cloudwatch_client.put_targets(
                 Rule=cloudwatch_event_name,
@@ -43,7 +41,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
                     {
                         'Arn': arn,
                         'Id': function_name,
-                        'Input': json.dumps(inputdata)
+                        'Input': json.dumps(payload)
                     }
                 ]
             )
@@ -70,12 +68,11 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id):
         return False
 
 
-def delete_cloudwatch_event(cloudwatch_event_name):
+def delete_cloudwatch_event(cloudwatch_event_name, function_name):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
-        function_name = LAMBDA_FUNCTION_NAME_FOR_CRON
-
+        print "delete_cloudwatch_event : "
         # remove all the targets from the rule
         response = cloudwatch_client.remove_targets(
             Rule=cloudwatch_event_name,
@@ -84,11 +81,16 @@ def delete_cloudwatch_event(cloudwatch_event_name):
             ]
         )
 
+        print "removed target : "
+
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
             # after removing all the targets , now delete the rule
+
             response = cloudwatch_client.delete_rule(
                 Name=cloudwatch_event_name
             )
+
+            print "removed rule  : "
     except Exception as ex:
         print "Exception occurred while deleting the cloudwatch event - " + \
             str(ex)
@@ -122,13 +124,16 @@ def send_email(user_list, email_subject, rendered_html):
         print "Exception occurred sending ", email_subject, " email to: ", user_list
 
 
-def send_email_with_attachment(user_list, csv_data, report_desc):
+def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
+
+    print "sending raw email start : "
     try:
+        filename = str(report_name) + ".csv"
         msg = MIMEMultipart('mixed')
         msg['Subject'] = report_desc
         msg['From'] = "service@adya.io"
         att = MIMEApplication(csv_data)
-        att.add_header('Content-Disposition', 'attachment', filename="report.csv")
+        att.add_header('Content-Disposition', 'attachment', filename=filename)
         msg.attach(att)
 
         session = boto3.Session()

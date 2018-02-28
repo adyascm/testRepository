@@ -19,17 +19,18 @@ class GetResources(Resource):
 
     def get(Resource):
         req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(optional_params=["prefix"])
+        req_error = req_session.validate_authorized_request(optional_params=["prefix","pageNumber","pageSize"])
         if req_error:
             return req_error
         auth_token = req_session.get_auth_token()
-
-        resource_list = resourceController.get_resources(auth_token, None, "", "", req_session.get_req_param("prefix"))
+        page_number = req_session.get_req_param("pageNumber")
+        page_size= req_session.get_req_param("pageSize")
+        resource_list = resourceController.get_resources(auth_token,page_number,page_size,None, "", "", req_session.get_req_param("prefix"))
         return req_session.generate_sqlalchemy_response(200, resource_list)
 
     def post(Resource):
         req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request()
+        req_error = req_session.validate_authorized_request(optional_params=["pageNumber","pageSize"])
         if req_error:
             return req_error
         auth_token = req_session.get_auth_token()
@@ -38,5 +39,7 @@ class GetResources(Resource):
         user_emails = payload.get("userEmails")
         exposure_type = payload.get("exposureType")
         resource_type = payload.get("resourceType")
-        resource_list = resourceController.get_resources(auth_token, user_emails, exposure_type, resource_type)
+        page_number = payload.get("pageNumber")
+        page_size = payload.get("pageSize")
+        resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type)
         return req_session.generate_sqlalchemy_response(200, resource_list)

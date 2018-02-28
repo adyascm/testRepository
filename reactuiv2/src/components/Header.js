@@ -21,6 +21,7 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
+        console.log("props.location : ", props.location)
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
@@ -39,7 +40,7 @@ const LoggedInView = props => {
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
-                    <Menu.Item icon='settings' as={Link} to="/datasources" />
+                    <Menu.Item icon='settings' as={Link} to="/datasources" onClick={props.handleClick} active={props.currLocation === '/datasources'} />
                     <Menu.Item icon labelPosition="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'margin-left': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>

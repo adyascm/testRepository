@@ -5,11 +5,18 @@ import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 
+import {
+    RESOURCES_PAGE_LOAD_START,
+    RESOURCES_PAGE_LOADED
+} from '../../constants/actionTypes';
+
 const mapStateToProps = state => ({
     ...state
 });
 
 const mapDispatchToProps = dispatch => ({
+    onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
+    onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload })
 });
 
 class ResourceSearch extends Component {
@@ -35,17 +42,13 @@ class ResourceSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        console.log("search result : ", result)
+        this.props.onLoad(this.state.results)
+
         if (this.props.onChangeReportInput) {
            var entityinfokey = ["selected_entity",  "selected_entity_name"]
            var entityinfovalue = [result.resource_id, result.resource_name]
-            this.props.onChangeReportInput(entityinfokey, entityinfovalue)
-
-
-
-
+           this.props.onChangeReportInput(entityinfokey, entityinfovalue)
         }
-
         this.setState({
             value: result.resource_name
         })
@@ -57,15 +60,15 @@ class ResourceSearch extends Component {
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
             const re = new RegExp(this.state.value, 'i')
-
             var results = [];
-            agent.Resources.searchResources(this.state.value).then(res => {
 
+            agent.Resources.searchResources(this.state.value).then(res => {
                 this.setState({
                     isLoading: false,
                     results: res,
                 })
             }, error => {
+                console.log("error : ", error)
                 this.setState({
                     isLoading: false,
                     results: [],
