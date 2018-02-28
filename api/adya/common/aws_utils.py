@@ -72,7 +72,7 @@ def delete_cloudwatch_event(cloudwatch_event_name, function_name):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
-
+        print "delete_cloudwatch_event : "
         # remove all the targets from the rule
         response = cloudwatch_client.remove_targets(
             Rule=cloudwatch_event_name,
@@ -81,11 +81,16 @@ def delete_cloudwatch_event(cloudwatch_event_name, function_name):
             ]
         )
 
+        print "removed target : "
+
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
             # after removing all the targets , now delete the rule
+
             response = cloudwatch_client.delete_rule(
                 Name=cloudwatch_event_name
             )
+
+            print "removed rule  : "
     except Exception as ex:
         print "Exception occurred while deleting the cloudwatch event - " + \
             str(ex)
