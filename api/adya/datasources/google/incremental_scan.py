@@ -79,13 +79,16 @@ def _subscribe_for_user(db_session, datasource, user):
         print 'Exception occurred while subscribing for datasource_id: {} and channel_id: {} - {}'.format(datasource.datasource_id, channel_id, ex)
 
 
-def process_notifications(auth_token, datasource_id, channel_id):
+def process_notifications(datasource_id, channel_id):
+    print "Processing Subscription notification for datasource_id: {} and channel_id: {}.".format(
+                    datasource_id, channel_id)
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         user_email = None
         db_session = db_connection().get_session()
         if datasource.datasource_id != channel_id:
-            user_email = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first().email
+            user = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first()
+            user_email = user.email
         drive_service = gutils.get_gdrive_service(
             datasource.domain_id, user_email)
 
@@ -127,8 +130,8 @@ def process_notifications(auth_token, datasource_id, channel_id):
                 print 'Change found for file: %s' % fileId
                 print change
 
-                handle_change(auth_token, drive_service, datasource.domain_id,
-                              datasource.datasource_id, channel_id, fileId)
+                handle_change(drive_service, datasource.domain_id,
+                              datasource.datasource_id, user_email, fileId)
 
             if 'newStartPageToken' in response:
                 # Last page, save this token for the next polling interval
@@ -155,7 +158,7 @@ def process_notifications(auth_token, datasource_id, channel_id):
             datasource_id, channel_id, e)
 
 
-def handle_change(auth_token, drive_service, domain_id, datasource_id, channel_id, file_id):
+def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     try:
         db_session = db_connection().get_session()
         results = drive_service.files() \
@@ -177,10 +180,10 @@ def handle_change(auth_token, drive_service, domain_id, datasource_id, channel_i
         resourcedata["resources"] = results['files']
 
         query_params = {'domainId': domain_id,
-                        'dataSourceId': datasource_id, 'userEmail': channel_id}
+                        'dataSourceId': datasource_id, 'userEmail': email}
         messaging.trigger_post_event(
-            constants.SCAN_RESOURCES, auth_token, query_params, resourcedata)
-        messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "channel_id": channel_id, "file_id": file_id}))
+            constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
+        messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "email": email, "file_id": file_id}))
     except Exception as e:
-        print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} channel_id: {} file_id: {} - {}".format(
-            domain_id, datasource_id, channel_id, file_id, e)
+        print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
+            domain_id, datasource_id, email, file_id, e)

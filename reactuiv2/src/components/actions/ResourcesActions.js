@@ -114,7 +114,7 @@ class ResourcesActions extends Component {
 
                   <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
                   <Button positive loading={this.state.inProgress} labelPosition='right'
-                  icon='checkmark' content='Transfer' onClick={this.takeAction(this.build_action_payload_and_post)} />
+                  icon='checkmark' content='Submit' onClick={this.takeAction(this.build_action_payload_and_post)} />
               </Modal.Actions>
        </Modal>
       )

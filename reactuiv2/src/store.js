@@ -6,7 +6,7 @@ import reducer from './reducer';
 
 
 const getMiddleware = () => {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV !== 'debug') {
         return applyMiddleware(promiseMiddleware, localStorageMiddleware);
     } else {
         return applyMiddleware(promiseMiddleware, localStorageMiddleware, createLogger());
