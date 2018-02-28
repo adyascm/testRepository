@@ -153,7 +153,8 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
              Report.report_id == report_id)).one()
 
     config_data = json.loads(get_report_info[0])
-    email_list = get_report_info[1]
+    emails = str(get_report_info[1])
+    email_list = emails.split(',')
     last_run_time = get_report_info[2]
     report_desc = get_report_info[3]
 
@@ -247,7 +248,6 @@ def generate_csv_report(report_id):
                                    "last_modified_time", "creation_time",
                                    "exposure_type", "user_email", "permission_type"]
 
-        csv_records = ""
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
             for header in perm_report_data_header:
