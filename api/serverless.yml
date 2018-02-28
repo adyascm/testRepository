@@ -261,6 +261,14 @@ functions:
           method: post
           cors: true
 
+  get-scan-handlechannelexpiration:
+    handler: adya.services.lambda.scan_handler.handle_channel_expiration
+    events:
+      - http:
+          path: handlechannelexpiration
+          method: get
+          cors: true
+
   post-scan-processnotifications:
     handler: adya.services.lambda.scan_handler.process_gdrive_notifications
     events:
@@ -315,3 +323,18 @@ functions:
           path: scheduledreport
           method: put
           cors: true
+  get-getallactions:
+    handler: adya.services.lambda.actions_handler.get_all_actions
+    events:
+      - http:
+          path: getallactions
+          method: get
+          cors: true
+  post-getallactions:
+    handler: adya.services.lambda.actions_handler.initiate_action
+    events:
+      - http:
+          path: initiateaction
+          method: post
+          cors: true
+

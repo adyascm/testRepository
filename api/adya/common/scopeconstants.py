@@ -30,6 +30,7 @@ DRIVE_ACTION_SCOPE = [
 SERVICE_ACCOUNT_SCOPE = [
     'email '
     'https://www.googleapis.com/auth/drive.readonly '
+    'https://www.googleapis.com/auth/drive '
     'profile '
 ]
 

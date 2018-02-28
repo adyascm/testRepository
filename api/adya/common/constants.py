@@ -54,6 +54,8 @@ GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
+HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/scan/handlechannelexpiration'
+
 RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
 
 GET_ALL_ACTIONS_PATH = '/getallactions'
