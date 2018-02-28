@@ -173,5 +173,5 @@ def invoke_lambda(function_name, auth_token, body):
 
 
 def get_lambda_name(httpmethod, endpoint):
-    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + str(httpmethod)+ slugify(endpoint)
+    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + '-' + str(httpmethod) + '-' + slugify(endpoint)
     return lambda_name
