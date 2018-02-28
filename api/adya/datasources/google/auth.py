@@ -17,7 +17,7 @@ from adya.datasources.google.gutils import get_oauth_service, get_gdrive_service
 from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
-
+from sqlalchemy import and_
 
 def oauth_request(scopes):
     scope = LOGIN_SCOPE
@@ -73,7 +73,7 @@ def oauth_callback(oauth_code, scopes,state, error):
             auth_controller.update_user_scope_name(login_email,scope_name,db_session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
-        existing_domain_user = db_session.query(DomainUser).filter(DomainUser.email == login_email).first()
+        existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
         if existing_domain_user:
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
