@@ -96,7 +96,7 @@ def modify_scheduled_report(event, context):
 
     # frequency = report.frequency
     # payload = {'report_id': report.report_id }
-    # function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+    # function_name = get_lambda_name('get', 'executescheduledreport')
     # cloudwatch_eventname = get_Cloudwatchevent_name_for_report(report.report_id, report.name ) # TODO: if someone changes the report_name
     # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
