@@ -10,7 +10,7 @@ from slugify import slugify
 from adya.common import constants
 
 # create cloudwatch event
-def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload):
+def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload=None):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
