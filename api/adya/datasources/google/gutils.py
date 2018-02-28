@@ -39,6 +39,7 @@ def get_credentials(domain_id,user_email=None):
                                 token_uri=GOOGLE_TOKEN_URI,
                                 client_id=CLIENT_ID,
                                 client_secret=CLIENT_SECRET)
+        db_session.close()
     return credentials
 
 

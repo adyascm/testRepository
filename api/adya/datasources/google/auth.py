@@ -85,11 +85,12 @@ def oauth_callback(oauth_code, scopes,state, error):
             if gutils.check_if_serviceaccount_enabled(login_email) or is_admin_user:
                 domain_id = login_email.split('@')[1]
 
-            domain = domain_controller.create_domain(domain_id, domain_name)
+            domain = domain_controller.create_domain(db_session, domain_id, domain_name)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_admin_user,scope_name)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
+    db_session.close()
     return redirect_url

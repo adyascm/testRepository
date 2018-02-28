@@ -1,6 +1,6 @@
 from adya.common import aws_utils, constants, utils
 from adya.db.connection import db_connection
-from adya.db.models import LoginUser, DomainUser, Resource
+from adya.db.models import LoginUser, DomainUser, Resource, DataSource
 from adya.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
@@ -101,7 +101,7 @@ def send_gdrive_scan_completed_email(auth_token):
         print "Exception occurred sending gdrive scan completed email"
 
 
-def get_gdrive_scan_completed_parameters(datasource_id):
+def get_gdrive_scan_completed_parameters(auth_token):
     try:
         if not auth_token:
             return "Invalid auth_token! Aborting..."

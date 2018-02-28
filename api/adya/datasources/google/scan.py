@@ -182,6 +182,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
+    finally:
+        db_session.close()
 
 
 
@@ -237,6 +239,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         last_result = utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
     if last_result:
         last_result.result()
+    db_session.close()
 
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
@@ -412,6 +415,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
+        db_session.close()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
@@ -480,7 +484,8 @@ def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id
             models.DirectoryStructure, groupsmembers_db_insert_data)
         db_session.commit()
         print "Processed {} google directory group members for domain_id: {} group_key: {}".format(member_count, domain_id, group_key)
-        update_and_get_count(datasource_id, DataSource.processed_group_count, 1, False)
+        update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
+        db_session.close()
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
         print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
