@@ -153,7 +153,8 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
              Report.report_id == report_id)).one()
 
     config_data = json.loads(get_report_info[0])
-    email_list = get_report_info[1]
+    emails = str(get_report_info[1])
+    email_list = emails.split(',')
     last_run_time = get_report_info[2]
     report_desc = get_report_info[3]
 
@@ -241,17 +242,19 @@ def generate_csv_report(report_id):
     if report_type == "Permission":
 
         perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
-                           "File Exposure", "User Email", "Permission"]
+                                   "File Exposure", "User Email", "Permission"]
 
-        perm_report_data_header = ["resource_type", "resource_name", "resource_size", "resource_owner_id",
+        perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
                                    "last_modified_time", "creation_time",
                                    "exposure_type", "user_email", "permission_type"]
 
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
             for header in perm_report_data_header:
-                csv_records += ",".join(data[header])
-            csv_records += "\n"
+                csv_records += (str(data[header])) + ','
+            csv_records += csv_records.rstrip(',') + "\n"
+
+        print csv_records
 
     elif report_type == "Activity":
 
@@ -262,8 +265,9 @@ def generate_csv_report(report_id):
         csv_records += ",".join(activity_csv_display_header) + "\n"
         for data in report_data:
             for header in activity_report_data_header:
-                csv_records += ",".join(data[header])
-            csv_records += "\n"
+                csv_records += (str(data[header])) + ','
+            csv_records += csv_records.rstrip(',') + "\n"
+        print csv_records
 
     print "csv_ record ", csv_records
     return csv_records, email_list, report_desc
