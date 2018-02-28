@@ -252,9 +252,12 @@ def generate_csv_report(report_id):
 
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
-            for header in perm_report_data_header:
-                csv_records += (str(data[header])) + ','
-            csv_records += csv_records.rstrip(',') + "\n"
+            for i in range(len(perm_report_data_header)):
+                if i == len(perm_report_data_header) - 1:
+                    csv_records += (str(data[perm_report_data_header[i]]))
+                else:
+                    csv_records += (str(data[perm_report_data_header[i]])) + ','
+            csv_records += "\n"
 
         print csv_records
 
@@ -266,9 +269,12 @@ def generate_csv_report(report_id):
 
         csv_records += ",".join(activity_csv_display_header) + "\n"
         for data in report_data:
-            for header in activity_report_data_header:
-                csv_records += (str(data[header])) + ','
-            csv_records += csv_records.rstrip(',') + "\n"
+            for i in range(len(activity_report_data_header)):
+                if i == len(activity_report_data_header) - 1:
+                    csv_records += (str(data[activity_report_data_header[i]]))
+                else:
+                    csv_records += (str(data[activity_report_data_header[i]])) + ','
+            csv_records += "\n"
         print csv_records
 
     print "csv_ record ", csv_records
