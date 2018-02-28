@@ -105,7 +105,7 @@ class ReportForm extends Component {
       valid = false
     }
 
-    copyFinalInputObj.datasource_id = this.props.datasources[0]['datasource_id']
+
 
     if (valid && this.props.formType === 'modify_report') {
       copyFinalInputObj['report_id'] = this.state.reportDataForReportId['report_id']
@@ -118,6 +118,7 @@ class ReportForm extends Component {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(* * ? * * *)"
       }
+      copyFinalInputObj.datasource_id = this.props.datasources[0]['datasource_id']
       success = true
       this.props.addScheduledReport(copyFinalInputObj)
       this.props.close()
