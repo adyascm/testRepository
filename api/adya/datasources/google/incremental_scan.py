@@ -5,16 +5,72 @@ from adya.db.models import PushNotificationsSubscription, Resource, ResourcePerm
 from adya.controllers import domain_controller
 from sqlalchemy import and_
 from adya.common import constants
-from adya.common import utils, messaging
+from adya.common import utils, messaging, aws_utils
 import requests
 import uuid
 import datetime
 import json
 
+def handle_channel_expiration():
+    try:
+        db_session = db_connection.get_session()
+
+        subscription_list = db_session.query(PushNotificationsSubscription).all()
+        response = "Successfully resubscribed to all channels on all domains"
+        error_count = 0
+        for row in subscription_list:
+            try:
+                is_service_account_enabled = True
+                if row.channel_id == row.datasource_id:
+                    is_service_account_enabled = False
+
+                    body = {
+                        "id": row.channel_id,
+                        "type": "web_hook",
+                        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                        "token": row.datasource_id,
+                        "payload": "true",
+                        "params": {"ttl": 86400}
+                    }
+
+                    drive_service = None
+                    if is_service_account_enabled:
+                        drive_service = gutils.get_gdrive_service(row.domain_id, row.user_email)
+                    else:
+                        drive_service = gutils.get_gdrive_service(row.domain_id)
+
+
+                    if drive_service:
+                        print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+                            row.domain_id, row.datasource_id, row.channel_id)
+                        response = drive_service.files().watch(fileId=row.root_file_id, body=body).execute()
+                        print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+                            row.domain_id, row.datasource_id, row.channel_id, response)
+                    else:
+                        print "Error! Did not get drive service."
+
+            except Exception as e:
+                error_count += 1
+                print e
+                print "Exception occurred while trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+                    row.domain_id, row.datasource_id, row.channel_id)
+
+        if error_count > 0:
+            response = "There were {} errors during resubscribe.".format(error_count)
+
+        return response
+
+    except Exception as e:
+        print e
+        print "Exception occurred during subscription resubscribe."
+
 
 def subscribe(domain_id, datasource_id):
 
     try:
+        # set up a resubscribe handler that runs every midnight
+        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron( 0 0 ? * * * )", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
+
         db_session = db_connection().get_session()
         datasource = domain_controller.get_datasource(
             None, datasource_id, db_session)
@@ -56,7 +112,7 @@ def _subscribe_for_user(db_session, datasource, user):
             "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
             "token": datasource.datasource_id,
             "payload": "true",
-            "params": {"ttl": 1800}
+            "params": {"ttl": 86400}
         }
         print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
             datasource.domain_id, datasource.datasource_id, channel_id)
@@ -71,9 +127,14 @@ def _subscribe_for_user(db_session, datasource, user):
         push_notifications_subscription.domain_id = datasource.domain_id
         push_notifications_subscription.datasource_id = datasource.datasource_id
         push_notifications_subscription.channel_id = channel_id
+        push_notifications_subscription.drive_root_id = root_file_id
         push_notifications_subscription.page_token = response.get('startPageToken')
         push_notifications_subscription.in_progress = 0
         push_notifications_subscription.stale = 0
+
+        if user:
+            push_notifications_subscription.user_email = user.email
+
         db_session.add(push_notifications_subscription)
     except Exception as ex:
         print 'Exception occurred while subscribing for datasource_id: {} and channel_id: {} - {}'.format(datasource.datasource_id, channel_id, ex)
@@ -162,10 +223,10 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     try:
         db_session = db_connection().get_session()
         results = drive_service.files() \
-            .get(fileId=file_id, fields="files(id, name, webContentLink, webViewLink, iconLink, "
+            .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
                  "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
-                 "owners,size,createdTime, modifiedTime)").execute()
+                 "owners,size,createdTime, modifiedTime").execute()
         print("results : ", results)
 
         db_session.query(ResourceParent).filter(
@@ -177,7 +238,7 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         db_session.commit()
 
         resourcedata = {}
-        resourcedata["resources"] = results['files']
+        resourcedata["resources"] = [results]
 
         query_params = {'domainId': domain_id,
                         'dataSourceId': datasource_id, 'userEmail': email}

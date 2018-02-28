@@ -16,8 +16,6 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
-LAMBDA_FUNCTION_NAME_FOR_CRON = os.environ.get("LAMBDA_FUNCTION_NAME", "adya-dev-get-executescheduledreport")
-
 GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
 GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
 GOOGLE_OAUTH_CALLBACK_URL = API_HOST + GOOGLE_OAUTHCALLBACK_PATH
@@ -51,6 +49,8 @@ GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
+HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/scan/handlechannelexpiration'
+
 RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
 
 GET_ALL_ACTIONS_PATH = '/getallactions'

@@ -227,7 +227,7 @@ class ReportForm extends Component {
             <div className="column">
               <Form.Field>
                 <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
-                />
+                defaultChecked = 'checked' />
               </Form.Field>
               <Form.Field >
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
