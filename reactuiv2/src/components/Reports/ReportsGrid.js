@@ -116,7 +116,6 @@ class ReportsGrid extends Component {
 
   onBtExport = () => {
     var params = {
-        skipHeader: true,
         fileName: this.props.runReportName
       }
        this.api.exportDataAsCsv(params)
@@ -124,7 +123,7 @@ class ReportsGrid extends Component {
   };
 
   render() {
-  
+
     return(
       <div className="ag-theme-fresh" style={{height: '500px'}}>
         <AgGridReact onGridReady={this.onGridReady}
