@@ -28,11 +28,11 @@ const LoggedInView = props => {
                 </Menu.Item>
 
                 <Menu.Menu position='left' >
-                    <Menu.Item as={Link} to="/">Dashboard</Menu.Item>
-                    <Menu.Item as={Link} to="/users">Users</Menu.Item>
-                    <Menu.Item as={Link} to="/resources">Resources</Menu.Item>
-                    <Menu.Item as={Link} to="/reports">Reports</Menu.Item>
-                    <Menu.Item as={Link} to="/auditlog">AuditLog</Menu.Item>
+                    <Menu.Item as={Link} to="/" onClick={props.handleClick} active={props.currLocation === '/'} >Dashboard</Menu.Item>
+                    <Menu.Item as={Link} to="/users" onClick={props.handleClick} active={props.currLocation === '/users'} >Users</Menu.Item>
+                    <Menu.Item as={Link} to="/resources" onClick={props.handleClick} active={props.currLocation === '/resources'} >Resources</Menu.Item>
+                    <Menu.Item as={Link} to="/reports" onClick={props.handleClick} active={props.currLocation === '/reports'} >Reports</Menu.Item>
+                    <Menu.Item as={Link} to="/auditlog" onClick={props.handleClick} active={props.currLocation === '/auditlog'} >AuditLog</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
@@ -57,11 +57,27 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class Header extends React.Component {
+    constructor(props) {
+        super(props);
+        
+        this.state = {
+            currLocation: undefined
+        }
+    }
+
+    handleClick = () => {
+        console.log("item clicked")
+        this.setState({
+            currLocation: window.location.pathname
+        })
+    }
+
     render() {
+        console.log("location : ", window.location.pathname)
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} />
-                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} />
+                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={window.location.pathname} />
             </Menu>
         )
     }
