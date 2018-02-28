@@ -26,9 +26,7 @@ class get_all_actions(Resource):
 
         print "Getting all actions for datasource_type: ", datasource_type
         response = actions_controller.get_actions()
-        print response
         response_json = json.dumps(response, default=dumper, indent=2)
-        print response_json
         return req_session.generate_response(202, payload=response_json)
 
 

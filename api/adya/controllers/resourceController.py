@@ -73,13 +73,15 @@ from adya.common import constants
 #     return responsedata
 
 
-def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_type='None', prefix=''):
+def get_resources(auth_token, page_number, page_limit, user_emails=None,exposure_type='EXT', resource_type='None', prefix=''):
     if not auth_token:
         return None
+    page_number = page_number if page_number else 0
+    page_limit = page_limit if page_limit else constants.PAGE_LIMIT
+
     db_session = db_connection().get_session()
     domain = db_session.query(Domain).filter(LoginUser.domain_id == Domain.domain_id). \
         filter(LoginUser.auth_token == auth_token).first()
-    limit = 100
     resources = []
     resource_alias = aliased(Resource)
     parent_alias = aliased(Resource)
@@ -87,17 +89,16 @@ def get_resources(auth_token, user_emails=None, exposure_type='EXT', resource_ty
     if user_emails:
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.domain_id == domain.domain_id, ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
-    else:
-        resources_query = resources_query.join("permissions")
+
     if resource_type:
         resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
     if exposure_type:
         resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
     if prefix:
-        limit = 10
+        page_limit = 10
         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
 
-    resources = resources_query.filter(resource_alias.domain_id == domain.domain_id).order_by(desc(resource_alias.last_modified_time)).limit(limit).all()
+    resources = resources_query.filter(resource_alias.domain_id == domain.domain_id).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
     result = []
     for resource in resources:
         resource[0].parent_name = resource.resource_name
