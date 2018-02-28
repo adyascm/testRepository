@@ -1,7 +1,7 @@
 import json
 
 from adya.controllers import reports_controller, domainDataController, resourceController, domain_controller
-from adya.common import aws_utils
+from adya.common import aws_utils, constants
 from adya.common.request_session import RequestSession
 
 
@@ -39,16 +39,17 @@ def get_resources(event, context):
 
 def get_resource_tree_data(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request()
+    req_error = req_session.validate_authorized_request(optional_params=["pageNumber","pageSize"])
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
-
+    page_number = req_session.get_req_param("pageNumber")
+    page_size = req_session.get_req_param("pageSize")
     payload = req_session.get_body()
     user_emails = payload.get("userEmails")
     exposure_type = payload.get("exposureType")
     resource_type = payload.get("resourceType")
-    resource_list = resourceController.get_resources(auth_token, user_emails, exposure_type, resource_type)
+    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 
@@ -76,7 +77,10 @@ def post_scheduled_report(event, context):
     report_name = report.name
     cloudwatch_event_name = report_id + '-' + report_name
 
-    aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression, report_id)
+    payload = {'report_id': report_id}
+    function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+
+    aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload)
 
     return req_session.generate_sqlalchemy_response(201, report)
 
@@ -90,8 +94,10 @@ def modify_scheduled_report(event, context):
     update_record = reports_controller.update_report(req_session.get_auth_token(), req_session.get_body())
 
     # frequency = report.frequency
-    # cloudwatch_eventname = report.name + "_" + report.report_id  # TODO: if someone changes the report_name
-    # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
+    # payload = {'report_id': report.report_id }
+    # function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+    # cloudwatch_eventname = report.report_id + "_" + report.name  # TODO: if someone changes the report_name
+    # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
 
@@ -103,8 +109,9 @@ def delete_scheduled_report(event, context):
     deleted_report = reports_controller.delete_report(req_session.get_auth_token(),
                                                       req_session.get_req_param('reportId'))
 
-    cloudwatch_eventname = deleted_report.name + "_" + deleted_report.report_id
-    aws_utils.delete_cloudwatch_event(cloudwatch_eventname)
+    cloudwatch_eventname = deleted_report.report_id + "_" + deleted_report.name
+    function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+    aws_utils.delete_cloudwatch_event(cloudwatch_eventname, function_name)
     return req_session.generate_response(200)
 
 
@@ -120,7 +127,7 @@ def run_scheduled_report(event, context):
     domain_id = data_source[0].domain_id
     datasource_id = data_source[0].datasource_id
 
-    run_report_data, email_list, report_type, report_desc = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
+    run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
                                                                 req_session.get_req_param('reportId'))
     return req_session.generate_sqlalchemy_response(200, run_report_data)
 
@@ -137,10 +144,10 @@ def execute_cron_report(event, context):
 
     print "call generate_csv_report function "
     print "report id ", req_session.get_req_param('report_id')
-    csv_records, email_list, report_desc = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
+    csv_records, email_list, report_desc, report_name = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
 
     print "call send_email_with_attachment function "
 
-    aws_utils.send_email_with_attachment(email_list, csv_records, report_desc)
+    aws_utils.send_email_with_attachment(email_list, csv_records, report_desc, report_name)
 
     return req_session.generate_response(200)
