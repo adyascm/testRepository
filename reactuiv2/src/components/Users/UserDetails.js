@@ -38,7 +38,7 @@ const UserDetails = props => {
         var parentKey = props.selectedUserItem.parents[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>
-                {props.usersTreePayload[parentKey].name}
+                {props.usersTreePayload[parentKey] && props.usersTreePayload[parentKey].name}
                 <Icon name='close' />
             </Label>
         ))

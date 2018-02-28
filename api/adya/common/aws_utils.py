@@ -8,8 +8,6 @@ import json
 from slugify import slugify
 
 from adya.common import constants
-from adya.common.constants import LAMBDA_FUNCTION_NAME_FOR_CRON
-
 
 # create cloudwatch event
 def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload=None):

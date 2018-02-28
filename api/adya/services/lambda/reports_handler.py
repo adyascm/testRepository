@@ -1,5 +1,6 @@
 import json
 
+from adya.common.aws_utils import get_lambda_name
 from adya.controllers import reports_controller, domainDataController, resourceController, domain_controller
 from adya.common import aws_utils, constants
 from adya.common.request_session import RequestSession
@@ -78,7 +79,7 @@ def post_scheduled_report(event, context):
     cloudwatch_event_name = report_id + '-' + report_name
 
     payload = {'report_id': report_id}
-    function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+    function_name = get_lambda_name('get', 'executescheduledreport')
 
     aws_utils.create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload)
 
@@ -110,7 +111,7 @@ def delete_scheduled_report(event, context):
                                                       req_session.get_req_param('reportId'))
 
     cloudwatch_eventname = deleted_report.report_id + "_" + deleted_report.name
-    function_name = constants.LAMBDA_FUNCTION_NAME_FOR_CRON
+    function_name = get_lambda_name('get', 'executescheduledreport')
     aws_utils.delete_cloudwatch_event(cloudwatch_eventname, function_name)
     return req_session.generate_response(200)
 

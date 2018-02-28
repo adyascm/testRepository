@@ -34,6 +34,7 @@ class UserList extends Component {
     }
 
     onCardClicked(event, param) {
+        console.log("param user : ", param.user)
         this.props.selectUserItem(param.user);
     }
 
@@ -45,7 +46,8 @@ class UserList extends Component {
 
             for (let index = 0; index < keys.length; index++) {
                 let rowItem = this.props.usersTreePayload[keys[index]]
-                rowItem.key = keys[index]
+                if (!rowItem.key)
+                    rowItem.key = keys[index]
 
                 if (rowItem.depth === undefined)
                     rowItem.depth = 0
