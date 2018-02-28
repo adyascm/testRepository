@@ -238,7 +238,7 @@ def generate_csv_report(report_id):
     report_data, email_list, report_type, report_desc = run_report(None, None, None, report_id)
     print "generate_csv_report : report data : ", report_data
     csv_records = ""
-
+    print "report type : ", report_type
     if report_type == "Permission":
 
         perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
@@ -246,7 +246,9 @@ def generate_csv_report(report_id):
 
         perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
                                    "last_modified_time", "creation_time",
-                                   "exposure_type", "user_email", "permission_type"]
+                                  "exposure_type", "user_email", "permission_type"]
+
+        print "making csv "
 
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
