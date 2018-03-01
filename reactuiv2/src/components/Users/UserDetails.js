@@ -34,7 +34,7 @@ const UserDetails = props => {
         }];
 
     var parentGroups = []
-    for (var index = 0; index < props.selectedUserItem.parents.length; index++) {
+    for (var index = 0; index < props.selectedUserItem.parents && props.selectedUserItem.parents.length; index++) {
         var parentKey = props.selectedUserItem.parents[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>

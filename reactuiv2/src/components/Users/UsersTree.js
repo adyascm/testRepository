@@ -68,7 +68,7 @@ class UsersTree extends Component {
             onRowClicked: this.onCellClicked,
             getNodeChildDetails: rowItem => {
                 if (!rowItem.member_type) {
-                    if (rowItem.children.length > 0) {
+                    if (rowItem.children && rowItem.children.length > 0) {
                         var childRows = []
                         for (let index = 0; index < rowItem.children.length; index++) {
                             var childRowItem = {}
@@ -96,6 +96,7 @@ class UsersTree extends Component {
     }
 
     componentWillReceiveProps(nextProps){
+        console.log("nextprops userstree : ", nextProps.usersTreePayload)
         if(this.state.showOnlyExternal != nextProps.showOnlyExternal)
         {
             this.setState({
@@ -104,6 +105,8 @@ class UsersTree extends Component {
                 rows: undefined
             })
         }
+        // if (nextProps.usersTreePayload !== this.props.usersTreePayload)
+        //     this.setTreeRows(nextProps.usersTreePayload)
     }
     setTreeRows() {
         if(this.props.usersTreePayload)

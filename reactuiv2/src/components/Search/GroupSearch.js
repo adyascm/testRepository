@@ -79,12 +79,12 @@ class GroupSearch extends Component {
             for (let index = 0; index < keys.length; index++) {
                 let row = this.props.users.usersTreePayload[keys[index]]
                 if (keys[index].match(re)) {
-                    row.name = row.first_name + " " + row.last_name
+                    //row.name = row.first_name + " " + row.last_name
                     results.push(row);
                     resultsMap[keys[index]] = row
                 }
             }
-
+            console.log("search resultmap : ", resultsMap)
             this.setState({
                 isLoading: false,
                 results: results,
