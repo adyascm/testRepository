@@ -12,13 +12,12 @@ class get_all_actions(Resource):
             return req_error
 
         auth_token = req_session.get_auth_token()
-        print auth_token
         data_source = domain_controller.get_datasource(auth_token, None)
 
-        print data_source
+        if not data_source:
+            return
         datasource_type = data_source[0].datasource_type
 
-        print "Getting all actions for datasource_type: ", datasource_type
         response = actions_controller.get_actions()
         return req_session.generate_sqlalchemy_response(202, response)
 

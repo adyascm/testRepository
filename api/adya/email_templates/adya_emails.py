@@ -22,34 +22,16 @@ def get_rendered_html(template_name, template_parameters):
         print "Exception occurred while rendering html."
 
 
-def send_email(auth_token, email_type, params):
+def send_welcome_email(email, first_name, last_name):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-        if not email_type:
-            return "Invalid request, email_type not specified."
-
-        if email_type == "gdrive_scan_completed":
-            return send_gdrive_scan_completed_email(auth_token)
-        elif email_type == "welcome":
-            return send_welcome_email(auth_token)
-
-    except Exception as e:
-        print e
-        print "Exception occurred sending email."
-
-
-def send_welcome_email(auth_token):
-    try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-
         template_name = "welcome"
-        template_parameters = get_welcome_parameters(auth_token)
+        template_parameters = {
+            "email" : email,
+            "first_name" : first_name,
+            "last_name" : last_name
+        }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        user_list = [template_parameters['email']]
+        user_list = [email]
         email_subject = "Welcome to Adya!"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
@@ -57,41 +39,10 @@ def send_welcome_email(auth_token):
         print "Exception occurred sending welcome email!"
 
 
-def get_welcome_parameters(auth_token):
+def send_gdrive_scan_completed_email(db_session, auth_token, datasource_id):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-        session = db_connection().get_session()
-        email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
-        user = session.query(DomainUser.first_name, DomainUser.last_name).filter(DomainUser.email == email).first()
-
-        first_name = ""
-        last_name = ""
-        if user:
-            first_name = user[0]
-            last_name = user[1]
-
-        data = {
-            "first_name" : first_name,
-            "last_name" : last_name,
-            "email" : email
-        }
-
-        return data
-
-    except Exception as e:
-        print e
-        print "Exception occurred sending welcome email!"
-
-
-def send_gdrive_scan_completed_email(auth_token):
-    try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
         template_name = "gdrive_scan_completed"
-        template_parameters=get_gdrive_scan_completed_parameters(auth_token)
+        template_parameters=get_gdrive_scan_completed_parameters(db_session, auth_token, datasource_id)
         rendered_html = get_rendered_html(template_name, template_parameters)
         user_list = [template_parameters['email']]
         email_subject="Your gdrive scan has completed!"
@@ -101,17 +52,13 @@ def send_gdrive_scan_completed_email(auth_token):
         print "Exception occurred sending gdrive scan completed email"
 
 
-def get_gdrive_scan_completed_parameters(auth_token):
+def get_gdrive_scan_completed_parameters(db_session, auth_token, datasource_id):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-        session = db_connection().get_session()
-        datasource = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        all_users = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).all()
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        login_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
         
-        emails = ",".join(user.email for user in all_users)
-        countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
+        email = login_user.email
+        countSharedDocumentsByType = reports_controller.get_widget_data(auth_token, "sharedDocsByType")
 
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
@@ -129,8 +76,8 @@ def get_gdrive_scan_completed_parameters(auth_token):
                 countPublicSharedDocs = item[1]
 
         countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs
-        externalDocsListData = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsList")
-        externalUserListData = reports_controller.get_widget_data(all_users[0].auth_token, "externalUsersList")
+        externalDocsListData = reports_controller.get_widget_data(auth_token, "sharedDocsList")
+        externalUserListData = reports_controller.get_widget_data(auth_token, "externalUsersList")
 
         trial_link = constants.UI_HOST
 
@@ -146,14 +93,14 @@ def get_gdrive_scan_completed_parameters(auth_token):
             "documentsCountData": externalDocsListData["totalCount"],
             "externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
-            "email": emails,
+            "email": email,
             "countDomainData": countDomainSharedDocs,
             "trialLink": trial_link
 
         }
 
         return data
-
+        
     except Exception as e:
         print e
         print "Exception occurred retrieving data for gdrive scan completed email."

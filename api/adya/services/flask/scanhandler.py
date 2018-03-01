@@ -39,7 +39,7 @@ class DriveResources(Resource):
         if req_error:
             return req_error
 
-        scan.process_resource_data(req_session.get_req_param(
+        scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
             'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
         return req_session.generate_response(202)
 
@@ -103,7 +103,7 @@ class GetParent(Resource):
             ## calling get parents api
             scan_parent_obj.get_parent()
             processed_file_count += 100
-        scan.update_and_get_count(datasource_id, DataSource.processed_parent_permission_count, 1, True)
+        scan.update_and_get_count(req_session.get_auth_token(), datasource_id, DataSource.processed_parent_permission_count, 1, True)
         return req_session.generate_response(202)
 
 
@@ -190,5 +190,5 @@ class GetGroupMembers(Resource):
         datasource_id = req_session.get_req_param('dataSourceId')
         group_keys = data.get('groupKeys')
 
-        scan.get_group_data(domain_id,datasource_id, group_keys)
+        scan.get_group_data(req_session.get_auth_token(), domain_id,datasource_id, group_keys)
         return req_session.generate_response(202)
