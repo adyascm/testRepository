@@ -2,7 +2,7 @@ from adya.controllers.domain_controller import update_datasource, get_datasource
 from adya.datasources.google import gutils, incremental_scan
 from adya.common import constants, errormessage
 from requests_futures.sessions import FuturesSession
-import uuid,json,time,datetime
+import uuid,json,time,datetime,sys
 from adya.db.connection import db_connection
 from adya.db import models
 from adya.common.constants import UserMemberType
@@ -39,6 +39,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
 
             resourcedata = {}
             resourcedata["resources"] = results['files'][0:50]
+            print "Size of payload {}Byte".format(sys.getsizeof(resourcedata["resources"]))
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
@@ -48,6 +49,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             if file_count > 50:
                 resourcedata = {}
                 resourcedata["resources"] = results['files'][50:100]
+                print "Size of payload {}Byte".format(sys.getsizeof(resourcedata["resources"]))
                 messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
 
             next_page_token = results.get('nextPageToken')
