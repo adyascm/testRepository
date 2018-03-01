@@ -36,9 +36,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
-
-            resourcedata = {}
-            resourcedata["resources"] = results['files'][0:50]
+            
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
