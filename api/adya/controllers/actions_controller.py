@@ -150,10 +150,10 @@ def validate_action_parameters(action_to_take, action_parameters):
 
 
 def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters):
+    db_session = db_connection().get_session()
     try:
         audit_log_entries = []
 
-        db_session = db_connection().get_session()
         log_entry = {"domain_id": domain_id,
                      "datasource_id": datasource_id,
                      "initiated_by": initiated_by,
@@ -199,5 +199,6 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
     except Exception as e:
         print e
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", " and initiated_by: ", initiated_by
-
+    finally :
+        db_session.close()
 

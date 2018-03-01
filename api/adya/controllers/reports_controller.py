@@ -144,9 +144,9 @@ def delete_report(auth_token, report_id):
 
 
 def run_report(domain_id, datasource_id, auth_token, report_id):
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
 
-    get_report_info = session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description, Report.name).filter(
+    get_report_info = db_session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description, Report.name).filter(
         and_(Report.domain_id == LoginUser.domain_id,
              Report.report_id == report_id)).one()
 
@@ -164,7 +164,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
     if not datasource_id:
          datasource_id = config_data.get('datasource_id')
     if not domain_id:
-         domain = session.query(DataSource.domain_id).filter(DataSource.datasource_id == datasource_id).one()
+         domain = db_session.query(DataSource.domain_id).filter(DataSource.datasource_id == datasource_id).one()
          domain_id = domain[0]
 
 
@@ -175,7 +175,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
         elif selected_entity_type == "resource":
             query_string = ResourcePermission.resource_id == selected_entity
 
-        get_perms_report = session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
+        get_perms_report = db_session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
                                                                                    LoginUser.domain_id, query_string,
                                                                                    Resource.resource_id
                                                                                    == ResourcePermission.resource_id)).all()
@@ -211,15 +211,16 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
                 }
 
                 response_data.append(data_map)
-
+    db_session.close()
     return response_data, email_list, report_type, report_desc, report_name
 
 
 def update_report(auth_token, payload):
     if not auth_token:
         return None
-    session = db_connection().get_session()
+    db_session = db_connection().get_session()
     if payload:
+<<<<<<< HEAD
         report = {}
         report["name"] = payload["name"]
         if 'description' in payload:
@@ -236,11 +237,21 @@ def update_report(auth_token, payload):
         report["is_active"] = payload["is_active"]
         report_id = payload["report_id"]
         session.query(Report).filter(Report.report_id == report_id).update(report)
+=======
+        report_id = payload['report_id']
+        db_session.query(Report).filter(Report.report_id == report_id).update(payload)
+>>>>>>> 2e2992ae854ce1548622dca01407460dff37a71d
         try:
-            session.commit()
+            db_session.commit()
         except Exception as ex:
             print ex
+<<<<<<< HEAD
         return payload
+=======
+        finally:
+            db_session.close()
+        return "successful update "
+>>>>>>> 2e2992ae854ce1548622dca01407460dff37a71d
     else:
         return None
 
