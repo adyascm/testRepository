@@ -268,7 +268,8 @@ class AddOrUpdatePermisssionForResource():
                 "resourceId":self.resource_id,
                 "message" : exception.message
             }
-            session.post(url=constants.REAL_TIME_URL, json=push_message)        
+            notification =session.post(url=constants.REAL_TIME_URL, json=push_message)
+            notification.result()
     
 
     def add_permisssion_for_resuorce(self,drive_service, permission_object):
