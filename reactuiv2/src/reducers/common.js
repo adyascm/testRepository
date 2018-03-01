@@ -63,6 +63,7 @@ export default (state = defaultState, action) => {
         var oldDS = state.datasources[0];
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
           if(newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
+            || newDS.processed_file_count > oldDS.processed_file_count
             || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status)
           {
             state.datasources[0] = newDS;
