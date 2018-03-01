@@ -33,6 +33,7 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+
 class Domain(Base):
     __tablename__ = 'domain'
     domain_id = Column(String(255), primary_key=True)

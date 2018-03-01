@@ -47,7 +47,7 @@ export default (state = defaultState, action) => {
     case GET_ALL_ACTIONS:
       return {
         ...state,
-        all_actions_list: JSON.parse(action.payload)
+        all_actions_list: action.payload
       }
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
