@@ -3,12 +3,6 @@ from adya.controllers import domain_controller, actions_controller
 from adya.common.request_session import RequestSession
 import json
 
-def dumper(obj):
-    try:
-        return obj.toJSON()
-    except:
-        return obj.__dict__
-
 
 def get_all_actions(event, context):
     req_session = RequestSession(event)

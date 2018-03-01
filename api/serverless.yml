@@ -322,7 +322,7 @@ functions:
           path: getallactions
           method: get
           cors: true
-  post-getallactions:
+  post-initiateaction:
     handler: adya.services.lambda.actions_handler.initiate_action
     events:
       - http:
