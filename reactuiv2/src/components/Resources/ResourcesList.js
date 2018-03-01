@@ -66,9 +66,6 @@ class ResourcesList extends Component {
                 headerName: "Last Modified",
                 field: "last_modified_time",
                 cellStyle: {textAlign: "left"},
-                // valueGetter: (params) => {
-                //     return params.data.last_modified_time.split('T').join(' ')
-                // }
                 cellRendererFramework: DateComponent
             }
         ];
