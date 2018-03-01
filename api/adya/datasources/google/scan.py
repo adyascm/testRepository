@@ -387,11 +387,9 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
     print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
     groups_db_insert_data_dic = []
-    session = FuturesSession()
 
-    url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id
     group_count = 0
+    group_key_array = []
     for group_data in groups_data:
         group_count = group_count + 1
         group = {}
@@ -407,15 +405,18 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         if group_aliases:
             group["aliases"] = ",".join(group_aliases)
         groups_db_insert_data_dic.append(group)   
-        group_url = url + "&groupKey=" + groupemail
-        utils.get_call_with_authorization_header(
-            session, group_url, auth_token).result()
+        group_key_array.append(groupemail)
 
     try:
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
         db_session.close()
+        
+        session = FuturesSession()
+        url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
+                    domain_id + "&dataSourceId=" + datasource_id
+        utils.post_call_with_authorization_header(session,url,auth_token,json ={"groupKeys":group_key_array})
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
@@ -423,73 +424,148 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         print ex
 
 
-def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token):
-    print "Initiating fetching of google directory group members using for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
-    directory_service = gutils.get_directory_service(domain_id)
-    starttime = time.time()
-    session = FuturesSession()
-    last_future = None
-    while True:
-        try:
-            groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
-            groupMember = groupmemberresponse.get("members")
-            if groupMember:
-                data = {"membersResponseData": groupMember}
-                url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
-                last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
-            else:
-                update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
+# def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token):
+#     print "Initiating fetching of google directory group members using for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
+#     directory_service = gutils.get_directory_service(domain_id)
+#     starttime = time.time()
+#     session = FuturesSession()
+#     last_future = None
+#     while True:
+#         try:
+#             groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
+#             groupMember = groupmemberresponse.get("members")
+#             if groupMember:
+#                 data = {"membersResponseData": groupMember}
+#                 url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
+#                 domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
+#                 last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
+#             else:
+#                 update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
  
-            next_page_token = groupmemberresponse.get('nextPageToken')
-            if next_page_token:
-                timediff = time.time() - starttime
-                if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token).result()
-                    break
-            else:
-                break
-        except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
-            print "Exception occurred while getting google directory group members for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
+#             next_page_token = groupmemberresponse.get('nextPageToken')
+#             if next_page_token:
+#                 timediff = time.time() - starttime
+#                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
+#                     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
+#                         domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
+#                     utils.get_call_with_authorization_header(session, url, auth_token).result()
+#                     break
+#             else:
+#                 break
+#         except Exception as ex:
+#             update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
+#             print "Exception occurred while getting google directory group members for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
+#             print ex
+#             break
+#     if last_future:
+#         last_future.result()
+
+def get_group_data(domain_id,datasource_id,group_keys):
+    processed_group_count =0
+    total_no_of_group = len(group_keys)
+    while processed_group_count <= total_no_of_group:
+        hundred_group = group_keys[processed_group_count:processed_group_count+100]
+        processed_group_count +=100
+        group_class = GroupData(domain_id,datasource_id,hundred_group)
+        group_class.get_group_members()
+
+
+class GroupData():
+
+    def __init__(self, domain_id, datasource_id,group_keys):
+        self.domain_id = domain_id
+        self.datasource_id = datasource_id
+        self.group_keys = group_keys
+        self.batch_length = len(group_keys)
+        self.db_session = db_connection().get_session()
+
+    def group_data_callback(self,request_id, response, exception):
+        request_id = int(request_id) 
+        group_key = self.group_keys[request_id - 1]
+        update_and_get_count(self.datasource_id, DataSource.processed_group_count, 1, True)
+        if exception:
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, False)
+            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
             print ex
-            break
-    if last_future:
-        last_future.result()
+        if response.get('members'):
+            is_external = False
+            for group_data in response['members']:
+                member_type = group_data.get("type")
+                member_id = group_data.get("id")
+                member_role = group_data.get("role")
+                if member_type == "CUSTOMER":
+                    self.db_session.query(models.DomainGroup).filter(
+                        and_(models.DomainGroup.datasource_id == self.datasource_id, models.DomainGroup.domain_id == self.domain_id,
+                            models.DomainGroup.email == group_key)).update({'include_all_user': True})
+                    continue
+                else:
+                    group = models.DirectoryStructure()
+                    group.domain_id = self.domain_id
+                    group.datasource_id = self.datasource_id
+                    group.member_email = group_data["email"]
+                    group.parent_email = group_key
+                    group.member_id = member_id
+                    group.member_role = member_role
+                    group.member_type = member_type
 
-def processGroupMembers(auth_token, group_key, group_member_data,  datasource_id, domain_id):
-    print "Initiating processing of google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
-    groupsmembers_db_insert_data = []
-    db_session = db_connection().get_session()
-    member_count = 0
-    for group_data in group_member_data:
-        member_count = member_count + 1
-        member_type = group_data.get("type")
-        member_id = group_data.get("id")
-        member_role = group_data.get("role")
-        if member_type == "CUSTOMER":
-            db_session.query(models.DomainGroup).filter(
-                and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
-                     models.DomainGroup.email == group_key)).update({'include_all_user': True})
-            continue
-        else:
-            group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
-                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
-            groupsmembers_db_insert_data.append(group)
+                    if not is_external and gutils.check_if_external_user(self.domain_id, group.member_email):
+                        is_external = True
+                        self.db_session.query(models.DomainGroup).filter(and_(models.DomainGroup.domain_id == self.domain_id,
+                                                                        models.DomainGroup.datasource_id == self.datasource_id,
+                                                                        models.DomainGroup.email ==  group_key)).update({"is_external":is_external})
+                    self.db_session.add(group)
+       
+        if self.batch_length == request_id:
+            try:
+                self.db_session.commit()
+            except Exception as ex:
+                print ex
 
-    try:
-        db_session.bulk_insert_mappings(
-            models.DirectoryStructure, groupsmembers_db_insert_data)
-        db_session.commit()
-        print "Processed {} google directory group members for domain_id: {} group_key: {}".format(member_count, domain_id, group_key)
-        update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
-        db_session.close()
-    except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
-        print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
-        print ex
+    def get_group_members(self):
+        directory_service = gutils.get_directory_service(self.domain_id)
+        batch = directory_service.new_batch_http_request(callback=self.group_data_callback)
+        for group_key in self.group_keys:
+            group_member_data = directory_service.members().list(groupKey=group_key)
+            batch.add(group_member_data)
+        batch.execute()
+
+
+    # def get_group_members():
+    #     print "Initiating processing of google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
+    #     groupsmembers_db_insert_data = []
+    #     member_count = 0
+    #     is_external = False
+    #     for group_data in group_member_data:
+    #         member_count = member_count + 1
+    #         member_type = group_data.get("type")
+    #         member_id = group_data.get("id")
+    #         member_role = group_data.get("role")
+    #         if member_type == "CUSTOMER":
+    #             db_session.query(models.DomainGroup).filter(
+    #                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
+    #                     models.DomainGroup.email == group_key)).update({'include_all_user': True})
+    #             continue
+    #         else:
+    #             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
+    #                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
+    #             if not is_external and gutils.check_if_external_user(domain_id, group["member_email"]):
+    #                 is_external=True
+    #             groupsmembers_db_insert_data.append(group)
+    #     try:
+    #         if is_external:
+    #             db_session.query(DomainGroup).filter(and_(DomainGroup.domain_id == domain_id,
+    #                                             DomainGroup.datasource_id == datasource_id,
+    #                                             DomainGroup.email == group_key)).update({"is_external":is_external})
+    #         db_session.bulk_insert_mappings(
+    #             models.DirectoryStructure, groupsmembers_db_insert_data)
+    #         db_session.commit()
+    #         print "Processed {} google directory group members for domain_id: {} group_key: {}".format(member_count, domain_id, group_key)
+    #         update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
+    #         db_session.close()
+    #     except Exception as ex:
+    #         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
+    #         print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
+    #         print ex
 
 
 def update_and_get_count(datasource_id, column_name, column_value, send_message=False):
@@ -503,6 +579,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id,db_session)
         if get_scan_status(datasource) == 1:
+            update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
             adya_emails.send_gdrive_scan_completed_email(datasource_id)
 
             if constants.DEPLOYMENT_ENV != "local":
@@ -524,3 +601,20 @@ def get_scan_status(datasource):
     if (datasource.file_scan_status > 0 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
         return 1 #Complete
     return 0 #In Progress
+
+# since due to external group(group having external user) we need to mark the resource exposure type as External
+def update_resource_exposure_type(db_session,domain_id,datasource_id):
+    db_session = db_connection().get_session()
+    try:
+        external_group_subquery = db_session.query(models.DomainGroup.email).filter(and_(models.DomainGroup.datasource_id== datasource_id,
+                                                                            models.DomainGroup.domain_id == domain_id,
+                                                                            models.DomainGroup.is_external == True )).subquery()
+        all_resource_sub_query = db_session.query(models.ResourcePermission.resource_id).distinct(models.ResourcePermission.resource_id).filter(and_(models.ResourcePermission.domain_id == domain_id,
+                                                                    models.ResourcePermission.datasource_id == datasource_id,
+                                                                    models.ResourcePermission.email.in_(external_group_subquery))).subquery()
+        db_session.query(models.Resource).filter(and_(models.Resource.domain_id == domain_id,
+                                            models.Resource.datasource_id == datasource_id,
+                                            models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
+        db_session.commit()
+    except Exception as ex:
+        print ex

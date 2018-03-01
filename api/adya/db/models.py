@@ -160,6 +160,7 @@ class DomainGroup(Base):
     description = Column(Text)
     include_all_user = Column(Boolean, default=False)
     aliases = Column(Text)
+    is_external = Column(Boolean,default=False)
 
 
 class DirectoryStructure(Base):
