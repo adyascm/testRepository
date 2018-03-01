@@ -220,7 +220,6 @@ def update_report(auth_token, payload):
         return None
     db_session = db_connection().get_session()
     if payload:
-<<<<<<< HEAD
         report = {}
         report["name"] = payload["name"]
         if 'description' in payload:
@@ -236,22 +235,12 @@ def update_report(auth_token, payload):
         report["config"] = json.dumps(config_input)
         report["is_active"] = payload["is_active"]
         report_id = payload["report_id"]
-        session.query(Report).filter(Report.report_id == report_id).update(report)
-=======
-        report_id = payload['report_id']
-        db_session.query(Report).filter(Report.report_id == report_id).update(payload)
->>>>>>> 2e2992ae854ce1548622dca01407460dff37a71d
+        db_session.query(Report).filter(Report.report_id == report_id).update(report)
         try:
             db_session.commit()
         except Exception as ex:
             print ex
-<<<<<<< HEAD
         return payload
-=======
-        finally:
-            db_session.close()
-        return "successful update "
->>>>>>> 2e2992ae854ce1548622dca01407460dff37a71d
     else:
         return None
 
