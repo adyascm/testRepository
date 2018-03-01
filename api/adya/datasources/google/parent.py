@@ -76,3 +76,5 @@ class GetParents():
         except Exception as ex:
             print (ex)
             print("Updating parents for failed")
+        finally:
+            db_session.close()

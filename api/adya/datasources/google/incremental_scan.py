@@ -12,9 +12,8 @@ import datetime
 import json
 
 def handle_channel_expiration():
+    db_session = db_connection.get_session()
     try:
-        db_session = db_connection.get_session()
-
         subscription_list = db_session.query(PushNotificationsSubscription).all()
         response = "Successfully resubscribed to all channels on all domains"
         error_count = 0
@@ -63,15 +62,15 @@ def handle_channel_expiration():
     except Exception as e:
         print e
         print "Exception occurred during subscription resubscribe."
-
+    finally:
+        db_session.close()
 
 def subscribe(domain_id, datasource_id):
-
+    db_session = db_connection().get_session()
     try:
         # set up a resubscribe handler that runs every midnight
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron( 0 0 ? * * * )", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
 
-        db_session = db_connection().get_session()
         datasource = domain_controller.get_datasource(
             None, datasource_id, db_session)
         db_session.query(PushNotificationsSubscription).filter(
@@ -93,8 +92,8 @@ def subscribe(domain_id, datasource_id):
     except Exception as e:
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
-
-
+    finally:
+        db_session.close()
 def _subscribe_for_user(db_session, datasource, user):
     try:
         drive_service = gutils.get_gdrive_service(datasource.domain_id, user.email)
@@ -143,10 +142,10 @@ def _subscribe_for_user(db_session, datasource, user):
 def process_notifications(datasource_id, channel_id):
     print "Processing Subscription notification for datasource_id: {} and channel_id: {}.".format(
                     datasource_id, channel_id)
+    db_session = db_connection().get_session()
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         user_email = None
-        db_session = db_connection().get_session()
         if datasource.datasource_id != channel_id:
             user = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first()
             user_email = user.email
@@ -212,16 +211,16 @@ def process_notifications(datasource_id, channel_id):
             response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                      headers={"X-Goog-Channel-Token": datasource_id,
                                               "X-Goog-Channel-ID": channel_id})
-            print response
 
     except Exception as e:
         print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(
             datasource_id, channel_id, e)
-
+    finally:
+        db_session.close()
 
 def handle_change(drive_service, domain_id, datasource_id, email, file_id):
+    db_session = db_connection().get_session()
     try:
-        db_session = db_connection().get_session()
         results = drive_service.files() \
             .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
                  "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
@@ -248,3 +247,5 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
             domain_id, datasource_id, email, file_id, e)
+    finally:
+        db_session.close()

@@ -17,7 +17,7 @@ from adya.datasources.google.gutils import get_oauth_service, get_gdrive_service
 from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
-
+from sqlalchemy import and_
 
 def oauth_request(scopes):
     scope = LOGIN_SCOPE
@@ -73,11 +73,11 @@ def oauth_callback(oauth_code, scopes,state, error):
             auth_controller.update_user_scope_name(login_email,scope_name,db_session)
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
-        existing_domain_user = db_session.query(DomainUser).filter(DomainUser.email == login_email).first()
+        existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
         if existing_domain_user:
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
-                                                     refresh_token, True,scope_name)
+                                                     refresh_token, existing_domain_user.is_admin,scope_name)
         else:
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
@@ -85,11 +85,12 @@ def oauth_callback(oauth_code, scopes,state, error):
             if gutils.check_if_serviceaccount_enabled(login_email) or is_admin_user:
                 domain_id = login_email.split('@')[1]
 
-            domain = domain_controller.create_domain(domain_id, domain_name)
+            domain = domain_controller.create_domain(db_session, domain_id, domain_name)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_admin_user,scope_name)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
+    db_session.close()
     return redirect_url
