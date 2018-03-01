@@ -129,7 +129,7 @@ def process_domain_groups(event, context):
 
 
 def get_group_members(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
