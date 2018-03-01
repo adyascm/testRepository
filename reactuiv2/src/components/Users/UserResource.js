@@ -54,10 +54,18 @@ class UserResource extends Component {
                     editable: true,
                     cellEditor: "agSelectCellEditor",
                     cellEditorParams: {
-                        values: ['Read','Write','None']
+                        values: ['Can Read','Can Write','None']
                     },
                     onCellValueChanged: this.cellValueChanged,
-                    cellStyle: {"textAlign":"center"}
+                    cellStyle: {"textAlign":"center"},
+                    cellRenderer: (params) => {
+                        if (params.value === 'writer')
+                            return "Can Write"
+                        else if (params.value === 'reader')
+                            return "Can Read"
+                        else 
+                            return "None"
+                    }
                 },
                 {
                     headerName: "ExposureType",
@@ -84,14 +92,19 @@ class UserResource extends Component {
                 }
                 return null;
             },
-            exposureType: undefined
+            exposureType: undefined,
+            permission: {
+                'Can Write': "Write",
+                'Can Read': "Read",
+                'None': "None"
+            }
         };
     }
 
     cellValueChanged(params) {
         console.log("Cell column value changed: ", params)
-        if (['Read','Write','None'].indexOf(params.newValue) !== -1)
-            this.props.onChangePermission("resourcePermissionChange", params.data, params.newValue);
+        if (['Can Read','Can Write','None'].indexOf(params.newValue) !== -1)
+            this.props.onChangePermission("resourcePermissionChange", params.data, this.state.permission[params.newValue]);
         else
             this.props.onChangePermission("resourceOwnerPermissionChange", params.data, params.oldValue)
     }
