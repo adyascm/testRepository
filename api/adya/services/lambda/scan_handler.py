@@ -131,34 +131,18 @@ def process_domain_groups(event, context):
 def get_group_members(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId','groupKey'],['nextPageToken'])
-    if req_error:
-        return req_error
-
-    domain_id = req_session.get_req_param('domainId')
-    datasource_id = req_session.get_req_param('dataSourceId')
-    group_key = req_session.get_req_param('groupKey')
-    next_page_token = req_session.get_req_param('nextPageToken')
-    auth_token = req_session.get_auth_token()
-    scan.getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token)
-
-    return req_session.generate_response(202)
-    
-def process_group_members(event, context):
-    req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId', 'groupKey'])
+        True, ['dataSourceId', 'domainId'])
     if req_error:
         return req_error
 
     data = req_session.get_body()
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
-    group_key = req_session.get_req_param('groupKey')
-    member_response_data = data.get("membersResponseData")
+    group_keys = data.get('groupKeys')
 
-    scan.processGroupMembers(req_session.get_auth_token(), group_key, member_response_data, datasource_id , domain_id)
+    scan.get_group_data(domain_id,datasource_id, group_keys)
     return req_session.generate_response(202)
+    
 
 
 def subscribe_gdrive_notifications(event, context):

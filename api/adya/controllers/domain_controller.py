@@ -20,7 +20,7 @@ def get_datasource(auth_token, datasource_id, db_session=None):
     else:
         datasources = db_session.query(DataSource).filter(LoginUser.domain_id == DataSource.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
-
+    
     return datasources
 
 
@@ -66,7 +66,6 @@ def create_datasource(auth_token, payload):
         else:
             query_params = {"domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
-
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
         return datasource
@@ -75,32 +74,33 @@ def create_datasource(auth_token, payload):
 
 def delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
+    try:
+        existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        domain_id = existing_datasource.domain_id
+        if existing_datasource:
+            try:
+                db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+                db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+                db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+                db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
+                db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+                db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+                db_session.delete(existing_datasource)
+                db_session.commit()
+            except Exception as ex:
+                print "Exception occurred during datasource data delete - " + ex
+            
+            try:
+                gutils.revoke_appaccess(domain_id)
+            except Exception as ex:
+                print "Exception occurred while revoking the app access - " + ex
+        else:
+            return None
+    finally:
+        db_session.close()
 
-    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-    domain_id = existing_datasource.domain_id
-    if existing_datasource:
-        try:
-            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-            db_session.delete(existing_datasource)
-            db_session.commit()
-        except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex
-        
-        try:
-            gutils.revoke_appaccess(domain_id)
-        except Exception as ex:
-            print "Exception occurred while revoking the app access - " + ex
-    else:
-        return None
 
-
-def create_domain(domain_id, domain_name):
-    db_session = db_connection().get_session()
+def create_domain(db_session,domain_id, domain_name):
     creation_time = datetime.datetime.utcnow().isoformat()
 
     domain = Domain()

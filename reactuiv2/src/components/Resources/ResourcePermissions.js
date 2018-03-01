@@ -5,8 +5,14 @@ import { Grid, Button, Icon, Dropdown } from 'semantic-ui-react'
 const ResourcePermissions = props => {
     const state = {
         permissionOptions: [
-            { text: 'Read', value: 'Read' },
-            { text: 'Write', value: 'Write' }]
+            { text: 'Can Read', value: 'Read' },
+            { text: 'Can Write', value: 'Write' }
+        ],
+        permissionsMap: {
+            "writer": "Can Write",
+            "reader": "Can Read",
+            "owner": "Owner"
+        }
     };
 
     let permissions = props.rowData.permissions
@@ -14,6 +20,7 @@ const ResourcePermissions = props => {
 
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission,index) => {
+            console.log("permission : ", permission)
             if (permission["permission_id"] !== undefined)
                 return (
                     <Grid.Row key={index}>
@@ -29,7 +36,7 @@ const ResourcePermissions = props => {
                             {permission["email"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={permission["permission_type"]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["email"])} />
+                            <Dropdown fluid text={state.permissionsMap[permission["permission_type"]]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["email"])} />
                         </Grid.Column>
                     </Grid.Row>
                 )

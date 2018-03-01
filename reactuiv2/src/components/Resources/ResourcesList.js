@@ -8,6 +8,7 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
 import ResourceCell from './ResourceCell';
+import DateComponent from './DateComponent';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
@@ -65,9 +66,7 @@ class ResourcesList extends Component {
                 headerName: "Last Modified",
                 field: "last_modified_time",
                 cellStyle: {textAlign: "left"},
-                valueGetter: (params) => {
-                    return params.data.last_modified_time.split('T').join(' ')
-                }
+                cellRendererFramework: DateComponent
             }
         ];
 

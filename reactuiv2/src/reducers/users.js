@@ -20,6 +20,7 @@ export default (state = {}, action) => {
                 isLoading: true
             }
         case USERS_PAGE_LOADED:
+            console.log("payload : ", action.payload)
             let usersTreePayload = !action.error?action.payload:[]
             return {
                 ...state,

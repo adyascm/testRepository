@@ -25,7 +25,8 @@ class GroupSearch extends Component {
         this.state = {
             isLoading: false,
             value: this.props.defaultValue ? this.props.defaultValue : '',
-            results: []
+            results: [],
+            resultsMap: {}
 
         }
         if(!this.props.users.usersTreePayload)
@@ -53,7 +54,7 @@ class GroupSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        this.props.onUsersLoad(this.state.results)
+        this.props.onUsersLoad(this.state.resultsMap)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
@@ -73,18 +74,21 @@ class GroupSearch extends Component {
             const re = new RegExp(this.state.value, 'i')
 
             var results = [];
+            var resultsMap = {}
             var keys = Object.keys(this.props.users.usersTreePayload)
             for (let index = 0; index < keys.length; index++) {
                 let row = this.props.users.usersTreePayload[keys[index]]
                 if (keys[index].match(re)) {
                     row.name = row.first_name + " " + row.last_name
                     results.push(row);
+                    resultsMap[keys[index]] = row
                 }
             }
 
             this.setState({
                 isLoading: false,
                 results: results,
+                resultsMap: resultsMap
             })
         }, 1000)
     }

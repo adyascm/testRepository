@@ -250,14 +250,6 @@ functions:
     events:
       - http:
           path: scan/groupmembers
-          method: get
-          cors: true
-        
-  post-scan-groupmembers:
-    handler: adya.services.lambda.scan_handler.process_group_members
-    events:
-      - http:
-          path: scan/groupmembers
           method: post
           cors: true
 
