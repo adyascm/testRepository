@@ -8,14 +8,16 @@ import GroupSearch from '../Search/GroupSearch';
 import ActionsFormInput from './ActionsFormInput'
 
 import {
-    USERS_RESOURCE_ACTION_CANCEL
+    USERS_RESOURCE_ACTION_CANCEL,
+    CREATE_SCHEDULED_REPORT
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     logged_in_user : state.common.currentUser,
     all_actions_list: state.common.all_actions_list,
     action: state.users.action,
-    selectedUser: state.users.selectedUserItem
+    selectedUser: state.users.selectedUserItem,
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -64,17 +66,37 @@ class UserActions extends Component {
 
 
   build_action_payload_and_post = () => {
-    let parameters = this.getActionParameters(true)
-    let payload = {}
-    payload['action_name'] = this.props.action['actionType']
-    payload['parameters'] = parameters
-    payload['initiated_by'] = this.props.logged_in_user['email']
-    console.log("Payload for action: " + payload['action_name'] + " is: " + payload);
-    agent.Actions.initiateAction(JSON.stringify(payload))
-                  .then(resp => { console.log(resp);
-                        this.setState({ inProgress: false });
-                        this.setState({ action_response: resp }); })
 
+    if(this.props.action['actionType'] === "watchAllActions"){
+      var reportFormInput = {};
+      reportFormInput.name = "watch_"+ this.props.selectedUser.key
+      reportFormInput.description = "watch action report"
+      reportFormInput.frequency = "cron(0 9 ? * 2 *)"
+      reportFormInput.receivers = this.props.logged_in_user['email']
+      reportFormInput.report_type = "Activity"
+      reportFormInput.selected_entity_type = "user"
+      reportFormInput.selected_entity = this.props.selectedUser.key
+      reportFormInput.selected_entity_name = this.props.selectedUser.key
+      reportFormInput.is_active = 0
+      reportFormInput.datasource_id = this.props.datasources[0]['datasource_id']
+
+      agent.Scheduled_Report.createReport(reportFormInput)
+                    .then(resp => { console.log(resp);
+                          this.setState({ inProgress: false });
+                          this.setState({ action_response: resp }); })
+    }
+    else{
+      let parameters = this.getActionParameters(true)
+      let payload = {}
+      payload['action_name'] = this.props.action['actionType']
+      payload['parameters'] = parameters
+      payload['initiated_by'] = this.props.logged_in_user['email']
+      console.log("Payload for action: " + payload['action_name'] + " is: " + payload);
+      agent.Actions.initiateAction(JSON.stringify(payload))
+                    .then(resp => { console.log(resp);
+                          this.setState({ inProgress: false });
+                          this.setState({ action_response: resp }); })
+    }
   }
 
   updateState(key, value) {
@@ -174,7 +196,7 @@ class UserActions extends Component {
 
     otherQuickActions() {
         return (
-            <Modal open={this.props.action} className="scrolling" >
+            <Modal open={this.props.action!= undefined} className="scrolling" >
                 {/* <Modal.Header>Action - Transfer Ownership</Modal.Header> */}
                 <Modal.Header>Action - {this.props.action["actionNewValue"]}</Modal.Header>
                 <Modal.Content >
@@ -183,7 +205,7 @@ class UserActions extends Component {
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
                     <Button positive loading={this.state.inProgress} labelPosition='right'
-                    icon='checkmark' content='Transfer' onClick={this.takeAction(this.transferOwnership)} />
+                    icon='checkmark' content='Transfer' onClick={this.takeAction(this.build_action_payload_and_post)} />
                 </Modal.Actions>
             </Modal>
         )
@@ -197,7 +219,10 @@ class UserActions extends Component {
                 return this.actionModal()
             }
             else {
-                return this.otherQuickActions()
+
+                    return this.otherQuickActions()
+
+
             }
         }
         return null;
