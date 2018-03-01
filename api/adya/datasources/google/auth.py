@@ -77,7 +77,7 @@ def oauth_callback(oauth_code, scopes,state, error):
         if existing_domain_user:
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
-                                                     refresh_token, True,scope_name)
+                                                     refresh_token, existing_domain_user.is_admin,scope_name)
         else:
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
