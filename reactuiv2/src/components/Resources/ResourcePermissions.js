@@ -6,7 +6,8 @@ const ResourcePermissions = props => {
     const state = {
         permissionOptions: [
             { text: 'Can Read', value: 'Read' },
-            { text: 'Can Write', value: 'Write' }
+            { text: 'Can Write', value: 'Write' },
+            { text: 'Owner', value: 'Owner'}
         ],
         permissionsMap: {
             "writer": "Can Write",

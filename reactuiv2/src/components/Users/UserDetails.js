@@ -34,7 +34,7 @@ const UserDetails = props => {
         }];
 
     var parentGroups = []
-    for (var index = 0; index < props.selectedUserItem.parents && props.selectedUserItem.parents.length; index++) {
+    for (var index = 0; index < props.selectedUserItem.parents.length; index++) {
         var parentKey = props.selectedUserItem.parents[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>
@@ -55,7 +55,7 @@ const UserDetails = props => {
     if (props.selectedUserItem.photo_url) {
         image = <Item.Image inline floated='right' size='mini' src={props.selectedUserItem.photo_url} circular></Item.Image>
     } else {
-        image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} circular >{props.selectedUserItem.name.charAt(0)}</Label></Item.Image>
+        image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} circular >{props.selectedUserItem.name && props.selectedUserItem.name.charAt(0)}</Label></Item.Image>
     }
     return (
         <Item.Group>
