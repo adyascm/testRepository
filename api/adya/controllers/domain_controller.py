@@ -52,6 +52,10 @@ def create_datasource(auth_token, payload):
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        if not existing_user.is_admin_user:
+            datasource.user_scan_status = 1
+            datasource.group_scan_status = 1
+
         db_session.add(datasource)
         
         try:
@@ -64,7 +68,7 @@ def create_datasource(auth_token, payload):
         if datasource.is_dummy_datasource:
             create_dummy_datasource(db_session,existing_user.domain_id,datasource_id)
         else:
-            query_params = {"domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
+            query_params = {"isAdmin": str(existing_user.is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
@@ -96,8 +100,6 @@ def delete_datasource(auth_token, datasource_id):
                 print "Exception occurred while revoking the app access - " + ex
         else:
             return None
-    finally:
-        db_session.close()
 
 
 def create_domain(db_session,domain_id, domain_name):
@@ -112,12 +114,12 @@ def create_domain(db_session,domain_id, domain_name):
     return domain
 
 
-def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
-    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
+def start_scan(auth_token, domain_id, datasource_id,is_admin,is_service_account_enabled):
+    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(domain_id, datasource_id,is_admin, is_service_account_enabled)
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-
-    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
-    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
+    if is_admin == 'True':
+        messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
+        messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
     if is_service_account_enabled == 'False':
         messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 

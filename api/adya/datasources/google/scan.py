@@ -182,8 +182,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
-    finally:
-        db_session.close()
 
 
 
@@ -239,8 +237,6 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         last_result = utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
     if last_result:
         last_result.result()
-    db_session.close()
-
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
@@ -411,7 +407,6 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
-        db_session.close()
         
         session = FuturesSession()
         url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \

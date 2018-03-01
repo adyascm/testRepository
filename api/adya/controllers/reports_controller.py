@@ -211,7 +211,6 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
                 }
 
                 response_data.append(data_map)
-    db_session.close()
     return response_data, email_list, report_type, report_desc, report_name
 
 

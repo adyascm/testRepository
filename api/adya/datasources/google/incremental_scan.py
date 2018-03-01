@@ -62,8 +62,6 @@ def handle_channel_expiration():
     except Exception as e:
         print e
         print "Exception occurred during subscription resubscribe."
-    finally:
-        db_session.close()
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
@@ -92,8 +90,7 @@ def subscribe(domain_id, datasource_id):
     except Exception as e:
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
-    finally:
-        db_session.close()
+    
 def _subscribe_for_user(db_session, datasource, user):
     try:
         drive_service = gutils.get_gdrive_service(datasource.domain_id, user.email)
@@ -215,8 +212,7 @@ def process_notifications(datasource_id, channel_id):
     except Exception as e:
         print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(
             datasource_id, channel_id, e)
-    finally:
-        db_session.close()
+    
 
 def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     db_session = db_connection().get_session()
@@ -247,5 +243,4 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
             domain_id, datasource_id, email, file_id, e)
-    finally:
-        db_session.close()
+    

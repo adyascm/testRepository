@@ -8,12 +8,13 @@ from adya.controllers import domain_controller
 def start_scan(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId', 'serviceAccountEnabled'])
+        True, ['isAdmin','dataSourceId', 'domainId', 'serviceAccountEnabled'])
     if req_error:
         return req_error
 
     domain_controller.start_scan(req_session.get_auth_token(), req_session.get_req_param(
-        'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('serviceAccountEnabled'))
+        'domainId'), req_session.get_req_param('dataSourceId'),req_session.get_req_param('isAdmin'),
+            req_session.get_req_param('serviceAccountEnabled'))
     return req_session.generate_response(202)
 
 def get_drive_resources(event, context):

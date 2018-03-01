@@ -232,6 +232,4 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
     except Exception as e:
         print e
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", " and initiated_by: ", initiated_by
-    finally :
-        db_session.close()
 
