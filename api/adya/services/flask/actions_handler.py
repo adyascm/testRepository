@@ -3,12 +3,6 @@ from adya.controllers import domain_controller, actions_controller
 from adya.common.request_session import RequestSession
 import json
 
-def dumper(obj):
-    try:
-        return obj.toJSON()
-    except:
-        return obj.__dict__
-
 
 class get_all_actions(Resource):
     def get(self):
@@ -26,8 +20,7 @@ class get_all_actions(Resource):
 
         print "Getting all actions for datasource_type: ", datasource_type
         response = actions_controller.get_actions()
-        response_json = json.dumps(response, default=dumper, indent=2)
-        return req_session.generate_response(202, payload=response_json)
+        return req_session.generate_sqlalchemy_response(202, response)
 
 
 class initiate_action(Resource):

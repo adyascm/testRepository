@@ -1,6 +1,6 @@
 from adya.common import constants, action_constants, errormessage
 from adya.datasources.google import actions
-from adya.db.models import AuditLog
+from adya.db.models import AuditLog, Action
 from adya.db.connection import db_connection
 import json
 from datetime import datetime
@@ -18,38 +18,38 @@ def get_actions():
          #   raise Exception("Couldn't fetch actions")
         #elif len(actions) == 0:
          #   raise Exception("No actions defined for datasource_type: " + datasource_type)
-        transferOwnershipAction = action_constants.Action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
+        transferOwnershipAction = instantiate_action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
                                          "Transfers all files owned by one user to some other specified user",
-                                         {"old_owner_email": "", "new_owner_email": ""})
+                                         {"old_owner_email": "", "new_owner_email": ""}, True)
 
-        changeOwnerOfFileAction = action_constants.Action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
+        changeOwnerOfFileAction = instantiate_action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
                                          "Transfers single file owned by one user to some other specified user",
-                                         {"resource_id": "", "old_owner_email": "", "new_owner_email": ""})
+                                         {"resource_id": "", "old_owner_email": "", "new_owner_email": ""}, False)
 
-        removeExternalAccessAction = action_constants.Action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
+        removeExternalAccessAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
                                             "Remove external access for all files owned by user",
-                                            {"user_email": ""})
+                                            {"user_email": ""}, False)
 
-        removeExternalAccessToResourceAction = action_constants.Action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
+        removeExternalAccessToResourceAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
                                                       "Remove all external access for the given resource",
-                                                      {"resource_id": ""})
+                                                      {"resource_id": ""}, False)
 
-        makeAllFilesPrivateAction = action_constants.Action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
+        makeAllFilesPrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
                                            "Make all files owned by user to private",
-                                           {"user_email": ""})
+                                           {"user_email": ""}, False)
 
-        makeResourcePrivateAction = action_constants.Action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
+        makeResourcePrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
                                            "Remove all sharing on a given resource",
-                                           {"resource_id": ""})
+                                           {"resource_id": ""}, False)
 
-        deletePermissionForUserAction = action_constants.Action("GSUITE", action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
+        deletePermissionForUserAction = instantiate_action("GSUITE", action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
                                                "Remove access granted to a user for a resource",
-                                               {"user_email": "", "resource_owner_id": "", "resource_id": ""})
+                                               {"user_email": "", "resource_owner_id": "", "resource_id": ""}, False)
 
-        updatePermissionForUserAction = action_constants.Action("GSUITE", action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
+        updatePermissionForUserAction = instantiate_action("GSUITE", action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
                                                "Update the permission granted to a user for a resource",
                                                {"user_email": "", "resource_owner_id": "", "resource_id": "",
-                                                "new_permission_role": ""})
+                                                "new_permission_role": ""}, False)
 
         actions = [transferOwnershipAction,
                    changeOwnerOfFileAction,
@@ -66,11 +66,24 @@ def get_actions():
         print e
         print "Exception occurred getting actions"
 
+
+def instantiate_action(datasource_type, name, description, parameters, is_admin_only):
+    actionObject = Action()
+    actionObject.datasource_type = datasource_type
+    actionObject.name = name
+    actionObject.description = description
+    actionObject.parameters = parameters
+    actionObject.is_admin_only = is_admin_only
+
+    return actionObject
+
+
+
 def get_action(action_to_take):
     try:
         actions_list = get_actions()
         for action in actions_list:
-            if action.Name == action_to_take:
+            if action.name == action_to_take:
                 return action
 
         return errormessage.UNKNOWN_ACTION
@@ -116,34 +129,34 @@ def execute_action(auth_token, domain_id, datasource_id, action_to_take, action_
         if action == errormessage.UNKNOWN_ACTION:
             return errormessage.UNKNOWN_ACTION
 
-        if action.Name == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+        if action.name == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership(domain_id, old_owner_email, new_owner_email)
-        elif action.Name == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        elif action.name == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership_of_resource(domain_id, datasource_id, old_owner_email, new_owner_email)
-        elif action.Name == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+        elif action.name == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
             resource_id = action_parameters['resource_id']
             response = actions.make_resource_private(domain_id, datasource_id, resource_id)
-        elif action.Name == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+        elif action.name == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
             user_email = action_parameters['user_email']
             response = actions.make_all_files_owned_by_user_private(domain_id, datasource_id, user_email)
-        elif action.Name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+        elif action.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
             resource_id = action_parameters['resource_id']
             response = actions.remove_external_access_to_resource(domain_id, datasource_id, resource_id)
-        elif action.Name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+        elif action.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
             user_email = action_parameters['user_email']
             response = actions.remove_external_access_for_all_files_owned_by_user(domain_id, datasource_id, user_email)
-        elif action.Name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+        elif action.name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner_id']
             new_permission_role = action_parameters['new_permission_role']
             response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role, resource_owner)
-        elif action.Name == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        elif action.name == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner']
@@ -167,7 +180,7 @@ def validate_action_parameters(action_to_take, action_parameters):
         if action == errormessage.UNKNOWN_ACTION:
             return False
 
-        config_params = action.Parameters
+        config_params = action.parameters
         if len(config_params) == len(action_parameters):
             for key in config_params:
                 if key not in action_parameters:

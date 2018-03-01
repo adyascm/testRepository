@@ -46,11 +46,11 @@ class ResourcesActions extends Component {
     getActionParameters = (populate) => {
       for(let i=0; i<this.props.all_actions_list.length; i=i+1) {
         let act = this.props.all_actions_list[i]
-        console.log("action: " + act['Name'])
+        console.log("action: " + act['name'])
         console.log("act_type:" + this.props.action['actionType'])
-        if (act['Name'] == this.props.action['actionType']) {
-          console.log("found parameters" + act['Parameters'])
-          let parameters = act['Parameters'];
+        if (act['name'] == this.props.action['actionType']) {
+          console.log("found parameters" + act['parameters'])
+          let parameters = act['parameters'];
           if (populate) {
             for(let key of Object.keys(parameters)) {
               console.log("key: ", key);
