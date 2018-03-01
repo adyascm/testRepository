@@ -170,7 +170,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
 
     response_data = []
     if report_type == "Permission":
-        if selected_entity_type == "group":
+        if selected_entity_type == "user":
             query_string = ResourcePermission.email == selected_entity
         elif selected_entity_type == "resource":
             query_string = ResourcePermission.resource_id == selected_entity
@@ -196,7 +196,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
             response_data.append(data_map)
 
     elif report_type == "Activity":
-        if selected_entity_type == "group":
+        if selected_entity_type == "user":
             get_activity_report = activities.get_activities_for_user(domain_id, datasource_id, selected_entity,
                                                                      last_run_time)
             for datalist in get_activity_report:
@@ -211,7 +211,6 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
                 }
 
                 response_data.append(data_map)
-    db_session.close()
     return response_data, email_list, report_type, report_desc, report_name
 
 

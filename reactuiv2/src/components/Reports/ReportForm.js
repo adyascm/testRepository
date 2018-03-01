@@ -243,14 +243,14 @@ class ReportForm extends Component {
                     this.state.finalReportObj['selected_entity_type'] === 'resource'}
                   onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                 />
-                <Form.Radio label='Group/User' value='group'
-                  checked={this.handleMultipleOptions('selected_entity_type') === 'group' ||
-                    this.state.finalReportObj['selected_entity_type'] === 'group'}
+              <Form.Radio label='Group/User' value='user'
+                  checked={this.handleMultipleOptions('selected_entity_type') === 'user' ||
+                    this.state.finalReportObj['selected_entity_type'] === 'user'}
                   onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                 />
               </Form.Group>
-              {this.state.finalReportObj['selected_entity_type'] === 'group' ||
-                this.handleMultipleOptions('selected_entity_type') === 'group' ?
+              {this.state.finalReportObj['selected_entity_type'] === 'user' ||
+                this.handleMultipleOptions('selected_entity_type') === 'user' ?
                 <Form.Field><GroupSearch onChangeReportInput={this.onChangeReportInput}
                   defaultValue={this.state.reportDataForReportId['selected_entity']} />
                 </Form.Field> : null}

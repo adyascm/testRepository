@@ -67,6 +67,7 @@ class UserList extends Component {
                 }
                 rows.push(rowItem)
             }
+            console.log("user list payload : ", rows)
             this.setState({
                 rows: rows
             })
