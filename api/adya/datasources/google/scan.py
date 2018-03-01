@@ -416,7 +416,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         session = FuturesSession()
         url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
                     domain_id + "&dataSourceId=" + datasource_id
-        utils.post_call_with_authorization_header(session,url,auth_token,json ={"groupKeys":group_key_array})
+        utils.post_call_with_authorization_header(session,url,auth_token,json ={"groupKeys":group_key_array}).result()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
