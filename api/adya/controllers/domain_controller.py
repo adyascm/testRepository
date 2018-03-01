@@ -78,29 +78,27 @@ def create_datasource(auth_token, payload):
 
 def delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
-    try:
-        existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        domain_id = existing_datasource.domain_id
-        if existing_datasource:
-            try:
-                db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-                db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-                db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-                db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-                db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-                db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-                db_session.delete(existing_datasource)
-                db_session.commit()
-            except Exception as ex:
-                print "Exception occurred during datasource data delete - " + ex
-            
-            try:
-                gutils.revoke_appaccess(domain_id)
-            except Exception as ex:
-                print "Exception occurred while revoking the app access - " + ex
-        else:
-            return None
-
+    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    domain_id = existing_datasource.domain_id
+    if existing_datasource:
+        try:
+            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
+            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+            db_session.delete(existing_datasource)
+            db_session.commit()
+        except Exception as ex:
+            print "Exception occurred during datasource data delete - " + ex
+        
+        try:
+            gutils.revoke_appaccess(domain_id)
+        except Exception as ex:
+            print "Exception occurred while revoking the app access - " + ex
+    else:
+        return None
 
 def create_domain(db_session,domain_id, domain_name):
     creation_time = datetime.datetime.utcnow().isoformat()
