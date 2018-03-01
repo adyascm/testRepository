@@ -18,15 +18,47 @@ def get_actions():
          #   raise Exception("Couldn't fetch actions")
         #elif len(actions) == 0:
          #   raise Exception("No actions defined for datasource_type: " + datasource_type)
+        transferOwnershipAction = action_constants.Action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
+                                         "Transfers all files owned by one user to some other specified user",
+                                         {"old_owner_email": "", "new_owner_email": ""})
 
-        actions = [action_constants.TransferOwnershipAction,
-                   action_constants.ChangeOwnerOfFileAction,
-                   action_constants.DeletePermissionForUserAction,
-                   action_constants.MakeAllFilesPrivateAction,
-                   action_constants.MakeResourcePrivateAction,
-                   action_constants.RemoveExternalAccessAction,
-                   action_constants.RemoveExternalAccessToResourceAction,
-                   action_constants.UpdatePermissionForUserAction]
+        changeOwnerOfFileAction = action_constants.Action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
+                                         "Transfers single file owned by one user to some other specified user",
+                                         {"resource_id": "", "old_owner_email": "", "new_owner_email": ""})
+
+        removeExternalAccessAction = action_constants.Action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
+                                            "Remove external access for all files owned by user",
+                                            {"user_email": ""})
+
+        removeExternalAccessToResourceAction = action_constants.Action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
+                                                      "Remove all external access for the given resource",
+                                                      {"resource_id": ""})
+
+        makeAllFilesPrivateAction = action_constants.Action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
+                                           "Make all files owned by user to private",
+                                           {"user_email": ""})
+
+        makeResourcePrivateAction = action_constants.Action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
+                                           "Remove all sharing on a given resource",
+                                           {"resource_id": ""})
+
+        deletePermissionForUserAction = action_constants.Action("GSUITE", action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
+                                               "Remove access granted to a user for a resource",
+                                               {"user_email": "", "resource_owner_id": "", "resource_id": ""})
+
+        updatePermissionForUserAction = action_constants.Action("GSUITE", action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
+                                               "Update the permission granted to a user for a resource",
+                                               {"user_email": "", "resource_owner_id": "", "resource_id": "",
+                                                "new_permission_role": ""})
+
+        actions = [transferOwnershipAction,
+                   changeOwnerOfFileAction,
+                   deletePermissionForUserAction,
+                   makeAllFilesPrivateAction,
+                   makeResourcePrivateAction,
+                   removeExternalAccessAction,
+                   removeExternalAccessToResourceAction,
+                   updatePermissionForUserAction]
 
         return actions
 
@@ -53,6 +85,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         action_to_take = action_payload['action_name']
         action_parameters = action_payload['parameters']
         initiated_by = action_payload['initiated_by']
+
 
         isOkay = validate_action_parameters(action_to_take, action_parameters)
 

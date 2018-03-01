@@ -26,11 +26,12 @@ def get_all_actions(event, context):
     print "Getting all actions for datasource_type: ", datasource_type
     response = actions_controller.get_actions()
     response_json = json.dumps(response, default=dumper, indent=2)
+    print response_json
     return req_session.generate_response(202, payload=response_json)
 
 
 def initiate_action(event, context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error

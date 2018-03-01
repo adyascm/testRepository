@@ -12,85 +12,19 @@ class ActionNames(Enum):
     UPDATE_PERMISSION_FOR_USER = "update_permission_for_user"
 
 
-class TransferOwnershipAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.TRANSFER_OWNERSHIP
-    Description = "Transfers all files owned by one user to some other specified user"
-    Parameters = { "old_owner_email": "", "new_owner_email": "" }
+class Action():
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
+    def __init__(self, datasource_type, name, description, parameters):
+        self.DatasourceType = datasource_type
+        self.Name = name
+        self.Description = description
+        self.Parameters = parameters
 
-class ChangeOwnerOfFileAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.CHANGE_OWNER_OF_FILE
-    Description = "Transfers single file owned by one user to some other specified user"
-    Parameters = { "resource_id": "", "old_owner_email": "", "new_owner_email": "" }
+        def toJSON(self):
+            return json.dumps(self, default=lambda o: o.__dict__,
+                              sort_keys=True, indent=4)
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
 
-class RemoveExternalAccessAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.REMOVE_EXTERNAL_ACCESS
-    Description = "Remove external access for all files owned by user"
-    Parameters = { "user_email": "" }
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
-
-class RemoveExternalAccessToResourceAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE
-    Description = "Remove all external access for the given resource"
-    Parameters = { "resource_id": "" }
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
-
-class MakeAllFilesPrivateAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.MAKE_ALL_FILES_PRIVATE
-    Description = "Make all files owned by user to private"
-    Parameters = { "user_email": "" }
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
-
-class MakeResourcePrivateAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.MAKE_RESOURCE_PRIVATE
-    Description = "Remove all sharing on a given resource"
-    Parameters = { "resource_id": "" }
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
-
-class DeletePermissionForUserAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.DELETE_PERMISSION_FOR_USER
-    Description = "Remove access granted to a user for a resource"
-    Parameters = { "user_email": "", "resource_owner_id": "", "resource_id": "" }
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
-
-class UpdatePermissionForUserAction():
-    DatasourceType = "GSUITE"
-    Name = ActionNames.UPDATE_PERMISSION_FOR_USER
-    Description = "Update the permission granted to a user for a resource"
-    Parameters = {"user_email": "", "resource_owner_id": "", "resource_id": "", "new_permission_role": ""}
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
 
 
 
