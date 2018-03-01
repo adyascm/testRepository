@@ -69,8 +69,8 @@ class UserActions extends Component {
 
     if(this.props.action['actionType'] === "watchAllActions"){
       var reportFormInput = {};
-      reportFormInput.name = "watch_"+ this.props.selectedUser.key
-      reportFormInput.description = "watch action report"
+      reportFormInput.name = "watch activity for "+ this.props.selectedUser.key
+      reportFormInput.description = "watch activity for "+ this.props.selectedUser.key
       reportFormInput.frequency = "cron(0 9 ? * 2 *)"
       reportFormInput.receivers = this.props.logged_in_user['email']
       reportFormInput.report_type = "Activity"
