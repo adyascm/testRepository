@@ -94,11 +94,12 @@ def modify_scheduled_report(event, context):
 
     update_record = reports_controller.update_report(req_session.get_auth_token(), req_session.get_body())
 
-    # frequency = report.frequency
-    # payload = {'report_id': report.report_id }
-    # function_name = get_lambda_name('get', 'executescheduledreport')
-    # cloudwatch_eventname = get_Cloudwatchevent_name_for_report(report.report_id, report.name ) # TODO: if someone changes the report_name
-    # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, function_name, payload)
+    report_id = update_record.report_id
+    frequency = update_record.frequency
+    payload = {'report_id': report_id}
+    function_name = get_lambda_name('get', 'executescheduledreport')
+    cloudwatch_event_name = get_Cloudwatchevent_name_for_report(report_id, update_record.report_name)
+    aws_utils.create_cloudwatch_event(cloudwatch_event_name, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
 

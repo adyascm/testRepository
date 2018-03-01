@@ -62,8 +62,8 @@ class ScheduledReport(Resource):
             return req_error
         update_record = reports_controller.update_report(req_session.get_auth_token(), req_session.get_body())
 
-        # frequency = report.frequency
-        # cloudwatch_eventname = report.name + "_" + report.report_id  # TODO: if someone changes the report_name
+        # frequency = update_record.frequency
+        # cloudwatch_eventname = update_record.name + "_" + update_record.report_id  # TODO: if someone changes the report_name
         # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
         return req_session.generate_sqlalchemy_response(201, update_record)
 
