@@ -33,8 +33,9 @@ def get_widget_data(auth_token, widget_id):
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
         data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
-            Resource.exposure_type != constants.ResourceExposureType.INTERNAL).group_by(
-            Resource.exposure_type).all()
+                                and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
+                                Resource.domain_id == LoginUser.domain_id, 
+                                Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(LoginUser.auth_token == auth_token).group_by(Resource.exposure_type).all()
     elif widget_id == 'sharedDocsList':
         data = {}
         data["rows"] = db_session.query(Resource.resource_name, Resource.resource_type).filter(
