@@ -77,7 +77,7 @@ class ResourcesActions extends Component {
     agent.Actions.initiateAction(JSON.stringify(payload))
                   .then(resp => { console.log(resp);
                         this.setState({ inProgress: false });
-                        this.setState({ action_response: resp }); })
+                        this.setState({ action_response: resp['message'] }); })
 
   }
 

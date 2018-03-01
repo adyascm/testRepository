@@ -41,6 +41,7 @@ class initiate_action(Resource):
 
         print "Initiating action using payload: ", action_payload, "on domain: ", domain_id, " and datasource_id: ", datasource_id
         response = actions_controller.initiate_action(auth_token, domain_id, datasource_id, action_payload)
+        response = {"message": response}
         print response
 
         return req_session.generate_response(202, response)

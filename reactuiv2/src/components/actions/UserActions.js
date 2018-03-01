@@ -83,7 +83,7 @@ class UserActions extends Component {
       agent.Scheduled_Report.createReport(reportFormInput)
                     .then(resp => { console.log(resp);
                           this.setState({ inProgress: false });
-                          this.setState({ action_response: resp }); })
+                          this.setState({ action_response: resp['message'] }); })
     }
     else{
       let parameters = this.getActionParameters(true)
@@ -95,7 +95,7 @@ class UserActions extends Component {
       agent.Actions.initiateAction(JSON.stringify(payload))
                     .then(resp => { console.log(resp);
                           this.setState({ inProgress: false });
-                          this.setState({ action_response: resp }); })
+                          this.setState({ action_response: resp['message'] }); })
     }
   }
 
