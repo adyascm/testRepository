@@ -39,19 +39,17 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
 
             resourcedata = {}
             resourcedata["resources"] = results['files'][0:50]
-            print "Size of payload {}Byte".format(sys.getsizeof(resourcedata["resources"]))
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(auth_token, datasource_id, DataSource.total_file_count, file_count, True)
 
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
-            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
-            if file_count > 50:
+            sentfile_count =0
+            while  sentfile_count < file_count:
                 resourcedata = {}
-                resourcedata["resources"] = results['files'][50:100]
-                print "Size of payload {}Byte".format(sys.getsizeof(resourcedata["resources"]))
+                resourcedata["resources"] = results['files'][sentfile_count:sentfile_count+25]
                 messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
-
+                sentfile_count +=25
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
