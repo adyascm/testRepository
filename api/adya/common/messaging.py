@@ -1,6 +1,6 @@
 import utils
 import constants
-import aws_utils
+import aws_utils,sys
 from slugify import slugify
 from requests_futures.sessions import FuturesSession
 
@@ -34,6 +34,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body):
         utils.post_call_with_authorization_header(session, endpoint, auth_token, body)
     else:
         body = _add_query_params_to_body(body, query_params)
+        print "Size of body {}".format(sys.getsizeof(body))
         endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
         print "Making a POST lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
