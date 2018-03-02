@@ -28,7 +28,7 @@ const UserApps = props => {
                         <Grid.Row key={index}>
                             <Grid.Column verticalAlign='middle'  width={2}>
                                 <Button animated='vertical' basic color='red' onClick={(event) =>
-                                     props.handleClick(event,application)}>
+                                     props.handleAppAccessRevokeClick(event,application)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />

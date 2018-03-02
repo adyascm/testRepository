@@ -51,7 +51,7 @@ class UsersGroupsDetailsSection extends Component {
 
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.handleClick = this.handleClick.bind(this)
+        this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
     }
 
     closeDetailsSection() {
@@ -65,7 +65,7 @@ class UsersGroupsDetailsSection extends Component {
             this.props.onChangePermission(this.state[data.value], data, data.value)
     }
 
-    handleClick(event,application) {
+    handleAppAccessRevokeClick(event,application) {
         agent.Users.revokeAppAccess(application).then(resp =>{
             console.log(resp)
         })
@@ -97,7 +97,7 @@ class UsersGroupsDetailsSection extends Component {
             let panes = [
                 { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
                 { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
-                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleClick={this.handleClick} /></Tab.Pane> },
+                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> },
             ]
             return (
                 <Segment>
