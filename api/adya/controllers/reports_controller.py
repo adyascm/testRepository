@@ -6,7 +6,7 @@ from flask import request
 
 from adya.controllers import domain_controller
 from adya.datasources.google import activities
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource
+from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, Application
 from adya.db.connection import db_connection
 from adya.common import utils, constants, request_session
 from sqlalchemy import func, or_, and_
@@ -58,6 +58,12 @@ def get_widget_data(auth_token, widget_id):
         data["totalCount"] = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
                                                                             DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
             LoginUser.auth_token == auth_token).count()
+    elif widget_id =='userAppAccess':
+        data ={}
+        data["Readonly Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
+                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
+        data["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
+                                and_(Application.domain_id == LoginUser.domain_id)).filter(LoginUser.auth_token == auth_token).count()
     return data
 
 
