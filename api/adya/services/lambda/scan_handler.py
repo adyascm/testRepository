@@ -143,8 +143,37 @@ def get_group_members(event, context):
 
     scan.get_group_data(domain_id,datasource_id, group_keys)
     return req_session.generate_response(202)
-    
 
+
+def get_user_app(event,context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(
+        True, ['dataSourceId', 'domainId'])
+    if req_error:
+        return req_error
+
+    data = req_session.get_body()
+    domain_id = req_session.get_req_param('domainId')
+    datasource_id = req_session.get_req_param('dataSourceId')
+    user_email_list = data.get('userEmailList')
+
+    scan.get_all_user_app(req_session.get_auth_token(), domain_id,datasource_id, user_email_list)
+    return req_session.generate_response(202)    
+
+def revoke_user_app_access(event,context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(
+        True, ['dataSourceId', 'domainId',"userEmail","clientId"])
+    if req_error:
+        return req_error
+
+    data = req_session.get_body()
+    domain_id = req_session.get_req_param('domainId')
+    datasource_id = req_session.get_req_param('dataSourceId')
+    user_email = req_session.get_req_param('userEmail')
+    client_id = req_session.get_req_param('clientId')
+    actions_controller.revoke_user_app_access(domain_id,user_email,client_id)
+    return req_session.generate_response(204)
 
 def subscribe_gdrive_notifications(event, context):
     req_session = RequestSession(event)

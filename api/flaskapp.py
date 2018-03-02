@@ -44,7 +44,7 @@ api.add_resource(scanhandler.GetDomainuser, constants.SCAN_DOMAIN_USERS)
 api.add_resource(scanhandler.GetDomainGroups, constants.SCAN_DOMAIN_GROUPS)
 
 api.add_resource(scanhandler.GetGroupMembers, constants.SCAN_GROUP_MEMBERS)
-
+api.add_resource(scanhandler.GetUserApp, constants.SCAN_USERS_APP)
 
 api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
 

@@ -37,6 +37,8 @@ SCAN_DOMAIN_GROUPS = "/scan/domaingroups"
 
 SCAN_GROUP_MEMBERS = "/scan/groupmembers"
 
+SCAN_USERS_APP = '/scan/usersapp'
+
 GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
 
 GET_RESOURCE_TREE_PATH = "/getresourcetree"

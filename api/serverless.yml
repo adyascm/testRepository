@@ -245,6 +245,22 @@ functions:
           method: post
           cors: true
 
+  post-scan-userapp:
+    handler: adya.services.lambda.scan_handler.get_user_app
+    events:
+      - http:
+          path: scan/usersapp
+          method: post
+          cors: true
+
+  delete-scan-userapp:
+    handler: adya.services.lambda.scan_handler.revoke_user_app_access
+    events:
+      - http:
+          path: scan/usersapp
+          method: delete
+          cors: true
+
   get-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.get_group_members
     events:
