@@ -63,7 +63,10 @@ def get_gdrive_scan_completed_parameters(datasource):
             return "Invalid datasource! Aborting..."
 
         session = db_connection().get_session()
-        all_users = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).all()
+        users_query = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id)
+        if datasource.is_serviceaccount_enabled:
+            users_query = users_query.filter(LoginUser.is_admin_user)
+        all_users = users_query.all()
         
         emails = ",".join(user.email for user in all_users)
         countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
