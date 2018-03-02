@@ -6,11 +6,17 @@ import {
     RESOURCES_TREE_CELL_EXPANDED,
     RESOURCES_ACTION_LOAD,
     RESOURCES_ACTION_CANCEL,
-    RESOURCES_SET_FILE_SHARE_TYPE,
-    RESOURCES_SET_FILE_TYPE
+    RESOURCES_FILTER_CHANGE
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+    isLoading: false,
+    filterExposureType: 'EXT',
+    filterResourceName: '',
+    filterResourceType: ''
+};
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case RESOURCES_PAGE_LOAD_START:
             return {
@@ -43,7 +49,7 @@ export default (state = {}, action) => {
             //     var rows = [];
             //     if (action.payload) {
             //         var keys = Object.keys(action.payload)
-        
+
             //         for (let index = 0; index < keys.length; index++) {
             //             let row = action.payload[keys[index]]
             //             row.isExpanded = row.isExpanded || false;
@@ -66,7 +72,7 @@ export default (state = {}, action) => {
             // console.log("resources payload : ", action.payload)
             // let keys = Object.keys(action.payload)
             // let rows = []
-            
+
             // for (let index=0; index<keys.length; index++) {
             //     var row = action.payload[keys[index]];
             //     var parent = ""
@@ -74,17 +80,17 @@ export default (state = {}, action) => {
             //     {
             //         parent = row.parents.parentName;
             //     }
-                    
+
             //     row.parent = parent;
             //     rows.push(row)
             // }
 
-                console.log("resource tree : ", action.payload)
-                return {
-                    ...state,
-                    isLoading: false,
-                    resourceTree: !action.error?action.payload:[]
-                }
+            console.log("resource tree : ", action.payload)
+            return {
+                ...state,
+                isLoading: false,
+                resourceTree: !action.error ? action.payload : []
+            }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {
                 ...state,
@@ -95,7 +101,7 @@ export default (state = {}, action) => {
                 ...state,
                 action: {
                     actionType: action.actionType,
-                    actionResource: action.resource,
+                    actionResource: state.rowData,
                     actionNewValue: action.newValue,
                     actionEmail: action.email
                 }
@@ -105,15 +111,11 @@ export default (state = {}, action) => {
                 ...state,
                 action: undefined
             }
-        case RESOURCES_SET_FILE_SHARE_TYPE:
+        case RESOURCES_FILTER_CHANGE:
+            state[action.property] = action.value
             return {
                 ...state,
-                exposureType: action.payload
-            }
-        case RESOURCES_SET_FILE_TYPE:
-            return {
-                ...state,
-                resourcesType: action.payload
+                isLoading: true
             }
         // case RESOURCES_TREE_CELL_EXPANDED:
         //     return {

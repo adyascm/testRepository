@@ -63,14 +63,16 @@ def get_gdrive_scan_completed_parameters(datasource):
             return "Invalid datasource! Aborting..."
 
         session = db_connection().get_session()
-        all_users = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).all()
+        users_query = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id)
+        if datasource.is_serviceaccount_enabled:
+            users_query = users_query.filter(LoginUser.is_admin_user)
+        all_users = users_query.all()
         
         emails = ",".join(user.email for user in all_users)
         countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
 
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
-        countInternalSharedDocs = 0
         countPublicSharedDocs = 0
 
         for item in countSharedDocumentsByType:
@@ -78,8 +80,6 @@ def get_gdrive_scan_completed_parameters(datasource):
                 countDomainSharedDocs = item[1]
             elif item[0] == constants.ResourceExposureType.EXTERNAL:
                 countExternalSharedDocs = item[1]
-            elif item[0] == constants.ResourceExposureType.INTERNAL:
-                countInternalSharedDocs = item[1]
             elif item[0] == constants.ResourceExposureType.PUBLIC:
                 countPublicSharedDocs = item[1]
 
@@ -95,7 +95,6 @@ def get_gdrive_scan_completed_parameters(datasource):
         data = {
             "countDocuments": countDocuments,
             "countExternalData": countExternalSharedDocs,
-            "countInternalData": countInternalSharedDocs,
             "countLinkData": countPublicSharedDocs,
             "externalDocs": externalDocs,
             "documentsCountData": externalDocsListData["totalCount"],

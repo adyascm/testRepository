@@ -79,7 +79,6 @@ def instantiate_action(datasource_type, name, description, parameters, is_admin_
     return actionObject
 
 
-
 def get_action(action_to_take):
     try:
         actions_list = get_actions()
@@ -97,22 +96,24 @@ def get_action(action_to_take):
 def initiate_action(auth_token, domain_id, datasource_id, action_payload):
     try:
         action_to_take = action_payload['action_name']
-        action_parameters = action_payload['parameters']
+        action_parameter_values = action_payload['parameters']
         initiated_by = action_payload['initiated_by']
 
+        action_config = get_action(action_to_take)
+        
 
-        isOkay = validate_action_parameters(action_to_take, action_parameters)
+        isOkay = validate_action_parameters(action_config, action_parameter_values)
 
         if isOkay == True:
             print "Parameter validation for action ", action_to_take, " is successful."
         else:
             return "Parameter validation for action ", action_to_take, " failed."
 
-
-        print "Initiating action: ", action_to_take, " with parameters: ", action_parameters
-        execution_status = execute_action(auth_token, domain_id, datasource_id, action_to_take, action_parameters)
+        print "Initiating action: ", action_to_take, " with parameters: ", action_parameter_values
+        execution_status = execute_action(
+            auth_token, domain_id, datasource_id, action_config, action_parameter_values)
         if execution_status == errormessage.ACTION_EXECUTION_SUCCESS:
-            return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
+            return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameter_values)
         else:
             return "Failed to execute action"
 
@@ -121,43 +122,45 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         print "Exception occurred while initiating action using payload ", action_payload, " on domain: ", domain_id, " and datasource: ", datasource_id
 
 
-def execute_action(auth_token, domain_id, datasource_id, action_to_take, action_parameters):
+def execute_action(auth_token, domain_id, datasource_id, action_config, action_parameters):
     try:
 
         response = ""
-        action = get_action(action_to_take)
 
-        if action == errormessage.UNKNOWN_ACTION:
-            return errormessage.UNKNOWN_ACTION
-
-        if action.name == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+        if action_config.name == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
-            response = actions.transfer_ownership(domain_id, old_owner_email, new_owner_email)
-        elif action.name == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+            response = actions.transfer_ownership(
+                domain_id, old_owner_email, new_owner_email)
+        elif action_config.name == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
-            response = actions.transfer_ownership_of_resource(domain_id, datasource_id, old_owner_email, new_owner_email)
-        elif action.name == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+            response = actions.transfer_ownership_of_resource(
+                domain_id, datasource_id, old_owner_email, new_owner_email)
+        elif action_config.name == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
             resource_id = action_parameters['resource_id']
-            response = actions.make_resource_private(domain_id, datasource_id, resource_id)
-        elif action.name == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+            response = actions.make_resource_private(
+                domain_id, datasource_id, resource_id)
+        elif action_config.name == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
             user_email = action_parameters['user_email']
-            response = actions.make_all_files_owned_by_user_private(domain_id, datasource_id, user_email)
-        elif action.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+            response = actions.make_all_files_owned_by_user_private(
+                domain_id, datasource_id, user_email)
+        elif action_config.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
             resource_id = action_parameters['resource_id']
-            response = actions.remove_external_access_to_resource(domain_id, datasource_id, resource_id)
-        elif action.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+            response = actions.remove_external_access_to_resource(
+                domain_id, datasource_id, resource_id)
+        elif action_config.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
             user_email = action_parameters['user_email']
-            response = actions.remove_external_access_for_all_files_owned_by_user(domain_id, datasource_id, user_email)
-        elif action.name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+            response = actions.remove_external_access_for_all_files_owned_by_user(
+                domain_id, datasource_id, user_email)
+        elif action_config.name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner_id']
             new_permission_role = action_parameters['new_permission_role']
             response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role, resource_owner)
-        elif action.name == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        elif action_config.name == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner']
@@ -173,18 +176,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_to_take, action_
         print "Exception occurred while executing action ", action_to_take, " using parameters: ", action_parameters
 
 
-def validate_action_parameters(action_to_take, action_parameters):
+def validate_action_parameters(action_config, action_parameter_values):
     try:
-
-        action = get_action(action_to_take)
-
-        if action == errormessage.UNKNOWN_ACTION:
-            return False
-
-        config_params = action.parameters
-        if len(config_params) == len(action_parameters):
+        config_params = action_config.parameters
+        if len(config_params) == len(action_parameter_values):
             for key in config_params:
-                if key not in action_parameters:
+                if key not in action_parameter_values:
                     return False
         else:
             return False
@@ -194,7 +191,6 @@ def validate_action_parameters(action_to_take, action_parameters):
     except Exception as e:
         print e
         print "Exception occurred while validating action, ", action_to_take, " with parameters: ", action_parameters
-
 
 def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters):
     db_session = db_connection().get_session()
@@ -258,3 +254,4 @@ def revoke_user_app_access(domain_id,datasource_id,user_email,client_id):
         db_session.commit()
     except Exception as ex:
         print ex
+        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by

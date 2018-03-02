@@ -5,10 +5,10 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Card, Container } from 'semantic-ui-react'
 
-import agent from '../utils/agent';
+
 
 import {
-  DASHBOARD_PAGE_LOADED, GET_ALL_ACTIONS,
+  DASHBOARD_PAGE_LOADED,
   DASHBOARD_PAGE_UNLOADED
 } from '../constants/actionTypes';
 import SimpleNumberWidget from './Widgets/SimpleNumberWidget';
@@ -24,19 +24,17 @@ const mapDispatchToProps = dispatch => ({
   onLoad: (widgetId, payload) =>
     dispatch({ type: DASHBOARD_PAGE_LOADED, widgetId, payload }),
   onUnload: () =>
-    dispatch({ type: DASHBOARD_PAGE_UNLOADED }),
-  onLoginSuccess: (payload) =>
-        dispatch({ type: GET_ALL_ACTIONS, payload})
+    dispatch({ type: DASHBOARD_PAGE_UNLOADED })
 });
 
 class Dashboard extends Component {
   constructor() {
     super();
     this.simpleWidgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget" , link:"/users" },
-      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget" , link:"/users" },
-      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link:"/resources"  },
-      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link:"/resources"  },
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
+      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
+      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
+      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
     ];
     this.chartWidgetConfigs = [
       { id: "sharedDocsByType", header: "", footer: "Shared docs", renderType: "ChartWidget", link:"/resources" },
@@ -52,47 +50,46 @@ class Dashboard extends Component {
     // {
     //   this.props.onLoad(this.widgetConfigs[index].id, agent.Dashboard.getWidgetData(this.widgetConfigs[index].id));
     // }
-    this.props.onLoginSuccess(agent.Actions.getAllActions())
   }
 
   render() {
     return (
       <Container>
-      <Card.Group itemsPerRow='4'>
-        {
-          this.simpleWidgetConfigs.map(config => {
-            var widget = null;
-            if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget config={config} />
-            else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget config={config} />
-            else
-              widget = <ListWidget config={config} />
+        <Card.Group itemsPerRow='4'>
+          {
+            this.simpleWidgetConfigs.map(config => {
+              var widget = null;
+              if (config.renderType === "SimpleNumberWidget")
+                widget = <SimpleNumberWidget config={config} />
+              else if (config.renderType === "ChartWidget")
+                widget = <ChartWidget config={config} />
+              else
+                widget = <ListWidget config={config} />
 
-            return (
-              widget
-            )
-          })
-        }
-      </Card.Group>
-      <Card.Group itemsPerRow='3'>
-        {
-          this.chartWidgetConfigs.map(config => {
-            var widget = null;
-            if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget config={config} />
-            else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget config={config} />
-            else
-              widget = <ListWidget config={config} />
+              return (
+                widget
+              )
+            })
+          }
+        </Card.Group>
+        <Card.Group itemsPerRow='3'>
+          {
+            this.chartWidgetConfigs.map(config => {
+              var widget = null;
+              if (config.renderType === "SimpleNumberWidget")
+                widget = <SimpleNumberWidget config={config} />
+              else if (config.renderType === "ChartWidget")
+                widget = <ChartWidget config={config} />
+              else
+                widget = <ListWidget config={config} />
 
-            return (
-              widget
-            )
-          })
-        }
-      </Card.Group>
-    </Container>
+              return (
+                widget
+              )
+            })
+          }
+        </Card.Group>
+      </Container>
     )
   }
 }

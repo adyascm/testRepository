@@ -22,11 +22,15 @@ class AlchemyEncoder(json.JSONEncoder):
                         fields[field] = data
                     except TypeError as ex:
                         fields[field] = None
+                elif isinstance(data.__class__, DeclarativeMeta):
+                    fields[field] = None
                 else:
                     try:
                         json.dumps(data)  # this will fail on non-encodable values, like other classes
                         fields[field] = data
                     except TypeError as ex:
+                        fields[field] = None
+                    except Exception as ex:
                         fields[field] = None
             # a json-encodable dict
             return fields
