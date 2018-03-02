@@ -101,7 +101,7 @@ export default (state = defaultState, action) => {
                 ...state,
                 action: {
                     actionType: action.actionType,
-                    actionResource: action.resource,
+                    actionResource: state.rowData,
                     actionNewValue: action.newValue,
                     actionEmail: action.email
                 }

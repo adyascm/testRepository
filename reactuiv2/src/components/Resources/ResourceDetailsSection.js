@@ -12,22 +12,20 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({ type:RESOURCES_TREE_SET_ROW_DATA, payload }),
     onChangePermissionForResource: (actionType, resource, newValue, email) =>
-        dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue, email })
+        dispatch({ type: RESOURCES_ACTION_LOAD, actionType, resource, newValue, email }),
+    onResourceQuickAction: (actionType) =>
+        dispatch({ type: RESOURCES_ACTION_LOAD, actionType })
 })
 
-class ResourcePermissionSection extends Component {
+class ResourceDetailsSection extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            rowData: '',
-            "Transfer ownership": "change_owner",
-            "Remove external access": "remove_external_access_to_resource",
-            "Remove write access": "removeWriteAccess",
-            "Make this private": "make_resource_private",
-            "Watch all actions": "watchAllActions"
+            rowData: ''
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.onQuickAction = this.onQuickAction.bind(this);
         this.handleClick = this.handleClick.bind(this);
     }
 
@@ -44,15 +42,12 @@ class ResourcePermissionSection extends Component {
     }
 
     handleChange(event,data,email) {
-        console.log("action event : ", data)
-        console.log("permission email: ", email)
+        this.props.onChangePermissionForResource('update_permission_for_user',data,data["value"],email)
+    }
 
-        if (data["value"] !== "Read" && data["value"] !== "Write") {
-            console.log("actionType: ", this.state[data["value"]]);
-            this.props.onChangePermissionForResource(this.state[data["value"]],data,data["value"],email)
-        }
-        else
-            this.props.onChangePermissionForResource('update_permission_for_user',data,data["value"],email)
+    onQuickAction(action) {
+        if (action !== '')
+            this.props.onChangePermissionForResource(action)
     }
 
     handleClick(event,userEmail,permissionType) {
@@ -69,7 +64,7 @@ class ResourcePermissionSection extends Component {
             <Segment>
                 {/* <Sticky> */}
                     <Icon name='close' onClick={this.closeDetailsSection} />
-                    <ResourceDetails rowData={this.props.rowData} handleChange={this.handleChange} />
+                    <ResourceDetails rowData={this.props.rowData} onQuickAction={this.onQuickAction} />
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 {/* </Sticky> */}
             </Segment>
@@ -77,4 +72,4 @@ class ResourcePermissionSection extends Component {
     }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(ResourcePermissionSection);
+export default connect(mapStateToProps,mapDispatchToProps)(ResourceDetailsSection);

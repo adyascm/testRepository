@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 
 import ResourcesList from './ResourcesList';
-import ResourcePermissionSection from './ResourcePermissionSection';
+import ResourceDetailsSection from './ResourceDetailsSection';
 import ResourcesActions from '../actions/ResourcesActions';
 import TestResourcesList from './TestResourcesList';
 
@@ -42,7 +42,7 @@ class Resources extends Component {
   }
 
   handleExposureTypeChange(event,data) {
-    if (data)
+    if (data && data.value !== this.props.filterExposureType)
       this.props.changeFilter("filterExposureType", data.value);
   }
 
@@ -104,7 +104,7 @@ class Resources extends Component {
               this.props.rowData?
               (<Grid.Column stretched width={16 - gridWidth}>
                 <Container fluid >
-                  <ResourcePermissionSection />
+                  <ResourceDetailsSection />
                 </Container>
               </Grid.Column>) : null
             }
