@@ -573,7 +573,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         datasource = get_datasource(None, datasource_id,db_session)
         if get_scan_status(datasource) == 1:
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
-            adya_emails.send_gdrive_scan_completed_email(datasource_id)
+            adya_emails.send_gdrive_scan_completed_email(datasource)
 
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}

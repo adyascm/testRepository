@@ -52,6 +52,6 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_admin
     db_session.add(login_user)
     db_session.commit()
 
-    adya_emails.send_welcome_email(auth_token)
+    adya_emails.send_welcome_email(login_user)
 
     return login_user
