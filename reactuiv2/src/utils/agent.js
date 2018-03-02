@@ -67,7 +67,10 @@ const Dashboard = {
 
 const Users = {
     getUsersTree: () =>
-        requests.get('/getusergrouptree')
+        requests.get('/getusergrouptree'),
+    revokeAppAccess: (application) =>
+        requests.del('/scan/usersapp?domainId=' + application.domain_id + "&dataSourceId=" +application.datasource_id +
+                    "&userEmail="+ application.user_email + "&clientId="+application.client_id )
 }
 
 const Resources = {

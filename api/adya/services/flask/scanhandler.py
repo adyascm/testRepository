@@ -216,10 +216,9 @@ class GetUserApp(Resource):
         if req_error:
             return req_error
 
-        data = req_session.get_body()
         domain_id = req_session.get_req_param('domainId')
         datasource_id = req_session.get_req_param('dataSourceId')
         user_email = req_session.get_req_param('userEmail')
         client_id = req_session.get_req_param('clientId')
-        actions_controller.revoke_user_app_access(domain_id,user_email,client_id)
+        actions_controller.revoke_user_app_access(domain_id,datasource_id,user_email,client_id)
         return req_session.generate_response(204)

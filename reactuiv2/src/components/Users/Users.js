@@ -116,7 +116,7 @@ class Users extends Component {
                 {!this.state.showHierarchy ? flatList : treeView}
               </Grid.Column>
               <Grid.Column width={16 - gridWidth}>
-                <UsersGroupsDetailsSection />
+                <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
               </Grid.Column>
             </Grid.Row>
           </Grid>

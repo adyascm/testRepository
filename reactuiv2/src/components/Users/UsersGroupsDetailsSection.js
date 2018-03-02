@@ -3,6 +3,8 @@ import { Tab, Segment, Sticky, Icon, Grid, Dropdown, Container } from 'semantic-
 import UserDetails from './UserDetails';
 import UserResource from './UserResource';
 import UserActivity from './UserActivity';
+import UserApps from './UserApps';
+import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 import {
     USER_ITEM_SELECTED,
@@ -49,6 +51,7 @@ class UsersGroupsDetailsSection extends Component {
 
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleClick = this.handleClick.bind(this)
     }
 
     closeDetailsSection() {
@@ -56,11 +59,16 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleChange(event,data) {
-        console.log("item changed: ", this.state[data.value])
         if (this.state.fileExposureType[data.value])
             this.props.setFileExposureType(this.state.fileExposureType[data.value])
         else
             this.props.onChangePermission(this.state[data.value], data, data.value)
+    }
+
+    handleClick(event,application) {
+        agent.Users.revokeAppAccess(application).then(resp =>{
+            console.log(resp)
+        })
     }
 
     render() {
@@ -88,7 +96,8 @@ class UsersGroupsDetailsSection extends Component {
         else {
             let panes = [
                 { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
-                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> }
+                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
+                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleClick={this.handleClick} /></Tab.Pane> },
             ]
             return (
                 <Segment>
