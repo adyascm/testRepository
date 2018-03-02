@@ -63,7 +63,7 @@ def get_widget_data(auth_token, widget_id):
         data["Readonly Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
                                 and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
         data["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
-                                and_(Application.domain_id == LoginUser.domain_id)).filter(LoginUser.auth_token == auth_token).count()
+                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
     return data
 
 
