@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { Container, Dimmer, Loader, Grid, Divider, Checkbox, Sticky } from 'semantic-ui-react'
 
 import agent from '../../utils/agent';
-import UserActions from '../actions/UserActions'
+import Actions from '../actions/Actions'
 
 
 import {
@@ -120,12 +120,10 @@ class Users extends Component {
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          <UserActions {...this.props.users}/>
+          <Actions />
         </Container >
-
       )
     }
-
   }
 }
 

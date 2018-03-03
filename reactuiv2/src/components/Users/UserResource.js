@@ -35,7 +35,7 @@ class UserResource extends Component {
     constructor(props) {
         super(props);
 
-        this.cellValueChanged = this.cellValueChanged.bind(this);
+        this.onPermissionChange = this.onPermissionChange.bind(this);
         this.state = {
             columnDefs: [
                 {
@@ -45,8 +45,8 @@ class UserResource extends Component {
                 {
                     headerName: "Owner",
                     field: "resource_owner_id",
-                    editable: true,
-                    onCellValueChanged: this.cellValueChanged
+                    // editable: true,
+                    // onCellValueChanged: this.cellValueChanged
                 },
                 {
                     headerName: "My permission",
@@ -54,15 +54,17 @@ class UserResource extends Component {
                     editable: true,
                     cellEditor: "agSelectCellEditor",
                     cellEditorParams: {
-                        values: ['Can Read','Can Write','None']
+                        values: ['writer','reader', 'owner', 'none']
                     },
-                    onCellValueChanged: this.cellValueChanged,
+                    onCellValueChanged: this.onPermissionChange,
                     cellStyle: {"textAlign":"center"},
                     cellRenderer: (params) => {
                         if (params.value === 'writer')
                             return "Can Write"
                         else if (params.value === 'reader')
                             return "Can Read"
+                        else if (params.value === 'owner')
+                            return "Owner"
                         else 
                             return "None"
                     }
@@ -80,53 +82,30 @@ class UserResource extends Component {
                     },
                     cellStyle: {"textAlign":"center"}
                 }
-            ],
-            getNodeChildDetails: function getNodeChildDetails(rowItem) {
-                if (rowItem.resourceType == 'folder') {
-                    return {
-                        group: true,
-                        expanded: rowItem.isExpanded,
-                        children: rowItem.children || [],
-                        key: rowItem.key
-                    }
-                }
-                return null;
-            },
-            exposureType: undefined,
-            permission: {
-                'Can Write': "Write",
-                'Can Read': "Read",
-                'None': "None"
-            }
+            ]
         };
     }
 
-    cellValueChanged(params) {
-        console.log("Cell column value changed: ", params)
-        if (['Can Read','Can Write','None'].indexOf(params.newValue) !== -1)
-            this.props.onChangePermission("resourcePermissionChange", params.data, this.state.permission[params.newValue]);
-        else
-            this.props.onChangePermission("resourceOwnerPermissionChange", params.data, params.oldValue)
+    onPermissionChange(params) {
+        if(params.newValue !== params.oldvalue)
+            this.props.onChangePermission("update_permission_for_user", params.data, params.newValue);
     }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType?nextProps.exposureType:'EXT'}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType}))
         }
-        if (nextProps.exposureType !== this.state.exposureType) {
-            this.setState({
-                exposureType: nextProps.exposureType
-            })
+        if (nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.exposureType}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType}))
         }
     }
 
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart(this.props.selectedUserItem["key"])
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.exposureType?this.props.exposureType:'EXT'}))    
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType}))    
         }
     }
 
@@ -153,7 +132,6 @@ class UserResource extends Component {
                         domLayout="autoHeight"
                         columnDefs={this.state.columnDefs}
                         rowData={this.props.selectedUserItem.resources}
-                        getNodeChildDetails={this.state.getNodeChildDetails}
                         onGridReady={this.onGridReady.bind(this)}
                     />
                 </div>

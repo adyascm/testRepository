@@ -79,9 +79,13 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 action: {
-                    actionType: action.actionType,
-                    actionResource: action.resource,
-                    actionNewValue: action.newValue
+                    key: action.actionType,
+                    old_owner_email: state.selectedUserItem.email,
+                    user_email: state.selectedUserItem.email,
+                    resource_id: action.resource ? action.resource.resource_id : undefined,
+                    resource_name: action.resource ? action.resource.resource_name : undefined,
+                    resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
+                    new_permission_role: action.newValue,
                 }
             }
         case USERS_RESOURCE_ACTION_CANCEL:

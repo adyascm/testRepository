@@ -16,10 +16,6 @@ const ResourceDetails = props => {
             value: 'remove_external_access_to_resource'
         },
         {
-            text: 'Remove write access',
-            value: 'removeWriteAccess'
-        },
-        {
             text: 'Make this private',
             value: 'make_resource_private'
         },

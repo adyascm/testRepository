@@ -3,30 +3,22 @@ import { Grid, Button, Icon, Dropdown } from 'semantic-ui-react'
 
 
 const ResourcePermissions = props => {
-    const state = {
-        permissionOptions: [
-            { text: 'Can Read', value: 'Read' },
-            { text: 'Can Write', value: 'Write' },
-            { text: 'Owner', value: 'Owner'}
-        ],
-        permissionsMap: {
-            "writer": "Can Write",
-            "reader": "Can Read",
-            "owner": "Owner"
-        }
-    };
+    let permissionOptions = [
+        { text: 'Can Read', value: 'reader' },
+        { text: 'Can Write', value: 'writer' },
+        { text: 'Owner', value: 'owner' }
+    ]
 
     let permissions = props.rowData.permissions
     let permissionUsers = []
 
     if (permissions && permissions.length > 0) {
-        permissionUsers = permissions.map((permission,index) => {
-            console.log("permission : ", permission)
+        permissionUsers = permissions.map((permission, index) => {
             if (permission["permission_id"] !== undefined)
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red' onClick={(event) => props.handleClick(event,permission["email"],permission["permission_type"])}>
+                            <Button animated='vertical' basic color='red' onClick={(event) => props.onRemovePermission(event, permission)}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
@@ -37,7 +29,7 @@ const ResourcePermissions = props => {
                             {permission["email"]}
                         </Grid.Column>
                         <Grid.Column width={4}>
-                            <Dropdown fluid text={state.permissionsMap[permission["permission_type"]]} options={state.permissionOptions} onChange={(event,data) => props.handleChange(event,data,permission["email"])} />
+                            <Dropdown fluid options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} />
                         </Grid.Column>
                     </Grid.Row>
                 )
