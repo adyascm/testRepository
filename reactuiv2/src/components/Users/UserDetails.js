@@ -8,29 +8,24 @@ const UserDetails = props => {
 
     var quickActions = [
         {
-            key: 'transfer_ownership',
+            text: '',
+            value: ''
+        },
+        {
             text: 'Transfer ownership of all owned files',
-            value: 'Transfer ownership of all owned files'
+            value: 'transfer_ownership'
         },
         {
-            key: 'remove_external_access',
             text: 'Remove external access for all owned files',
-            value: 'Remove external access for all owned files'
+            value: 'remove_external_access'
         },
         {
-            key: 'removeWriteAccess',
-            text: 'Remove write access for all un-owned files',
-            value: 'Remove write access for all un-owned files'
-        },
-        {
-            key: 'make_all_files_private',
             text: 'Make all owned files private',
-            value: 'Make all owned files private'
+            value: 'make_all_files_private'
         },
         {
-            key: 'watchAllActions',
             text: 'Watch all my actions',
-            value: 'Watch all my actions'
+            value: 'watchAllActions'
         }];
 
     var parentGroups = []
@@ -59,10 +54,8 @@ const UserDetails = props => {
     }
     return (
         <Item.Group>
-
             <Item fluid='true'>
                 {image}
-
                 <Item.Content >
                     <Item.Header >
                         {props.selectedUserItem.name}
@@ -77,7 +70,7 @@ const UserDetails = props => {
                         </Label.Group>
                     </Item.Description>
                     <Item.Extra extra>
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} onChange={(event, data) => props.handleChange(event, data)} />
+                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
                     </Item.Extra>
                 </Item.Content>
             </Item>

@@ -5,7 +5,7 @@ import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 
 import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
-import ResourcesActions from '../actions/ResourcesActions';
+import Actions from '../actions/Actions';
 import TestResourcesList from './TestResourcesList';
 
 import {RESOURCES_FILTER_CHANGE} from '../../constants/actionTypes';
@@ -54,7 +54,6 @@ class Resources extends Component {
 
   handleKeyPress(event) {
     if (event.key === 'Enter') {
-      console.log(event.target.value)
       this.props.changeFilter("filterResourceType", this.state.filterResourceType);
     }
   }
@@ -110,7 +109,7 @@ class Resources extends Component {
             }
           </Grid.Row>
         </Grid>
-        <ResourcesActions />
+        <Actions />
       </Container>
     )
   }

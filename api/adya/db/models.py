@@ -211,9 +211,10 @@ class PushNotificationsSubscription(Base):
 class Action(Base):
     __tablename__ = 'action'
     datasource_type = Column(String(255), primary_key=True)
-    name = Column(String(200), primary_key=True)
+    key = Column(String(200), primary_key=True)
+    name = Column(String(200))
     description = Column(String(1000))
-    parameters = Column(String(1000))
+    parameters = Column(Text)
     is_admin_only = Column(Boolean)
 
 

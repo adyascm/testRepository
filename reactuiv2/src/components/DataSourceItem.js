@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Card, Image, Dimmer, Segment, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import agent from '../utils/agent';
-import {IntlProvider,FormattedDate} from 'react-intl'
+import { IntlProvider, FormattedDate } from 'react-intl'
 
 
 
@@ -27,7 +27,10 @@ const DataSourceItem = props => {
         if (datasource.file_scan_status > 10000 || datasource.user_scan_status > 1 || datasource.group_scan_status > 1)
             return <Progress size='small' precision='0' percent={percent} error />; //Failed
 
-        if ((datasource.file_scan_status > 0 && datasource.total_file_count == datasource.processed_file_count) && (datasource.user_scan_status == 1 && datasource.total_user_count == datasource.processed_user_count) && (datasource.group_scan_status == 1 && datasource.total_group_count == datasource.processed_group_count))
+        var file_status = 1
+        if (datasource.is_serviceaccount_enabled)
+            file_status = datasource.total_user_count
+        if ((datasource.file_scan_status >= file_status && datasource.total_file_count == datasource.processed_file_count) && (datasource.user_scan_status == 1 && datasource.total_user_count == datasource.processed_user_count) && (datasource.group_scan_status == 1 && datasource.total_group_count == datasource.processed_group_count))
             return <Progress size='small' precision='0' percent={percent} success />; //Complete
         return <Progress size='small' precision='0' percent={percent} active />; //In Progress
     }
@@ -39,7 +42,7 @@ const DataSourceItem = props => {
         if (datasource.is_push_notifications_enabled)
             syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
-        if(datasource.is_dummy_datasource)
+        if (datasource.is_dummy_datasource)
             datasourceImage = <Image circular floated='left' size='small'><Label content='Dummy' icon='lab' /></Image>
         return (
             <Card fluid >
@@ -55,17 +58,17 @@ const DataSourceItem = props => {
                     </Card.Header>
                     <Card.Meta textAlign='right'>
                         Created at: <strong><IntlProvider locale='en'  >
-                           <FormattedDate
-                            value={new Date(datasource.creation_time)}
-                            year='numeric'
-                            month='long'
-                            day='2-digit'
-                            hour='2-digit'
-                            minute = '2-digit'
-                            second = '2-digit'
-                           />
-                         </IntlProvider>
-                       </strong>
+                            <FormattedDate
+                                value={new Date(datasource.creation_time)}
+                                year='numeric'
+                                month='long'
+                                day='2-digit'
+                                hour='2-digit'
+                                minute='2-digit'
+                                second='2-digit'
+                            />
+                        </IntlProvider>
+                        </strong>
                     </Card.Meta>
                     <Card.Description>
                         {statusText}

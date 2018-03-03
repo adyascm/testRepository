@@ -100,10 +100,13 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 action: {
-                    actionType: action.actionType,
-                    actionResource: state.rowData,
-                    actionNewValue: action.newValue,
-                    actionEmail: action.email
+                    key: action.actionType,
+                    resource_id: state.rowData.resource_id,
+                    resource_name: state.rowData.resource_name,
+                    old_owner_email: state.rowData.resource_owner_id,
+                    resource_owner_id: state.rowData.resource_owner_id,
+                    new_permission_role: action.newValue,
+                    user_email: action.permission ? action.permission.email : undefined
                 }
             }
         case RESOURCES_ACTION_CANCEL:

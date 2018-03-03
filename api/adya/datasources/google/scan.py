@@ -337,6 +337,8 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         lastresult = utils.post_call_with_authorization_header(session,url,auth_token, json={"userEmailList":user_email_list})
     if lastresult:
         lastresult.result()
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': user_email}
+            messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
@@ -596,7 +598,10 @@ def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
         return 2 #Failed
 
-    if (datasource.file_scan_status > 0 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
+    file_status = 1
+    if datasource.is_serviceaccount_enabled:
+        file_status = datasource.total_user_count
+    if (datasource.file_scan_status >= file_status and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
         return 1 #Complete
     return 0 #In Progress
 
