@@ -9,7 +9,7 @@ from adya.common import constants,utils
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,DomainGroup,\
                      DomainUser, ResourcePermission, Resource,ResourceParent,get_table,\
-                     Application,Report,Action,AuditLog,PushNotificationsSubscription,
+                     Application,Report,Action,AuditLog,PushNotificationsSubscription
 from adya.datasources.google import gutils
 from sqlalchemy import String,Boolean,and_
 import csv
@@ -89,9 +89,7 @@ def delete_datasource(auth_token, datasource_id):
             db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
             db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
             db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
-            db_session.query(Report).filter(Report.datasource_id == datasource_id).delete()
-            db_session.query(Action).filter(Application.datasource_id == datasource_id).delete()
-            db_session.query(AuditLog).filter(Application.datasource_id == datasource_id).delete()
+            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
             db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
             db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
             db_session.delete(existing_datasource)

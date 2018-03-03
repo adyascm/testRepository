@@ -285,7 +285,6 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     logged_in_user = db_session.query(LoginUser).filter(LoginUser.auth_token== auth_token).first()
     session = FuturesSession()
     user_email_list = []
-    lastresult = None
     user_count = 0
     for user_data in users_data:
         user_count = user_count + 1
@@ -326,19 +325,15 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     if datasource.is_serviceaccount_enabled:
         print "Google service account is enabled, starting to fetch files for each processed user"
         for user_email in user_email_list:
-            url = constants.SCAN_RESOURCES + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
-            lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': user_email}
+            messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
     if logged_in_user.is_admin_user:
         print "Getting all users app and its scope"
-        url = constants.SCAN_USERS_APP + "?domainId=" + \
-            domain_id + "&dataSourceId=" + datasource_id 
-        lastresult = utils.post_call_with_authorization_header(session,url,auth_token, json={"userEmailList":user_email_list})
-    if lastresult:
-        lastresult.result()
-            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': user_email}
-            messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
+        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+        userEmailList = {}
+        userEmailList["userEmailList"] = user_email_list
+        messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
