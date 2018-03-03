@@ -26,6 +26,15 @@ def get_user_tree_data(event, context):
     user_group_tree = domainDataController.get_user_group_tree(auth_token)
     return req_session.generate_sqlalchemy_response(200, user_group_tree)
 
+def get_apps(event,context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+    auth_token = req_session.get_auth_token()
+    apps = domainDataController.get_apps(auth_token)
+    return req_session.generate_sqlalchemy_response(200, apps)
+
 
 def get_resources(event, context):
     req_session = RequestSession(event)

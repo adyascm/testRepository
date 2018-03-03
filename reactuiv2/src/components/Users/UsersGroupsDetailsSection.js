@@ -3,7 +3,7 @@ import { Tab, Segment, Sticky, Icon, Grid, Dropdown, Container } from 'semantic-
 import UserDetails from './UserDetails';
 import UserResource from './UserResource';
 import UserActivity from './UserActivity';
-import UserApps from './UserApps';
+import UserApps from '../UserApp/UserApps';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 import {
@@ -66,7 +66,7 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,application) {
-        agent.Users.revokeAppAccess(application).then(resp =>{
+        agent.Apps.revokeAppAccess(application).then(resp =>{
             console.log(resp)
         })
     }

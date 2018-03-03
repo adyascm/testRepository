@@ -21,7 +21,6 @@ const ResourcePermissions = props => {
 
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission,index) => {
-            console.log("permission : ", permission)
             if (permission["permission_id"] !== undefined)
                 return (
                     <Grid.Row key={index}>

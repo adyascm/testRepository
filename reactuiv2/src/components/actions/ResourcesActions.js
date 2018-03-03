@@ -113,7 +113,7 @@ class ResourcesActions extends Component {
                  </div>
 
                   <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                  <Button positive loading={this.state.inProgress} labelPosition='right'
+                  <Button positive loading={this.state.inProgress} labelposition='right'
                   icon='checkmark' content='Submit' onClick={this.takeAction(this.build_action_payload_and_post)} />
               </Modal.Actions>
        </Modal>
@@ -133,7 +133,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Transfer' />
                 </Modal.Actions>
             </Modal>
@@ -150,7 +150,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Transfer' />
                 </Modal.Actions>
             </Modal>
@@ -168,7 +168,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Change' />
                 </Modal.Actions>
             </Modal>
@@ -186,7 +186,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Change' />
                 </Modal.Actions>
             </Modal>

@@ -41,6 +41,8 @@ SCAN_USERS_APP = '/scan/usersapp'
 
 GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
 
+GET_APPS = "/getapps"
+
 GET_RESOURCE_TREE_PATH = "/getresourcetree"
 
 GET_DATASOURCE_PATH = '/datasources'

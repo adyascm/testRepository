@@ -34,14 +34,12 @@ class UserList extends Component {
     }
 
     onCardClicked(event, param) {
-        console.log("param user : ", param.user)
         this.props.selectUserItem(param.user);
     }
 
     setTreeRows() {
         if (this.props.usersTreePayload) {
             let rows = []
-            let emailRowMap = {}
             let keys = Object.keys(this.props.usersTreePayload)
 
             for (let index = 0; index < keys.length; index++) {
@@ -67,7 +65,6 @@ class UserList extends Component {
                 }
                 rows.push(rowItem)
             }
-            console.log("user list payload : ", rows)
             this.setState({
                 rows: rows
             })
