@@ -147,16 +147,17 @@ def get_group_members(event, context):
 
 def get_user_app(event,context):
     req_session = RequestSession(event)
+    print("event", event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
     if req_error:
         return req_error
 
     data = req_session.get_body()
+    print("data",data)
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     user_email_list = data.get('userEmailList')
-    print("userEmails",user_email_list)
     scan.get_all_user_app(req_session.get_auth_token(), domain_id,datasource_id, user_email_list)
     return req_session.generate_response(202)    
 
