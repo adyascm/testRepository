@@ -156,7 +156,7 @@ def get_user_app(event,context):
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     user_email_list = data.get('userEmailList')
-
+    print("userEmails",user_email_list)
     scan.get_all_user_app(req_session.get_auth_token(), domain_id,datasource_id, user_email_list)
     return req_session.generate_response(202)    
 
