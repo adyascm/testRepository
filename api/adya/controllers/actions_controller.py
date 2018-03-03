@@ -52,15 +52,15 @@ def get_actions():
                                                            "Remove access granted to a user for a resource",
                                                            [{"key": "resource_id", "label": "For resource", "editable": 0, "hidden": 1}, 
                                                            {"key": "resource_name", "label": "For resource", "editable": 0},
-                                                           {"key": "user_email", "label": "For User", "editable": 0}, 
-                                                           {"key": "resource_owner_id", "label": "Owner of file", "editable": 0}], False)
+                                                           {"key": "resource_owner_id", "label": "Owner of file", "editable": 0},
+                                                           {"key": "user_email", "label": "For User", "editable": 0}], False)
 
         updatePermissionForUserAction = instantiate_action("GSUITE", action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER, "Change permission for user",
                                                            "Update the permission granted to a user for a resource",
                                                            [{"key": "resource_id", "label": "For resource", "editable": 0, "hidden": 1}, 
                                                            {"key": "resource_name", "label": "For resource", "editable": 0}, 
-                                                           {"key": "user_email", "label": "For User", "editable": 0}, 
                                                            {"key": "resource_owner_id", "label": "Owner of file", "editable": 0}, 
+                                                           {"key": "user_email", "label": "For User", "editable": 0}, 
                                                            {"key": "new_permission_role", "label": "New permission", "editable": 1}], False)
 
         actions = [transferOwnershipAction,
