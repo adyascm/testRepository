@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Header, Modal, Form, Message } from 'semantic-ui-react'
-import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL } from '../../constants/actionTypes';
+import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL, LOGIN_SUCCESS } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 import authenticate from '../../utils/oauth';
@@ -15,12 +15,13 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    onCancelAction: () =>
-    {
+    onCancelAction: () => {
         dispatch({ type: RESOURCES_ACTION_CANCEL })
         dispatch({ type: USERS_RESOURCE_ACTION_CANCEL })
-    }
-        
+    },
+    onIncrementalAuthComplete: (data) =>
+        dispatch({ type: LOGIN_SUCCESS, ...data }),
+
 });
 
 class Actions extends Component {
@@ -31,6 +32,7 @@ class Actions extends Component {
             initiated_by: props.logged_in_user['email']
         };
         this.takeAction = this.takeAction.bind(this);
+        this.executeAction = this.executeAction.bind(this);
         this.onUpdateParameters = this.onUpdateParameters.bind(this);
     }
 
@@ -40,24 +42,42 @@ class Actions extends Component {
             ...this.state,
             inProgress: true
         });
-        authenticate("drive_action_scope").then(res => {
-            agent.Actions.initiateAction(JSON.stringify(this.state))
-                .then(resp => {
-                    this.setState({
-                        ...this.state,
-                        inProgress: false,
-                        successMessage: resp['message']
-                    });
-                })
-        }).catch(error => {
-            this.setState({
-                ...this.state,
-                inProgress: false,
-                errorMessage: error['message']
+        if (this.props.logged_in_user.authorize_scope_name !== "drive_action_scope") {
+            authenticate("drive_action_scope").then(res => {
+                this.props.onIncrementalAuthComplete(res);
+                this.executeAction(JSON.stringify(this.state));
+            }).catch(error => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    errorMessage: error['message']
+                });
             });
-        });
+        } else {
+            this.executeAction(JSON.stringify(this.state), resp => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    successMessage: resp['message']
+                });
+            }, error => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    errorMessage: error['message']
+                });
+            });
+        }
     }
 
+    executeAction = (payload, success, error) => {
+        agent.Actions.initiateAction(payload)
+            .then(resp => {
+                success(resp)
+            }).catch(error => {
+                error(error)
+            })
+    }
     onUpdateParameters = key => e => {
         this.state[key] = e.target.value;
         this.setState({
@@ -102,10 +122,10 @@ class Actions extends Component {
             <Modal open={this.props.action != undefined} className="scrolling" >
                 <Modal.Header>Action - {actionConfig.name}</Modal.Header>
                 <Modal.Content >
+                    {message}
                     <Modal.Description><Header>{actionConfig.description}</Header></Modal.Description>
                     <Form onSubmit={this.takeAction}>
                         {formFields}
-                        {message}
                         <Button negative onClick={this.props.onCancelAction} content='Cancel' />
                         <Button positive loading={this.state.inProgress} labelPosition='right'
                             icon='checkmark' content='Submit' />

@@ -21,7 +21,6 @@ export default (state = {}, action) => {
                 inProgress: true,
                 errors: null
             }
-        case LOGIN_SUCCESS:
         case LOGIN:
             return {
                 ...state
