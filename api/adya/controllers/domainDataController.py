@@ -73,6 +73,7 @@ def get_apps(auth_token):
                 app_obj["display_text"] = app.display_text
                 app_obj["annoymous"] = app.anonymous
                 app_obj["scopes"] = app.scopes
+                app_obj["is_readonly_scope"] = app.is_readonly_scope
                 apps[client_id] = app_obj
             apps[client_id]["user_emails"].append(email)
     return apps

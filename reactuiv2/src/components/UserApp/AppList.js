@@ -29,7 +29,7 @@ class AppList extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            apps: undefined,
+            apps: undefined
         }
     }
 
@@ -40,14 +40,29 @@ class AppList extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState({
             apps: undefined,
-            showOnlyFullScope: nextProps.showOnlyFullScope
+            scopeExposure: nextProps.scopeExposure
         })
     }
 
     render() {
         var appCards =[]
         if (this.props.appPayLoad) {
-            let allapps = this.props.appPayLoad
+            let allapps = []
+            if (this.state.scopeExposure ==0)
+            {
+                allapps =this.props.appPayLoad
+            }
+            else
+            {
+                for(var appkey in this.props.appPayLoad)
+                {
+                    let app = this.props.appPayLoad[appkey]
+                    if (this.state.scopeExposure == 2 && !app.is_readonly_scope)
+                        allapps.push(app)
+                    else if (this.state.scopeExposure == 1 && app.is_readonly_scope)
+                        allapps.push(app)
+                }
+            }
             for(var appkey in allapps)
             {
                 var app = allapps[appkey]

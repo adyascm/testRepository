@@ -31,12 +31,12 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: APPS_PAGE_LOAD_START }),
 });
 
-
+// Here scopeExposure is 0 for all, 1 for readonly, 2 for fullyscope
 class Apps extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        checkedState: 2
+        scopeExposure: 2
     }
     this.onCheckBoxChecked = this.onCheckBoxChecked.bind(this)
   }
@@ -47,7 +47,7 @@ class Apps extends Component {
   }
   
 
-  onCheckBoxChecked = (e, { value }) => this.setState({ checkedState:value })
+  onCheckBoxChecked = (e, { value }) => this.setState({ scopeExposure:value })
   render() {
     const { contextRef } = this.state
     let containerStyle = {
@@ -71,7 +71,7 @@ class Apps extends Component {
       )
     }
     else {
-      var appList = (<AppList showOnlyFullScope={this.state.showOnlyFullScope} />)
+      var appList = (<AppList scopeExposure={this.state.scopeExposure} />)
       var appDetails = this.props.apps.selectedAppItem ? (<Grid.Column width={16 - gridWidth}>
                                                               <AppDetailsSection  applications ={[]} />
                                                           </Grid.Column>) : ""
@@ -83,7 +83,7 @@ class Apps extends Component {
                 <Radio name='radioGroup'
                   label='Show all apps'
                   value={0}
-                  checked={this.state.checkedState === 0}
+                  checked={this.state.scopeExposure === 0}
                   onChange={this.onCheckBoxChecked}
                 />
               </Grid.Column>
@@ -91,7 +91,7 @@ class Apps extends Component {
                 <Radio name='radioGroup'
                   label='Show readonly scope apps'
                   value={1}
-                  checked={this.state.checkedState === 1}
+                  checked={this.state.scopeExposure === 1}
                   onChange={this.onCheckBoxChecked}
                 />
               </Grid.Column>
@@ -99,7 +99,7 @@ class Apps extends Component {
                 <Radio name='radioGroup'
                   label='Show full scope apps'
                   value={2}
-                  checked={this.state.checkedState === 2}
+                  checked={this.state.scopeExposure === 2}
                   onChange={this.onCheckBoxChecked}
                 />
               </Grid.Column>
