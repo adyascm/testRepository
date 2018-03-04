@@ -42,11 +42,11 @@ const ResourceDetails = props => {
                         <div><Label basic>Last Modified at {props.rowData['last_modified_time']} by {props.rowData['last_modifying_user_email']}</Label></div>
 
                         <div style={{ margin: "5px" }}>
-                            <Label primary><a href={props.rowData['web_view_link']} target="_blank">View</a></Label>
-                            <Label primary><a href={props.rowData['web_content_link']} target="_blank">Download</a></Label>
+                            <Label primary="true"><a href={props.rowData['web_view_link']} target="_blank">View</a></Label>
+                            <Label primary="true"><a href={props.rowData['web_content_link']} target="_blank">Download</a></Label>
                         </div>
                     </Item.Meta>
-                    <Item.Extra extra>
+                    <Item.Extra extra="true">
                         <Dropdown placeholder='Quick Actions...' selection fluid options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
                     </Item.Extra>
                 </Item.Content>

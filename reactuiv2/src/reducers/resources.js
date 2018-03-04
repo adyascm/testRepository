@@ -85,7 +85,6 @@ export default (state = defaultState, action) => {
             //     rows.push(row)
             // }
 
-            console.log("resource tree : ", action.payload)
             return {
                 ...state,
                 isLoading: false,

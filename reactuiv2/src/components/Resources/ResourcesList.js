@@ -69,7 +69,6 @@ class ResourcesList extends Component {
     }
 
     onCellClicked(params) {
-        console.log("cell clicked data : ", params.data)
         this.props.setRowData(params.data)
     }
 
