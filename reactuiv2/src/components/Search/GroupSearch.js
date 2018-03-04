@@ -15,7 +15,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onUsersLoad: (payload) =>
-    dispatch({ type: USERS_PAGE_LOADED, payload }),
+    dispatch({ type: USERS_PAGE_LOADED, payload })
 });
 
 class GroupSearch extends Component {
@@ -95,7 +95,6 @@ class GroupSearch extends Component {
 
     render() {
         const { isLoading, value, results } = this.state
-        console.log("this.props.defaultValue ", this.props.defaultValue);
         if(!this.props.users.usersTreePayload)
             return null;
         return (

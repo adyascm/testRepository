@@ -40,7 +40,7 @@ const UserDetails = props => {
     }
     if (parentGroups.length < 1) {
         parentGroups.push((
-            <Label color='orange'>
+            <Label key="-1" color='orange'>
                 None
             </Label>
         ));
@@ -69,7 +69,7 @@ const UserDetails = props => {
                             {parentGroups}
                         </Label.Group>
                     </Item.Description>
-                    <Item.Extra extra>
+                    <Item.Extra extra="true">
                         <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
                     </Item.Extra>
                 </Item.Content>

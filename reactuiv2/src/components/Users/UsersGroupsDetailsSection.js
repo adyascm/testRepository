@@ -72,7 +72,7 @@ class UsersGroupsDetailsSection extends Component {
 
     render() {
         var resourceLayout = (
-            <Container stretched>
+            <Container stretched="true">
                 <Grid stretched>
                     <Grid.Row stretched style={{ marginLeft: '5px' }}>
                         <Dropdown

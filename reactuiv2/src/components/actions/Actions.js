@@ -103,7 +103,7 @@ class Actions extends Component {
                 key={field.key}
                 onChange={this.onUpdateParameters(field.key)}
                 value={this.state[field.key]}
-                readOnly={!field.editable} required={field.editable} />)
+                readOnly={!field.editable} required={field.editable !== 0? true: false} />)
         });
         let message = (<div></div>)
         if (this.state.successMessage) {

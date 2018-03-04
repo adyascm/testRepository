@@ -96,7 +96,6 @@ class UsersTree extends Component {
     }
 
     componentWillReceiveProps(nextProps){
-        console.log("nextprops userstree : ", nextProps.usersTreePayload)
         if(this.state.showOnlyExternal != nextProps.showOnlyExternal)
         {
             this.setState({

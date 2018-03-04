@@ -9,8 +9,6 @@ const initializePushNotifications = (props) => {
       this.realtime = factory.createClient();
 
       this.realtime.onConnected = (client) => {
-        console.log("realtime connected");
-
         // subscribe a channel to receive messages
         client.subscribe("adya-scan-update", true, (conn, channel, msg) => {
           // console.log("Message received on adya-scan-update channel - " + msg);

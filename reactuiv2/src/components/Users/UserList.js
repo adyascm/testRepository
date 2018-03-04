@@ -94,7 +94,7 @@ class UserList extends Component {
                     image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{row.name.charAt(0)}</Label></Image>
                 }
                 return ((
-                    <Card user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':''}>
+                    <Card key={row.key} user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':null}>
                         <Card.Content>
                             {image}
 
