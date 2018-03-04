@@ -21,7 +21,6 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
-        console.log("props.location : ", props.location)
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
@@ -41,7 +40,7 @@ const LoggedInView = props => {
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
                     <Menu.Item icon='settings' as={Link} to="/datasources" onClick={props.handleClick} active={props.currLocation === '/datasources'} />
-                    <Menu.Item icon labelPosition="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'margin-left': '6px'}}/></Menu.Item>
+                    <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
         );
@@ -67,14 +66,12 @@ class Header extends React.Component {
     }
 
     handleClick = () => {
-        console.log("item clicked")
         this.setState({
             currLocation: window.location.pathname
         })
     }
 
     render() {
-        console.log("location : ", window.location.pathname)
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} />

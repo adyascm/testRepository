@@ -51,8 +51,9 @@ class ResourcePermissionSection extends Component {
             console.log("actionType: ", this.state[data["value"]]);
             this.props.onChangePermissionForResource(this.state[data["value"]],data,data["value"],email)
         }
-        else
+        else {
             this.props.onChangePermissionForResource('update_permission_for_user',data,data["value"],email)
+        }
     }
 
     handleClick(event,userEmail,permissionType) {

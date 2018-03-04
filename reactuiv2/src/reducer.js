@@ -7,7 +7,7 @@ import users from './reducers/users';
 import reports from './reducers/reports'
 import resources from './reducers/resources'
 import message from './reducers/message'
-import auditLog from './reducers/auditLog'
+import auditlog from './reducers/auditlog'
 
 export default combineReducers({
   auth,
@@ -17,5 +17,5 @@ export default combineReducers({
   resources,
   reports,
   message,
-  auditLog
+  auditlog
 });

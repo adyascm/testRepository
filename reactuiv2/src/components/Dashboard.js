@@ -62,11 +62,11 @@ class Dashboard extends Component {
           this.simpleWidgetConfigs.map(config => {
             var widget = null;
             if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget config={config} />
+              widget = <SimpleNumberWidget key={config["id"]} config={config} />
             else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget config={config} />
+              widget = <ChartWidget key={config["id"]} config={config} />
             else
-              widget = <ListWidget config={config} />
+              widget = <ListWidget key={config["id"]} config={config} />
 
             return (
               widget
@@ -79,11 +79,11 @@ class Dashboard extends Component {
           this.chartWidgetConfigs.map(config => {
             var widget = null;
             if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget config={config} />
+              widget = <SimpleNumberWidget key={config["id"]} config={config} />
             else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget config={config} />
+              widget = <ChartWidget key={config["id"]} config={config} />
             else
-              widget = <ListWidget config={config} />
+              widget = <ListWidget key={config["id"]} config={config} />
 
             return (
               widget

@@ -15,7 +15,7 @@ import {
 
 
 const mapStateToProps = state => ({
-    ...state.auditLog
+    ...state.auditlog
 });
 
 const mapDispatchToProps = dispatch => ({
