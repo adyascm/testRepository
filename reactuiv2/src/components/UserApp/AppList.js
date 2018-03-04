@@ -1,13 +1,7 @@
 import React, { Component } from 'react';
-import agent from '../../utils/agent'
-import { Item, Card, Image, Label } from 'semantic-ui-react'
+import { Card, Image, Label } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
-
-
-import { AgGridReact } from "ag-grid-react";
-import 'ag-grid/dist/styles/ag-grid.css';
-import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import {
     APPS_ITEM_SELECTED
@@ -48,22 +42,22 @@ class AppList extends Component {
         var appCards =[]
         if (this.props.appPayLoad) {
             let allapps = []
-            if (this.state.scopeExposure ==0)
+            if (this.state.scopeExposure === 0)
             {
                 allapps =this.props.appPayLoad
             }
             else
             {
-                for(var appkey in this.props.appPayLoad)
+                for(let appkey in this.props.appPayLoad)
                 {
                     let app = this.props.appPayLoad[appkey]
-                    if (this.state.scopeExposure == 2 && !app.is_readonly_scope)
+                    if (this.state.scopeExposure === 2 && !app.is_readonly_scope)
                         allapps.push(app)
-                    else if (this.state.scopeExposure == 1 && app.is_readonly_scope)
+                    else if (this.state.scopeExposure === 1 && app.is_readonly_scope)
                         allapps.push(app)
                 }
             }
-            for(var appkey in allapps)
+            for(let appkey in allapps)
             {
                 var app = allapps[appkey]
                 var appName = app.display_text;

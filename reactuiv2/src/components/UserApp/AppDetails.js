@@ -2,8 +2,6 @@ import React from 'react';
 
 
 import { Item, Label, Grid } from 'semantic-ui-react'
-import AdyaLogo from '../../AdyaLogo.png'
-import { text } from 'superagent/lib/node/parsers';
 
 const AppDetails = props => {
 

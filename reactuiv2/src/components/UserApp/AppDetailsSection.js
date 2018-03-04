@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tab, Segment, Sticky, Icon, Grid,Button, Dropdown, Container } from 'semantic-ui-react';
+import { Tab, Segment, Icon, Grid,Button } from 'semantic-ui-react';
 import AppDetails from './AppDetails';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
@@ -38,15 +38,15 @@ class AppDetailsSection extends Component {
     }
 
     render() {
-        var appLayout = (
-            <Container stretched>
-                <Grid stretched>
-                    <Grid.Row stretched style={{marginLeft: '5px'}}>
+        // var appLayout = (
+        //     <Container stretched>
+        //         <Grid stretched>
+        //             <Grid.Row stretched style={{marginLeft: '5px'}}>
 
-                    </Grid.Row>
-                </Grid>
-            </Container>
-        )
+        //             </Grid.Row>
+        //         </Grid>
+        //     </Container>
+        // )
 
         if (!this.props.selectedAppItem)
             return null;

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
-import { Search, Grid } from 'semantic-ui-react'
-import { Link } from 'react-router-dom'
+import { Search } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
@@ -59,8 +58,8 @@ class ResourceSearch extends Component {
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
-            const re = new RegExp(this.state.value, 'i')
-            var results = [];
+            //const re = new RegExp(this.state.value, 'i')
+            //var results = [];
 
             agent.Resources.searchResources(this.state.value).then(res => {
                 this.setState({
@@ -68,7 +67,6 @@ class ResourceSearch extends Component {
                     results: res,
                 })
             }, error => {
-                console.log("error : ", error)
                 this.setState({
                     isLoading: false,
                     results: [],

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom'
-import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
+import { Statistic, Card, Loader, Dimmer } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 

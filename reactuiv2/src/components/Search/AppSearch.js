@@ -1,9 +1,6 @@
 import React, { Component } from 'react'
-import { Search, Grid } from 'semantic-ui-react'
-import { Link } from 'react-router-dom'
 
 import { connect } from 'react-redux';
-import agent from '../../utils/agent';
 import GroupSearch from './GroupSearch';
 import ResourceSearch from './ResourceSearch';
 

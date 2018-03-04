@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 
-import { Route, Switch, Redirect } from 'react-router-dom';
-
 import { connect } from 'react-redux';
-import { Container, Dimmer, Loader, Grid, Divider, Radio, Sticky } from 'semantic-ui-react';
+import { Container, Dimmer, Loader, Grid, Radio } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
@@ -49,7 +47,7 @@ class Apps extends Component {
 
   onCheckBoxChecked = (e, { value }) => this.setState({ scopeExposure:value })
   render() {
-    const { contextRef } = this.state
+    //const { contextRef } = this.state
     let containerStyle = {
       height: "100%",
       textAlign: "left"

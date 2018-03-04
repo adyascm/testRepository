@@ -2,7 +2,6 @@ import React, { Component} from 'react';
 import * as Helper from './helpers/index';
 import classnames from 'classnames' ;
 import PropTypes from 'prop-types'
-import {Card, Button, Form, Header, Modal, Checkbox} from 'semantic-ui-react'
 import {REPORTS_CRON_EXP} from '../../constants/actionTypes';
 import {connect} from 'react-redux';
 

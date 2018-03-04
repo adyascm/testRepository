@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tab, Segment, Sticky, Icon } from 'semantic-ui-react';
+import { Tab, Segment, Icon } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import ResourcePermissions from './ResourcePermissions';
 import ResourceDetails from './ResourceDetails';
@@ -31,7 +31,7 @@ class ResourceDetailsSection extends Component {
     }
 
     onPermissionChange(event, permission, newValue) {
-        if (permission.permission_type != newValue)
+        if (permission.permission_type !== newValue)
             this.props.onChangePermissionForResource('update_permission_for_user', permission, newValue)
     }
 

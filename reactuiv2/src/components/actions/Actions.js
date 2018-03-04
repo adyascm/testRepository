@@ -119,7 +119,7 @@ class Actions extends Component {
             />)
         }
         return (
-            <Modal open={this.props.action != undefined} className="scrolling" >
+            <Modal open={this.props.action !== undefined} className="scrolling" >
                 <Modal.Header>Action - {actionConfig.name}</Modal.Header>
                 <Modal.Content >
                     {message}

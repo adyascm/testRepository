@@ -1,13 +1,8 @@
 import React, { Component } from 'react';
-import agent from '../../utils/agent'
-import { Item, Card, Image, Label } from 'semantic-ui-react'
+import { Card, Image, Label } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
-
-import { AgGridReact } from "ag-grid-react";
-import 'ag-grid/dist/styles/ag-grid.css';
-import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import {
     USER_ITEM_SELECTED
@@ -57,10 +52,10 @@ class UserList extends Component {
                 else
                     rowItem.type = rowItem.type || "group";
                 if (this.state.showOnlyExternal) {
-                    if (rowItem.member_type != 'EXT')
+                    if (rowItem.member_type !== 'EXT')
                         continue;
                 }
-                if (rowItem.type == "group") {
+                if (rowItem.type === "group") {
                     continue;
                 }
                 rows.push(rowItem)

@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
 import {
     USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
-import agent from '../../utils/agent';
 
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
@@ -96,7 +94,7 @@ class UsersTree extends Component {
     }
 
     componentWillReceiveProps(nextProps){
-        if(this.state.showOnlyExternal != nextProps.showOnlyExternal)
+        if(this.state.showOnlyExternal !== nextProps.showOnlyExternal)
         {
             this.setState({
                 ...this.state,
@@ -111,7 +109,7 @@ class UsersTree extends Component {
         if(this.props.usersTreePayload)
         {
             let rows = []
-            let emailRowMap = {}
+            //let emailRowMap = {}
             let keys = Object.keys(this.props.usersTreePayload)
     
             for (let index = 0; index < keys.length; index++) {
@@ -130,10 +128,10 @@ class UsersTree extends Component {
                     rowItem.type = rowItem.type || "group";
                 if(this.state.showOnlyExternal)
                 {
-                    if(rowItem.member_type != 'EXT')
+                    if(rowItem.member_type !== 'EXT')
                         continue;
                 } 
-                else if(rowItem.type == "user") {
+                else if(rowItem.type === "user") {
                     continue;
                 }
                 rows.push(rowItem)

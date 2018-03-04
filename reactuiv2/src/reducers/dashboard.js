@@ -1,6 +1,5 @@
 import {
     DASHBOARD_PAGE_LOADED,
-    DASHBOARD_PAGE_UNLOADED,
     DASHBOARD_WIDGET_LOADED,
     DASHBOARD_WIDGET_LOAD_START
 } from '../constants/actionTypes';

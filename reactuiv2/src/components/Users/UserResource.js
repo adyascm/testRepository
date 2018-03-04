@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 import agent from '../../utils/agent'
-import ResourceCell from '../Resources/ResourceCell';
 import { Loader, Dimmer } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
@@ -92,7 +91,7 @@ class UserResource extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.selectedUserItem["key"] != nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
+        if (this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType}))
         }

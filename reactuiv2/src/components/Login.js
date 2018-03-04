@@ -1,16 +1,13 @@
 import React, { Component } from "react";
-import { Link, Redirect } from 'react-router-dom'
-import ListErrors from './ListErrors'
+import { Redirect } from 'react-router-dom'
 import { connect } from 'react-redux';
-import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Segment, Header, Button, Grid, Image, Message } from 'semantic-ui-react';
+import { Segment, Header, Button, Grid, Image } from 'semantic-ui-react';
 import {
-    UPDATE_FIELD_AUTH,
-    LOGIN, LOGIN_ERROR, LOGIN_SUCCESS, GET_ALL_ACTIONS,
+    LOGIN_ERROR, 
+    LOGIN_SUCCESS,
     LOGIN_PAGE_UNLOADED,
-    LOGIN_START,
-    API_ROOT
+    LOGIN_START
 } from '../constants/actionTypes';
 
 const mapStateToProps = state => ({

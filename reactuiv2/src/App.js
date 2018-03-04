@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { store } from './store';
@@ -18,7 +18,7 @@ import DataSourceVerifiedView from './components/DataSourceVerifiedView'
 import AuditLog from './components/AuditLog'
 import GlobalMessage from './GlobalMessage';
 
-import { Container, Message, Segment } from 'semantic-ui-react'
+import { Container, Message } from 'semantic-ui-react'
 
 
 import { APP_LOAD, REDIRECT } from './constants/actionTypes';

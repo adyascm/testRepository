@@ -1,21 +1,15 @@
 import React, { Component } from 'react';
 import '../App.css';
-import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
-import { Card, Button, Form, Container, Header, Divider } from 'semantic-ui-react'
-import Realtime from 'realtime-messaging';
+import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
 
 
 import {
-  API_ROOT,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
   DELETE_DATASOURCE_START,
-  DASHBOARD_PAGE_LOADED,
-  DASHBOARD_PAGE_UNLOADED,
-  SCAN_UPDATE_RECEIVED,
   LOGIN_START,
   LOGIN_ERROR,
   DATASOURCE_LOAD_START,
@@ -66,8 +60,7 @@ class ManageDataSources extends Component {
       authenticate("drive_scan_scope").then(data => {
         this.props.addDataSource("GSuite")
       }).catch(({ errors }) => { 
-        console.log("errors : ", errors)
-        this.props.onDataSourceLoadError(errors),
+        this.props.onDataSourceLoadError(errors)
         this.props.displayErrorMessage(errors)
       });
     };

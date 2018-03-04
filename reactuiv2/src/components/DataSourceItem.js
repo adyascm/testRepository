@@ -1,6 +1,5 @@
 import React from 'react';
-import { Button, Card, Image, Dimmer, Segment, Loader, Progress, Label, Header } from 'semantic-ui-react'
-import agent from '../utils/agent';
+import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
 
 
@@ -11,17 +10,17 @@ const DataSourceItem = props => {
         ev.preventDefault();
         props.onDelete(datasource);
     };
-    const onScanButtonClick = (e) => {
-        console.log("onclick scan called")
-        e.preventDefault();
-        agent.Setting.processNotifications().then(res => {
-            console.log(res);
-        });
-    }
+    // const onScanButtonClick = (e) => {
+    //     console.log("onclick scan called")
+    //     e.preventDefault();
+    //     agent.Setting.processNotifications().then(res => {
+    //         console.log(res);
+    //     });
+    // }
 
     const getScanStatus = (datasource) => {
         var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
-        if (datasource.total_file_count == 0)
+        if (datasource.total_file_count === 0)
             percent = 0;
 
         if (datasource.file_scan_status > 10000 || datasource.user_scan_status > 1 || datasource.group_scan_status > 1)
@@ -30,7 +29,7 @@ const DataSourceItem = props => {
         var file_status = 1
         if (datasource.is_serviceaccount_enabled)
             file_status = datasource.total_user_count
-        if ((datasource.file_scan_status >= file_status && datasource.total_file_count == datasource.processed_file_count) && (datasource.user_scan_status == 1 && datasource.total_user_count == datasource.processed_user_count) && (datasource.group_scan_status == 1 && datasource.total_group_count == datasource.processed_group_count))
+        if ((datasource.file_scan_status >= file_status && datasource.total_file_count === datasource.processed_file_count) && (datasource.user_scan_status === 1 && datasource.total_user_count === datasource.processed_user_count) && (datasource.group_scan_status === 1 && datasource.total_group_count === datasource.processed_group_count))
             return <Progress size='small' precision={0} percent={percent} success />; //Complete
         return <Progress size='small' precision='0' percent={percent} active />; //In Progress
     }

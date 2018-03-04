@@ -1,7 +1,6 @@
 import {
     APPS_ITEM_SELECTED,
     APPS_PAGE_LOADED,
-    APPS_PAGE_UNLOADED,
     APPS_PAGE_LOAD_START
 } from '../constants/actionTypes';
 
@@ -14,7 +13,7 @@ export default (state = {}, action) => {
                 isLoading: true
             }
         case APPS_PAGE_LOADED:
-            let appPayLoad = !action.error?action.payload:[]
+            //let appPayLoad = !action.error?action.payload:[]
             return {
                 ...state,
                 isLoading: false,

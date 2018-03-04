@@ -6,7 +6,7 @@ import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
-import TestResourcesList from './TestResourcesList';
+//import TestResourcesList from './TestResourcesList';
 
 import {RESOURCES_FILTER_CHANGE} from '../../constants/actionTypes';
 
