@@ -8,7 +8,8 @@ import {
     USERS_RESOURCE_LOADED,
     USERS_RESOURCE_ACTION_LOAD,
     USERS_RESOURCE_ACTION_CANCEL,
-    USERS_RESOURCE_SET_FILE_SHARE_TYPE
+    USERS_RESOURCE_SET_FILE_SHARE_TYPE,
+    GROUP_SEARCH_PAYLOAD
 } from '../constants/actionTypes';
 
 
@@ -24,7 +25,14 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                usersTreePayload: action.payload
+                usersTreePayload: action.payload,
+                groupSearchPayload: undefined
+            }
+        case GROUP_SEARCH_PAYLOAD:
+            console.log("search results : ", action.payload)
+            return {
+                ...state,
+                groupSearchPayload: action.payload
             }
         case USER_ITEM_SELECTED:
             return {
