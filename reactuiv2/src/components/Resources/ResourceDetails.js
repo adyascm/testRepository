@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 'semantic-ui-react'
+import React from 'react';
+import { Item, Label, Dropdown } from 'semantic-ui-react'
 
 const ResourceDetails = props => {
     var quickActions = [

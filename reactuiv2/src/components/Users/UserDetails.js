@@ -1,8 +1,7 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 
-import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 'semantic-ui-react'
-import AdyaLogo from '../../AdyaLogo.png'
+import { Item, Label, Icon, Dropdown, Header } from 'semantic-ui-react'
 
 const UserDetails = props => {
 
