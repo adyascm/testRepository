@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { Container, Dimmer, Loader, Grid, Divider, Checkbox, Sticky } from 'semantic-ui-react'
 
 import agent from '../../utils/agent';
-import UserActions from '../actions/UserActions'
+import Actions from '../actions/Actions'
 
 
 import {
@@ -116,16 +116,14 @@ class Users extends Component {
                 {!this.state.showHierarchy ? flatList : treeView}
               </Grid.Column>
               <Grid.Column width={16 - gridWidth}>
-                <UsersGroupsDetailsSection />
+                <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          <UserActions {...this.props.users}/>
+          <Actions />
         </Container >
-
       )
     }
-
   }
 }
 

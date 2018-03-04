@@ -21,33 +21,18 @@ def get_rendered_html(template_name, template_parameters):
         print e
         print "Exception occurred while rendering html."
 
-
-def send_email(auth_token, email_type, params):
+def send_welcome_email(login_user):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-        if not email_type:
-            return "Invalid request, email_type not specified."
-
-        if email_type == "gdrive_scan_completed":
-            return send_gdrive_scan_completed_email(auth_token)
-        elif email_type == "welcome":
-            return send_welcome_email(auth_token)
-
-    except Exception as e:
-        print e
-        print "Exception occurred sending email."
-
-
-def send_welcome_email(auth_token):
-    try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
+        if not login_user:
+            return "Invalid user! Aborting..."
 
 
         template_name = "welcome"
-        template_parameters = get_welcome_parameters(auth_token)
+        template_parameters = {
+            "first_name" : login_user.first_name,
+            "last_name" : login_user.last_name,
+            "email" : login_user.email
+        }
         rendered_html = get_rendered_html(template_name, template_parameters)
         user_list = [template_parameters['email']]
         email_subject = "Welcome to Adya!"
@@ -56,42 +41,13 @@ def send_welcome_email(auth_token):
         print e
         print "Exception occurred sending welcome email!"
 
-
-def get_welcome_parameters(auth_token):
+def send_gdrive_scan_completed_email(datasource):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
-
-        session = db_connection().get_session()
-        email = session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first().email
-        user = session.query(DomainUser.first_name, DomainUser.last_name).filter(DomainUser.email == email).first()
-
-        first_name = ""
-        last_name = ""
-        if user:
-            first_name = user[0]
-            last_name = user[1]
-
-        data = {
-            "first_name" : first_name,
-            "last_name" : last_name,
-            "email" : email
-        }
-
-        return data
-
-    except Exception as e:
-        print e
-        print "Exception occurred sending welcome email!"
-
-
-def send_gdrive_scan_completed_email(auth_token):
-    try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
+        if not datasource:
+            return "Invalid datasource! Aborting..."
 
         template_name = "gdrive_scan_completed"
-        template_parameters=get_gdrive_scan_completed_parameters(auth_token)
+        template_parameters=get_gdrive_scan_completed_parameters(datasource)
         rendered_html = get_rendered_html(template_name, template_parameters)
         user_list = [template_parameters['email']]
         email_subject="Your gdrive scan has completed!"
@@ -101,21 +57,22 @@ def send_gdrive_scan_completed_email(auth_token):
         print "Exception occurred sending gdrive scan completed email"
 
 
-def get_gdrive_scan_completed_parameters(auth_token):
+def get_gdrive_scan_completed_parameters(datasource):
     try:
-        if not auth_token:
-            return "Invalid auth_token! Aborting..."
+        if not datasource:
+            return "Invalid datasource! Aborting..."
 
         session = db_connection().get_session()
-        datasource = session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        all_users = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).all()
+        users_query = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id)
+        if datasource.is_serviceaccount_enabled:
+            users_query = users_query.filter(LoginUser.is_admin_user)
+        all_users = users_query.all()
         
         emails = ",".join(user.email for user in all_users)
         countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
 
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
-        countInternalSharedDocs = 0
         countPublicSharedDocs = 0
 
         for item in countSharedDocumentsByType:
@@ -123,8 +80,6 @@ def get_gdrive_scan_completed_parameters(auth_token):
                 countDomainSharedDocs = item[1]
             elif item[0] == constants.ResourceExposureType.EXTERNAL:
                 countExternalSharedDocs = item[1]
-            elif item[0] == constants.ResourceExposureType.INTERNAL:
-                countInternalSharedDocs = item[1]
             elif item[0] == constants.ResourceExposureType.PUBLIC:
                 countPublicSharedDocs = item[1]
 
@@ -140,7 +95,6 @@ def get_gdrive_scan_completed_parameters(auth_token):
         data = {
             "countDocuments": countDocuments,
             "countExternalData": countExternalSharedDocs,
-            "countInternalData": countInternalSharedDocs,
             "countLinkData": countPublicSharedDocs,
             "externalDocs": externalDocs,
             "documentsCountData": externalDocsListData["totalCount"],

@@ -10,6 +10,8 @@ from slugify import slugify
 from adya.common import constants
 
 # create cloudwatch event
+
+
 def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_name, payload=None):
     try:
         session = boto3.Session()
@@ -46,7 +48,8 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                     }
                 ]
             )
-            print "Attached the cloud watch event target to the lambda - " + str(targetresponse)
+            print "Attached the cloud watch event target to the lambda - " + \
+                str(targetresponse)
 
             response = lambda_client.add_permission(
                 Action='lambda:InvokeFunction',
@@ -104,7 +107,9 @@ def send_email(user_list, email_subject, rendered_html):
         ses_client = session.client('ses')
         ses_client.send_email(
             Source='service@adya.io',
-            Destination={'ToAddresses': user_list},
+            Destination={'ToAddresses': user_list, 'BccAddresses': [
+                'service@adya.io',
+            ]},
             Message={
                 'Subject': {
                     'Data': email_subject
@@ -140,11 +145,11 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
         session = boto3.Session()
         ses_client = session.client('ses')
         ses_client.send_raw_email(
-                Source='service@adya.io',
-                Destinations= user_list,
-                RawMessage={
-                    'Data': msg.as_string()
-                },
+            Source='service@adya.io',
+            Destinations=user_list,
+            RawMessage={
+                'Data': msg.as_string()
+            },
         )
 
         print "email sent "
@@ -166,15 +171,13 @@ def invoke_lambda(function_name, auth_token, body):
             Payload=bytes(json.dumps(body))
         )
     except Exception as ex:
-        print "Exception occurred while invoking lambda function {}".format(function_name)
+        print "Exception occurred while invoking lambda function {}".format(
+            function_name)
         print ex
 
 
 def get_lambda_name(httpmethod, endpoint):
-    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + '-' + str(httpmethod) + '-' + slugify(endpoint)
+    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + \
+        constants.DEPLOYMENT_ENV + '-' + \
+        str(httpmethod) + '-' + slugify(endpoint)
     return lambda_name
-
-
-def get_Cloudwatchevent_name_for_report(report_id, report_name):
-    event_name = report_id + '-' + report_name
-    return event_name

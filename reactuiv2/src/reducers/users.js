@@ -20,7 +20,6 @@ export default (state = {}, action) => {
                 isLoading: true
             }
         case USERS_PAGE_LOADED:
-            console.log("payload : ", action.payload)
             let usersTreePayload = !action.error?action.payload:[]
             return {
                 ...state,
@@ -28,7 +27,6 @@ export default (state = {}, action) => {
                 usersTreePayload: action.payload
             }
         case USER_ITEM_SELECTED:
-            console.log("selected user : ", action.payload)
             return {
                 ...state,
                 selectedUserItem: action.payload,
@@ -51,7 +49,6 @@ export default (state = {}, action) => {
                 isResourcesLoading: true
             }
         case USERS_RESOURCE_LOADED:
-            console.log("user resource payload : ", action.payload)
             var rows = [];
             if (!action.error) {
                 if (action.payload) {
@@ -79,9 +76,13 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 action: {
-                    actionType: action.actionType,
-                    actionResource: action.resource,
-                    actionNewValue: action.newValue
+                    key: action.actionType,
+                    old_owner_email: state.selectedUserItem.email,
+                    user_email: state.selectedUserItem.email,
+                    resource_id: action.resource ? action.resource.resource_id : undefined,
+                    resource_name: action.resource ? action.resource.resource_name : undefined,
+                    resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
+                    new_permission_role: action.newValue,
                 }
             }
         case USERS_RESOURCE_ACTION_CANCEL:

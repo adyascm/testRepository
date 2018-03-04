@@ -39,7 +39,6 @@ def get_credentials(domain_id,user_email=None):
                                 token_uri=GOOGLE_TOKEN_URI,
                                 client_id=CLIENT_ID,
                                 client_secret=CLIENT_SECRET)
-        db_session.close()
     return credentials
 
 
@@ -104,7 +103,7 @@ def check_if_serviceaccount_enabled(emailid):
 def check_if_user_isamdin(credentials,emailid):
     try:
         directory_service = get_directory_service(None, credentials)
-        users = directory_service.users().get(userKey=emailid)
+        users = directory_service.users().get(userKey=emailid).execute()
         return True
     except Exception as ex:
         print ex

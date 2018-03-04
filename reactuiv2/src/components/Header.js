@@ -33,6 +33,7 @@ const LoggedInView = props => {
                     <Menu.Item as={Link} to="/resources" onClick={props.handleClick} active={props.currLocation === '/resources'} >Resources</Menu.Item>
                     <Menu.Item as={Link} to="/reports" onClick={props.handleClick} active={props.currLocation === '/reports'} >Reports</Menu.Item>
                     <Menu.Item as={Link} to="/auditlog" onClick={props.handleClick} active={props.currLocation === '/auditlog'} >AuditLog</Menu.Item>
+                    <Menu.Item as={Link} to="/apps" onClick={props.handleClick} active={props.currLocation === '/apps'} >Apps</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>

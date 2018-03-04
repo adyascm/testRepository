@@ -47,11 +47,11 @@ class UserActions extends Component {
     getActionParameters = (populate) => {
       for(let i=0; i<this.props.all_actions_list.length; i=i+1) {
         let act = this.props.all_actions_list[i]
-        console.log("action: " + act['Name'])
+        console.log("action: " + act['name'])
         console.log("act_type:" + this.props.action['actionType'])
-        if (act['Name'] == this.props.action['actionType']) {
-          console.log("found parameters" + act['Parameters'])
-          let parameters = act['Parameters'];
+        if (act['name'] == this.props.action['actionType']) {
+          console.log("found parameters" + act['parameters'])
+          let parameters = act['parameters'];
           if (populate) {
             for(let key of Object.keys(parameters)) {
               parameters[key] = this.state.parameters_map[key];
@@ -69,8 +69,8 @@ class UserActions extends Component {
 
     if(this.props.action['actionType'] === "watchAllActions"){
       var reportFormInput = {};
-      reportFormInput.name = "watch_"+ this.props.selectedUser.key
-      reportFormInput.description = "watch action report"
+      reportFormInput.name = "watch activity for "+ this.props.selectedUser.key
+      reportFormInput.description = "watch activity for "+ this.props.selectedUser.key
       reportFormInput.frequency = "cron(0 9 ? * 2 *)"
       reportFormInput.receivers = this.props.logged_in_user['email']
       reportFormInput.report_type = "Activity"
@@ -83,7 +83,7 @@ class UserActions extends Component {
       agent.Scheduled_Report.createReport(reportFormInput)
                     .then(resp => { console.log(resp);
                           this.setState({ inProgress: false });
-                          this.setState({ action_response: resp }); })
+                          this.setState({ action_response: resp['message'] }); })
     }
     else{
       let parameters = this.getActionParameters(true)
@@ -95,7 +95,7 @@ class UserActions extends Component {
       agent.Actions.initiateAction(JSON.stringify(payload))
                     .then(resp => { console.log(resp);
                           this.setState({ inProgress: false });
-                          this.setState({ action_response: resp }); })
+                          this.setState({ action_response: resp['message'] }); })
     }
   }
 
@@ -129,7 +129,7 @@ class UserActions extends Component {
                  </div>
 
                   <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                  <Button positive loading={this.state.inProgress} labelPosition='right'
+                  <Button positive loading={this.state.inProgress} labelposition='right'
                   icon='checkmark' content='Submit' onClick={this.takeAction(this.build_action_payload_and_post)} />
               </Modal.Actions>
        </Modal>
@@ -149,7 +149,7 @@ class UserActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive loading={this.state.inProgress} labelPosition='right'
+                    <Button positive loading={this.state.inProgress} labelposition='right'
                     icon='checkmark' content='Transfer' onClick={this.takeAction(this.transferOwnership)} />
                 </Modal.Actions>
             </Modal>
@@ -167,7 +167,7 @@ class UserActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive loading={this.state.inProgress} labelPosition='right'
+                    <Button positive loading={this.state.inProgress} labelposition='right'
                     icon='checkmark' content='Change' onClick={this.takeAction(this.transferOwnership)} />
                 </Modal.Actions>
             </Modal>
@@ -187,7 +187,7 @@ class UserActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive loading={this.state.inProgress} labelPosition='right'
+                    <Button positive loading={this.state.inProgress} labelposition='right'
                     icon='checkmark' content='Change' onClick={this.takeAction(this.transferOwnership)} />
                 </Modal.Actions>
             </Modal>
@@ -204,7 +204,7 @@ class UserActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive loading={this.state.inProgress} labelPosition='right'
+                    <Button positive loading={this.state.inProgress} labelposition='right'
                     icon='checkmark' content='Transfer' onClick={this.takeAction(this.build_action_payload_and_post)} />
                 </Modal.Actions>
             </Modal>

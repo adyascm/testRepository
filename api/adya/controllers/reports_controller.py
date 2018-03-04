@@ -6,7 +6,7 @@ from flask import request
 
 from adya.controllers import domain_controller
 from adya.datasources.google import activities
-from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource
+from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, Application
 from adya.db.connection import db_connection
 from adya.common import utils, constants, request_session
 from sqlalchemy import func, or_, and_
@@ -33,8 +33,9 @@ def get_widget_data(auth_token, widget_id):
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
         data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
-            Resource.exposure_type != constants.ResourceExposureType.INTERNAL).group_by(
-            Resource.exposure_type).all()
+                                and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
+                                Resource.domain_id == LoginUser.domain_id, 
+                                Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(LoginUser.auth_token == auth_token).group_by(Resource.exposure_type).all()
     elif widget_id == 'sharedDocsList':
         data = {}
         data["rows"] = db_session.query(Resource.resource_name, Resource.resource_type).filter(
@@ -57,6 +58,12 @@ def get_widget_data(auth_token, widget_id):
         data["totalCount"] = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
                                                                             DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
             LoginUser.auth_token == auth_token).count()
+    elif widget_id =='userAppAccess':
+        data ={}
+        data["Readonly Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
+                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
+        data["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
+                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
     return data
 
 
@@ -211,7 +218,6 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
                 }
 
                 response_data.append(data_map)
-    db_session.close()
     return response_data, email_list, report_type, report_desc, report_name
 
 

@@ -149,6 +149,14 @@ functions:
           method: get
           cors: true
 
+  get-getapps:
+    handler: adya.services.lambda.reports_handler.get_apps
+    events:
+      - http:
+          path: getapps
+          method: get
+          cors: true
+
   get-getresourcetree:
     handler: adya.services.lambda.reports_handler.get_resources
     events:
@@ -245,6 +253,22 @@ functions:
           method: post
           cors: true
 
+  post-scan-userapp:
+    handler: adya.services.lambda.scan_handler.get_user_app
+    events:
+      - http:
+          path: scan/usersapp
+          method: post
+          cors: true
+
+  delete-scan-userapp:
+    handler: adya.services.lambda.scan_handler.revoke_user_app_access
+    events:
+      - http:
+          path: scan/usersapp
+          method: delete
+          cors: true
+
   get-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.get_group_members
     events:
@@ -322,7 +346,7 @@ functions:
           path: getallactions
           method: get
           cors: true
-  post-getallactions:
+  post-initiateaction:
     handler: adya.services.lambda.actions_handler.initiate_action
     events:
       - http:

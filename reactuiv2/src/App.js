@@ -12,6 +12,7 @@ import ManageDataSources from './components/ManageDataSources.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
+import Apps from './components/UserApp/Apps.js'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
 import AuditLog from './components/AuditLog'
@@ -81,6 +82,7 @@ class App extends Component {
               <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
               <Route path="/datasources" component={SecuredView(ManageDataSources)} />
               <Route path="/auditlog" component={SecuredView(DataSourceVerifiedView(AuditLog))} />
+              <Route path="/apps" component={SecuredView(DataSourceVerifiedView(Apps))} />
               <Route path="/oauthstatus/:status" component={Dashboard} />
             </Container>
           </Switch>

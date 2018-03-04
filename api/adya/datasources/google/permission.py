@@ -105,5 +105,4 @@ class GetPermission():
         except Exception as ex:
             print (ex)
             print("Updating permission for failed")
-        finally:
-            db_session.close()
+        

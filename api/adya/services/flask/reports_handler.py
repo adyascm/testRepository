@@ -3,7 +3,6 @@ import uuid
 
 from flask_restful import Resource, request
 
-from adya.common import aws_utils, constants
 from adya.controllers import reports_controller, domain_controller
 from adya.common.request_session import RequestSession
 
@@ -28,11 +27,10 @@ class ScheduledReport(Resource):
         report = reports_controller.create_report(req_session.get_auth_token(), req_session.get_body())
 
         frequency = report.frequency
-        cloudwatch_eventname = report.name + "_" + report.report_id  #TODO: if someone changes the report_name
         payload = {'report_id': report.report_id}
         # function_name = get_lambda_name('get', 'executescheduledreport')
 
-        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id, function_name, payload)
+        # aws_utils.create_cloudwatch_event(report.report_id, frequency, report.report_id, function_name, payload)
         return req_session.generate_sqlalchemy_response(201, report)
 
     def get(self):
@@ -50,9 +48,8 @@ class ScheduledReport(Resource):
         if req_error:
             return req_error
         deleted_report = reports_controller.delete_report(req_session.get_auth_token(), req_session.get_req_param('reportId'))
-        cloudwatch_eventname = deleted_report.name + "_" + deleted_report.report_id
         # function_name = get_lambda_name('get', 'executescheduledreport')
-        # aws_utils.delete_cloudwatch_event(cloudwatch_eventname, function_name)
+        # aws_utils.delete_cloudwatch_event(deleted_report.report_id, function_name)
         return req_session.generate_response(200)
 
     def put(self):
@@ -66,7 +63,7 @@ class ScheduledReport(Resource):
         frequency = update_record['frequency']
         payload = {'report_id': report_id}
         # function_name = get_lambda_name('get', 'executescheduledreport')
-        # aws_utils.create_cloudwatch_event(cloudwatch_eventname, frequency, report.report_id)
+        # aws_utils.create_cloudwatch_event(report_id, frequency, report.report_id)
         return req_session.generate_sqlalchemy_response(201, update_record)
 
 

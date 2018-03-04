@@ -24,3 +24,10 @@ class db_connection(object):
     def get_session(self):
         create_session = sessionmaker(bind=self._engine,autoflush=False)
         return create_session()
+
+    def close_conenction(self):
+        try:
+           connection = self._engine.connect()
+           connection.close()
+        except Exception as ex:
+            print ex

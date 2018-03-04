@@ -7,8 +7,9 @@ import time,os
 
 from adya.common import constants,utils
 from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,\
-                             DomainGroup, DomainUser, ResourcePermission, Resource,ResourceParent,get_table
+from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure,DomainGroup,\
+                     DomainUser, ResourcePermission, Resource,ResourceParent,get_table,\
+                     Application,Report,Action,AuditLog,PushNotificationsSubscription
 from adya.datasources.google import gutils
 from sqlalchemy import String,Boolean,and_
 import csv
@@ -52,6 +53,10 @@ def create_datasource(auth_token, payload):
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
         datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        if not existing_user.is_admin_user:
+            datasource.user_scan_status = 1
+            datasource.group_scan_status = 1
+
         db_session.add(datasource)
         
         try:
@@ -64,7 +69,7 @@ def create_datasource(auth_token, payload):
         if datasource.is_dummy_datasource:
             create_dummy_datasource(db_session,existing_user.domain_id,datasource_id)
         else:
-            query_params = {"domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
+            query_params = {"isAdmin": str(existing_user.is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
         print "Received the response of start scan api"
         #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
@@ -74,31 +79,30 @@ def create_datasource(auth_token, payload):
 
 def delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
-    try:
-        existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        domain_id = existing_datasource.domain_id
-        if existing_datasource:
-            try:
-                db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-                db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-                db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-                db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-                db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-                db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-                db_session.delete(existing_datasource)
-                db_session.commit()
-            except Exception as ex:
-                print "Exception occurred during datasource data delete - " + ex
-            
-            try:
-                gutils.revoke_appaccess(domain_id)
-            except Exception as ex:
-                print "Exception occurred while revoking the app access - " + ex
-        else:
-            return None
-    finally:
-        db_session.close()
-
+    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    domain_id = existing_datasource.domain_id
+    if existing_datasource:
+        try:
+            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
+            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+            db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
+            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
+            db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+            db_session.delete(existing_datasource)
+            db_session.commit()
+        except Exception as ex:
+            print "Exception occurred during datasource data delete - " + ex
+        
+        try:
+            gutils.revoke_appaccess(domain_id)
+        except Exception as ex:
+            print "Exception occurred while revoking the app access - " + ex
+    else:
+        return None
 
 def create_domain(db_session,domain_id, domain_name):
     creation_time = datetime.datetime.utcnow().isoformat()
@@ -112,12 +116,12 @@ def create_domain(db_session,domain_id, domain_name):
     return domain
 
 
-def start_scan(auth_token, domain_id, datasource_id,is_service_account_enabled):
-    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_service_account_enabled: {}".format(domain_id, datasource_id, is_service_account_enabled)
+def start_scan(auth_token, domain_id, datasource_id,is_admin,is_service_account_enabled):
+    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(domain_id, datasource_id,is_admin, is_service_account_enabled)
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-
-    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
-    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
+    if is_admin == 'True':
+        messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
+        messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
     if is_service_account_enabled == 'False':
         messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 

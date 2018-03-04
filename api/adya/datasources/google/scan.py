@@ -2,12 +2,12 @@ from adya.controllers.domain_controller import update_datasource, get_datasource
 from adya.datasources.google import gutils, incremental_scan
 from adya.common import constants, errormessage
 from requests_futures.sessions import FuturesSession
-import uuid,json,time,datetime
+import uuid,json,time,datetime,sys
 from adya.db.connection import db_connection
 from adya.db import models
 from adya.common.constants import UserMemberType
 from sqlalchemy import and_
-from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent
+from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application
 from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
@@ -36,20 +36,18 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
                             "owners,size,createdTime, modifiedTime), "
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
-
-            resourcedata = {}
-            resourcedata["resources"] = results['files'][0:50]
+            
             print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
 
             update_and_get_count(datasource_id, DataSource.total_file_count, file_count, True)
 
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
-            messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
-            if file_count > 50:
+            sentfile_count =0
+            while  sentfile_count < file_count:
                 resourcedata = {}
-                resourcedata["resources"] = results['files'][50:100]
+                resourcedata["resources"] = results['files'][sentfile_count:sentfile_count+25]
                 messaging.trigger_post_event(constants.SCAN_RESOURCES,auth_token, query_params, resourcedata)
-
+                sentfile_count +=25
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
@@ -182,8 +180,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
-    finally:
-        db_session.close()
 
 
 
@@ -239,8 +235,6 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         last_result = utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
     if last_result:
         last_result.result()
-    db_session.close()
-
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
@@ -288,9 +282,9 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     user_db_insert_data_dic = []
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    logged_in_user = db_session.query(LoginUser).filter(LoginUser.auth_token== auth_token).first()
     session = FuturesSession()
     user_email_list = []
-    lastresult = None
     user_count = 0
     for user_data in users_data:
         user_count = user_count + 1
@@ -314,8 +308,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
             user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.UserMemberType.INTERNAL
         user_db_insert_data_dic.append(user)
-        if datasource.is_serviceaccount_enabled:
-            user_email_list.append(user_email)
+        user_email_list.append(user_email)
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_session.commit()
@@ -328,16 +321,19 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         print "Exception occurred while processing google directory users for domain_id: {}".format(domain_id)
         print ex
 
-    
+    lastresult =None
     if datasource.is_serviceaccount_enabled:
         print "Google service account is enabled, starting to fetch files for each processed user"
-        lastresult =None
         for user_email in user_email_list:
-            url = constants.SCAN_RESOURCES + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + user_email
-            lastresult = utils.get_call_with_authorization_header(session,url,auth_token)
-        if lastresult:
-            lastresult.result()
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': user_email}
+            messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
+
+    if logged_in_user.is_admin_user:
+        print "Getting all users app and its scope"
+        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+        userEmailList = {}
+        userEmailList["userEmailList"] = user_email_list
+        messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
@@ -411,7 +407,6 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_session.commit()
-        db_session.close()
         
         session = FuturesSession()
         url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
@@ -580,7 +575,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         datasource = get_datasource(None, datasource_id,db_session)
         if get_scan_status(datasource) == 1:
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
-            adya_emails.send_gdrive_scan_completed_email(datasource_id)
+            adya_emails.send_gdrive_scan_completed_email(datasource)
 
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
@@ -598,7 +593,10 @@ def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
         return 2 #Failed
 
-    if (datasource.file_scan_status > 0 and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
+    file_status = 1
+    if datasource.is_serviceaccount_enabled:
+        file_status = datasource.total_user_count
+    if (datasource.file_scan_status >= file_status and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
         return 1 #Complete
     return 0 #In Progress
 
@@ -618,3 +616,60 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
         db_session.commit()
     except Exception as ex:
         print ex
+
+def get_all_user_app(auth_token,domain_id,datasource_id,user_email_list):
+
+    process_user_count =0
+    total_user = len(user_email_list)
+    while process_user_count<total_user:
+        getuserappobject = GetAllUserAppAndScope(auth_token,domain_id,datasource_id,
+                        user_email_list[process_user_count:process_user_count+100])
+        getuserappobject.get_user_apps()
+        process_user_count +=100
+
+
+class GetAllUserAppAndScope():
+
+    def __init__(self,auth_token,domain_id,datasource_id,user_email_list):
+        self.auth_token = auth_token
+        self.domain_id = domain_id
+        self.datasource_id = datasource_id
+        self.user_email_list = user_email_list
+        self.db_session = db_connection().get_session()
+        self.length = len(user_email_list)
+
+    def app_data_callback(self,request_id, response, exception):
+        request_id = int(request_id) 
+        user_email = self.user_email_list[request_id - 1]
+        if response.get("items"):
+            for app in response["items"]:
+                application = Application()
+                application.domain_id= self.domain_id
+                application.datasource_id= self.datasource_id
+                application.user_email = user_email 
+                application.user_key = app["userKey"]
+                application.client_id = app["clientId"]
+                application.display_text = app.get("displayText")
+                application.anonymous = app.get("anonymous")
+                scopes_string =""
+                is_readonly_scope = True
+                scopes = app["scopes"]
+                for scope in scopes:
+                    if not str(scope).endswith('.readonly'):
+                        is_readonly_scope = False
+                        break
+                application.scopes = ','.join(scopes)
+                application.is_readonly_scope = is_readonly_scope
+                self.db_session.add(application)
+
+        if request_id == self.length:
+            self.db_session.commit()
+                
+
+    def get_user_apps(self):
+        directory_service = gutils.get_directory_service(self.domain_id)
+        batch = directory_service.new_batch_http_request(callback=self.app_data_callback)
+        for user_key in self.user_email_list:
+            user_app_data = directory_service.tokens().list(userKey=user_key)
+            batch.add(user_app_data)
+        batch.execute()

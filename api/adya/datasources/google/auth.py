@@ -92,5 +92,4 @@ def oauth_callback(oauth_code, scopes,state, error):
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
-    db_session.close()
     return redirect_url
