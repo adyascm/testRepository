@@ -7,13 +7,11 @@ import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
-import ResourceCell from './ResourceCell';
 import DateComponent from './DateComponent';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA,
-    RESOURCES_SET_FILE_SHARE_TYPE
+    RESOURCES_TREE_SET_ROW_DATA
 } from '../../constants/actionTypes';
 
 

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Grid, Button, Icon, Dropdown } from 'semantic-ui-react'
 
 

@@ -7,9 +7,6 @@ const mapStateToProps = state => ({
 })
 
 class ResourceCell extends Component {
-    constructor(props) {
-        super(props);
-    }
     render() {
         //console.log("cell params : ", this.props.data)
         let expandIcon = this.props.data.isExpanded?"triangle down":"triangle right"
