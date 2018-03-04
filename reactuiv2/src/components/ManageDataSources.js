@@ -109,7 +109,7 @@ class ManageDataSources extends Component {
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                <Button basic color='green' disabled={this.newDataSourceName} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading?true:false}>Connect your GSuite</Button>
+                <Button basic color='green' disabled={this.newDataSourceName !== ""?true:false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading?true:false}>Connect your GSuite</Button>
                 </div>
               </Card.Content>
             </Card>
@@ -124,7 +124,7 @@ class ManageDataSources extends Component {
             {
               this.props.common.datasources && this.props.common.datasources.map(ds => {
                 return (
-                  <DataSourceItem item={ds} onDelete={this.deleteDataSource} />
+                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} />
                 )
               })
             }
