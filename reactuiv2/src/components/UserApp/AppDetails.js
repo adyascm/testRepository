@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 
-import { Item, Image, Button, Label, Icon,Grid, Container, Dropdown, Header } from 'semantic-ui-react'
+import { Item, Label, Grid } from 'semantic-ui-react'
 import AdyaLogo from '../../AdyaLogo.png'
 import { text } from 'superagent/lib/node/parsers';
 

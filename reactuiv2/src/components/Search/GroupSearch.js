@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
-import { Search, Grid, Card, Image, Label } from 'semantic-ui-react'
-import { Link } from 'react-router-dom'
+import { Search, Image, Label } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
@@ -36,7 +35,8 @@ class GroupSearch extends Component {
     }
 
     resultRenderer = (r) => {
-        var image = null;
+        //var image = null;
+        var image;
                 if (r.photo_url) {
                     image = <Image inline avatar src={r.photo_url} floated='left'></Image>
                 } else {

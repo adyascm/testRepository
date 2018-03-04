@@ -1,4 +1,4 @@
-import React from 'react';
+//import React from 'react';
 import Realtime from 'realtime-messaging';
 import {SCAN_UPDATE_RECEIVED, SCAN_INCREMENTAL_UPDATE_RECEIVED} from '../constants/actionTypes'
 

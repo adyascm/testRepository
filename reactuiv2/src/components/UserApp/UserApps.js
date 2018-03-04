@@ -1,14 +1,5 @@
-import React, { Component } from 'react';
-import agent from '../../utils/agent'
+import React from 'react';
 import { Grid, Button,Icon } from 'semantic-ui-react'
-
-import { connect } from 'react-redux';
-
-
-import { AgGridReact } from "ag-grid-react";
-import 'ag-grid/dist/styles/ag-grid.css';
-import 'ag-grid/dist/styles/ag-theme-fresh.css';
-
 
 const UserApps = props => {
         let selectedUser = props.selectedUser
