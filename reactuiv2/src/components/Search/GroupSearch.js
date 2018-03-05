@@ -6,6 +6,7 @@ import agent from '../../utils/agent'
 
 import {
     GROUP_SEARCH_PAYLOAD,
+    GROUP_SEARCH_EMPTY
   } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -14,7 +15,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onsearchLoad: (payload) =>
-        dispatch({ type: GROUP_SEARCH_PAYLOAD, payload })
+        dispatch({ type: GROUP_SEARCH_PAYLOAD, payload }),
+    onsearchEmpty: () =>
+        dispatch({ type: GROUP_SEARCH_EMPTY })
 });
 
 class GroupSearch extends Component {
@@ -67,6 +70,11 @@ class GroupSearch extends Component {
     }
 
     handleSearchChange = (e, { value }) => {
+        if (value === '') {
+            this.props.onsearchEmpty()
+            this.setState({ value })
+            return 
+        }
         this.setState({ isLoading: true, value })
 
         setTimeout(() => {

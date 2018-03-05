@@ -9,7 +9,8 @@ import {
     USERS_RESOURCE_ACTION_LOAD,
     USERS_RESOURCE_ACTION_CANCEL,
     USERS_RESOURCE_SET_FILE_SHARE_TYPE,
-    GROUP_SEARCH_PAYLOAD
+    GROUP_SEARCH_PAYLOAD,
+    GROUP_SEARCH_EMPTY
 } from '../constants/actionTypes';
 
 
@@ -29,10 +30,14 @@ export default (state = {}, action) => {
                 groupSearchPayload: undefined
             }
         case GROUP_SEARCH_PAYLOAD:
-            console.log("search results : ", action.payload)
             return {
                 ...state,
                 groupSearchPayload: action.payload
+            }
+        case GROUP_SEARCH_EMPTY:
+            return {
+                ...state,
+                groupSearchPayload: undefined
             }
         case USER_ITEM_SELECTED:
             return {
