@@ -256,3 +256,28 @@ def get_table(tablename):
     elif tablename == 'resource_permission':
         return ResourcePermission
 
+
+class Policy(Base):
+    __tablename__ = 'policy'
+    policy_id = Column(String(255), primary_key=True)
+    doamin_id = Column(String(255))
+    datasource_id = Column(String(255))
+    name = Column(String(255))
+
+
+class PolicyTrigger(Base):
+    __tablename__ = 'policy_trigger'
+    policy_id = Column(String(255), primary_key=True)
+    action_name = Column(String(200), primary_key=True)
+    config = Column(Text)
+
+
+class PolicyCondition(Base):
+    __tablename__ = 'policy_condition'
+    policy_id = Column(String(255), primary_key=True)
+    affected_entity_type = Column(String(255))
+    match_condition = Column(String(255))
+    affected_entity_id = Column(String(255), primary_key=True)
+    actor_id = Column(String(255), primary_key=True)
+    actor_match_condition = Column(String(255))
+
