@@ -82,7 +82,7 @@ class DataSource(Base):
     is_serviceaccount_enabled = Column(Boolean)
     is_push_notifications_enabled = Column(Boolean)
     is_dummy_datasource = Column(Boolean,default=False)
-
+    is_async_delete = Column(Boolean, default=False)
 
 class DomainUser(Base):
     __tablename__ = 'domain_user'
