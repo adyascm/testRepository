@@ -52,7 +52,7 @@ class UserList extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if (this.state.showOnlyExternal) {
+                if (this.state.showOnlyExternal || this.props.showOnlyExternal) {
                     if (rowItem.member_type !== 'EXT')
                         continue;
                 }
