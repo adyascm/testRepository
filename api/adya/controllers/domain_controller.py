@@ -77,26 +77,35 @@ def create_datasource(auth_token, payload):
     else:
         return None
 
+def async_delete_datasource(auth_token, datasource_id):
+    db_session = db_connection().get_session()
+    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    try:
+        db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+        db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+        db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+        db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
+        db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+        db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
+        db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+        db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+        db_session.delete(existing_datasource)
+        db_session.commit()
+    except Exception as ex:
+            print "Exception occurred during datasource data delete - " + ex
+
+
 def delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     domain_id = existing_datasource.domain_id
     if existing_datasource:
         try:
-            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-            db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
-            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
-            db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
-            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-            db_session.delete(existing_datasource)
-            db_session.commit()
+            query_params = {"datasourceId": datasource_id}
+            messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
         except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex
-        
+            print "Exception occurred during datasource data delete - " + ex 
         try:
             gutils.revoke_appaccess(domain_id)
         except Exception as ex:
