@@ -40,33 +40,33 @@ const ReportView = props => {
                   </Card.Header>
                   <Card.Meta>
                       Created at:
-                      <strong>
+                      <strong>{reportDetail.creation_time === undefined ? "" :
                       <IntlProvider locale={locale}  >
-                     <FormattedDate
-                      value={new Date(reportDetail.creation_time)}
-                      year='numeric'
-                      month='long'
-                      day='2-digit'
-                      hour='2-digit'
-                      minute = '2-digit'
-                      second = '2-digit'
-                     />
+                       <FormattedDate
+                        value={new Date(reportDetail.creation_time)}
+                        year='numeric'
+                        month='long'
+                        day='2-digit'
+                        hour='2-digit'
+                        minute = '2-digit'
+                        second = '2-digit'
+                       />
                    </IntlProvider>
-                      </strong>
+                 }</strong>
                   </Card.Meta>
                   <Card.Meta>
-                       Last run <strong>{reportDetail.last_trigger_time === ""?
+                       Last run <strong>{reportDetail.last_trigger_time === "" || reportDetail.last_trigger_time === undefined ?
                          'never run' :
                          <IntlProvider locale={locale}  >
-                        <FormattedDate
-                         value={new Date(reportDetail.creation_time)}
-                         year='numeric'
-                         month='long'
-                         day='2-digit'
-                         hour='2-digit'
-                         minute = '2-digit'
-                         second = '2-digit'
-                        />
+                            <FormattedDate
+                             value={new Date(reportDetail.creation_time)}
+                             year='numeric'
+                             month='long'
+                             day='2-digit'
+                             hour='2-digit'
+                             minute = '2-digit'
+                             second = '2-digit'
+                            />
                       </IntlProvider>
                     }</strong>
                   </Card.Meta>
