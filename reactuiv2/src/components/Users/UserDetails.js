@@ -24,7 +24,7 @@ const UserDetails = props => {
         },
         {
             text: 'Watch all my actions',
-            value: 'watchAllActions'
+            value: 'watch_all_action_for_user'
         }];
 
     var parentGroups = []
