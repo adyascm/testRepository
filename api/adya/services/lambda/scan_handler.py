@@ -2,7 +2,7 @@ from adya.datasources.google import scan, permission
 from adya.common import utils
 from adya.common.request_session import RequestSession
 from adya.datasources.google import incremental_scan
-from adya.controllers import domain_controller
+from adya.controllers import domain_controller,actions_controller
 
 
 def start_scan(event, context):
