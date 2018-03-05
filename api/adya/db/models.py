@@ -108,7 +108,7 @@ class DomainUser(Base):
 class Resource(Base):
     __tablename__ = 'resource'
     domain_id = Column(String(255))
-    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'),primary_key=True)
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'),primary_key=True,index=True)
     resource_id = Column(String(100), primary_key=True, index=True)
     resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
@@ -124,7 +124,7 @@ class Resource(Base):
     description = Column(Text)
     last_modifying_user_email = Column(String(255))
     parent_id = Column(String(100), nullable=True)
-    permissions = relationship("ResourcePermission", backref="resource")
+    permissions = relationship("ResourcePermission",primaryjoin="and_(Resource.datasource_id==ResourcePermission.datasource_id,Resource.resource_id==ResourcePermission.resource_id)", backref="resource")
     def __repr__(self):
         return "Resource('%s','%s', '%s', '%s')" % (
             self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
@@ -143,7 +143,7 @@ class ResourceParent(Base):
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
     domain_id = Column(String(255))
-    datasource_id = Column(String(36),primary_key=True)
+    datasource_id = Column(String(36),ForeignKey('resource.datasource_id'),primary_key=True)
     resource_id = Column(String(100), ForeignKey('resource.resource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
@@ -158,7 +158,7 @@ class ResourcePermission(Base):
 class DomainGroup(Base):
     __tablename__ = 'domain_group'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36))
+    datasource_id = Column(String(36) , primary_key=True)
     group_id = Column(String(260), nullable=False)
     email = Column(String(320), primary_key=True)
     name = Column(String(255))
@@ -172,7 +172,7 @@ class DomainGroup(Base):
 class DirectoryStructure(Base):
     __tablename__ = 'domain_directory_structure'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36))
+    datasource_id = Column(String(36),primary_key=True)
     member_email = Column(String(320), primary_key=True)
     member_id = Column(String(260), nullable=False)
     member_role =  Column(String(10), nullable=False)
@@ -197,7 +197,7 @@ class Report(Base):
 class PushNotificationsSubscription(Base):
     __tablename__ = 'push_notifications_subscription'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(255))
+    datasource_id = Column(String(36), primary_key=True)
     channel_id = Column(String(100), primary_key=True)
     drive_root_id = Column(String(255))
     user_email = Column(String(255))
@@ -222,7 +222,7 @@ class AuditLog(Base):
     __tablename__ = 'audit_log'
     log_id = Column(Integer, autoincrement=True, primary_key=True)
     domain_id = Column(String(255))
-    datasource_id = Column(String(255))
+    datasource_id = Column(String(36),primary_key=True)
     initiated_by = Column(String(100))
     action_name = Column(String(200))
     parameters = Column(String(1000))
@@ -233,7 +233,7 @@ class AuditLog(Base):
 class Application(Base):
     __tablename__ = 'application'
     domain_id = Column(String(255))
-    datasource_id = Column(String(255))
+    datasource_id = Column(String(36),primary_key =True)
     client_id = Column(String(255),primary_key=True)
     user_email = Column(String(320), ForeignKey('domain_user.email'), primary_key= True)
     user_key =Column(String(50))

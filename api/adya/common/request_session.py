@@ -84,13 +84,13 @@ class RequestSession():
             json_payload = json.loads(json_string_payload)
         else:
             json_payload = json_string_payload
-        db_connection().close_conenction()
         return self.generate_response(http_code, json_payload)
 
     def generate_response(self, http_code, payload=None):
         if self.isLocal:
             return payload, http_code
         else:
+            db_connection().close_conenction()
             return {
                 "statusCode": http_code,
                 "body": payload,

@@ -27,7 +27,7 @@ class db_connection(object):
 
     def close_conenction(self):
         try:
-           connection = self._engine.connect()
-           connection.close()
+            if self._engine:
+                self._engine.dispose()
         except Exception as ex:
             print ex
