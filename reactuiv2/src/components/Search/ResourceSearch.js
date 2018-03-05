@@ -95,7 +95,8 @@ class ResourceSearch extends Component {
                 results={results}
                 value={value}
                 resultRenderer={this.resultRenderer}
-                {...this.props} />
+                // {...this.props} 
+            />
         )
     }
 }
