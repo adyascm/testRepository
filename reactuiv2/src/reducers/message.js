@@ -5,7 +5,12 @@ import {
     SCAN_INCREMENTAL_UPDATE_RECEIVED
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+    errorMessage: undefined,
+    infoMessage: undefined
+  };
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case ASYNC_END:
             return {
