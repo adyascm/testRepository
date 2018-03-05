@@ -6,7 +6,8 @@ import {
     RESOURCES_ACTION_CANCEL,
     RESOURCES_FILTER_CHANGE,
     RESOURCES_SEARCH_PAYLOAD,
-    RESOURCES_SEARCH_EMPTY
+    RESOURCES_SEARCH_EMPTY,
+    RESOURCES_PAGINATION_DATA
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -89,6 +90,12 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoading: false,
                 resourceTree: !action.error ? action.payload : []
+            }
+        case RESOURCES_PAGINATION_DATA: 
+            return {
+                ...state,
+                pageNumber: action.pageNumber,
+                pageLimit: action.pageLimit
             }
         case RESOURCES_SEARCH_PAYLOAD:
             return {

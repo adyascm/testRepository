@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { Search } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
-import agent from '../../utils/agent'
 
 import {
     GROUP_SEARCH_PAYLOAD,

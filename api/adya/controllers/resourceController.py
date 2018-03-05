@@ -73,7 +73,7 @@ from adya.common import constants
 #     return responsedata
 
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None,exposure_type='EXT', resource_type='None', prefix=''):
+def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix=''):
     if not auth_token:
         return None
     page_number = page_number if page_number else 0
