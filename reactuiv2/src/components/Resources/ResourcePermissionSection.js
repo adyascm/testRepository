@@ -44,20 +44,15 @@ class ResourcePermissionSection extends Component {
     }
 
     handleChange(event,data,email) {
-        console.log("action event : ", data)
-        console.log("permission email: ", email)
-
         if (data["value"] !== "Read" && data["value"] !== "Write") {
-            console.log("actionType: ", this.state[data["value"]]);
             this.props.onChangePermissionForResource(this.state[data["value"]],data,data["value"],email)
         }
-        else
+        else {
             this.props.onChangePermissionForResource('update_permission_for_user',data,data["value"],email)
+        }
     }
 
     handleClick(event,userEmail,permissionType) {
-        console.log("remove event called: ", userEmail)
-        console.log("remove event called: ", permissionType)
         this.props.onChangePermissionForResource('delete_permission_for_user',permissionType,undefined,userEmail)
     }
 

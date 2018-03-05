@@ -1,18 +1,14 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 // import '../../App.css';
-import { Route, Switch, Redirect } from 'react-router-dom';
-import {Icon, Card, Button, Form, Header, Modal, Checkbox, Input, Loader, Dimmer, Container} from 'semantic-ui-react'
-import ReactCron from '../reactCron/index'
+import { Redirect } from 'react-router-dom';
+import {Icon, Button, Modal, Loader, Dimmer, Container} from 'semantic-ui-react'
 import { connect } from 'react-redux';
 import ReportForm from './ReportForm';
 import ReportView from './ReportView';
 import agent from '../../utils/agent';
 import ReportsGrid from './ReportsGrid';
-import Immutable from 'immutable'
 
 import {
-  REPORTS_PAGE_LOADED,
-  REPORTS_PAGE_UNLOADED,
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
   RUN_SCHEDULED_REPORT,

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import { AgGridReact } from "ag-grid-react";
-import { Button, Dimmer, Loader } from 'semantic-ui-react'
+import { Button } from 'semantic-ui-react'
 
 
 class ReportsGrid extends Component {

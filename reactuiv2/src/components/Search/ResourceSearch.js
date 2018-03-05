@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
-import { Search, Grid } from 'semantic-ui-react'
-import { Link } from 'react-router-dom'
+import { Search } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 
 import {
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_PAGE_LOADED
+    RESOURCES_PAGE_LOADED,
+    RESOURCES_SEARCH_PAYLOAD,
+    RESOURCES_SEARCH_EMPTY
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -16,7 +17,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
-    onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload })
+    onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
+    onsearchLoad: (payload) => dispatch({ type: RESOURCES_SEARCH_PAYLOAD, payload }),
+    onsearchEmpty: () => dispatch({ type: RESOURCES_SEARCH_EMPTY })
 });
 
 class ResourceSearch extends Component {
@@ -42,7 +45,7 @@ class ResourceSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        this.props.onLoad(this.state.results)
+        this.props.onsearchLoad(this.state.results)
 
         if (this.props.onChangeReportInput) {
            var entityinfokey = ["selected_entity",  "selected_entity_name"]
@@ -55,12 +58,17 @@ class ResourceSearch extends Component {
     }
 
     handleSearchChange = (e, { value }) => {
+        if (value === '') {
+            this.props.onsearchEmpty()
+            this.setState({ value })
+            return 
+        }
         this.setState({ isLoading: true, value })
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
-            const re = new RegExp(this.state.value, 'i')
-            var results = [];
+            //const re = new RegExp(this.state.value, 'i')
+            //var results = [];
 
             agent.Resources.searchResources(this.state.value).then(res => {
                 this.setState({
@@ -68,7 +76,6 @@ class ResourceSearch extends Component {
                     results: res,
                 })
             }, error => {
-                console.log("error : ", error)
                 this.setState({
                     isLoading: false,
                     results: [],

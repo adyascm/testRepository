@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
 
-import { Route, Switch, Redirect } from 'react-router-dom';
-
 import { connect } from 'react-redux';
-import { Container, Dimmer, Loader, Grid, Divider, Checkbox, Sticky } from 'semantic-ui-react'
+import { Container, Dimmer, Loader, Grid, Checkbox } from 'semantic-ui-react'
 
 import agent from '../../utils/agent';
-import UserActions from '../actions/UserActions'
+import Actions from '../actions/Actions'
 
 
 import {
@@ -67,7 +65,7 @@ class Users extends Component {
   })
 
   render() {
-    const { contextRef } = this.state
+    //const { contextRef } = this.state
     let containerStyle = {
       height: "100%",
       textAlign: "left"
@@ -115,17 +113,21 @@ class Users extends Component {
               <Grid.Column stretched width={gridWidth}> 
                 {!this.state.showHierarchy ? flatList : treeView}
               </Grid.Column>
-              <Grid.Column width={16 - gridWidth}>
-                <UsersGroupsDetailsSection />
-              </Grid.Column>
+              {
+                this.props.users.selectedUserItem?
+                (<Grid.Column width='12'>
+                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
+                </Grid.Column>) : null
+              }
+              {/* <Grid.Column width={16 - gridWidth}>
+                <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
+              </Grid.Column> */}
             </Grid.Row>
           </Grid>
-          <UserActions {...this.props.users}/>
+          <Actions />
         </Container >
-
       )
     }
-
   }
 }
 

@@ -9,7 +9,7 @@ from adya.common import constants
 
 from adya.services.flask.auth_handler import google_oauth_request,google_oauth_callback,get_user_session
 from adya.services.flask.domain_handler import datasource
-from adya.services.flask.domainDataHandler import UserGroupTree
+from adya.services.flask.domainDataHandler import UserGroupTree,UserApps
 from adya.services.flask.reports_handler import ScheduledReport, RunReport
 from adya.services.flask.resourceHandler import GetResources
 from adya.services.flask.activities_handler import get_activities_for_user
@@ -44,12 +44,13 @@ api.add_resource(scanhandler.GetDomainuser, constants.SCAN_DOMAIN_USERS)
 api.add_resource(scanhandler.GetDomainGroups, constants.SCAN_DOMAIN_GROUPS)
 
 api.add_resource(scanhandler.GetGroupMembers, constants.SCAN_GROUP_MEMBERS)
-
+api.add_resource(scanhandler.GetUserApp, constants.SCAN_USERS_APP)
 
 api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
 
 ## get user group tree
 api.add_resource(UserGroupTree, constants.GET_USER_GROUP_TREE_PATH)
+api.add_resource(UserApps, constants.GET_APPS)
 
 # incremental scan
 api.add_resource(incremental_scan_handler.subscribe, constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)

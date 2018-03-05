@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import { IntlProvider,FormattedDate } from 'react-intl'
 
 class DateComponent extends Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (

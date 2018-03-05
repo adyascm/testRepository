@@ -22,20 +22,25 @@ class AlchemyEncoder(json.JSONEncoder):
                         fields[field] = data
                     except TypeError as ex:
                         fields[field] = None
+                elif isinstance(data.__class__, DeclarativeMeta):
+                    fields[field] = None
                 else:
                     try:
                         json.dumps(data)  # this will fail on non-encodable values, like other classes
                         fields[field] = data
                     except TypeError as ex:
                         fields[field] = None
+                    except Exception as ex:
+                        fields[field] = None
             # a json-encodable dict
             return fields
         return json.JSONEncoder.default(self, obj)
 
 
+
 class Domain(Base):
     __tablename__ = 'domain'
-    domain_id = Column(String(255), primary_key=True)
+    domain_id = Column(String(255), primary_key=True, index=True)
     domain_name = Column(String(255))
     creation_time = Column(DateTime)
     login_users = relationship("LoginUser", backref="domain")
@@ -58,9 +63,9 @@ class LoginUser(Base):
     authorize_scope_name = Column(String(50))
 
 class DataSource(Base):
-    __tablename__ = 'data_source'
+    __tablename__ = 'datasource'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36), primary_key=True)
+    datasource_id = Column(String(36), primary_key=True,index=True)
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
@@ -83,7 +88,7 @@ class DomainUser(Base):
     __tablename__ = 'domain_user'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
     datasource_id = Column(String(36), primary_key=True)
-    email = Column(String(320), primary_key=True)
+    email = Column(String(320), primary_key=True, index=True)
     # we can't put constraint for firstname and lastname null
     # because if we get External user from other domain provider that might not have Names
     first_name = Column(String(255))
@@ -97,13 +102,14 @@ class DomainUser(Base):
     photo_url = Column(Text)
     aliases = Column(Text)
     member_type = Column(String(6))
+    applications = relationship("Application", backref="domain_user")
 
 
 class Resource(Base):
     __tablename__ = 'resource'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36), nullable=False)
-    resource_id = Column(String(100), primary_key=True)
+    domain_id = Column(String(255))
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'),primary_key=True)
+    resource_id = Column(String(100), primary_key=True, index=True)
     resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
@@ -125,9 +131,9 @@ class Resource(Base):
 
 class ResourceParent(Base):
     __tablename__ = 'resource_parent_table'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    domain_id = Column(String(255))
     datasource_id = Column(String(36))
-    resource_id = Column(String(100), primary_key=True)
+    resource_id = Column(String(100),ForeignKey('resource.resource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     parent_id = Column(String(260))
 
@@ -136,8 +142,8 @@ class ResourceParent(Base):
 
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36))
+    domain_id = Column(String(255))
+    datasource_id = Column(String(36),primary_key=True)
     resource_id = Column(String(100), ForeignKey('resource.resource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
@@ -205,9 +211,10 @@ class PushNotificationsSubscription(Base):
 class Action(Base):
     __tablename__ = 'action'
     datasource_type = Column(String(255), primary_key=True)
-    name = Column(String(200), primary_key=True)
+    key = Column(String(200), primary_key=True)
+    name = Column(String(200))
     description = Column(String(1000))
-    parameters = Column(String(1000))
+    parameters = Column(Text)
     is_admin_only = Column(Boolean)
 
 
@@ -222,6 +229,18 @@ class AuditLog(Base):
     affected_entity = Column(String(255))
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
+
+class Application(Base):
+    __tablename__ = 'application'
+    domain_id = Column(String(255))
+    datasource_id = Column(String(255))
+    client_id = Column(String(255),primary_key=True)
+    user_email = Column(String(320), ForeignKey('domain_user.email'), primary_key= True)
+    user_key =Column(String(50))
+    display_text = Column(String(255))
+    anonymous = Column(Boolean, default= True)
+    scopes = Column(Text)
+    is_readonly_scope = Column(Boolean)
 
 def get_table(tablename):
     if tablename == 'resource':

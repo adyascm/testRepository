@@ -1,25 +1,34 @@
-import React, { Component } from 'react';
-import { Item, Image, Button, Label, Icon, Container, Dropdown, Header } from 'semantic-ui-react'
+import React from 'react';
+import { Item, Label, Dropdown } from 'semantic-ui-react'
 
 const ResourceDetails = props => {
     var quickActions = [
-    {text:'Transfer ownership',
-     value:'Transfer ownership'},
-    {text:'Remove external access',
-     value:'Remove external access'},
-    {text:'Remove write access',
-     value:'Remove write access'},
-    {text:'Make this private',
-     value:'Make this private'},
-    {text:'Watch all actions',
-     value:'Watch all actions'}];
-
-     var image = null;
-     if (props.rowData.icon_link) {
-         image = <Item.Image inline floated='right' size='mini' src={props.rowData.icon_link}></Item.Image>
-     } else {
-         image = <Item.Image floated='right' size='mini' ><Label style={{ fontSize: '2rem' }} >{props.rowData.resource_name.charAt(0).toUpperCase()}</Label></Item.Image>
-     }
+        {
+            text: '',
+            value: ''
+        },
+        {
+            text: 'Transfer ownership',
+            value: 'change_owner'
+        },
+        {
+            text: 'Remove external access',
+            value: 'remove_external_access_to_resource'
+        },
+        {
+            text: 'Make this private',
+            value: 'make_resource_private'
+        },
+        {
+            text: 'Watch all actions',
+            value: 'watchAllActions'
+        }];
+    var image = null;
+    if (props.rowData.icon_link) {
+        image = <Item.Image inline floated='right' size='mini' src={props.rowData.icon_link}></Item.Image>
+    } else {
+        image = <Item.Image floated='right' size='mini' ><Label style={{ fontSize: '2rem' }} >{props.rowData.resource_name.charAt(0).toUpperCase()}</Label></Item.Image>
+    }
     return (
         <Item.Group>
             <Item fluid='true'>
@@ -29,16 +38,16 @@ const ResourceDetails = props => {
                         {props.rowData['resource_name']}
                     </Item.Header>
                     <Item.Meta >
-                    <div><Label basic>Owner: {props.rowData['resource_owner_id']}</Label></div>
+                        <div><Label basic>Owner: {props.rowData['resource_owner_id']}</Label></div>
                         <div><Label basic>Last Modified at {props.rowData['last_modified_time']} by {props.rowData['last_modifying_user_email']}</Label></div>
 
-                        <div style={{margin: "5px"}}>
-                            <Label primary><a href={props.rowData['web_view_link']} target="_blank">View</a></Label>
-                            <Label primary><a href={props.rowData['web_content_link']} target="_blank">Download</a></Label>
+                        <div style={{ margin: "5px" }}>
+                            <Label primary="true"><a href={props.rowData['web_view_link']} target="_blank">View</a></Label>
+                            <Label primary="true"><a href={props.rowData['web_content_link']} target="_blank">Download</a></Label>
                         </div>
                     </Item.Meta>
-                    <Item.Extra extra>
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} onChange={(event,data) => props.handleChange(event,data)} />
+                    <Item.Extra extra="true">
+                        <Dropdown placeholder='Quick Actions...' selection fluid options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
                     </Item.Extra>
                 </Item.Content>
             </Item>

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom'
-import { PieChart } from 'react-chartkick';
-import { Table, Card, Loader, Segment, Dimmer, Label } from 'semantic-ui-react'
+import { Table, Card, Loader, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
@@ -42,7 +41,7 @@ class ListWidget extends Component {
                                     {
                                         data.map(row => {
                                             return (
-                                                <Table.Row>
+                                                <Table.Row key={row[Object.keys(row)[0]]}>
                                                     <Table.Cell collapsing>{row[Object.keys(row)[0]] && row[Object.keys(row)[0]].length > 26 ? row[Object.keys(row)[0]].substring(0, 25) + '...' : row[Object.keys(row)[0]]}</Table.Cell>
                                                     <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]] && row[Object.keys(row)[1]].length > 10 ? row[Object.keys(row)[1]].substring(0, 7) + '...' : row[Object.keys(row)[1]]}</Table.Cell>
                                                 </Table.Row>

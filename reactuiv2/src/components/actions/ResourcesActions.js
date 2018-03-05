@@ -46,11 +46,11 @@ class ResourcesActions extends Component {
     getActionParameters = (populate) => {
       for(let i=0; i<this.props.all_actions_list.length; i=i+1) {
         let act = this.props.all_actions_list[i]
-        console.log("action: " + act['Name'])
+        console.log("action: " + act['name'])
         console.log("act_type:" + this.props.action['actionType'])
-        if (act['Name'] == this.props.action['actionType']) {
-          console.log("found parameters" + act['Parameters'])
-          let parameters = act['Parameters'];
+        if (act['name'] == this.props.action['actionType']) {
+          console.log("found parameters" + act['parameters'])
+          let parameters = act['parameters'];
           if (populate) {
             for(let key of Object.keys(parameters)) {
               console.log("key: ", key);
@@ -77,7 +77,7 @@ class ResourcesActions extends Component {
     agent.Actions.initiateAction(JSON.stringify(payload))
                   .then(resp => { console.log(resp);
                         this.setState({ inProgress: false });
-                        this.setState({ action_response: resp }); })
+                        this.setState({ action_response: resp['message'] }); })
 
   }
 
@@ -113,7 +113,7 @@ class ResourcesActions extends Component {
                  </div>
 
                   <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                  <Button positive loading={this.state.inProgress} labelPosition='right'
+                  <Button positive loading={this.state.inProgress} labelposition='right'
                   icon='checkmark' content='Submit' onClick={this.takeAction(this.build_action_payload_and_post)} />
               </Modal.Actions>
        </Modal>
@@ -133,7 +133,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Transfer' />
                 </Modal.Actions>
             </Modal>
@@ -150,7 +150,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Transfer' />
                 </Modal.Actions>
             </Modal>
@@ -168,7 +168,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Change' />
                 </Modal.Actions>
             </Modal>
@@ -186,7 +186,7 @@ class ResourcesActions extends Component {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button negative onClick={this.props.onCancelAction}>Cancel</Button>
-                    <Button positive labelPosition='right'
+                    <Button positive labelposition='right'
                     icon='checkmark' content='Change' />
                 </Modal.Actions>
             </Modal>

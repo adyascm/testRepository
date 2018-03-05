@@ -1,13 +1,8 @@
 import React, { Component } from 'react';
-import agent from '../../utils/agent'
-import { Item, Card, Image, Label } from 'semantic-ui-react'
+import { Card, Image, Label } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
-
-import { AgGridReact } from "ag-grid-react";
-import 'ag-grid/dist/styles/ag-grid.css';
-import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import {
     USER_ITEM_SELECTED
@@ -30,18 +25,17 @@ class UserList extends Component {
         super(props);
         this.state = {
             rows: undefined,
+            displaySearchData: false
         }
     }
 
     onCardClicked(event, param) {
-        console.log("param user : ", param.user)
         this.props.selectUserItem(param.user);
     }
 
     setTreeRows() {
         if (this.props.usersTreePayload) {
             let rows = []
-            let emailRowMap = {}
             let keys = Object.keys(this.props.usersTreePayload)
 
             for (let index = 0; index < keys.length; index++) {
@@ -58,26 +52,62 @@ class UserList extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if (this.state.showOnlyExternal) {
-                    if (rowItem.member_type != 'EXT')
+                if (this.state.showOnlyExternal || this.props.showOnlyExternal) {
+                    if (rowItem.member_type !== 'EXT')
                         continue;
                 }
-                if (rowItem.type == "group") {
+                if (rowItem.type === "group") {
                     continue;
                 }
                 rows.push(rowItem)
             }
-            console.log("user list payload : ", rows)
             this.setState({
                 rows: rows
             })
         }
     }
     componentWillReceiveProps(nextProps) {
-        this.setState({
-            rows: undefined,
-            showOnlyExternal: nextProps.showOnlyExternal
-        })
+        if (nextProps.groupSearchPayload && (!this.state.displaySearchData || 
+            (nextProps.showOnlyExternal !== this.state.showOnlyExternal))) {
+            let rows = []
+            let keys = Object.keys(nextProps.groupSearchPayload)
+
+            for (let index = 0; index < keys.length; index++) {
+                let rowItem = nextProps.groupSearchPayload[keys[index]]
+                if (!rowItem.key)
+                    rowItem.key = keys[index]
+
+                if (rowItem.depth === undefined)
+                    rowItem.depth = 0
+                rowItem.isExpanded = rowItem.isExpanded || false
+                if (!rowItem.name) {
+                    rowItem.type = rowItem.type || "user";
+                    rowItem.name = rowItem.first_name + " " + rowItem.last_name;
+                }
+                else
+                    rowItem.type = rowItem.type || "group";
+                if (nextProps.showOnlyExternal) {
+                    if (rowItem.member_type !== 'EXT')
+                        continue;
+                }
+                if (rowItem.type === "group") {
+                    continue;
+                }
+                rows.push(rowItem)
+            }
+            this.setState({
+                rows: rows,
+                displaySearchData: true,
+                showOnlyExternal: nextProps.showOnlyExternal
+            })
+        }
+
+        if (!nextProps.groupSearchPayload) {
+            this.setState({
+                rows: undefined,
+                showOnlyExternal: nextProps.showOnlyExternal
+            })
+        }
     }
 
     // shouldComponentUpdate(nextProps,nextState) {
@@ -97,7 +127,7 @@ class UserList extends Component {
                     image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{row.name.charAt(0)}</Label></Image>
                 }
                 return ((
-                    <Card user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':''}>
+                    <Card key={row.key} user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':null}>
                         <Card.Content>
                             {image}
 

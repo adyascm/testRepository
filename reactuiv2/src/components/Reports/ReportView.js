@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Image, Header } from 'semantic-ui-react';
+import { Button, Card, Header } from 'semantic-ui-react';
 import cronstrue from 'cronstrue';
 import cronQuartz from 'cron-to-quartz'
 import {IntlProvider,FormattedDate} from 'react-intl'
@@ -15,7 +15,6 @@ const ReportView = props => {
     if (keys.length > 0 && !props.getReportError) {
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
-        console.log(reportDetail.frequency)
         var interval ='';
         var quartzstr = '';
         if(reportDetail.frequency !== undefined){
@@ -33,7 +32,7 @@ const ReportView = props => {
         }
 
         var card = (
-          <Card>
+          <Card key={index} >
               <Card.Content>
                   <Card.Header>
                       {reportDetail.name}

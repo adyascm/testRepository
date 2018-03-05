@@ -3,7 +3,7 @@ import json
 import constants
 
 from adya.db.models import AlchemyEncoder
-
+from adya.db.connection import db_connection
 
 class RequestSession():
     def __init__(self, req):
@@ -84,6 +84,7 @@ class RequestSession():
             json_payload = json.loads(json_string_payload)
         else:
             json_payload = json_string_payload
+        db_connection().close_conenction()
         return self.generate_response(http_code, json_payload)
 
     def generate_response(self, http_code, payload=None):

@@ -7,7 +7,7 @@ const superagent = superagentPromise(_superagent, global.Promise);
 
 
 
-const encode = encodeURIComponent;
+//const encode = encodeURIComponent;
 const responseBody = res => res.body;
 
 let token = null;
@@ -70,6 +70,13 @@ const Users = {
         requests.get('/getusergrouptree')
 }
 
+const Apps = {
+    getapps: () => requests.get('/getapps'),
+    revokeAppAccess: (application) =>
+        requests.del('/scan/usersapp?domainId=' + application.domain_id + "&dataSourceId=" +application.datasource_id +
+                "&userEmail="+ application.user_email + "&clientId="+application.client_id )
+}
+
 const Resources = {
     getResourcesTree: (parentId) =>
         requests.post('/getresourcetree',parentId),
@@ -97,4 +104,4 @@ const AuditLog = {
 }
 
 
-export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, setToken: _token => { token = _token; } };
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions,Apps, setToken: _token => { token = _token; } };

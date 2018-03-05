@@ -10,7 +10,6 @@ import {
   CREATE_DATASOURCE,
   DELETE_DATASOURCE_START,
   SCAN_UPDATE_RECEIVED,
-  SCAN_INCREMENTAL_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED,
   DATASOURCE_LOAD_START,
@@ -45,9 +44,15 @@ export default (state = defaultState, action) => {
         currentUser: action.error ? null : action.payload
       };
     case GET_ALL_ACTIONS:
+      var actions = action.payload;
+      var actionsMap = {}
+      for(var index in actions){
+        var action = actions[index];
+        actionsMap[action.key] = action;
+      }
       return {
         ...state,
-        all_actions_list: JSON.parse(action.payload)
+        all_actions_list: actionsMap
       }
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:

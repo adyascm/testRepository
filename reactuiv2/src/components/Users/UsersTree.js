@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Statistic, Card, Loader, Segment, Dimmer } from 'semantic-ui-react'
 import {
     USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
-import agent from '../../utils/agent';
 
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
@@ -30,6 +28,7 @@ class UsersTree extends Component {
         this.state = {
             rows: undefined,
             showOnlyExternal: props.showOnlyExternal,
+            displaySearchData: false,
             columnDefs: [{
                 headerName: "Type",
                 field: "type",
@@ -96,23 +95,64 @@ class UsersTree extends Component {
     }
 
     componentWillReceiveProps(nextProps){
-        console.log("nextprops userstree : ", nextProps.usersTreePayload)
-        if(this.state.showOnlyExternal != nextProps.showOnlyExternal)
-        {
+        // if(this.state.showOnlyExternal !== nextProps.showOnlyExternal)
+        // {
+        //     this.setState({
+        //         ...this.state,
+        //         showOnlyExternal: nextProps.showOnlyExternal,
+        //         rows: undefined
+        //     })
+        // }
+
+        if (nextProps.groupSearchPayload && (!this.state.displaySearchData || 
+            (nextProps.showOnlyExternal !== this.state.showOnlyExternal))) {
+            let rows = []
+            let keys = Object.keys(nextProps.groupSearchPayload)
+
+            for (let index = 0; index < keys.length; index++) {
+                let rowItem = nextProps.groupSearchPayload[keys[index]]
+                if (!rowItem.key)
+                    rowItem.key = keys[index]
+                
+                if (rowItem.depth === undefined)
+                    rowItem.depth = 0
+                rowItem.isExpanded = rowItem.isExpanded || false
+                if (!rowItem.name ) {
+                    rowItem.type = rowItem.type || "user";
+                    rowItem.name = rowItem.firstName + " " + rowItem.lastName;
+                }
+                else
+                    rowItem.type = rowItem.type || "group";
+                if(nextProps.showOnlyExternal)
+                {
+                    if(rowItem.member_type !== 'EXT')
+                        continue;
+                } 
+                else if(rowItem.type === "user") {
+                    continue;
+                }
+                rows.push(rowItem)
+            }
             this.setState({
-                ...this.state,
-                showOnlyExternal: nextProps.showOnlyExternal,
-                rows: undefined
+                rows: rows,
+                displaySearchData: true,
+                showOnlyExternal: nextProps.showOnlyExternal
             })
         }
-        // if (nextProps.usersTreePayload !== this.props.usersTreePayload)
-        //     this.setTreeRows(nextProps.usersTreePayload)
+
+        if (!nextProps.groupSearchPayload) {
+            this.setState({
+                rows: undefined,
+                showOnlyExternal: nextProps.showOnlyExternal
+            })
+        }        
     }
+
     setTreeRows() {
         if(this.props.usersTreePayload)
         {
             let rows = []
-            let emailRowMap = {}
+            //let emailRowMap = {}
             let keys = Object.keys(this.props.usersTreePayload)
     
             for (let index = 0; index < keys.length; index++) {
@@ -131,10 +171,10 @@ class UsersTree extends Component {
                     rowItem.type = rowItem.type || "group";
                 if(this.state.showOnlyExternal)
                 {
-                    if(rowItem.member_type != 'EXT')
+                    if(rowItem.member_type !== 'EXT')
                         continue;
                 } 
-                else if(rowItem.type == "user") {
+                else if(rowItem.type === "user") {
                     continue;
                 }
                 rows.push(rowItem)
@@ -146,7 +186,6 @@ class UsersTree extends Component {
         }
     }
     onCellClicked(params) {
-        console.log("params data : ", params.data)
         this.props.selectUserItem(params.data);
     }
 

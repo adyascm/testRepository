@@ -7,13 +7,11 @@ import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
-import ResourceCell from './ResourceCell';
 import DateComponent from './DateComponent';
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
-    RESOURCES_TREE_SET_ROW_DATA,
-    RESOURCES_SET_FILE_SHARE_TYPE
+    RESOURCES_TREE_SET_ROW_DATA
 } from '../../constants/actionTypes';
 
 
@@ -24,8 +22,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
     onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
-    setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
-    setFileExposureType: (payload) => dispatch({ type: RESOURCES_SET_FILE_SHARE_TYPE, payload })
+    setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload })
 });
 
 class ResourcesList extends Component {
@@ -33,12 +30,6 @@ class ResourcesList extends Component {
         super(props);
 
         this.onCellClicked = this.onCellClicked.bind(this);
-    
-        this.state = {
-            exposureType: undefined,
-            resourceType: undefined
-        }
-
         this.columnDefs = [
             {
                 headerName: "Name",
@@ -76,7 +67,6 @@ class ResourcesList extends Component {
     }
 
     onCellClicked(params) {
-        console.log("cell clicked data : ", params.data)
         this.props.setRowData(params.data)
     }
 
@@ -88,24 +78,14 @@ class ResourcesList extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.setFileExposureType('EXT')
-        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': 'EXT'}))
+        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType}))
 
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
-            if (nextProps.exposureType && nextProps.exposureType !== this.state.exposureType) {
-                this.setState({
-                    exposureType: nextProps.exposureType
-                })
-                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': nextProps.exposureType, 'resourceType': nextProps.resourceType?nextProps.resourceType:''}))
-            }
-            if (nextProps.resourceType !== undefined && nextProps.resourceType !== this.state.resourceType) {
-                this.setState({
-                    resourceType: nextProps.resourceType
-                })
-                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.exposureType, 'resourceType': nextProps.resourceType}))
+            if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType) {
+                nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType}))
             }
         }
     }
@@ -127,7 +107,8 @@ class ResourcesList extends Component {
                         id="myGrid" 
                         //domLayout="autoHeight"
                         rowSelection='single' suppressCellSelection='true'
-                        rowData={this.props.resourceTree}
+                        //rowData={this.props.resourceTree}
+                        rowData={this.props.resourceSearchPayload?this.props.resourceSearchPayload:this.props.resourceTree}
                         columnDefs={this.columnDefs}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}

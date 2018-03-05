@@ -1,5 +1,5 @@
 from enum import Enum
-import json
+
 
 class ActionNames(Enum):
     TRANSFER_OWNERSHIP = "transfer_ownership"
@@ -12,17 +12,6 @@ class ActionNames(Enum):
     UPDATE_PERMISSION_FOR_USER = "update_permission_for_user"
 
 
-class Action():
-
-    def __init__(self, datasource_type, name, description, parameters):
-        self.DatasourceType = datasource_type
-        self.Name = name
-        self.Description = description
-        self.Parameters = parameters
-
-        def toJSON(self):
-            return json.dumps(self, default=lambda o: o.__dict__,
-                              sort_keys=True, indent=4)
 
 
 

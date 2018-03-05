@@ -11,11 +11,10 @@ export default (state={}, action) => {
                 isLoading: true
             };
         case AUDIT_LOG_LOADED:
-            console.log("audit Log : ", action.payload)
             return {
                 ...state,
                 isLoading: false,
-                auditlog: action.payload
+                log: action.payload
             };
         default:
             return state

@@ -1,12 +1,8 @@
-import React, { Component, PropTypes } from 'react';
-import { Route, Switch, Redirect } from 'react-router-dom';
-import { Card, Button, Form, Header, Modal, Checkbox, Input } from 'semantic-ui-react'
+import React, { Component } from 'react';
+import { Button, Form, Modal, Checkbox, Input } from 'semantic-ui-react'
 import ReactCron from '../reactCron/index'
 import { connect } from 'react-redux';
-import UsersTree from '../Users/UsersTree';
-import ResourcesList from '../Resources/ResourcesList';
 import agent from '../../utils/agent';
-import * as Helper from '../reactCron/helpers/index';
 import GroupSearch from '../Search/GroupSearch';
 import ResourceSearch from '../Search/ResourceSearch';
 
@@ -64,10 +60,10 @@ class ReportForm extends Component {
 
     var errorMessage = ""
     var success = false
-    var pattern = /^\s*$/;
+    //var pattern = /^\s*$/;
     let valid = true
-    var emailCheck = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    var selected_entity;
+    //var emailCheck = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    //var selected_entity;
 
 
     var copyFinalInputObj = {}
@@ -80,7 +76,7 @@ class ReportForm extends Component {
 
     var populatedDataForParticularReport = {}
     if (this.props.formType === 'modify_report') {
-      var populatedDataForParticularReport = this.state.reportDataForReportId
+      populatedDataForParticularReport = this.state.reportDataForReportId
       Object.assign(populatedDataForParticularReport, copyFinalInputObj)
     }
 
@@ -199,9 +195,8 @@ class ReportForm extends Component {
 
   render() {
 
-    let user = this.props.rowData
-    const { value } = this.state
-    console.log("this.props.reportsMap ", this.props.reportsMap)
+    //let user = this.props.rowData
+    //const { value } = this.state
 
     var modalContent = (
       <div>
@@ -231,7 +226,7 @@ class ReportForm extends Component {
             <div className="column">
               <Form.Field>
                 <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
-                defaultChecked = 'checked' />
+                defaultChecked />
               </Form.Field>
               <Form.Field >
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}

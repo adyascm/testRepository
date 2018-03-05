@@ -12,8 +12,8 @@ import {
     RESOURCES_PAGE_LOAD_START,
     RESOURCES_PAGE_LOADED,
     RESOURCES_TREE_SET_ROW_DATA,
-    RESOURCES_SET_FILE_SHARE_TYPE,
-    RESOURCES_SET_FILE_TYPE
+    //RESOURCES_SET_FILE_SHARE_TYPE,
+    //RESOURCES_SET_FILE_TYPE
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -24,8 +24,8 @@ const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
     onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
     setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
-    setFileExposureType: (payload) => dispatch({ type: RESOURCES_SET_FILE_SHARE_TYPE, payload }),
-    setResourceType: (payload) => dispatch({ type: RESOURCES_SET_FILE_TYPE, payload })
+    //setFileExposureType: (payload) => dispatch({ type: RESOURCES_SET_FILE_SHARE_TYPE, payload }),
+    //setResourceType: (payload) => dispatch({ type: RESOURCES_SET_FILE_TYPE, payload })
 });
 
 class TestResourcesList extends Component {

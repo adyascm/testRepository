@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
-import { Search, Grid, Card, Image, Label } from 'semantic-ui-react'
-import { Link } from 'react-router-dom'
+import { Search } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 
 import {
-    USERS_PAGE_LOADED,
+    GROUP_SEARCH_PAYLOAD,
+    GROUP_SEARCH_EMPTY
   } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -14,8 +14,10 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onUsersLoad: (payload) =>
-    dispatch({ type: USERS_PAGE_LOADED, payload }),
+    onsearchLoad: (payload) =>
+        dispatch({ type: GROUP_SEARCH_PAYLOAD, payload }),
+    onsearchEmpty: () =>
+        dispatch({ type: GROUP_SEARCH_EMPTY })
 });
 
 class GroupSearch extends Component {
@@ -29,19 +31,20 @@ class GroupSearch extends Component {
             resultsMap: {}
 
         }
-        if(!this.props.users.usersTreePayload)
-        {
-            this.props.onUsersLoad(agent.Users.getUsersTree());
-        }
+        // if(!this.props.users.usersTreePayload)
+        // {
+        //     this.props.onUsersLoad(agent.Users.getUsersTree());
+        // }
     }
 
     resultRenderer = (r) => {
-        var image = null;
-                if (r.photo_url) {
-                    image = <Image inline avatar src={r.photo_url} floated='left'></Image>
-                } else {
-                    image = <Image inline floated='left'><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
-                }
+        //var image = null;
+        // var image;
+        //         if (r.photo_url) {
+        //             image = <Image inline avatar src={r.photo_url} floated='left'></Image>
+        //         } else {
+        //             image = <Image inline floated='left'><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
+        //         }
 
         return (
             <div>
@@ -54,7 +57,7 @@ class GroupSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        this.props.onUsersLoad(this.state.resultsMap)
+        this.props.onsearchLoad(this.state.resultsMap)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
@@ -67,6 +70,11 @@ class GroupSearch extends Component {
     }
 
     handleSearchChange = (e, { value }) => {
+        if (value === '') {
+            this.props.onsearchEmpty()
+            this.setState({ value })
+            return 
+        }
         this.setState({ isLoading: true, value })
 
         setTimeout(() => {
@@ -84,7 +92,6 @@ class GroupSearch extends Component {
                     resultsMap[keys[index]] = row
                 }
             }
-            console.log("search resultmap : ", resultsMap)
             this.setState({
                 isLoading: false,
                 results: results,
@@ -95,7 +102,6 @@ class GroupSearch extends Component {
 
     render() {
         const { isLoading, value, results } = this.state
-        console.log("this.props.defaultValue ", this.props.defaultValue);
         if(!this.props.users.usersTreePayload)
             return null;
         return (

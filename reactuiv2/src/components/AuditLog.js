@@ -15,7 +15,7 @@ import {
 
 
 const mapStateToProps = state => ({
-    ...state.auditLog
+    ...state.auditlog
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -86,7 +86,7 @@ class AuditLog extends Component {
                         //domLayout="autoHeight"
                         rowSelection='single' 
                         suppressCellSelection='true'
-                        rowData={this.props.auditlog}
+                        rowData={this.props.log}
                         columnDefs={this.columnDefs}
                         onGridReady={this.onGridReady.bind(this)}
                         //pagination={true}
