@@ -8,7 +8,7 @@ from adya.services.flask import scanhandler, reports_handler, incremental_scan_h
 from adya.common import constants
 
 from adya.services.flask.auth_handler import google_oauth_request,google_oauth_callback,get_user_session
-from adya.services.flask.domain_handler import datasource
+from adya.services.flask.domain_handler import datasource, asyncdatasourcedelete
 from adya.services.flask.domainDataHandler import UserGroupTree,UserApps
 from adya.services.flask.reports_handler import ScheduledReport, RunReport
 from adya.services.flask.resourceHandler import GetResources
@@ -47,7 +47,7 @@ api.add_resource(scanhandler.GetGroupMembers, constants.SCAN_GROUP_MEMBERS)
 api.add_resource(scanhandler.GetUserApp, constants.SCAN_USERS_APP)
 
 api.add_resource(datasource, constants.GET_DATASOURCE_PATH)
-
+api.add_resource(asyncdatasourcedelete, constants.ASYNC_DELETE_DATASOURCE_PATH)
 ## get user group tree
 api.add_resource(UserGroupTree, constants.GET_USER_GROUP_TREE_PATH)
 api.add_resource(UserApps, constants.GET_APPS)

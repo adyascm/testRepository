@@ -77,26 +77,35 @@ def create_datasource(auth_token, payload):
     else:
         return None
 
+def async_delete_datasource(auth_token, datasource_id):
+    db_session = db_connection().get_session()
+    existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    try:
+        db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
+        db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
+        db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
+        db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
+        db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
+        db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
+        db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+        db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+        db_session.delete(existing_datasource)
+        db_session.commit()
+    except Exception as ex:
+            print "Exception occurred during datasource data delete - " + ex
+
+
 def delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     domain_id = existing_datasource.domain_id
     if existing_datasource:
         try:
-            db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-            db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-            db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-            db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-            db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-            db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
-            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
-            db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
-            db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
-            db_session.delete(existing_datasource)
-            db_session.commit()
+            query_params = {"datasourceId": datasource_id}
+            messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
         except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex
-        
+            print "Exception occurred during datasource data delete - " + ex 
         try:
             gutils.revoke_appaccess(domain_id)
         except Exception as ex:
@@ -164,16 +173,18 @@ def update_datasource_column_count(db_session,domain_id,datasource_id):
     datasouorce = db_session.query(DataSource).filter(and_(DataSource.domain_id ==domain_id,DataSource.datasource_id == datasource_id)).first()
     filecount = db_session.query(Resource.resource_id).distinct(Resource.resource_id).\
                 filter(and_(Resource.domain_id ==domain_id,Resource.datasource_id == datasource_id)).count()
+    group_count = db_session.query(DomainGroup).distinct(DomainGroup.group_id).\
+            filter(and_(DomainGroup.domain_id == domain_id,DomainGroup.datasource_id == datasource_id)).count()
+    user_count = db_session.query(DomainUser).distinct(DomainUser.user_id).\
+                filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).count()
     datasouorce.total_file_count = filecount
     datasouorce.processed_file_count = filecount
-    datasouorce.file_scan_status = 2
-    group_count = db_session.query(DomainGroup).distinct(DomainGroup.group_id).\
-                filter(and_(DomainGroup.domain_id == domain_id,DomainGroup.datasource_id == datasource_id)).count()
+    datasouorce.file_scan_status = user_count
+
     datasouorce.total_group_count = group_count
     datasouorce.processed_group_count = group_count
     datasouorce.group_scan_status = 1
-    user_count = db_session.query(DomainUser).distinct(DomainUser.user_id).\
-                filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).count()
+
     datasouorce.total_user_count = user_count
     datasouorce.processed_user_count = user_count
     datasouorce.user_scan_status = 1

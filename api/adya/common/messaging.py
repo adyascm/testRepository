@@ -38,6 +38,17 @@ def trigger_post_event(endpoint, auth_token, query_params, body):
         print "Making a POST lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
+def trigger_delete_event(endpoint, auth_token, query_params):
+    if constants.DEPLOYMENT_ENV == 'local':
+        session = FuturesSession()
+        endpoint = _add_query_params_to_url(endpoint, query_params)
+        print "Making a DELETE request on the following url - " + endpoint
+        utils.delete_call_with_authorization_header(session, endpoint, auth_token)
+    else:
+        body = _add_query_params_to_body({},query_params)
+        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-delete-"+ slugify(endpoint)
+        print "Making a DELETE lambda invoke on the following function - " + endpoint
+        aws_utils.invoke_lambda(endpoint, auth_token, body)
 
 def _add_query_params_to_url(endpoint, query_params):
     query_string = ""

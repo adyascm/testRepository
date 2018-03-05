@@ -6,7 +6,7 @@ import {Message,Container} from 'semantic-ui-react';
 import {CLEAR_MESSAGE} from './constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.error
+    ...state.message
 })
 
 const mapDispatchToProps = dispatch => ({
