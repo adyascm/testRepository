@@ -74,7 +74,7 @@ class ManageDataSources extends Component {
     this.deleteDataSource = (datasource) => {
       this.props.onDeleteDataSource(datasource);
       agent.Setting.deleteDataSource(datasource).then(res => {
-        this.props.setDataSources(agent.Setting.getDataSources())
+        this.props.setDataSources([])
       });
     };
   }
