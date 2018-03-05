@@ -230,6 +230,7 @@ class AuditLog(Base):
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
 
+
 class Application(Base):
     __tablename__ = 'application'
     domain_id = Column(String(255))
@@ -242,6 +243,7 @@ class Application(Base):
     scopes = Column(Text)
     is_readonly_scope = Column(Boolean)
 
+
 def get_table(tablename):
     if tablename == 'resource':
         return Resource
@@ -253,3 +255,4 @@ def get_table(tablename):
         return DirectoryStructure
     elif tablename == 'resource_permission':
         return ResourcePermission
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Header } from 'semantic-ui-react';
+import { Button, Card, Header} from 'semantic-ui-react';
 import cronstrue from 'cronstrue';
 import cronQuartz from 'cron-to-quartz'
 import {IntlProvider,FormattedDate} from 'react-intl'
@@ -109,7 +109,8 @@ const ReportView = props => {
         </Card.Group>
       )
 
-    } else {
+    }
+    else {
         return (
           <div>
             {  props.getReportError? <Header>
@@ -131,8 +132,7 @@ const ReportView = props => {
               </Card.Group>
             </div>
         );
-
-};
+}
 
 }
 
