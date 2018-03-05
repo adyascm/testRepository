@@ -107,7 +107,8 @@ class ResourcesList extends Component {
                         id="myGrid" 
                         //domLayout="autoHeight"
                         rowSelection='single' suppressCellSelection='true'
-                        rowData={this.props.resourceTree}
+                        //rowData={this.props.resourceTree}
+                        rowData={this.props.resourceSearchPayload?this.props.resourceSearchPayload:this.props.resourceTree}
                         columnDefs={this.columnDefs}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}

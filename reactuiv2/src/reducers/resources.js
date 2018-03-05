@@ -4,7 +4,9 @@ import {
     RESOURCES_TREE_SET_ROW_DATA,
     RESOURCES_ACTION_LOAD,
     RESOURCES_ACTION_CANCEL,
-    RESOURCES_FILTER_CHANGE
+    RESOURCES_FILTER_CHANGE,
+    RESOURCES_SEARCH_PAYLOAD,
+    RESOURCES_SEARCH_EMPTY
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -87,6 +89,16 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoading: false,
                 resourceTree: !action.error ? action.payload : []
+            }
+        case RESOURCES_SEARCH_PAYLOAD:
+            return {
+                ...state,
+                resourceSearchPayload: action.payload
+            }
+        case RESOURCES_SEARCH_EMPTY:
+            return {
+                ...state,
+                resourceSearchPayload: undefined
             }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {
