@@ -92,6 +92,7 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
         db_session.delete(existing_datasource)
         db_session.commit()
+        print "Datasource deleted successfully"
     except Exception as ex:
             print "Exception occurred during datasource data delete - " + ex.message
 
