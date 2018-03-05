@@ -47,6 +47,8 @@ GET_RESOURCE_TREE_PATH = "/getresourcetree"
 
 GET_DATASOURCE_PATH = '/datasources'
 
+ASYNC_DELETE_DATASOURCE_PATH = '/asyncdatasourcedelete'
+
 GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
 
 GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'

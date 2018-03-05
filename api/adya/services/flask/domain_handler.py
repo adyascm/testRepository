@@ -29,6 +29,14 @@ class datasource(Resource):
             return req_error
         
         domain_controller.delete_datasource(req_session.get_auth_token(), req_session.get_req_param("datasourceId"))
+        return req_session.generate_response(202)
+
+class asyncdatasourcedelete(Resource):
+    def delete(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(True, ["datasourceId"])
+        if req_error:
+            return req_error
+        
+        domain_controller.async_delete_datasource(req_session.get_auth_token(), req_session.get_req_param("datasourceId"))
         return req_session.generate_response(200)
-
-

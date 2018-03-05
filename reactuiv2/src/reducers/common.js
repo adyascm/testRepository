@@ -67,9 +67,12 @@ export default (state = defaultState, action) => {
         var newDS = JSON.parse(action.payload);
         var oldDS = state.datasources[0];
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
+          console.log(newDS);
           if(newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
             || newDS.processed_file_count > oldDS.processed_file_count
-            || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status)
+            || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status ||
+            newDS.total_group_count > oldDS.total_group_count || newDS.processed_group_count > oldDS.processed_group_count ||
+            newDS.total_user_count > oldDS.total_user_count || newDS.processed_user_count > oldDS.processed_user_count)
           {
             state.datasources[0] = newDS;
           }

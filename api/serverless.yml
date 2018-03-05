@@ -133,6 +133,14 @@ functions:
           method: delete
           cors: true
 
+  delete-asyncdatasourcedelete:
+    handler: adya.services.lambda.domain_handler.async_datasource_delete
+    events:
+      - http:
+          path: asyncdatasourcedelete
+          method: delete
+          cors: true
+
   get-widgets:
     handler: adya.services.lambda.reports_handler.get_widget_data
     events:
@@ -253,7 +261,7 @@ functions:
           method: post
           cors: true
 
-  post-scan-userapp:
+  post-scan-usersapp:
     handler: adya.services.lambda.scan_handler.get_user_app
     events:
       - http:
@@ -261,7 +269,7 @@ functions:
           method: post
           cors: true
 
-  delete-scan-userapp:
+  delete-scan-usersapp:
     handler: adya.services.lambda.scan_handler.revoke_user_app_access
     events:
       - http:
