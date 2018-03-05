@@ -1,5 +1,6 @@
 import {
     ASYNC_END,
+    ADD_APP_MESSAGE,
     CLEAR_MESSAGE,
     SCAN_INCREMENTAL_UPDATE_RECEIVED
 } from '../constants/actionTypes';
@@ -11,6 +12,12 @@ export default (state = {}, action) => {
                 ...state,
                 errorMessage: action.errors,
                 infoMessage: undefined
+            };
+        case ADD_APP_MESSAGE:
+            return {
+                ...state,
+                errorMessage: action.error,
+                infoMessage: action.info
             };
         case CLEAR_MESSAGE:
             return {
