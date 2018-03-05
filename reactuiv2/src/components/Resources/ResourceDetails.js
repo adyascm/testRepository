@@ -21,7 +21,7 @@ const ResourceDetails = props => {
         },
         {
             text: 'Watch all actions',
-            value: 'watchAllActions'
+            value: 'watch_all_action_for_resource'
         }];
     var image = null;
     if (props.rowData.icon_link) {
