@@ -166,7 +166,6 @@ def revoke_user_app_access(event,context):
     if req_error:
         return req_error
 
-    data = req_session.get_body()
     domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     user_email = req_session.get_req_param('userEmail')
