@@ -133,7 +133,7 @@ functions:
           method: delete
           cors: true
 
-  delete-asyncdatasourcedelete
+  delete-asyncdatasourcedelete:
     handler: adya.services.lambda.domain_handler.async_datasource_delete
     events:
       - http:
