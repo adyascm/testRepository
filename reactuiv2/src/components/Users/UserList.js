@@ -52,7 +52,7 @@ class UserList extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if (this.state.showOnlyExternal) {
+                if (this.state.showOnlyExternal || this.props.showOnlyExternal) {
                     if (rowItem.member_type !== 'EXT')
                         continue;
                 }
@@ -105,7 +105,8 @@ class UserList extends Component {
         if (!nextProps.groupSearchPayload) {
             this.setState({
                 rows: undefined,
-                showOnlyExternal: nextProps.showOnlyExternal
+                showOnlyExternal: nextProps.showOnlyExternal,
+                displaySearchData: false
             })
         }
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Header } from 'semantic-ui-react';
+import { Button, Card, Header} from 'semantic-ui-react';
 import cronstrue from 'cronstrue';
 import cronQuartz from 'cron-to-quartz'
 import {IntlProvider,FormattedDate} from 'react-intl'
@@ -39,33 +39,33 @@ const ReportView = props => {
                   </Card.Header>
                   <Card.Meta>
                       Created at:
-                      <strong>
+                      <strong>{reportDetail.creation_time === undefined ? "" :
                       <IntlProvider locale={locale}  >
-                     <FormattedDate
-                      value={new Date(reportDetail.creation_time)}
-                      year='numeric'
-                      month='long'
-                      day='2-digit'
-                      hour='2-digit'
-                      minute = '2-digit'
-                      second = '2-digit'
-                     />
+                       <FormattedDate
+                        value={new Date(reportDetail.creation_time)}
+                        year='numeric'
+                        month='long'
+                        day='2-digit'
+                        hour='2-digit'
+                        minute = '2-digit'
+                        second = '2-digit'
+                       />
                    </IntlProvider>
-                      </strong>
+                 }</strong>
                   </Card.Meta>
                   <Card.Meta>
-                       Last run <strong>{reportDetail.last_trigger_time === ""?
+                       Last run <strong>{reportDetail.last_trigger_time === "" || reportDetail.last_trigger_time === undefined ?
                          'never run' :
                          <IntlProvider locale={locale}  >
-                        <FormattedDate
-                         value={new Date(reportDetail.creation_time)}
-                         year='numeric'
-                         month='long'
-                         day='2-digit'
-                         hour='2-digit'
-                         minute = '2-digit'
-                         second = '2-digit'
-                        />
+                            <FormattedDate
+                             value={new Date(reportDetail.creation_time)}
+                             year='numeric'
+                             month='long'
+                             day='2-digit'
+                             hour='2-digit'
+                             minute = '2-digit'
+                             second = '2-digit'
+                            />
                       </IntlProvider>
                     }</strong>
                   </Card.Meta>
@@ -109,7 +109,8 @@ const ReportView = props => {
         </Card.Group>
       )
 
-    } else {
+    }
+    else {
         return (
           <div>
             {  props.getReportError? <Header>
@@ -131,8 +132,7 @@ const ReportView = props => {
               </Card.Group>
             </div>
         );
-
-};
+}
 
 }
 
