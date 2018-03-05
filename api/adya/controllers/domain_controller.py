@@ -107,11 +107,11 @@ def delete_datasource(auth_token, datasource_id):
 def create_domain(db_session,domain_id, domain_name):
     creation_time = datetime.datetime.utcnow().isoformat()
 
-    domain = Domain()
-    domain.domain_id = domain_id
-    domain.domain_name = domain_name
-    domain.creation_time = creation_time
-    db_session.add(domain)
+    domain = {}
+    domain["domain_id"] = domain_id
+    domain["domain_name"] = domain_name
+    domain["creation_time"] = creation_time
+    db_session.execute(Domain.__table__.insert().prefix_with("IGNORE").values([domain_id,domain_name,creation_time]))
     db_session.commit()
     return domain
 
@@ -164,16 +164,18 @@ def update_datasource_column_count(db_session,domain_id,datasource_id):
     datasouorce = db_session.query(DataSource).filter(and_(DataSource.domain_id ==domain_id,DataSource.datasource_id == datasource_id)).first()
     filecount = db_session.query(Resource.resource_id).distinct(Resource.resource_id).\
                 filter(and_(Resource.domain_id ==domain_id,Resource.datasource_id == datasource_id)).count()
+    group_count = db_session.query(DomainGroup).distinct(DomainGroup.group_id).\
+            filter(and_(DomainGroup.domain_id == domain_id,DomainGroup.datasource_id == datasource_id)).count()
+    user_count = db_session.query(DomainUser).distinct(DomainUser.user_id).\
+                filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).count()
     datasouorce.total_file_count = filecount
     datasouorce.processed_file_count = filecount
-    datasouorce.file_scan_status = 2
-    group_count = db_session.query(DomainGroup).distinct(DomainGroup.group_id).\
-                filter(and_(DomainGroup.domain_id == domain_id,DomainGroup.datasource_id == datasource_id)).count()
+    datasouorce.file_scan_status = user_count
+
     datasouorce.total_group_count = group_count
     datasouorce.processed_group_count = group_count
     datasouorce.group_scan_status = 1
-    user_count = db_session.query(DomainUser).distinct(DomainUser.user_id).\
-                filter(and_(DomainUser.domain_id == domain_id,DomainUser.datasource_id == datasource_id)).count()
+
     datasouorce.total_user_count = user_count
     datasouorce.processed_user_count = user_count
     datasouorce.user_scan_status = 1

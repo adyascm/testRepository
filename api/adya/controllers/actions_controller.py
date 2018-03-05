@@ -96,7 +96,7 @@ def get_action(action_to_take):
     try:
         actions_list = get_actions()
         for action in actions_list:
-            if action.name == action_to_take:
+            if action.key == action_to_take:
                 return action
 
         return errormessage.UNKNOWN_ACTION
@@ -110,10 +110,11 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
     try:
         action_to_take = action_payload['key']
         initiated_by = action_payload['initiated_by']
+        action_parameters = action_payload['parameters']
 
         action_config = get_action(action_to_take)
 
-        isOkay = validate_action_parameters(action_config, action_payload)
+        isOkay = validate_action_parameters(action_config, action_parameters)
 
         if isOkay == True:
             print "Parameter validation for action ", action_to_take, " is successful."
@@ -124,7 +125,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         execution_status = execute_action(
             auth_token, domain_id, datasource_id, action_config, action_payload)
         if execution_status == errormessage.ACTION_EXECUTION_SUCCESS:
-            return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_payload)
+            return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
         else:
             return "Failed to execute action"
 
@@ -182,20 +183,21 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
 
     except Exception as e:
         print e
-        print "Exception occurred while executing action ", action_to_take, " using parameters: ", action_parameters
+        print "Exception occurred while executing action ", action_config.name, " using parameters: ", action_parameters
 
 
-def validate_action_parameters(action_config, action_payload):
+def validate_action_parameters(action_config, action_parameters):
     try:
         config_params = action_config.parameters
-        for key in config_params:
-            if key.field not in action_payload:
+        for param in config_params:
+            key = param['key']
+            if key not in action_parameters:
                 return False
         return True
 
     except Exception as e:
         print e
-        print "Exception occurred while validating action, ", action_to_take, " with parameters: ", action_parameters
+        print "Exception occurred while validating action, ", action_config.name, " with parameters: ", action_parameters
 
 
 def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters):
@@ -247,7 +249,7 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
 
     except Exception as e:
         print e
-        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", " and initiated_by: ", initiated_by
+        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
 
 def revoke_user_app_access(domain_id,datasource_id,user_email,client_id):
     try:

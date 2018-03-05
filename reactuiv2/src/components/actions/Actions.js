@@ -36,6 +36,23 @@ class Actions extends Component {
         this.onUpdateParameters = this.onUpdateParameters.bind(this);
     }
 
+    build_action_payload = () => {
+      let action = this.props.action;
+
+      let parameters = {};
+      let config_params = this.props.all_actions_list[action.key].parameters;
+
+      config_params.map( e => { let key = e['key']; parameters[[key]] = this.state[e['key']]; });
+
+
+      let payload = {}
+      payload['key'] = this.state['key']
+      payload['initiated_by'] = this.props.logged_in_user['email']
+      payload['parameters'] = parameters
+
+      return JSON.stringify(payload);
+    }
+
     takeAction = (ev) => {
         ev.preventDefault();
         this.setState({
@@ -45,7 +62,7 @@ class Actions extends Component {
         if (this.props.logged_in_user.authorize_scope_name !== "drive_action_scope") {
             authenticate("drive_action_scope").then(res => {
                 this.props.onIncrementalAuthComplete(res);
-                this.executeAction(JSON.stringify(this.state));
+                this.executeAction(this.build_action_payload());
             }).catch(error => {
                 this.setState({
                     ...this.state,
@@ -54,7 +71,7 @@ class Actions extends Component {
                 });
             });
         } else {
-            this.executeAction(JSON.stringify(this.state), resp => {
+            this.executeAction(this.build_action_payload(), resp => {
                 this.setState({
                     ...this.state,
                     inProgress: false,

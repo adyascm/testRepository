@@ -105,7 +105,8 @@ class UserList extends Component {
         if (!nextProps.groupSearchPayload) {
             this.setState({
                 rows: undefined,
-                showOnlyExternal: nextProps.showOnlyExternal
+                showOnlyExternal: nextProps.showOnlyExternal,
+                displaySearchData: false
             })
         }
     }
