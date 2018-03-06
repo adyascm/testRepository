@@ -9,6 +9,7 @@ import resources from './reducers/resources'
 import message from './reducers/message'
 import auditlog from './reducers/auditlog'
 import apps from './reducers/apps'
+import { LOGOUT } from './constants/actionTypes'
 
 export default combineReducers({
   auth,
@@ -21,3 +22,12 @@ export default combineReducers({
   auditlog,
   apps
 });
+
+// const rootReducer = (state,action) => {
+//   if (action.type === 'LOGOUT')
+//     state = undefined
+
+//   return appReducer(state,action)
+// }
+
+// export default rootReducer
