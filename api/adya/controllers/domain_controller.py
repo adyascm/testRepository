@@ -48,55 +48,49 @@ def create_datasource(auth_token, payload):
         if payload.get("display_name"):
             datasource.display_name = payload["display_name"]
         else:
-            datasource.display_name = "test"
+            datasource.display_name = "Unnamed datasource"
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
-        datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        if datasource.is_dummy_datasource:
+            datasource.is_serviceaccount_enabled = False
+        else:
+            datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
         if not existing_user.is_admin_user:
             datasource.user_scan_status = 1
             datasource.group_scan_status = 1
 
         db_session.add(datasource)
-        
-        try:
-            db_session.commit()
-        except Exception as ex:
-            print (ex)
-        print "Starting the scan"
-        #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
-        #thread.start()
+        db_session.commit()
         if datasource.is_dummy_datasource:
             create_dummy_datasource(db_session,existing_user.domain_id,datasource_id)
         else:
+            print "Starting the scan"
             query_params = {"isAdmin": str(existing_user.is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
-        print "Received the response of start scan api"
-        #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
+            print "Received the response of start scan api"
         return datasource
     else:
         return None
 
 def async_delete_datasource(auth_token, datasource_id):
     db_session = db_connection().get_session()
-    db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({"is_async_delete":True})
-    db_session.commit()
     existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     try:
-        db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete()
-        db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete()
-        db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete()
-        db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete()
-        db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete()
-        db_session.query(Application).filter(Application.datasource_id == datasource_id).delete()
-        db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete()
-        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
-        db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete()
+        db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(ResourceParent).filter(ResourceParent.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(Resource).filter(Resource.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(Application).filter(Application.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
         db_session.delete(existing_datasource)
         db_session.commit()
         print "Datasource deleted successfully"
     except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex.message
+        print "Exception occurred during datasource data delete - " + ex.message
 
 
 def delete_datasource(auth_token, datasource_id):
@@ -104,17 +98,15 @@ def delete_datasource(auth_token, datasource_id):
     existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     domain_id = existing_datasource.domain_id
     if existing_datasource:
-        try:
-            query_params = {"datasourceId": datasource_id}
-            messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
-        except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex.message 
+        db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({"is_async_delete":True})
+        db_session.commit()
+        query_params = {"datasourceId": datasource_id}
+        messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
+            
         try:
             gutils.revoke_appaccess(domain_id)
         except Exception as ex:
             print "Exception occurred while revoking the app access - " + ex.message
-    else:
-        return None
 
 def create_domain(db_session,domain_id, domain_name):
     creation_time = datetime.datetime.utcnow().isoformat()

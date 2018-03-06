@@ -13,7 +13,8 @@ import {
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED,
   DATASOURCE_LOAD_START,
-  DATASOURCE_LOAD_END
+  DATASOURCE_LOAD_END,
+  SET_CURRENT_URL
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -47,8 +48,8 @@ export default (state = defaultState, action) => {
       var actions = action.payload;
       var actionsMap = {}
       for(var index in actions){
-        var action = actions[index];
-        actionsMap[action.key] = action;
+        var quickAction = actions[index];
+        actionsMap[quickAction.key] = quickAction;
       }
       return {
         ...state,
@@ -60,6 +61,7 @@ export default (state = defaultState, action) => {
     case SET_DATASOURCES:
       return {
         ...state,
+        datasourceLoading: false,
         datasources: action.payload
       };
     case SCAN_UPDATE_RECEIVED:
@@ -95,7 +97,8 @@ export default (state = defaultState, action) => {
     case CREATE_DATASOURCE:
       return {
         ...state,
-        datasources: state.datasources.concat(action.payload)
+        datasourceLoading: false,
+        datasources: [action.payload]
       };
     case DELETE_DATASOURCE_START:
       if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {
@@ -103,7 +106,8 @@ export default (state = defaultState, action) => {
         state.datasources[0] = action.payload;
       }
       return {
-        ...state
+        ...state,
+        datasourceLoading: true
       };
     case USERS_PAGE_LOADED:
       return {
@@ -115,6 +119,11 @@ export default (state = defaultState, action) => {
         ...state,
         currentView: "/resources"
       };
+    case SET_CURRENT_URL: 
+      return {
+        ...state,
+        currentUrl: action.url
+      }
     default:
       return state;
   }

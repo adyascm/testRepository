@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
+import { Link } from 'react-router-dom'
 
 
 
@@ -35,14 +36,14 @@ const DataSourceItem = props => {
     }
 
     if (datasource) {
-        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         var status = getScanStatus(datasource);
-        var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
-        if (datasource.is_push_notifications_enabled)
-            syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
+        // var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
+        // if (datasource.is_push_notifications_enabled)
+        //     syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         if (datasource.is_dummy_datasource)
-            datasourceImage = <Image circular floated='left' size='small'><Label content='Dummy' icon='lab' /></Image>
+            datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
         return (
             <Card fluid >
                 <Dimmer active={datasource.isDeleting} inverted>
@@ -53,7 +54,7 @@ const DataSourceItem = props => {
                     {datasourceImage}
                     <Card.Header textAlign='right'>
                         {datasource.display_name}
-                        {syncStatus}
+                        {/* {syncStatus} */}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
                         Created at: <strong><IntlProvider locale='en'  >
@@ -78,6 +79,7 @@ const DataSourceItem = props => {
                     <div className='ui buttons'>
                         {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
                         <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
+                        {status["props"]["success"]?(<Button as={Link} to='/' basic color='green' style={{marginLeft: '5px'}} onClick={() => props.handleClick()} >Go To Dashboard</Button>):null}
                     </div>
                 </Card.Content>
             </Card>

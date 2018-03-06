@@ -19,5 +19,5 @@ mv lib/lib/python2.7/site-packages/* target/dist/adyaapp
 cp serverless.yml target/dist/adyaapp/
 cd target/dist/adyaapp
 
-sls create_domain
+sls create_domain --stage=$STAGE
 sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE

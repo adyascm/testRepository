@@ -14,7 +14,8 @@ import {
   LOGIN_ERROR,
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
-  ASYNC_END
+  ASYNC_END,
+  SET_CURRENT_URL
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
@@ -24,7 +25,8 @@ const mapStateToProps = state => ({
   currentUser: state.common.currentUser,
   dataSources: state.common.dataSources,
   errorMessage: state.common.errMessage,
-  datasourceLoading: state.common.datasourceLoading
+  datasourceLoading: state.common.datasourceLoading,
+  currentUrl: state.common.currentUrl
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -48,12 +50,17 @@ const mapDispatchToProps = dispatch => ({
   onDataSourceLoadError: () =>
     dispatch({ type: DATASOURCE_LOAD_END }),
   displayErrorMessage: (error) =>
-    dispatch({ type: ASYNC_END, errors: error.message?error.message:error['Failed'] })
+    dispatch({ type: ASYNC_END, errors: error.message?error.message:error['Failed'] }),
+  goToDashboard: (url) => 
+    dispatch({ type: SET_CURRENT_URL, url })
 });
 
 class ManageDataSources extends Component {
   constructor() {
     super();
+
+    this.handleClick = this.handleClick.bind(this);
+
     this.addNewDatasource = () => ev => {
       ev.preventDefault();
       this.props.onDataSourceLoad()
@@ -68,7 +75,7 @@ class ManageDataSources extends Component {
     this.addDummyDatasource = () => ev => {
       ev.preventDefault();
       this.props.onDataSourceLoad()
-      this.props.addDataSource("Dummy readonly playground", true);
+      this.props.addDataSource("Sample dataset", true);
     };
 
     this.deleteDataSource = (datasource) => {
@@ -78,12 +85,18 @@ class ManageDataSources extends Component {
       });
     };
   }
+
   componentWillMount() {
     if (!this.props.common.dataSources)
       this.props.setDataSources(agent.Setting.getDataSources());
     this.newDataSourceName = "";
     this.changeField = value => { this.newDataSourceName = value; }
   }
+
+  handleClick() {
+    this.props.goToDashboard("/")
+  } 
+
   render() {
     if (!this.props.common.datasources || !this.props.common.datasources.length) {
       return (
@@ -117,7 +130,7 @@ class ManageDataSources extends Component {
             {
               this.props.common.datasources && this.props.common.datasources.map(ds => {
                 return (
-                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} />
+                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} />
                 )
               })
             }

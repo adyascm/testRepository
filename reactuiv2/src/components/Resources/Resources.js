@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
-import { Grid, Container, Dropdown, Form, Button } from 'semantic-ui-react'
+import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 
 import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
