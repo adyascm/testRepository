@@ -94,7 +94,7 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.commit()
         print "Datasource deleted successfully"
     except Exception as ex:
-            print "Exception occurred during datasource data delete - " + ex.message
+        print "Exception occurred during datasource data delete - " + ex.message
 
 
 def delete_datasource(auth_token, datasource_id):
@@ -102,11 +102,10 @@ def delete_datasource(auth_token, datasource_id):
     existing_datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     domain_id = existing_datasource.domain_id
     if existing_datasource:
-        try:
-            db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({"is_async_delete":True})
-            db_session.commit()
-            query_params = {"datasourceId": datasource_id}
-            messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
+        db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({"is_async_delete":True})
+        db_session.commit()
+        query_params = {"datasourceId": datasource_id}
+        messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
             
         try:
             gutils.revoke_appaccess(domain_id)
