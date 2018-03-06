@@ -44,8 +44,9 @@ class Resources extends Component {
   }
 
   handleExposureTypeChange(event,data) {
-    if (data && data.value !== this.props.filterExposureType)
-      this.props.changeFilter("filterExposureType", data.value === 'ALL'?'':data.value);
+    let value = data.value === 'ALL'?'':data.value
+    if (value !== this.props.filterExposureType)
+      this.props.changeFilter("filterExposureType", value);
   }
 
   handleResourceTypeChange(event) {
