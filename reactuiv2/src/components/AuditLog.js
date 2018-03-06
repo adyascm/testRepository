@@ -70,11 +70,13 @@ class AuditLog extends Component {
 
         if (this.props.isLoading) {
             return (
+                <Container style={containerStyle}>
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>
                     <Dimmer active inverted>
                         <Loader inverted content='Loading' />
                     </Dimmer>
                 </div>
+                </Container>
             )
         }
         else {

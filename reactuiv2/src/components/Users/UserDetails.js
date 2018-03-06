@@ -19,13 +19,17 @@ const UserDetails = props => {
             value: 'remove_external_access'
         },
         {
+          text: 'Remove all access',
+          value: 'remove_all_access'
+        },
+        {
             text: 'Make all owned files private',
             value: 'make_all_files_private'
         },
         {
             text: 'Watch all my actions',
-            value: 'watchAllActions'
-        }];
+            value: 'watch_all_action_for_user'
+        }];     
 
     var parentGroups = []
     for (var index = 0; index < props.selectedUserItem.parents.length; index++) {

@@ -31,6 +31,10 @@ class UsersGroupsDetailsSection extends Component {
 
         this.exposureFilterOptions = [
             {
+                text: 'All Files',
+                value: 'ALL'
+            },
+            {
                 text: 'Externally Shared',
                 value: 'EXT'
             },
@@ -55,8 +59,9 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleExposureTypeChange(event, data) {
-        if (data && data.value !== this.props.filterExposureType)
-            this.props.changeFilter("filterExposureType", data.value);
+        let value = data.value === 'ALL'?'':data.value
+        if (value !== this.props.filterExposureType)
+            this.props.changeFilter("filterExposureType", value);
     }
 
     onQuickAction(action) {
@@ -71,16 +76,20 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     render() {
+      
         var resourceLayout = (
             <Container stretched="true">
                 <Grid stretched>
                     <Grid.Row stretched style={{ marginLeft: '5px' }}>
+                      {this.props.selectedUserItem.member_type === 'EXT' ?  null :
                         <Dropdown
                             options={this.exposureFilterOptions}
                             selection
                             onChange={this.handleExposureTypeChange}
-                            defaultValue={this.props.filterExposureType}
+                            defaultValue={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
                         />
+                      }
+
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         <UserResource filterExposureType={this.props.filterExposureType}/>

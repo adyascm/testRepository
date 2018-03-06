@@ -215,6 +215,26 @@ def update_permissions_of_user_to_resource(domain_id, datasource_id, resource_id
     except Exception as e:
         print e
 
+def remove_all_access_for_user(domain_id, datasource_id, user_email):
+    try:
+
+        file_perm_list = resourceController.get_all_unowned_files_user_can_access(domain_id, datasource_id, user_email)
+        print "file perms list : ", file_perm_list
+
+        for resource_id in file_perm_list:
+            permissions_object_list = file_perm_list[resource_id]
+
+            for permissions_object in permissions_object_list:
+                permissions_object['role'] = ""
+                print permissions_object
+
+            resource_actions_handler = AddOrUpdatePermisssionForResource(domain_id, datasource_id, resource_id,
+                                                                     permissions_object_list, user_email)
+            response = resource_actions_handler.add_or_update_permission()
+            print response
+
+    except Exception as e:
+        print e
 
 
 # This class takes at max 100 resource id and update the permission

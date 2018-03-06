@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
-import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
+import { Grid, Container, Dropdown, Form, Button } from 'semantic-ui-react'
 
 import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
@@ -28,6 +28,8 @@ class Resources extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
 
     this.exposureFilterOptions = [
+        {text: 'All Files',
+         value: 'ALL'},
         {text: 'Externally Shared',
          value: 'EXT'},
         {text: 'Domain Shared',
@@ -42,8 +44,9 @@ class Resources extends Component {
   }
 
   handleExposureTypeChange(event,data) {
-    if (data && data.value !== this.props.filterExposureType)
-      this.props.changeFilter("filterExposureType", data.value);
+    let value = data.value === 'ALL'?'':data.value
+    if (value !== this.props.filterExposureType)
+      this.props.changeFilter("filterExposureType", value);
   }
 
   handleResourceTypeChange(event) {
@@ -83,7 +86,7 @@ class Resources extends Component {
                 options={this.exposureFilterOptions}
                 selection
                 onChange={this.handleExposureTypeChange}
-                defaultValue={this.props.filterExposureType}
+                defaultValue={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
               />
             </Grid.Column>
             <Grid.Column stretched width="5">

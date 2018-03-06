@@ -73,7 +73,7 @@ from adya.common import constants
 #     return responsedata
 
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None,exposure_type='EXT', resource_type='None', prefix=''):
+def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix=''):
     if not auth_token:
         return None
     page_number = page_number if page_number else 0
@@ -149,7 +149,7 @@ def get_all_shared_files_of_user(domain_id, datasource_id, user_email):
                         response_data[resource.Resource.resource_id] = []
 
                     response_data[resource.Resource.resource_id].append(permissions_object)
-
+        print("response data ", response_data)
         return response_data
 
 
@@ -300,3 +300,33 @@ def get_permission_id_for_user_resource(domain_id, datasource_id, user_email, re
         print e
         print "Exception occurred getting permission_id for user {}, resource {} on domain {} and datasource {}".format(user_email, resource_id, domain_id,
                                                                                               datasource_id)
+
+
+def get_all_unowned_files_user_can_access(domain_id, datasource_id, user_email):
+
+    try:
+
+        db_session = db_connection().get_session()
+
+        file_obj = db_session.query(ResourcePermission).filter(and_(ResourcePermission.domain_id == domain_id, ResourcePermission.datasource_id ==
+                                                                 datasource_id, ResourcePermission.email == user_email,
+                                                                 ResourcePermission.permission_type != "owner")).all()
+
+        print file_obj
+
+        response_data = {}
+        for resource in file_obj:
+            permissions_object = {
+                "permissionId": resource.permission_id,
+                "emailAddress": resource.email,
+                "role": resource.permission_type
+            }
+
+            response_data[resource.resource_id].append(permissions_object)
+
+        print("get_all_unowned_files_user_can_access : response data " ,response_data)
+        return response_data
+    except Exception as e:
+        print e
+        print "Exception occured for user {} on domain {} and datasource {}".format(user_email, domain_id, datasource_id)
+

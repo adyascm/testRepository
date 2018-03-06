@@ -43,7 +43,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: LOGIN_START }),
   onSignInError: (errors) =>
     dispatch({ type: LOGIN_ERROR, error: errors }),
-  onDataSourceLoad: () => 
+  onDataSourceLoad: () =>
     dispatch({ type: DATASOURCE_LOAD_START }),
   onDataSourceLoadError: () =>
     dispatch({ type: DATASOURCE_LOAD_END }),
@@ -59,7 +59,7 @@ class ManageDataSources extends Component {
       this.props.onDataSourceLoad()
       authenticate("drive_scan_scope").then(data => {
         this.props.addDataSource("GSuite")
-      }).catch(({ errors }) => { 
+      }).catch(({ errors }) => {
         this.props.onDataSourceLoadError(errors)
         this.props.displayErrorMessage(errors)
       });
@@ -94,10 +94,10 @@ class ManageDataSources extends Component {
                 <Card.Description>
                   <Header>Welcome  {this.props.currentUser.first_name}!, Let us get started by connecting your first GSuite account by clicking the button below. </Header>
                   <Divider />
-                  We only require <b>read-only</b> permission at this point and would ask for incremental permissions when you take actions from our app.<br />
-                  If you are still deciding, you can also create a dummy
-                <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>playground</Button>
-                  which will enable a read-only version of this app with dummy data to get you familiar with different features.
+                  We only require read-only permission at this stage and will ask for incremental permissions when you take actions from the app.<br />
+                Before connecting your GSuite account, you can use a
+                <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
+                  to get familiar with the features.
                 </Card.Description>
               </Card.Content>
               <Card.Content extra>

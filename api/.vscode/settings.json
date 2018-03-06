@@ -7,6 +7,5 @@
         "-p",
         "*_test.py"
     ],
-    "python.unitTest.unittestEnabled": true,
-    "python.pythonPath": "/Users/sumitkumar/Desktop/Work/adyaapp/api/lib/bin/python"
+    "python.unitTest.unittestEnabled": true
 }
