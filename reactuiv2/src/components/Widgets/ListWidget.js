@@ -27,7 +27,7 @@ class ListWidget extends Component {
             if (this.props[this.props.config.id].isLoaded) {
                 const data = this.props[this.props.config.id].data.rows;
                 const count = this.props[this.props.config.id].data.totalCount;
-                const footer = "Total " + count;
+                const footer = "...and " + count + " more";
                 return (
                     <Card as={Link} to={this.props.config.link}>
                         <Card.Content>
