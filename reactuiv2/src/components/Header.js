@@ -21,7 +21,6 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
-        console.log("props header : ", props)
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
@@ -69,7 +68,6 @@ class Header extends React.Component {
     }
 
     handleClick(menuItem) {
-        console.log("menuitem : ", menuItem)
         this.props.onMenuItemClick(menuItem)
     }
 
