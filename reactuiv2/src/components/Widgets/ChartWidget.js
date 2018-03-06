@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: DASHBOARD_WIDGET_LOAD_START, widgetId }),
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
-    onWidgetClick: (url) => 
+    onWidgetClick: (url) =>
         dispatch({ type: SET_CURRENT_URL, url })
 });
 
@@ -35,12 +35,13 @@ class ChartWidget extends Component {
                 return (
                     <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
                         <Card.Content>
-                            <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data} />
+                            <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />
 
                         </Card.Content>
                         <Card.Content extra>
                             <div className='ui'>
-                                <Label color='green'>{this.props.config.footer} </Label>
+                                <Label color='green'>{this.props[this.props.config.id].data.totalCount}
+                                  &nbsp;{this.props.config.footer}</Label>
                             </div>
                         </Card.Content>
                     </Card>
