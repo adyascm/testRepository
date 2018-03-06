@@ -12,7 +12,7 @@ import {
 
 const defaultState = {
     isLoading: false,
-    filterExposureType: 'EXT',
+    filterExposureType: '',
     filterResourceName: '',
     filterResourceType: ''
 };

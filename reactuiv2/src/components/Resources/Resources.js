@@ -28,6 +28,8 @@ class Resources extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
 
     this.exposureFilterOptions = [
+        {text: 'All Files',
+         value: 'ALL'},
         {text: 'Externally Shared',
          value: 'EXT'},
         {text: 'Domain Shared',
@@ -43,7 +45,7 @@ class Resources extends Component {
 
   handleExposureTypeChange(event,data) {
     if (data && data.value !== this.props.filterExposureType)
-      this.props.changeFilter("filterExposureType", data.value);
+      this.props.changeFilter("filterExposureType", data.value === 'ALL'?'':data.value);
   }
 
   handleResourceTypeChange(event) {
@@ -83,7 +85,7 @@ class Resources extends Component {
                 options={this.exposureFilterOptions}
                 selection
                 onChange={this.handleExposureTypeChange}
-                defaultValue={this.props.filterExposureType}
+                defaultValue={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
               />
             </Grid.Column>
             <Grid.Column stretched width="5">
