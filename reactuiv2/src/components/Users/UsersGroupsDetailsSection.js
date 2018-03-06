@@ -76,16 +76,20 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     render() {
+      
         var resourceLayout = (
             <Container stretched="true">
                 <Grid stretched>
                     <Grid.Row stretched style={{ marginLeft: '5px' }}>
+                      {this.props.selectedUserItem.member_type === 'EXT' ?  null :
                         <Dropdown
                             options={this.exposureFilterOptions}
                             selection
                             onChange={this.handleExposureTypeChange}
                             defaultValue={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
                         />
+                      }
+
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         <UserResource filterExposureType={this.props.filterExposureType}/>

@@ -27,12 +27,14 @@ def trigger_get_event(endpoint, auth_token, query_params):
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
 def trigger_post_event(endpoint, auth_token, query_params, body):
+    print "trigger_post_event "
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
         print "Making a POST request on the following url - " + endpoint
         utils.post_call_with_authorization_header(session, endpoint, auth_token, body)
     else:
+        print "trigger_post_event : lambda "
         body = _add_query_params_to_body(body, query_params)
         endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
         print "Making a POST lambda invoke on the following function - " + endpoint

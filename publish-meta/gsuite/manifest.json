@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Adya",
   "version": "0.0.0.1",
-  "description": "Adya helps enterprises manage and secure their Google Suite applications. Google Suite is a great collaboration and productivity suite but it is too easy for data to be carelessly or maliciously shared. For example, it is very easy to create a link and share it widely on Google Drive with internal and with external collaborators, but it is very hard for IT to see how much data has been exposed, if the data is critical, who outside the company has access to these documents and who has been sharing these documents.  We help enterprises get back control and visibility. As an admin, you can see all data created in the organization, see data exposed outside the company, see who outside the company has access to data and fix all of the exposure problems with one click. More detail about Adya is at https://www.adya.io/.",
+  "description": "Adya helps enterprises manage and secure their Google Suite applications. More details at https://www.adya.io/.",
   "icons": {
     "128": "icons/AdyaLogo-128.png",
     "16": "icons/AdyaLogo-16.png"
