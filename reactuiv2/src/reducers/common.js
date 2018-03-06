@@ -47,8 +47,8 @@ export default (state = defaultState, action) => {
       var actions = action.payload;
       var actionsMap = {}
       for(var index in actions){
-        var action = actions[index];
-        actionsMap[action.key] = action;
+        var quickAction = actions[index];
+        actionsMap[quickAction.key] = quickAction;
       }
       return {
         ...state,

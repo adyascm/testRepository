@@ -29,7 +29,7 @@ class db_connection:
                 if self._engine:
                     self._engine.dispose()
             except Exception as ex:
-                print "Exception occurred while closing the db connection - {}".format(ex)
+                print "Exception occurred while closing the db connection - {}".format(ex.message)
 
     instance = None
     def __init__(self):
