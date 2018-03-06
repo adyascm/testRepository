@@ -35,10 +35,10 @@ class Dashboard extends Component {
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
     ];
     this.chartWidgetConfigs = [
-      { id: "sharedDocsByType", header: "", footer: "Shared docs", renderType: "ChartWidget", link:"/resources" },
+      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
+      { id: "userAppAccess", header: "",footer: "Apps", renderType: "ChartWidget", link:"/apps"  },
       { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link:"/resources"  },
       { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  },
-      { id: "userAppAccess", header: "",footer: "Apps", renderType: "ChartWidget", link:"/apps"  },
     ];
   }
 
@@ -70,7 +70,7 @@ class Dashboard extends Component {
           })
         }
       </Card.Group>
-      <Card.Group itemsPerRow='3'>
+      <Card.Group itemsPerRow='2'>
         {
           this.chartWidgetConfigs.map(config => {
             var widget = null;
