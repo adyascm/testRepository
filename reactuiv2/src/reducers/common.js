@@ -98,7 +98,7 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasourceLoading: false,
-        datasources: state.datasources.concat(action.payload)
+        datasources: [action.payload]
       };
     case DELETE_DATASOURCE_START:
       if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {
