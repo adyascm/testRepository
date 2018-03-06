@@ -185,7 +185,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         response = ""
         print action_config
         print action_parameters
-        if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER :
+        if action_config.name == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER :
             form_input = {}
             form_input['name'] = "watch activity for " + str(action_parameters['user_email'])
             form_input['description'] = "watch activity for " + str(action_parameters['user_email'])
