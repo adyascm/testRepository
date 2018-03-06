@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
+import { Link } from 'react-router-dom'
 
 
 
@@ -78,6 +79,7 @@ const DataSourceItem = props => {
                     <div className='ui buttons'>
                         {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
                         <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
+                        {status["props"]["success"]?(<Button as={Link} to='/' basic color='green' style={{marginLeft: '5px'}} >Go To Dashboard</Button>):null}
                     </div>
                 </Card.Content>
             </Card>
