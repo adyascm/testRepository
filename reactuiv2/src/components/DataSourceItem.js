@@ -42,7 +42,7 @@ const DataSourceItem = props => {
         //     syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         if (datasource.is_dummy_datasource)
-            datasourceImage = <Image circular floated='left' size='small'><Label content='Dummy' icon='lab' /></Image>
+            datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
         return (
             <Card fluid >
                 <Dimmer active={datasource.isDeleting} inverted>

@@ -48,31 +48,27 @@ def create_datasource(auth_token, payload):
         if payload.get("display_name"):
             datasource.display_name = payload["display_name"]
         else:
-            datasource.display_name = "test"
+            datasource.display_name = "Unnamed datasource"
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow().isoformat()
-        datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
+        if datasource.is_dummy_datasource:
+            datasource.is_serviceaccount_enabled = False
+        else:
+            datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
         if not existing_user.is_admin_user:
             datasource.user_scan_status = 1
             datasource.group_scan_status = 1
 
         db_session.add(datasource)
-        
-        try:
-            db_session.commit()
-        except Exception as ex:
-            print (ex)
-        print "Starting the scan"
-        #thread = Thread(target = start_scan, args = (auth_token,datasource.domain_id, datasource.datasource_id,datasource.is_serviceaccount_enabled))
-        #thread.start()
+        db_session.commit()
         if datasource.is_dummy_datasource:
             create_dummy_datasource(db_session,existing_user.domain_id,datasource_id)
         else:
+            print "Starting the scan"
             query_params = {"isAdmin": str(existing_user.is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
-        print "Received the response of start scan api"
-        #start_scan(auth_token,datasource.domain_id, datasource.datasource_id,existing_user.email)
+            print "Received the response of start scan api"
         return datasource
     else:
         return None

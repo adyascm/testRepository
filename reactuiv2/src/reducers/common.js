@@ -60,6 +60,7 @@ export default (state = defaultState, action) => {
     case SET_DATASOURCES:
       return {
         ...state,
+        datasourceLoading: false,
         datasources: action.payload
       };
     case SCAN_UPDATE_RECEIVED:
@@ -95,6 +96,7 @@ export default (state = defaultState, action) => {
     case CREATE_DATASOURCE:
       return {
         ...state,
+        datasourceLoading: false,
         datasources: state.datasources.concat(action.payload)
       };
     case DELETE_DATASOURCE_START:
@@ -103,7 +105,8 @@ export default (state = defaultState, action) => {
         state.datasources[0] = action.payload;
       }
       return {
-        ...state
+        ...state,
+        datasourceLoading: true
       };
     case USERS_PAGE_LOADED:
       return {

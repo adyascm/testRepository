@@ -68,7 +68,7 @@ class ManageDataSources extends Component {
     this.addDummyDatasource = () => ev => {
       ev.preventDefault();
       this.props.onDataSourceLoad()
-      this.props.addDataSource("Dummy readonly playground", true);
+      this.props.addDataSource("Sample dataset", true);
     };
 
     this.deleteDataSource = (datasource) => {
