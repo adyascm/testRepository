@@ -6,6 +6,7 @@ from adya.db.models import LoginUser
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.scopeconstants import DRIVE_SCAN_SCOPE,SERVICE_ACCOUNT_SCOPE
 import os,httplib2
+from sets import Set
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
@@ -20,6 +21,19 @@ CLIENT_SECRET =  CLIENT_JSON_FILE_DATA['web']['client_secret']
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
                                                                 SERVICE_ACCOUNT_SCOPE)
+
+
+
+def get_read_only_scope():
+    with open(dir_path + "/scopes/readonly_scope", 'r') as content_file:
+        content = content_file.read()
+    scope_set = Set()
+    for scope in content.split(','):
+        scope_set.add(scope)
+    return scope_set
+
+READ_ONLY_SCOPES = get_read_only_scope()
+
 def revoke_appaccess(domainid):
     credentials = get_credentials(domain_id=domainid)
     requests.post(GOOGLE_REVOKE_URI,

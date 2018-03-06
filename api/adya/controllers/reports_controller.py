@@ -32,10 +32,14 @@ def get_widget_data(auth_token, widget_id):
             and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_type == 'folder')).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
-        data = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
+        data = {}
+        data["rows"] = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
                                 and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
                                 Resource.domain_id == LoginUser.domain_id, 
                                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(LoginUser.auth_token == auth_token).group_by(Resource.exposure_type).all()
+        data["totalCount"] = db_session.query(Resource.resource_id).filter(and_(Resource.domain_id == LoginUser.domain_id,
+                                     Resource.exposure_type != constants.ResourceExposureType.INTERNAL, Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).count()
+
     elif widget_id == 'sharedDocsList':
         data = {}
         data["rows"] = db_session.query(Resource.resource_name, Resource.resource_type).filter(
@@ -64,6 +68,9 @@ def get_widget_data(auth_token, widget_id):
                                 and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
         data["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
                                 and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
+        data["totalCount"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(and_(Application.domain_id == LoginUser.domain_id,
+                                                                                                                 LoginUser.auth_token == auth_token)).count()
+
     return data
 
 

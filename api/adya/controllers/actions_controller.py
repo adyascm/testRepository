@@ -310,6 +310,12 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         elif action_to_take == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             log_entry['affected_entity'] = action_parameters['user_email']
             log_entry['affected_entity_type'] = "User"
+        elif action_to_take == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+            log_entry['affected_entity'] = action_parameters['user_email']
+            log_entry['affected_entity_type'] = "User"
+        elif action_to_take == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
+            log_entry['affected_entity'] = action_parameters['user_email']
+            log_entry['affected_entity_type'] = "User"
 
         audit_log_entries.append(log_entry)
 
