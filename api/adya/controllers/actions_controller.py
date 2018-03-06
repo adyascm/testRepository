@@ -107,6 +107,10 @@ def get_actions():
                                                       "editable": 0}
                                                      ], False)
 
+        removeAllAction = instantiate_action("GSUITE" , action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, "Remove all Access ",
+                                            "Remove all Access for a user", [{"key": "user_email", "label": "For user", "editable": 0}],
+                                             False)
+
         actions = [transferOwnershipAction,
                    changeOwnerOfFileAction,
                    deletePermissionForUserAction,
@@ -116,7 +120,8 @@ def get_actions():
                    removeExternalAccessToResourceAction,
                    updatePermissionForUserAction,
                    watchActionForUser,
-                   watchActionForResource]
+                   watchActionForResource,
+                   removeAllAction]
 
         return actions
 
@@ -168,7 +173,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
         print "Initiating action: ", action_to_take, " with parameters: ", action_payload
         execution_status = execute_action(
-            auth_token, domain_id, datasource_id, action_config, action_payload)
+            auth_token, domain_id, datasource_id, action_config, action_parameters)
         if execution_status == errormessage.ACTION_EXECUTION_SUCCESS:
             return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
         else:
@@ -240,6 +245,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
                                                                       resource_id, user_email,
                                                                       resource_owner)
+        elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+            user_email = action_parameters['user_email']
+            response = actions.remove_all_access_for_user(domain_id, datasource_id, user_email)
 
         # check response and return success/failure
         return errormessage.ACTION_EXECUTION_SUCCESS
