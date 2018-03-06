@@ -655,7 +655,7 @@ class GetAllUserAppAndScope():
                 is_readonly_scope = True
                 scopes = app["scopes"]
                 for scope in scopes:
-                    if not str(scope).endswith('.readonly'):
+                    if not scope in gutils.READ_ONLY_SCOPES:
                         is_readonly_scope = False
                         break
                 application.scopes = ','.join(scopes)
