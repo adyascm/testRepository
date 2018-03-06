@@ -124,17 +124,24 @@ class UserResource extends Component {
             )
         }
         else if (this.props.selectedUserItem){
-            return (
-                <div className="ag-theme-fresh" style={{width: '100%'}}> 
-                    <AgGridReact
-                        id="myResourceGrid" 
-                        domLayout="autoHeight"
-                        columnDefs={this.state.columnDefs}
-                        rowData={this.props.selectedUserItem.resources}
-                        onGridReady={this.onGridReady.bind(this)}
-                    />
-                </div>
-            )
+            if (this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length)
+                return (
+                    <div className="ag-theme-fresh" style={{width: '100%'}}> 
+                        <AgGridReact
+                            id="myResourceGrid" 
+                            domLayout="autoHeight"
+                            columnDefs={this.state.columnDefs}
+                            rowData={this.props.selectedUserItem.resources}
+                            onGridReady={this.onGridReady.bind(this)}
+                        />
+                    </div>
+                )
+            else 
+                return (
+                    <div style={{ marginLeft: '30%' }}>
+                        No Resources to display for user 
+                    </div>
+                )
         }
         return null;
     }
