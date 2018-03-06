@@ -5,6 +5,7 @@ import { LOGOUT, SET_CURRENT_URL } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon } from 'semantic-ui-react'
+import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const LoggedOutView = props => {
     if (!props.currentUser) {
@@ -31,8 +32,6 @@ const LoggedInView = props => {
                     <Menu.Item as={Link} to="/" onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
                     <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation === '/users'} >Users</Menu.Item>
                     <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation === '/resources'} >Documents</Menu.Item>
-                    <Menu.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
-                    <Menu.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >AuditLog</Menu.Item>
                     <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation === '/apps'} >Apps</Menu.Item>
                 </Menu.Menu>
 
@@ -40,7 +39,14 @@ const LoggedInView = props => {
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
-                    <Menu.Item icon='settings' as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
+                    {/* <Menu.Item icon='settings' as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} /> */}
+                    <Dropdown item icon='settings'>
+                        <Dropdown.Menu>  
+                            <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
+                            <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
+                            <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
                     <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
