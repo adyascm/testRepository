@@ -35,11 +35,11 @@ const DataSourceItem = props => {
     }
 
     if (datasource) {
-        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
         var status = getScanStatus(datasource);
-        var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
-        if (datasource.is_push_notifications_enabled)
-            syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
+        // var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
+        // if (datasource.is_push_notifications_enabled)
+        //     syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         if (datasource.is_dummy_datasource)
             datasourceImage = <Image circular floated='left' size='small'><Label content='Dummy' icon='lab' /></Image>
@@ -53,7 +53,7 @@ const DataSourceItem = props => {
                     {datasourceImage}
                     <Card.Header textAlign='right'>
                         {datasource.display_name}
-                        {syncStatus}
+                        {/* {syncStatus} */}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
                         Created at: <strong><IntlProvider locale='en'  >
