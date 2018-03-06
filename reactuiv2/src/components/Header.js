@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux';
-import { LOGOUT } from '../constants/actionTypes';
+import { LOGOUT, SET_CURRENT_URL } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon } from 'semantic-ui-react'
@@ -21,6 +21,7 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
+        console.log("props header : ", props)
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
@@ -51,10 +52,13 @@ const LoggedInView = props => {
 };
 
 const mapStateToProps = state => ({
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
-    onClickLogout: () => dispatch({ type: LOGOUT })
+    onClickLogout: () => dispatch({ type: LOGOUT }),
+    onMenuItemClick: (url) => 
+        dispatch({ type: SET_CURRENT_URL, url })
 });
 
 class Header extends React.Component {
@@ -70,6 +74,13 @@ class Header extends React.Component {
         this.setState({
             currLocation: window.location.pathname
         })
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.currentUrl !== this.props.currLocation)
+            this.setState({
+                currLocation: nextProps.currentUrl
+            })
     }
 
     render() {

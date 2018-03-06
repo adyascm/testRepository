@@ -13,7 +13,8 @@ import {
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED,
   DATASOURCE_LOAD_START,
-  DATASOURCE_LOAD_END
+  DATASOURCE_LOAD_END,
+  SET_CURRENT_URL
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -118,6 +119,11 @@ export default (state = defaultState, action) => {
         ...state,
         currentView: "/resources"
       };
+    case SET_CURRENT_URL: 
+      return {
+        ...state,
+        currentUrl: action.url
+      }
     default:
       return state;
   }
