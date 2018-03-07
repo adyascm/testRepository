@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 
 import {
     GROUP_SEARCH_PAYLOAD,
-    GROUP_SEARCH_EMPTY
+    GROUP_SEARCH_EMPTY,
+    USER_ITEM_SELECTED
   } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -16,7 +17,9 @@ const mapDispatchToProps = dispatch => ({
     onsearchLoad: (payload) =>
         dispatch({ type: GROUP_SEARCH_PAYLOAD, payload }),
     onsearchEmpty: () =>
-        dispatch({ type: GROUP_SEARCH_EMPTY })
+        dispatch({ type: GROUP_SEARCH_EMPTY }),
+    setSelectedUser: (payload) =>
+        dispatch({ type: USER_ITEM_SELECTED, payload }) 
 });
 
 class GroupSearch extends Component {
@@ -57,6 +60,8 @@ class GroupSearch extends Component {
 
     handleResultSelect = (e, { result }) => {
         this.props.onsearchLoad(this.state.resultsMap)
+        this.props.setSelectedUser(result)
+        console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
