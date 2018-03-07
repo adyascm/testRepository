@@ -1,5 +1,5 @@
 import json
-from adya.db.models import AlchemyEncoder, LoginUser, DataSource
+from adya.db.models import alchemy_encoder, LoginUser, DataSource
 from adya.common.constants import API_HOST, Role
 import os
 

@@ -72,9 +72,9 @@ const Users = {
 
 const Apps = {
     getapps: () => requests.get('/getapps'),
-    revokeAppAccess: (application) =>
-        requests.del('/scan/usersapp?domainId=' + application.domain_id + "&dataSourceId=" +application.datasource_id +
-                "&userEmail="+ application.user_email + "&clientId="+application.client_id )
+    revokeAppAccess: (domainId,datasourceId, clientId,userEmail) =>
+        requests.del('/scan/usersapp?domainId=' + domainId+ "&dataSourceId=" +datasourceId+
+                "&userEmail="+ userEmail + "&clientId="+clientId )
 }
 
 const Resources = {

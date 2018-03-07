@@ -7,7 +7,7 @@ from adya.db.connection import db_connection
 from adya.db import models
 from adya.common.constants import UserMemberType
 from sqlalchemy import and_
-from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application
+from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
 from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
@@ -584,7 +584,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         #ortc_client = RealtimeConnection().get_conn()
         # ortc_client.send(datasource_id, datasource)
         if send_message:
-            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=models.AlchemyEncoder))
+            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
             #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
 
 def get_scan_status(datasource):
@@ -635,7 +635,8 @@ class GetAllUserAppAndScope():
         self.user_email_list = user_email_list
         self.db_session = db_connection().get_session()
         self.length = len(user_email_list)
-
+        self.applicationassociations =[]
+        self.applications ={}
     def app_data_callback(self,request_id, response, exception):
         request_id = int(request_id) 
         user_email = self.user_email_list[request_id - 1]
@@ -644,11 +645,14 @@ class GetAllUserAppAndScope():
                 application = Application()
                 application.domain_id= self.domain_id
                 application.datasource_id= self.datasource_id
-                application.user_email = user_email 
-                application.user_key = app["userKey"]
                 application.client_id = app["clientId"]
                 application.display_text = app.get("displayText")
                 application.anonymous = app.get("anonymous")
+                association_table =  {}
+                association_table["client_id"] = app["clientId"]
+                association_table["user_email"] = user_email
+                association_table["datasource_id"] = self.datasource_id
+                self.applicationassociations.append(association_table)
                 scopes_string =""
                 is_readonly_scope = True
                 scopes = app["scopes"]
@@ -658,9 +662,13 @@ class GetAllUserAppAndScope():
                         break
                 application.scopes = ','.join(scopes)
                 application.is_readonly_scope = is_readonly_scope
-                self.db_session.add(application)
+                if not app["clientId"] in self.applications:
+                    self.applications[app["clientId"]] ={}
+                    self.db_session.add(application)
 
         if request_id == self.length:
+            self.db_session.commit()
+            self.db_session.bulk_insert_mappings(ApplicationUserAssociation,self.applicationassociations)
             self.db_session.commit()
                 
 

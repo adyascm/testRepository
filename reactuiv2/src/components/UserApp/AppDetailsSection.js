@@ -31,8 +31,8 @@ class AppDetailsSection extends Component {
         this.props.closingDetailsSection(undefined)
     }
 
-    handleAppAccessRevokeClick(event,application) {
-        agent.Apps.revokeAppAccess(application).then(resp =>{
+    handleAppAccessRevokeClick(event,domainId,datasourceId, clientId,userEmail) {
+        agent.Apps.revokeAppAccess(domainId,datasourceId, clientId,userEmail).then(resp =>{
             console.log(resp)
         })
     }
@@ -51,18 +51,17 @@ class AppDetailsSection extends Component {
         if (!this.props.selectedAppItem)
             return null;
         else {
-            let userEmails = this.props.selectedAppItem.user_emails
+            let users = this.props.selectedAppItem.users
             let appUsers = []
 
-            if (userEmails && userEmails.length > 0) {
-                appUsers = userEmails.map((userEmail,index) => {
-                let app =JSON.parse(JSON.stringify(this.props.selectedAppItem))
-                delete app.userEmails
-                app.user_email = userEmail
+            if (users && users.length > 0) {
+                appUsers = users.map((user,index) => {
+                let app =this.props.selectedAppItem
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red' onClick={(event) => this.handleAppAccessRevokeClick(event,app)}>
+                            <Button animated='vertical' basic color='red' onClick={(event) => 
+                                                                        this.handleAppAccessRevokeClick(event,app.domain_id,app.datasource_id,app.client_id,user.email)}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
@@ -70,7 +69,7 @@ class AppDetailsSection extends Component {
                             </Button>
                         </Grid.Column>
                         <Grid.Column width={10}>
-                            {userEmail}
+                            {user.email}
                         </Grid.Column>
                     </Grid.Row>
                 )
