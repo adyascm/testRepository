@@ -37,8 +37,13 @@ def get_widget_data(auth_token, widget_id):
                                 and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
                                 Resource.domain_id == LoginUser.domain_id, 
                                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(LoginUser.auth_token == auth_token).group_by(Resource.exposure_type).all()
-        data["totalCount"] = db_session.query(Resource.resource_id).filter(and_(Resource.domain_id == LoginUser.domain_id,
-                                     Resource.exposure_type != constants.ResourceExposureType.INTERNAL, Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).count()
+
+        totalcount = 0
+        if data["rows"] > 0:
+            for count in data["rows"]:
+                totalcount += count[1]
+
+        data["totalCount"] = totalcount
 
     elif widget_id == 'sharedDocsList':
         data = {}
@@ -69,15 +74,15 @@ def get_widget_data(auth_token, widget_id):
                                 and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
         querydata["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
                                 and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
-        listdata = []
+        list_apps_data = []
+        totalcount = 0
         for key,value in querydata.iteritems():
             scopes = [key, value]
-            listdata.append(scopes)
+            list_apps_data.append(scopes)
+            totalcount += value
 
-        data["rows"] = listdata
-        data["totalCount"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(and_(Application.domain_id == LoginUser.domain_id,
-                                                                                                                 LoginUser.auth_token == auth_token)).count()
-
+        data["rows"] = list_apps_data
+        data["totalCount"] = totalcount
     return data
 
 
