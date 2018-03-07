@@ -321,6 +321,8 @@ def get_all_unowned_files_user_can_access(domain_id, datasource_id, user_email):
                 "emailAddress": resource.email,
                 "role": resource.permission_type
             }
+            if resource.resource_id not in response_data:
+                response_data[resource.resource_id] = []
 
             response_data[resource.resource_id].append(permissions_object)
 
