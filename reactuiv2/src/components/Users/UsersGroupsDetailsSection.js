@@ -31,10 +31,6 @@ class UsersGroupsDetailsSection extends Component {
 
         this.exposureFilterOptions = [
             {
-                text: 'All Files',
-                value: 'ALL'
-            },
-            {
                 text: 'Externally Shared',
                 value: 'EXT'
             },
@@ -45,6 +41,10 @@ class UsersGroupsDetailsSection extends Component {
             {
                 text: 'Internally Shared',
                 value: 'INT'
+            },
+            {
+                text: 'All Files',
+                value: 'ALL'
             }
         ]
 

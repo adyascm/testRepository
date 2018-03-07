@@ -28,14 +28,14 @@ class Resources extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
 
     this.exposureFilterOptions = [
-        {text: 'All Files',
-         value: 'ALL'},
         {text: 'Externally Shared',
          value: 'EXT'},
         {text: 'Domain Shared',
          value: 'DOMAIN'},
         {text: 'Internally Shared',
-         value: 'INT'}
+         value: 'INT'},
+         {text: 'All Files',
+         value: 'ALL'}
       ]
 
       this.state = {
