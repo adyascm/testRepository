@@ -235,8 +235,7 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         resourcedata = {}
         resourcedata["resources"] = [results]
 
-        query_params = {'domainId': domain_id,
-                        'dataSourceId': datasource_id, 'userEmail': email}
+        query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
         messaging.trigger_post_event(
             constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
         messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "email": email, "file_id": file_id}))

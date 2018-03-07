@@ -14,7 +14,7 @@ from adya.email_templates import adya_emails
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
-def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user_email=None):
+def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_token=None,user_email=None):
     # here nextPageToken as none means it is first call for resource
     # useremail None means servie account is not verified and we are scaning data for loggedin user only
     print "Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
@@ -24,10 +24,8 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
     session = FuturesSession()
     last_future = None
     quotaUser = None
-    queryString = ""
-    if user_email:
-        quotaUser = user_email[0:41]
-        queryString = "'"+ user_email +"' in owners"
+    quotaUser = owner_email[0:41]
+    queryString = "'"+ owner_email +"' in owners"
     while True:
         try:
             results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
@@ -52,7 +50,7 @@ def get_resources(auth_token, domain_id, datasource_id,next_page_token=None,user
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'nextPageToken': next_page_token}
+                    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':owner_email, 'nextPageToken': next_page_token}
                     if user_email:
                         query_params["userEmail"] = user_email
                     messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
@@ -325,7 +323,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     if datasource.is_serviceaccount_enabled:
         print "Google service account is enabled, starting to fetch files for each processed user"
         for user_email in user_email_list:
-            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': user_email}
+            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email}
             messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
     if logged_in_user.is_admin_user:
