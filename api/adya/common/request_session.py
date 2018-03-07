@@ -46,7 +46,7 @@ class RequestSession():
             self.params[param] = params_dict.get(param)
 
         for header in headers:
-            self.headers[header] = headers_dict.get(param)
+            self.headers[header] = headers_dict.get(header)
 
     def get_auth_token(self):
         return self.auth_token
