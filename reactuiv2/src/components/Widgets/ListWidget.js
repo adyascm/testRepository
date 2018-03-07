@@ -34,7 +34,11 @@ class ListWidget extends Component {
             if (this.props[this.props.config.id].isLoaded) {
                 const data = this.props[this.props.config.id].data.rows;
                 const count = this.props[this.props.config.id].data.totalCount;
-                const footer = "...and " + count + " more";
+                const footer = count >= 5?"...and " + count + " more":null;                
+                
+                if (!count)
+                    return null
+                
                 return (
                     <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
                         <Card.Content>
@@ -59,11 +63,12 @@ class ListWidget extends Component {
                             </Table>
 
                         </Card.Content>
+                        {!footer?null:
                         <Card.Content extra>
                             <div className='ui'>
                                 <Label color='green'>{footer} </Label>
                             </div>
-                        </Card.Content>
+                        </Card.Content>}
                     </Card>
                 )
             }
