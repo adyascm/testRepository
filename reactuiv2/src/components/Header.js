@@ -25,7 +25,7 @@ const LoggedInView = props => {
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
-                    <Image size='tiny' src={AdyaLogo} />
+                    <Image size='tiny' src={AdyaLogo} onClick={() => props.handleClick("/")} />
                 </Menu.Item>
 
                 <Menu.Menu position='left' >
