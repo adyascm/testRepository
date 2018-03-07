@@ -99,7 +99,7 @@ class Resources extends Component {
           </Grid.Row>
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              <ResourcesList />
+              <ResourcesList gridWidth={gridWidth} />
               {/* <TestResourcesList /> */}
             </Grid.Column>
             {

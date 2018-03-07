@@ -126,7 +126,10 @@ def start_scan(auth_token, domain_id, datasource_id,is_admin,is_service_account_
     if is_admin == 'True':
         messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
         messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
-    if is_service_account_enabled == 'False':
+    if is_service_account_enabled == 'False' or not is_admin == 'True' :
+        db_session = db_connection().get_session()
+        existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token ==auth_token).first()
+        query_params["ownerEmail"] = existing_user.email
         messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 
 def create_dummy_datasource(db_session,domain_id,datasource_id):

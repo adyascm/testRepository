@@ -23,12 +23,13 @@ class DriveResources(Resource):
         print "started initial gdrive scan"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'], ['nextPageToken','userEmail'])
+            True, ['dataSourceId', 'domainId','ownerEmail'], ['nextPageToken','userEmail'])
         if req_error:
             return req_error
 
-        scan.get_resources(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param(
-            'dataSourceId'),req_session.get_req_param('nextPageToken'),req_session.get_req_param('userEmail'))
+        scan.get_resources(req_session.get_auth_token(), req_session.get_req_param('domainId'), 
+                    req_session.get_req_param('dataSourceId'),req_session.get_req_param('ownerEmail'),
+                    req_session.get_req_param('nextPageToken'),req_session.get_req_param('userEmail'))
         return req_session.generate_response(202)
 
     def post(self):
