@@ -67,6 +67,7 @@ class Resources extends Component {
   }
 
   render() {
+
     let containerStyle = {
       height: "100%",
       textAlign: "left"
