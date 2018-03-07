@@ -27,9 +27,25 @@ const UserDetails = props => {
             value: 'make_all_files_private'
         },
         {
-            text: 'Watch all my actions',
+            text: 'Watch all actions',
             value: 'watch_all_action_for_user'
-        }];     
+        }];
+
+    var quickActionsforExtUser = [
+      {
+          text: '',
+          value: ''
+      },
+      {
+        text: 'Remove all access',
+        value: 'remove_all_access'
+      },
+      {
+          text: 'Watch all actions',
+          value: 'watch_all_action_for_user'
+      }
+
+    ]
 
     var parentGroups = []
     for (var index = 0; index < props.selectedUserItem.parents.length; index++) {
@@ -55,6 +71,8 @@ const UserDetails = props => {
     } else {
         image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} circular >{props.selectedUserItem.name && props.selectedUserItem.name.charAt(0)}</Label></Item.Image>
     }
+
+    var actionMenu = props.selectedUserItem.member_type === 'EXT' ? quickActionsforExtUser : quickActions
     return (
         <Item.Group>
             <Item fluid='true'>
@@ -73,7 +91,7 @@ const UserDetails = props => {
                         </Label.Group>
                     </Item.Description>
                     <Item.Extra extra="true">
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
+                        <Dropdown placeholder='Quick Actions...' fluid selection options={actionMenu} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
                     </Item.Extra>
                 </Item.Content>
             </Item>
