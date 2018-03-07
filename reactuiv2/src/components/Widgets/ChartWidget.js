@@ -32,6 +32,9 @@ class ChartWidget extends Component {
     render() {
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
+                if (!this.props[this.props.config.id].data.totalCount)
+                    return null
+                
                 return (
                     <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
                         <Card.Content>

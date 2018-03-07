@@ -2,7 +2,8 @@ import {
     ASYNC_END,
     ADD_APP_MESSAGE,
     CLEAR_MESSAGE,
-    SCAN_INCREMENTAL_UPDATE_RECEIVED
+    SCAN_INCREMENTAL_UPDATE_RECEIVED,
+    LOGOUT
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -24,6 +25,7 @@ export default (state = defaultState, action) => {
                 errorMessage: action.error,
                 infoMessage: action.info
             };
+        case LOGOUT:
         case CLEAR_MESSAGE:
             return {
                 ...state,

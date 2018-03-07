@@ -2,7 +2,7 @@ from flask_restful import request
 import json
 import constants
 
-from adya.db.models import AlchemyEncoder
+from adya.db.models import alchemy_encoder
 from adya.db.connection import db_connection
 
 class RequestSession():
@@ -46,7 +46,7 @@ class RequestSession():
             self.params[param] = params_dict.get(param)
 
         for header in headers:
-            self.headers[header] = headers_dict.get(param)
+            self.headers[header] = headers_dict.get(header)
 
     def get_auth_token(self):
         return self.auth_token
@@ -79,7 +79,7 @@ class RequestSession():
             }
 
     def generate_sqlalchemy_response(self, http_code, payload):
-        json_string_payload = json.dumps(payload, cls=AlchemyEncoder)
+        json_string_payload = json.dumps(payload, cls=alchemy_encoder())
         if self.isLocal:
             json_payload = json.loads(json_string_payload)
         else:

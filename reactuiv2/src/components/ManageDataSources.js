@@ -51,7 +51,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: DATASOURCE_LOAD_END }),
   displayErrorMessage: (error) =>
     dispatch({ type: ASYNC_END, errors: error.message?error.message:error['Failed'] }),
-  goToDashboard: (url) => 
+  goToDashboard: (url) =>
     dispatch({ type: SET_CURRENT_URL, url })
 });
 
@@ -95,7 +95,7 @@ class ManageDataSources extends Component {
 
   handleClick() {
     this.props.goToDashboard("/")
-  } 
+  }
 
   render() {
     if (!this.props.common.datasources || !this.props.common.datasources.length) {
@@ -105,7 +105,7 @@ class ManageDataSources extends Component {
             <Card fluid>
               <Card.Content>
                 <Card.Description>
-                  <Header>Welcome  {this.props.currentUser.first_name}!, Let us get started by connecting your first GSuite account by clicking the button below. </Header>
+                  <Header>Welcome  {this.props.currentUser.first_name}! Get started by connecting your GSuite account. </Header>
                   <Divider />
                   We only require read-only permission at this stage and will ask for incremental permissions when you take actions from the app.<br />
                 Before connecting your GSuite account, you can use a

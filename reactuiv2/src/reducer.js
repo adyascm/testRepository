@@ -10,6 +10,7 @@ import message from './reducers/message'
 import auditlog from './reducers/auditlog'
 import apps from './reducers/apps'
 
+
 export default combineReducers({
   auth,
   common,

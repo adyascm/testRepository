@@ -81,9 +81,11 @@ class ResourcesList extends Component {
     }
 
     componentWillMount() {
-        this.props.setPaginationData(0,100)
-        //this.props.onLoadStart()
-        //this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': 0, 'pageSize': 100}))
+        if (!this.props.pageNumber)
+            this.props.setPaginationData(0,100)
+        
+        this.props.onLoadStart()
+        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': 0, 'pageSize': 100}))
     }
 
     componentWillReceiveProps(nextProps) {
