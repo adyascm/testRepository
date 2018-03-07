@@ -69,8 +69,8 @@ class UsersGroupsDetailsSection extends Component {
             this.props.onUserQuickAction(action)
     }
 
-    handleAppAccessRevokeClick(event,application) {
-        agent.Apps.revokeAppAccess(application).then(resp =>{
+    handleAppAccessRevokeClick(event,domainId,datasourceId, clientId,userEmail) {
+        agent.Apps.revokeAppAccess(domainId,datasourceId, clientId,userEmail).then(resp =>{
             console.log(resp)
         })
     }

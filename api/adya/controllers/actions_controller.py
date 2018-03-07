@@ -1,6 +1,6 @@
 from adya.common import constants, action_constants, errormessage, messaging
 from adya.datasources.google import actions, gutils
-from adya.db.models import AuditLog, Action, Application
+from adya.db.models import AuditLog, Action, Application,ApplicationUserAssociation
 from adya.db.connection import db_connection
 from sqlalchemy import and_
 import json
@@ -334,11 +334,10 @@ def revoke_user_app_access(domain_id, datasource_id, user_email, client_id):
         driectory_service = gutils.get_directory_service(domain_id)
         driectory_service.tokens().delete(userKey=user_email, clientId=client_id).execute()
         db_session = db_connection().get_session()
-        db_session.query(Application).filter(and_(Application.domain_id == domain_id,
-                                                  Application.datasource_id == datasource_id,
-                                                  Application.user_email == user_email,
-                                                  Application.client_id == client_id)).delete()
+        db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
+                                                  ApplicationUserAssociation.user_email == user_email,
+                                                  ApplicationUserAssociation.client_id == client_id)).delete()
         db_session.commit()
     except Exception as ex:
         print ex
-        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
+        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id

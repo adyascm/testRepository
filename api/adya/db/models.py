@@ -6,35 +6,37 @@ from datetime import date, datetime
 
 Base = declarative_base()
 
-
-class AlchemyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj.__class__, DeclarativeMeta):
-            # an SQLAlchemy class
-            fields = {}
-            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
-                data = obj.__getattribute__(field)
-                if isinstance(data, (datetime)):
-                    fields[field] = data.strftime("%Y-%m-%dT%H:%M:%SZ")
-                elif isinstance(data, list):
-                    try:
-                        json.dumps(data, cls=AlchemyEncoder)  # this will fail on non-encodable values, like other classes
-                        fields[field] = data
-                    except TypeError as ex:
+def alchemy_encoder(fields_to_expand = {"depth":0}):
+    class AlchemyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj.__class__, DeclarativeMeta):
+                # an SQLAlchemy class
+                fields = {}
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                    data = obj.__getattribute__(field)
+                    if isinstance(data, (datetime)):
+                        fields[field] = data.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    elif isinstance(data, list):
+                        try:
+                            if fields_to_expand["depth"] == 0:
+                                temp =json.dumps(data, cls=alchemy_encoder(fields_to_expand = {"depth":1}),check_circular=False)  # this will fail on non-encodable values, like other classes
+                                fields[field] = json.loads(temp)
+                        except TypeError as ex:
+                            fields[field] = None
+                    elif isinstance(data.__class__, DeclarativeMeta):
                         fields[field] = None
-                elif isinstance(data.__class__, DeclarativeMeta):
-                    fields[field] = None
-                else:
-                    try:
-                        json.dumps(data)  # this will fail on non-encodable values, like other classes
-                        fields[field] = data
-                    except TypeError as ex:
-                        fields[field] = None
-                    except Exception as ex:
-                        fields[field] = None
-            # a json-encodable dict
-            return fields
-        return json.JSONEncoder.default(self, obj)
+                    else:
+                        try:
+                            json.dumps(data)  # this will fail on non-encodable values, like other classes
+                            fields[field] = data
+                        except TypeError as ex:
+                            fields[field] = None
+                        except Exception as ex:
+                            fields[field] = None
+                # a json-encodable dict
+                return fields
+            return json.JSONEncoder.default(self, obj)
+    return AlchemyEncoder
 
 
 
@@ -102,7 +104,7 @@ class DomainUser(Base):
     photo_url = Column(Text)
     aliases = Column(Text)
     member_type = Column(String(6))
-    applications = relationship("Application", backref="domain_user")
+    applications = relationship("Application", secondary='app_user_association')
 
 
 class Resource(Base):
@@ -230,18 +232,22 @@ class AuditLog(Base):
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
 
+class ApplicationUserAssociation(Base):
+    __tablename__ = 'app_user_association'
+    datasource_id = Column(String(36),primary_key =True)
+    client_id = Column(String(255), ForeignKey('application.client_id'), primary_key=True)
+    user_email = Column(String(320), ForeignKey('domain_user.email'), primary_key=True)
 
 class Application(Base):
     __tablename__ = 'application'
     domain_id = Column(String(255))
     datasource_id = Column(String(36),primary_key =True)
-    client_id = Column(String(255),primary_key=True)
-    user_email = Column(String(320), ForeignKey('domain_user.email'), primary_key= True)
-    user_key =Column(String(50))
+    client_id = Column(String(255),primary_key=True,index=True)
     display_text = Column(String(255))
     anonymous = Column(Boolean, default= True)
     scopes = Column(Text)
     is_readonly_scope = Column(Boolean)
+    users = relationship("DomainUser",secondary='app_user_association')
 
 
 def get_table(tablename):
