@@ -69,7 +69,7 @@ def get_gdrive_scan_completed_parameters(datasource):
         all_users = users_query.all()
         
         emails = ",".join(user.email for user in all_users)
-        countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")
+        countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")['rows']
 
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0

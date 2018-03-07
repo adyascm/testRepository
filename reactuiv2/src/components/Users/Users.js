@@ -18,7 +18,8 @@ import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
 
 const mapStateToProps = state => ({
   appName: state.common.appName,
-  currentUser: state.common.currentUser
+  currentUser: state.common.currentUser,
+  selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -60,6 +61,14 @@ class Users extends Component {
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT') && this.state.showOnlyExternal) 
+      this.setState({
+        showOnlyExternal: false
+      })
+  }
+
   handleContextRef = contextRef => this.setState({
     contextRef
   })

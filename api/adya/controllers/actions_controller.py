@@ -173,7 +173,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
         print "Initiating action: ", action_to_take, " with parameters: ", action_payload
         execution_status = execute_action(
-            auth_token, domain_id, datasource_id, action_config, action_parameters)
+            auth_token, domain_id, datasource_id, action_config, action_payload)
         if execution_status == errormessage.ACTION_EXECUTION_SUCCESS:
             return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
         else:
@@ -185,17 +185,16 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         return "Failed to execute action"
 
 
-def execute_action(auth_token, domain_id, datasource_id, action_config, action_parameters):
+def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload):
     try:
         response = ""
-        print action_config
-        print action_parameters
-        if action_config.name == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER :
+        action_parameters = action_payload['parameters']
+        if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER :
             form_input = {}
             form_input['name'] = "watch activity for " + str(action_parameters['user_email'])
             form_input['description'] = "watch activity for " + str(action_parameters['user_email'])
             form_input['frequency'] = "cron(0 9 ? * 2 *)"
-            form_input['receivers'] = action_parameters['initiated_by']
+            form_input['receivers'] = action_payload['initiated_by']
             form_input['report_type'] = "Activity"
             form_input['selected_entity_type'] = "user"
             form_input['selected_entity'] = action_parameters['user_email']
@@ -204,33 +203,33 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             form_input['datasource_id'] = datasource_id
             messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
 
-        elif action_config.name == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+        elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership(
                 domain_id, old_owner_email, new_owner_email)
-        elif action_config.name == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership_of_resource(
                 domain_id, datasource_id, old_owner_email, new_owner_email)
-        elif action_config.name == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+        elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
             resource_id = action_parameters['resource_id']
             response = actions.make_resource_private(
                 domain_id, datasource_id, resource_id)
-        elif action_config.name == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+        elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
             user_email = action_parameters['user_email']
             response = actions.make_all_files_owned_by_user_private(
                 domain_id, datasource_id, user_email)
-        elif action_config.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+        elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
             resource_id = action_parameters['resource_id']
             response = actions.remove_external_access_to_resource(
                 domain_id, datasource_id, resource_id)
-        elif action_config.name == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+        elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
             user_email = action_parameters['user_email']
             response = actions.remove_external_access_for_all_files_owned_by_user(
                 domain_id, datasource_id, user_email)
-        elif action_config.name == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+        elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner_id']
@@ -238,7 +237,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role,
                                                                       resource_owner)
-        elif action_config.name == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner']

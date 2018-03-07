@@ -28,14 +28,14 @@ class Resources extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
 
     this.exposureFilterOptions = [
-        {text: 'All Files',
-         value: 'ALL'},
         {text: 'Externally Shared',
          value: 'EXT'},
         {text: 'Domain Shared',
          value: 'DOMAIN'},
         {text: 'Internally Shared',
-         value: 'INT'}
+         value: 'INT'},
+         {text: 'All Files',
+         value: 'ALL'}
       ]
 
       this.state = {
@@ -67,6 +67,7 @@ class Resources extends Component {
   }
 
   render() {
+
     let containerStyle = {
       height: "100%",
       textAlign: "left"
@@ -99,7 +100,7 @@ class Resources extends Component {
           </Grid.Row>
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              <ResourcesList />
+              <ResourcesList gridWidth={gridWidth} />
               {/* <TestResourcesList /> */}
             </Grid.Column>
             {

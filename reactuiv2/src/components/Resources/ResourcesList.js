@@ -75,14 +75,17 @@ class ResourcesList extends Component {
     onGridReady(params) {
         this.gridApi = params.api;
         this.gridColumnApi = params.columnApi;
-        params.api.sizeColumnsToFit();
+        
+        if (this.props.gridWidth === 16)
+            this.gridApi.sizeColumnsToFit()
     }
 
     componentWillMount() {
-        this.props.setPaginationData(0,100)
-        //this.props.onLoadStart()
-        //this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': 0, 'pageSize': 100}))
-
+        if (!this.props.pageNumber)
+            this.props.setPaginationData(0,100)
+        
+        this.props.onLoadStart()
+        this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': 0, 'pageSize': 100}))
     }
 
     componentWillReceiveProps(nextProps) {
