@@ -117,7 +117,7 @@ class Actions extends Component {
     }
 
     render() {
-        if (!this.props.logged_in_user.is_admin_user || this.props.datasources[0].is_dummy_datasource) {
+        if (this.props.datasources[0].is_dummy_datasource) {
             //Actions are not allowed
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;
