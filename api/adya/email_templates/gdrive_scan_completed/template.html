@@ -58,7 +58,9 @@
                  <li>{{name}}
                  </li>
                  {{/externalDocs}}
-                <li>...and {{restFiles}} other documents</li>
+                {% if restFiles %}
+                  <li>...and {{restFiles}} other documents</li>
+                {% endif %}
               </ul>
             </td>
           </tr>
@@ -79,7 +81,9 @@
                  <li>{{name}}
                  </li>
                  {{/externalUsers}}
-                <li>...and {{restUsers}} other external users </li>
+                {% if restUsers %}
+                  <li>...and {{restUsers}} other external users </li>
+                {% endif %}
               </ul>
             </td>
           </tr>
