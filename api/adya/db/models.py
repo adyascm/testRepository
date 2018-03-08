@@ -104,7 +104,6 @@ class DomainUser(Base):
     photo_url = Column(Text)
     aliases = Column(Text)
     member_type = Column(String(6))
-    applications = relationship("Application", secondary='app_user_association')
 
 
 class Resource(Base):
@@ -247,7 +246,6 @@ class Application(Base):
     anonymous = Column(Boolean, default= True)
     scopes = Column(Text)
     is_readonly_scope = Column(Boolean)
-    users = relationship("DomainUser",secondary='app_user_association')
 
 
 def get_table(tablename):

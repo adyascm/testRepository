@@ -9,7 +9,7 @@ const AppDetails = props => {
     var image =<Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} 
                                         circular >{appName
                                         && appName.charAt(0)}</Label></Item.Image>
-    
+
     let scopes = props.selectedAppItem["scopes"].split(',').map((scope,index) => {
         return (
         <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>

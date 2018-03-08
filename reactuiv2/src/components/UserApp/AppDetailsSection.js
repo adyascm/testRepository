@@ -4,8 +4,12 @@ import AppDetails from './AppDetails';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 import {
-    APPS_ITEM_SELECTED
+    APPS_ITEM_SELECTED,
+    APP_USERS_LOAD_START,
+    APP_USERS_LOADED
 } from '../../constants/actionTypes';
+import { Loader, Dimmer } from 'semantic-ui-react'
+
 
 const mapStateToProps = state => ({
     ...state.apps,
@@ -14,6 +18,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({type:APPS_ITEM_SELECTED,payload}),
+    appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
+    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
 })
 
 class AppDetailsSection extends Component {
@@ -37,6 +43,13 @@ class AppDetailsSection extends Component {
         })
     }
 
+    componentWillMount() {
+        if (this.props.selectedAppItem && this.props.selectedAppItem.client_id) {
+            this.props.appUsersLoadStart()
+            this.props.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+        }
+    }
+
     render() {
         // var appLayout = (
         //     <Container stretched>
@@ -51,12 +64,20 @@ class AppDetailsSection extends Component {
         if (!this.props.selectedAppItem)
             return null;
         else {
-            let users = this.props.selectedAppItem.users
+            if(this.props.isLoading)
+            {
+                return (
+                    <div className="ag-theme-fresh" style={{ height: '100px' }}>
+                        <Dimmer active inverted>
+                            <Loader inverted content='Loading' />
+                        </Dimmer>
+                    </div>
+                )
+            }
             let appUsers = []
-
-            if (users && users.length > 0) {
-                appUsers = users.map((user,index) => {
+            if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app =this.props.selectedAppItem
+                appUsers = this.props.appUsers.map((user,index) => {
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
@@ -75,6 +96,7 @@ class AppDetailsSection extends Component {
                 )
             })
             }
+
             let panes = [
                 { menuItem: 'Users', render: () => <Tab.Pane attached={false}> 
                                                     <Grid celled='internally'>{appUsers}
@@ -83,7 +105,7 @@ class AppDetailsSection extends Component {
             return (
                 <Segment>
                         <Icon name='close' onClick={this.closeDetailsSection} />
-                        <AppDetails selectedAppItem={this.props.selectedAppItem} appsPayload={this.props.appsPayload} handleChange={this.handleChange} />
+                        <AppDetails selectedAppItem={this.props.selectedAppItem} appUsers={this.props.appUsers} handleChange={this.handleChange} />
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 </Segment>
             )

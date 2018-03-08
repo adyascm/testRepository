@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { Card, Image, Label } from 'semantic-ui-react'
-
+import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 
 import {
-    APPS_ITEM_SELECTED
+    APPS_ITEM_SELECTED,
+    APP_USERS_LOAD_START,
+    APP_USERS_LOADED
 } from '../../constants/actionTypes';
 
 
@@ -14,7 +16,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     selectAppItem: (payload) =>
-        dispatch({ type: APPS_ITEM_SELECTED, payload })
+        dispatch({ type: APPS_ITEM_SELECTED, payload }),
+    appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
+    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
 });
 
 
@@ -29,6 +33,8 @@ class AppList extends Component {
 
     onCardClicked(event, param) {
         this.props.selectAppItem(param.app);
+        this.props.appUsersLoadStart()
+        this.props.appUsersLoaded(agent.Apps.getappusers(param.app.client_id))
     }
     
     componentWillReceiveProps(nextProps) {

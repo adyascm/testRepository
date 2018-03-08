@@ -1,25 +1,66 @@
-import React from 'react';
-import { Grid, Button,Icon } from 'semantic-ui-react'
+import { Grid, Button,Icon } from 'semantic-ui-react';
+import React, { Component } from 'react';
+import agent from '../../utils/agent'
+import { connect } from 'react-redux';
+import { Loader, Dimmer } from 'semantic-ui-react'
 
-const UserApps = props => {
-        let selectedUser = props.selectedUser
+import {
+    USER_APPS_LOAD_START,
+    USER_APPS_LOADED
+} from '../../constants/actionTypes';
+
+
+const mapStateToProps = state => ({
+    ...state.apps
+});
+
+const mapDispatchToProps = dispatch => ({
+    onLoadStart: () =>
+        dispatch({ type: USER_APPS_LOAD_START }),
+    onLoad: (payload) =>
+        dispatch({ type: USER_APPS_LOADED, payload })
+});
+
+class UserApps extends Component {
+
+    componentWillMount() {
+        if (this.props.selectedUser && this.props.selectedUser.email) {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+        }
+    }
+    
+
+    render(){
+        let selectedUser = this.props.selectedUser
         let applications =[]
-        if (selectedUser && selectedUser['applications'] && selectedUser['applications'].length>0) {
-            applications = selectedUser['applications'].map((application,index) => {
+        if(this.props.isLoading)
+        {
+            applications = (
+                <div className="ag-theme-fresh" style={{ height: '100px' }}>
+                    <Dimmer active inverted>
+                        <Loader inverted content='Loading' />
+                    </Dimmer>
+                </div>
+            )
+        }
+        else if (this.props.userApps && this.props.userApps.length)
+        {
+            applications = this.props.userApps.map((application,index) => {
                 if (application !== undefined) {
                     let scopes = application["scopes"].split(',').map((scope,index) => {
-                       return (
-                       <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
+                    return (
+                    <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
                             {scope}
                         </Grid.Row>  
-                       )
+                    )
                     })
 
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column verticalAlign='middle'  width={2}>
                                 <Button animated='vertical' basic color='red' onClick={(event) =>
-                                     props.handleAppAccessRevokeClick(event,selectedUser.domain_id,selectedUser.datasource_id,application.client_id,selectedUser.email)}>
+                                    this.props.handleAppAccessRevokeClick(event,selectedUser.domain_id,selectedUser.datasource_id,application.client_id,selectedUser.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />
@@ -47,6 +88,7 @@ const UserApps = props => {
             </Grid>
     
         )
+    }
 }
 
-export default UserApps;
+export default connect(mapStateToProps, mapDispatchToProps)(UserApps);
