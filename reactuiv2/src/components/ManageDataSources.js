@@ -50,7 +50,7 @@ const mapDispatchToProps = dispatch => ({
   onDataSourceLoadError: () =>
     dispatch({ type: DATASOURCE_LOAD_END }),
   displayErrorMessage: (error) =>
-    dispatch({ type: ASYNC_END, errors: error.message?error.message:error['Failed'] }),
+    dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] }),
   goToDashboard: (url) =>
     dispatch({ type: SET_CURRENT_URL, url })
 });
@@ -64,12 +64,17 @@ class ManageDataSources extends Component {
     this.addNewDatasource = () => ev => {
       ev.preventDefault();
       this.props.onDataSourceLoad()
-      authenticate("drive_scan_scope").then(data => {
+      if (this.props.currentUser.is_serviceaccount_enabled) {
         this.props.addDataSource("GSuite")
-      }).catch(({ errors }) => {
-        this.props.onDataSourceLoadError(errors)
-        this.props.displayErrorMessage(errors)
-      });
+      } else {
+        authenticate("drive_scan_scope").then(data => {
+          this.props.addDataSource("GSuite")
+        }).catch(({ errors }) => {
+          this.props.onDataSourceLoadError(errors)
+          this.props.displayErrorMessage(errors)
+        });
+      }
+
     };
 
     this.addDummyDatasource = () => ev => {
@@ -108,14 +113,14 @@ class ManageDataSources extends Component {
                   <Header>Welcome  {this.props.currentUser.first_name}! Get started by connecting your GSuite account. </Header>
                   <Divider />
                   We only require read-only permission at this stage and will ask for incremental permissions when you take actions from the app.<br />
-                Before connecting your GSuite account, you can use a
+                  Before connecting your GSuite account, you can use a
                 <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
                   to get familiar with the features.
                 </Card.Description>
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                <Button basic color='green' disabled={this.newDataSourceName !== ""?true:false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading?true:false}>Connect your GSuite</Button>
+                  <Button basic color='green' disabled={this.newDataSourceName !== "" ? true : false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>Connect your GSuite</Button>
                 </div>
               </Card.Content>
             </Card>

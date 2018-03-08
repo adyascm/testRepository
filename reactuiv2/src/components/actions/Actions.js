@@ -61,16 +61,23 @@ class Actions extends Component {
             inProgress: true
         });
         if (this.props.logged_in_user.authorize_scope_name !== "drive_action_scope") {
-            authenticate("drive_action_scope").then(res => {
-                this.props.onIncrementalAuthComplete(res);
+            if (this.props.logged_in_user.is_serviceaccount_enabled) {
+                this.props.onIncrementalAuthComplete({});
                 this.executeAction(this.build_action_payload());
-            }).catch(error => {
-                this.setState({
-                    ...this.state,
-                    inProgress: false,
-                    errorMessage: error['message']
+            }
+            else {
+                authenticate("drive_action_scope").then(res => {
+                    this.props.onIncrementalAuthComplete(res);
+                    this.executeAction(this.build_action_payload());
+                }).catch(error => {
+                    this.setState({
+                        ...this.state,
+                        inProgress: false,
+                        errorMessage: error['message']
+                    });
                 });
-            });
+            }
+
         } else {
             this.executeAction(this.build_action_payload(), resp => {
                 this.setState({

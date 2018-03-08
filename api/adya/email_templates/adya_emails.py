@@ -64,8 +64,8 @@ def get_gdrive_scan_completed_parameters(datasource):
 
         session = db_connection().get_session()
         users_query = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id)
-        if datasource.is_serviceaccount_enabled:
-            users_query = users_query.filter(LoginUser.is_admin_user)
+        #if datasource.is_serviceaccount_enabled:
+        #    users_query = users_query.filter(LoginUser.is_admin_user)
         all_users = users_query.all()
         
         emails = ",".join(user.email for user in all_users)

@@ -19,7 +19,11 @@ class datasource(Resource):
         if req_error:
             return req_error
         
-        datasource = domain_controller.create_datasource(req_session.get_auth_token(), req_session.get_body())
+        try:
+            datasource = domain_controller.create_datasource(req_session.get_auth_token(), req_session.get_body())
+        except Exception as ex:
+            return req_session.generate_error_response(400, ex.message)
+            
         return req_session.generate_sqlalchemy_response(201, datasource)
 
     def delete(self):

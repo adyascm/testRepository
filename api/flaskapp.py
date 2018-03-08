@@ -37,7 +37,6 @@ api.add_resource(reports_handler.DashboardWidget, '/widgets')
 api.add_resource(scanhandler.DriveScan,constants.SCAN_START)
 api.add_resource(scanhandler.DriveResources,constants.SCAN_RESOURCES)
 api.add_resource(scanhandler.GetPermission, constants.SCAN_PERMISSIONS)
-api.add_resource(scanhandler.GetParent, constants.SCAN_PARENTS)
 
 api.add_resource(scanhandler.GetDomainuser, constants.SCAN_DOMAIN_USERS)
 

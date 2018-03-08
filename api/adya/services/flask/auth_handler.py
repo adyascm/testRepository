@@ -45,10 +45,3 @@ class get_user_session(Resource):
         else:
             return req_session.generate_sqlalchemy_response(200, user_session)
 
-
-class RevokeAccessForApp(Resource):
-    def delete(self):
-        data = request.data
-        domain_id = data.get("domainId")
-        gutils.revoke_appaccess(domain_id)
-        return "Success Removed", 200

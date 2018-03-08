@@ -2,10 +2,10 @@
 LOGIN_SCOPE = [
     'profile '
     'email '
-    'https://www.googleapis.com/auth/admin.directory.user.readonly '
 ]
 
 DRIVE_SCAN_SCOPE = LOGIN_SCOPE + [
+    'https://www.googleapis.com/auth/admin.directory.user.readonly '
     'https://www.googleapis.com/auth/admin.directory.group.readonly '
     'https://www.googleapis.com/auth/admin.directory.group.member.readonly '
     'https://www.googleapis.com/auth/admin.directory.domain.readonly '

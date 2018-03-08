@@ -201,46 +201,46 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership(
-                domain_id, old_owner_email, new_owner_email)
+                auth_token, domain_id, old_owner_email, new_owner_email)
         elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
             response = actions.transfer_ownership_of_resource(
-                domain_id, datasource_id, old_owner_email, new_owner_email)
+                auth_token, domain_id, datasource_id, old_owner_email, new_owner_email)
         elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
             resource_id = action_parameters['resource_id']
             response = actions.make_resource_private(
-                domain_id, datasource_id, resource_id)
+                auth_token, domain_id, datasource_id, resource_id)
         elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
             user_email = action_parameters['user_email']
             response = actions.make_all_files_owned_by_user_private(
-                domain_id, datasource_id, user_email)
+                auth_token, domain_id, datasource_id, user_email)
         elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
             resource_id = action_parameters['resource_id']
             response = actions.remove_external_access_to_resource(
-                domain_id, datasource_id, resource_id)
+                auth_token, domain_id, datasource_id, resource_id)
         elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
             user_email = action_parameters['user_email']
             response = actions.remove_external_access_for_all_files_owned_by_user(
-                domain_id, datasource_id, user_email)
+                auth_token, domain_id, datasource_id, user_email)
         elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner_id']
             new_permission_role = action_parameters['new_permission_role']
-            response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
+            response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role,
                                                                       resource_owner)
         elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner']
-            response = actions.update_permissions_of_user_to_resource(domain_id, datasource_id,
+            response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
                                                                       resource_id, user_email,
                                                                       resource_owner)
         elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
             user_email = action_parameters['user_email']
-            response = actions.remove_all_access_for_user(domain_id, datasource_id, user_email)
+            response = actions.remove_all_access_for_user(auth_token, domain_id, datasource_id, user_email)
 
         # check response and return success/failure
         return errormessage.ACTION_EXECUTION_SUCCESS
@@ -322,9 +322,9 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
 
 
-def revoke_user_app_access(domain_id, datasource_id, user_email, client_id):
+def revoke_user_app_access(auth_token, domain_id, datasource_id, user_email, client_id):
     try:
-        driectory_service = gutils.get_directory_service(domain_id)
+        driectory_service = gutils.get_directory_service(auth_token)
         driectory_service.tokens().delete(userKey=user_email, clientId=client_id).execute()
         db_session = db_connection().get_session()
         db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,

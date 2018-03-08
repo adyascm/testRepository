@@ -1,5 +1,4 @@
 from adya.datasources.google import gutils
-from adya.datasources.google.permission import GetPermission
 from adya.db.connection import db_connection
 from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, ResourceParent, DomainUser
 from adya.controllers import domain_controller
@@ -32,11 +31,8 @@ def handle_channel_expiration():
                         "params": {"ttl": 86400}
                     }
 
-                    drive_service = None
-                    if is_service_account_enabled:
-                        drive_service = gutils.get_gdrive_service(row.domain_id, row.user_email)
-                    else:
-                        drive_service = gutils.get_gdrive_service(row.domain_id)
+                    user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
+                    drive_service = gutils.get_gdrive_service(user.auth_token)
 
 
                     if drive_service:
@@ -75,15 +71,17 @@ def subscribe(domain_id, datasource_id):
             PushNotificationsSubscription.datasource_id == datasource_id).delete()
         datasource.is_push_notifications_enabled = False
         db_session.commit()
+
+        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
         if datasource.is_serviceaccount_enabled:
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
                 print "Subscribing for push notification for user {}".format(user.email)
-                _subscribe_for_user(db_session, datasource, user)
+                _subscribe_for_user(db_session, login_user.auth_token, datasource, user)
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
-            _subscribe_for_user(db_session, datasource, None)
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, None)
 
         datasource.is_push_notifications_enabled = True
         db_session.commit()
@@ -91,9 +89,9 @@ def subscribe(domain_id, datasource_id):
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
     
-def _subscribe_for_user(db_session, datasource, user):
+def _subscribe_for_user(db_session, auth_token, datasource, user):
     try:
-        drive_service = gutils.get_gdrive_service(datasource.domain_id, user.email)
+        drive_service = gutils.get_gdrive_service(auth_token, user.email, db_session)
         root_file = drive_service.files().get(fileId='root').execute()
         print("Subscribe : Got Drive root ", root_file)
         root_file_id = root_file['id']
@@ -142,12 +140,13 @@ def process_notifications(datasource_id, channel_id):
     db_session = db_connection().get_session()
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
+        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
         user_email = None
         if datasource.datasource_id != channel_id:
             user = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first()
             user_email = user.email
         drive_service = gutils.get_gdrive_service(
-            datasource.domain_id, user_email)
+            login_user.auth_token, user_email, db_session)
 
         
         subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,

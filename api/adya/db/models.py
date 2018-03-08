@@ -59,7 +59,7 @@ class LoginUser(Base):
     last_name = Column(String(255))
     auth_token = Column(String(36))
     refresh_token = Column(String(255))
-    is_admin_user = Column(Boolean, default=True)
+    is_serviceaccount_enabled = Column(Boolean, default=True)
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
     authorize_scope_name = Column(String(50))

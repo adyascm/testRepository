@@ -142,7 +142,7 @@ def get_group_members(event, context):
     datasource_id = req_session.get_req_param('dataSourceId')
     group_keys = data.get('groupKeys')
 
-    scan.get_group_data(domain_id,datasource_id, group_keys)
+    scan.get_group_data(req_session.get_auth_token(), domain_id,datasource_id, group_keys)
     return req_session.generate_response(202)
 
 
@@ -171,7 +171,7 @@ def revoke_user_app_access(event,context):
     datasource_id = req_session.get_req_param('dataSourceId')
     user_email = req_session.get_req_param('userEmail')
     client_id = req_session.get_req_param('clientId')
-    actions_controller.revoke_user_app_access(domain_id,datasource_id,user_email,client_id)
+    actions_controller.revoke_user_app_access(req_session.get_auth_token(), domain_id,datasource_id,user_email,client_id)
     return req_session.generate_response(204)
 
 def subscribe_gdrive_notifications(event, context):

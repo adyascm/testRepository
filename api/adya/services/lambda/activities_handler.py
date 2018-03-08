@@ -21,6 +21,6 @@ def get_activities_for_user(event, context):
     user_email = req_session.get_req_param('user_email')
 
     print "Getting user activities for user: ", user_email, "on domain: ", domain_id, " and datasource_id: ", datasource_id
-    response = activities.get_activities_for_user(domain_id, datasource_id, user_email)
+    response = activities.get_activities_for_user(auth_token, domain_id, datasource_id, user_email)
 
     return req_session.generate_response(202, json.dumps(response))

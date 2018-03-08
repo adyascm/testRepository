@@ -55,8 +55,15 @@ def create_datasource(auth_token, payload):
         if datasource.is_dummy_datasource:
             datasource.is_serviceaccount_enabled = False
         else:
-            datasource.is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(existing_user.email)
-        if not existing_user.is_admin_user:
+            datasource.is_serviceaccount_enabled = existing_user.is_serviceaccount_enabled #gutils.check_if_serviceaccount_enabled(existing_user.email)
+        
+        is_admin_user = gutils.check_if_user_isamdin(auth_token, existing_user.email, db_session)
+
+        #If service account is enabled, non admin cannot create a data source
+        if(datasource.is_serviceaccount_enabled and not is_admin_user):
+            raise Exception("Action not allowed, please contact your administrator...")
+
+        if not is_admin_user:
             datasource.user_scan_status = 1
             datasource.group_scan_status = 1
 
@@ -66,7 +73,7 @@ def create_datasource(auth_token, payload):
             create_dummy_datasource(db_session,existing_user.domain_id,datasource_id)
         else:
             print "Starting the scan"
-            query_params = {"isAdmin": str(existing_user.is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
+            query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id, "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START,auth_token, query_params, {})
             print "Received the response of start scan api"
         return datasource
@@ -105,7 +112,7 @@ def delete_datasource(auth_token, datasource_id):
         messaging.trigger_delete_event(constants.ASYNC_DELETE_DATASOURCE_PATH,auth_token,query_params)
             
         try:
-            gutils.revoke_appaccess(domain_id)
+            gutils.revoke_appaccess(auth_token, user_email=None, db_session = db_session)
         except Exception as ex:
             print "Exception occurred while revoking the app access - " + ex.message
 
@@ -124,12 +131,14 @@ def create_domain(db_session,domain_id, domain_name):
 def start_scan(auth_token, domain_id, datasource_id,is_admin,is_service_account_enabled):
     print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(domain_id, datasource_id,is_admin, is_service_account_enabled)
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-    if is_admin == 'True':
+    
+    db_session = db_connection().get_session()
+    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token ==auth_token).first()
+
+    if is_service_account_enabled == 'True' or is_admin == 'True':
         messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS,auth_token, query_params)
         messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
-    if is_service_account_enabled == 'False' or not is_admin == 'True' :
-        db_session = db_connection().get_session()
-        existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token ==auth_token).first()
+    else:
         query_params["ownerEmail"] = existing_user.email
         messaging.trigger_get_event(constants.SCAN_RESOURCES, auth_token, query_params)
 
