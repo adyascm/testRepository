@@ -77,6 +77,10 @@ class Header extends React.Component {
         this.props.onMenuItemClick(menuItem)
     }
 
+    componentWillMount() {
+        this.props.onMenuItemClick(window.location.pathname)
+    }
+
     render() {
         return (
             <Menu fixed='top' inverted>
