@@ -8,126 +8,120 @@ from datetime import datetime
 
 
 def get_actions():
-    try:
+    # if not datasource_type:
+    #    return "Please pass a valid datasource_type in order to get all the actions enabled for it."
+    # db_session = db_connection().get_session()
+    # actions = db_session.query(Action).filter(Action.datasource_type == datasource_type).all()
 
-        # if not datasource_type:
-        #    return "Please pass a valid datasource_type in order to get all the actions enabled for it."
-        # db_session = db_connection().get_session()
-        # actions = db_session.query(Action).filter(Action.datasource_type == datasource_type).all()
+    # if not actions:
+    #   raise Exception("Couldn't fetch actions")
+    # elif len(actions) == 0:
+    #   raise Exception("No actions defined for datasource_type: " + datasource_type)
+    transferOwnershipAction = instantiate_action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
+                                                    "Transfer Ownership",
+                                                    "Transfers all files owned by one user to some other specified user",
+                                                    [{"key": "old_owner_email", "label": "Old User", "editable": 0},
+                                                    {"key": "new_owner_email", "label": "New User", "editable": 1}],
+                                                    True)
 
-        # if not actions:
-        #   raise Exception("Couldn't fetch actions")
-        # elif len(actions) == 0:
-        #   raise Exception("No actions defined for datasource_type: " + datasource_type)
-        transferOwnershipAction = instantiate_action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
-                                                     "Transfer Ownership",
-                                                     "Transfers all files owned by one user to some other specified user",
-                                                     [{"key": "old_owner_email", "label": "Old User", "editable": 0},
-                                                      {"key": "new_owner_email", "label": "New User", "editable": 1}],
-                                                     True)
+    changeOwnerOfFileAction = instantiate_action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
+                                                    "Change Owner",
+                                                    "Transfers single file owned by one user to some other specified user",
+                                                    [{"key": "resource_id", "label": "For resource", "editable": 0,
+                                                    "hidden": 1},
+                                                    {"key": "resource_name", "label": "For resource", "editable": 0},
+                                                    {"key": "old_owner_email", "label": "Old User", "editable": 0},
+                                                    {"key": "new_owner_email", "label": "New User", "editable": 1}],
+                                                    False)
 
-        changeOwnerOfFileAction = instantiate_action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
-                                                     "Change Owner",
-                                                     "Transfers single file owned by one user to some other specified user",
-                                                     [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                       "hidden": 1},
-                                                      {"key": "resource_name", "label": "For resource", "editable": 0},
-                                                      {"key": "old_owner_email", "label": "Old User", "editable": 0},
-                                                      {"key": "new_owner_email", "label": "New User", "editable": 1}],
-                                                     False)
+    removeExternalAccessAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
+                                                    "Remove external access",
+                                                    "Remove external access for all files owned by user",
+                                                    [{"key": "user_email", "label": "For user", "editable": 0}],
+                                                    False)
 
-        removeExternalAccessAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
-                                                        "Remove external access",
-                                                        "Remove external access for all files owned by user",
-                                                        [{"key": "user_email", "label": "For user", "editable": 0}],
+    removeExternalAccessToResourceAction = instantiate_action("GSUITE",
+                                                                action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
+                                                                "Remove external access of file",
+                                                                "Remove all external access for the given resource",
+                                                                [{"key": "resource_id", "label": "For resource",
+                                                                "editable": 0, "hidden": 1},
+                                                                {"key": "resource_name", "label": "For resource",
+                                                                "editable": 0}], False)
+
+    makeAllFilesPrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
+                                                    "Remove all sharing",
+                                                    "Make all files owned by user to private",
+                                                    [{"key": "user_email", "label": "For user", "editable": 0}],
+                                                    False)
+
+    makeResourcePrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
+                                                    "Remove all sharing of file",
+                                                    "Remove all sharing on a given resource",
+                                                    [{"key": "resource_id", "label": "For resource", "editable": 0,
+                                                        "hidden": 1},
+                                                    {"key": "resource_name", "label": "For resource",
+                                                        "editable": 0}], False)
+
+    deletePermissionForUserAction = instantiate_action("GSUITE",
+                                                        action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
+                                                        "Remove permission for user",
+                                                        "Remove access granted to a user for a resource",
+                                                        [{"key": "resource_id", "label": "For resource",
+                                                            "editable": 0, "hidden": 1},
+                                                        {"key": "resource_name", "label": "For resource",
+                                                            "editable": 0},
+                                                        {"key": "resource_owner_id", "label": "Owner of file",
+                                                            "editable": 0},
+                                                        {"key": "user_email", "label": "For User", "editable": 0}],
                                                         False)
 
-        removeExternalAccessToResourceAction = instantiate_action("GSUITE",
-                                                                  action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
-                                                                  "Remove external access of file",
-                                                                  "Remove all external access for the given resource",
-                                                                  [{"key": "resource_id", "label": "For resource",
-                                                                    "editable": 0, "hidden": 1},
-                                                                   {"key": "resource_name", "label": "For resource",
-                                                                    "editable": 0}], False)
-
-        makeAllFilesPrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
-                                                       "Remove all sharing",
-                                                       "Make all files owned by user to private",
-                                                       [{"key": "user_email", "label": "For user", "editable": 0}],
-                                                       False)
-
-        makeResourcePrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
-                                                       "Remove all sharing of file",
-                                                       "Remove all sharing on a given resource",
-                                                       [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                         "hidden": 1},
+    updatePermissionForUserAction = instantiate_action("GSUITE",
+                                                        action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
+                                                        "Change permission for user",
+                                                        "Update the permission granted to a user for a resource",
+                                                        [{"key": "resource_id", "label": "For resource",
+                                                            "editable": 0, "hidden": 1},
                                                         {"key": "resource_name", "label": "For resource",
-                                                         "editable": 0}], False)
+                                                            "editable": 0},
+                                                        {"key": "resource_owner_id", "label": "Owner of file",
+                                                            "editable": 0},
+                                                        {"key": "user_email", "label": "For User", "editable": 0},
+                                                        {"key": "new_permission_role", "label": "New permission",
+                                                            "editable": 1}], False)
 
-        deletePermissionForUserAction = instantiate_action("GSUITE",
-                                                           action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
-                                                           "Remove permission for user",
-                                                           "Remove access granted to a user for a resource",
-                                                           [{"key": "resource_id", "label": "For resource",
-                                                             "editable": 0, "hidden": 1},
-                                                            {"key": "resource_name", "label": "For resource",
-                                                             "editable": 0},
-                                                            {"key": "resource_owner_id", "label": "Owner of file",
-                                                             "editable": 0},
-                                                            {"key": "user_email", "label": "For User", "editable": 0}],
-                                                           False)
+    watchActionForUser = instantiate_action("GSUITE", action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER,
+                                            "Watch all my actions",
+                                            "Watch Action for a user",
+                                            [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
-        updatePermissionForUserAction = instantiate_action("GSUITE",
-                                                           action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
-                                                           "Change permission for user",
-                                                           "Update the permission granted to a user for a resource",
-                                                           [{"key": "resource_id", "label": "For resource",
-                                                             "editable": 0, "hidden": 1},
-                                                            {"key": "resource_name", "label": "For resource",
-                                                             "editable": 0},
-                                                            {"key": "resource_owner_id", "label": "Owner of file",
-                                                             "editable": 0},
-                                                            {"key": "user_email", "label": "For User", "editable": 0},
-                                                            {"key": "new_permission_role", "label": "New permission",
-                                                             "editable": 1}], False)
-
-        watchActionForUser = instantiate_action("GSUITE", action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER,
+    watchActionForResource = instantiate_action("GSUITE",
+                                                action_constants.ActionNames.WATCH_ALL_ACTION_FOR_RESOURCE,
                                                 "Watch all my actions",
-                                                "Watch Action for a user",
-                                                [{"key": "user_email", "label": "For user", "editable": 0}], False)
+                                                "Watch Action for a resource",
+                                                [{"key": "resource_id", "label": "For resource", "editable": 0,
+                                                    "hidden": 1},
+                                                    {"key": "resource_name", "label": "For resource",
+                                                    "editable": 0}
+                                                    ], False)
 
-        watchActionForResource = instantiate_action("GSUITE",
-                                                    action_constants.ActionNames.WATCH_ALL_ACTION_FOR_RESOURCE,
-                                                    "Watch all my actions",
-                                                    "Watch Action for a resource",
-                                                    [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                      "hidden": 1},
-                                                     {"key": "resource_name", "label": "For resource",
-                                                      "editable": 0}
-                                                     ], False)
+    removeAllAction = instantiate_action("GSUITE" , action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, "Remove all Access ",
+                                        "Remove all Access for a user", [{"key": "user_email", "label": "For user", "editable": 0}],
+                                            False)
 
-        removeAllAction = instantiate_action("GSUITE" , action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, "Remove all Access ",
-                                            "Remove all Access for a user", [{"key": "user_email", "label": "For user", "editable": 0}],
-                                             False)
+    actions = [transferOwnershipAction,
+                changeOwnerOfFileAction,
+                deletePermissionForUserAction,
+                makeAllFilesPrivateAction,
+                makeResourcePrivateAction,
+                removeExternalAccessAction,
+                removeExternalAccessToResourceAction,
+                updatePermissionForUserAction,
+                watchActionForUser,
+                watchActionForResource,
+                removeAllAction]
 
-        actions = [transferOwnershipAction,
-                   changeOwnerOfFileAction,
-                   deletePermissionForUserAction,
-                   makeAllFilesPrivateAction,
-                   makeResourcePrivateAction,
-                   removeExternalAccessAction,
-                   removeExternalAccessToResourceAction,
-                   updatePermissionForUserAction,
-                   watchActionForUser,
-                   watchActionForResource,
-                   removeAllAction]
-
-        return actions
-
-    except Exception as e:
-        print e
-        print "Exception occurred getting actions"
+    return actions
 
 
 def instantiate_action(datasource_type, key, name, description, parameters, is_admin_only):
