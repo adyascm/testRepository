@@ -46,13 +46,15 @@ class UsersTree extends Component {
                 cellRendererFramework: UserGroupCell,
                 cellRendererParams: {
                     cellExpandedOrCollapsed: this.cellExpandedOrCollapsed
-                }
+                },
+                width: document.body.clientWidth/2
             },
             {
                 headerName: "Email",
                 field: "key",
                 cellStyle: { textAlign: "left" },
-                cellRenderer: "agTextCellRenderer"
+                cellRenderer: "agTextCellRenderer",
+                width: document.body.clientWidth/4
             },
             {
                 headerName: "Type",
@@ -145,7 +147,7 @@ class UsersTree extends Component {
                 rows: undefined,
                 showOnlyExternal: nextProps.showOnlyExternal
             })
-        }        
+        }  
     }
 
     setTreeRows() {
@@ -205,8 +207,6 @@ class UsersTree extends Component {
     onGridReady(params) {
         this.gridApi = params.api;
         this.gridColumnApi = params.columnApi;
-
-        params.api.sizeColumnsToFit();
     }
 
     render() {

@@ -19,7 +19,8 @@ import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
 const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser,
-  selectedUser: state.users.selectedUserItem
+  selectedUser: state.users.selectedUserItem,
+  isLoading: state.users.isLoading
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -28,7 +29,7 @@ const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   onLoadStart: () =>
-    dispatch({ type: USERS_PAGE_LOAD_START }),
+    dispatch({ type: USERS_PAGE_LOAD_START })
 });
 
 class Users extends Component {
