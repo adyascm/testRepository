@@ -34,7 +34,8 @@ class ListWidget extends Component {
             if (this.props[this.props.config.id].isLoaded) {
                 const data = this.props[this.props.config.id].data.rows;
                 const count = this.props[this.props.config.id].data.totalCount;
-                const footer = count >= 5?"...and " + count + " more":null;                
+                const remainingCount = count - data.length
+                const footer = count >= 5?"...and " + remainingCount + " more":null;                
                 
                 if (!count)
                     return null
