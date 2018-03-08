@@ -31,10 +31,6 @@ class UserList extends Component {
         }
     }
 
-    // onCardClicked(event, param) {
-    //     this.props.selectUserItem(param.user);
-    // }
-
     setTreeRows() {
         if (this.props.usersTreePayload) {
             let rows = []
@@ -113,48 +109,14 @@ class UserList extends Component {
         }
     }
 
-    // shouldComponentUpdate(nextProps,nextState) {
-    //     if (!nextProps.userDetailsViewActive)
-    //         return true
-    //     else 
-    //         return false
-    // }
-
     render() {
         if (this.state.rows) {
-            // var userCards = this.state.rows.map(row => {
-            //     var image = null;
-            //     if (row.photo_url) {
-            //         image = <Image inline floated='right' size='mini' src={row.photo_url} circular></Image>
-            //     } else {
-            //         image = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{row.name.charAt(0)}</Label></Image>
-            //     }
-            //     return ((
-            //         <Card key={row.key} user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':null}>
-            //             <Card.Content>
-            //                 {image}
-
-            //                 <Card.Header>
-            //                     {row.name}
-            //                 </Card.Header>
-            //                 <Card.Description>
-            //                     {row.key}
-            //                 </Card.Description>
-            //             </Card.Content>
-            //         </Card>
-            //     ))
-            // });
            return  <UserCards rows={this.state.rows} />
         }
         else {
             this.setTreeRows();
         }
-        // return (
-        //     <Card.Group style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
-        //         {userCards}
-        //     </Card.Group>
-
-        // )
+        
         return null
     }
 }
