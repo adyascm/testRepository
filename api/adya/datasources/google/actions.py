@@ -108,7 +108,7 @@ def transfer_ownership_of_resource(auth_token, domain_id, datasource_id, resourc
             "emailAddress": new_owner_email
         }
 
-        resource_actions_handler = AddOrUpdatePermisssionForResource(auth_token, domain_id, datasource_id, resource_id, permission_object, old_owner_email)
+        resource_actions_handler = AddOrUpdatePermisssionForResource(auth_token, domain_id, datasource_id, resource_id, [permission_object], old_owner_email)
         response = resource_actions_handler.add_or_update_permission()
         print response
 
@@ -220,7 +220,7 @@ def remove_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
         }
 
         resource_actions_handler = AddOrUpdatePermisssionForResource(auth_token, domain_id, datasource_id, resource_id,
-                                                                     permission_object, resource_owner_email)
+                                                                     [permission_object], resource_owner_email)
         response = resource_actions_handler.add_or_update_permission()
         print response
 
@@ -307,7 +307,7 @@ class AddOrUpdatePermisssionForResource():
         permission_id = permission_object.get("permissionId")
         role = permission_object.get("role")
         if not permission_id:
-            permissiondata = self.add_permisssion_for_resuorce(self.drive_service,self.resource_id, permission_object)
+            permissiondata = self.add_permisssion_for_resource(self.drive_service, permission_object)
         elif permission_id and role:
             permissiondata = self.change_permisssion_for_resource(self.drive_service, permission_object)
         elif permission_id and (not role):
@@ -326,11 +326,13 @@ class AddOrUpdatePermisssionForResource():
             notification.result()
     
 
-    def add_permisssion_for_resuorce(self,drive_service, permission_object):
+    def add_permisssion_for_resource(self, drive_service, permission_object):
+        role = permission_object.get('role')
         add_permission_object = {
-            "role":permission_object.get('role'),
-            "type":"group",
-            "emailAddress": permission_object.get("emailAddress")
+            "role":role,
+            "type":permission_object.get('type'),
+            "emailAddress": permission_object.get("emailAddress"),
+            "transferOwnership" : True if role == 'owner' else False
         }
         data = drive_service.permissions().create(fileId=self.resource_id,body = add_permission_object,fields='id')
         return data
@@ -344,7 +346,7 @@ class AddOrUpdatePermisssionForResource():
         print "user_permission: ", user_permission
         if role == constants.Role.OWNER:
             permission_object['role'] = constants.Role.WRITER
-            add_permission_response = self.add_permisssion_for_resuorce(self.drive_service,permission_object).execute()
+            add_permission_response = self.add_permisssion_for_resource(self.drive_service, permission_object).execute()
             data = drive_service.permissions().update(fileId=self.resource_id,
                                                        permissionId=add_permission_response['id'],transferOwnership=True,
                                                        body=user_permission,
