@@ -105,8 +105,8 @@ def get_gdrive_scan_completed_parameters(datasource):
             "email": emails,
             "countDomainData": countDomainSharedDocs,
             "trialLink": trial_link,
-            "restFiles": restFiles,
-            "restUsers": restUsers
+            "restFiles": "...and " + str(restFiles) + " other documents",
+            "restUsers": "...and " + str(restUsers) + " other external users" 
         }
 
         return data
