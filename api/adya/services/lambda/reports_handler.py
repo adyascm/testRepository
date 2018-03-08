@@ -27,7 +27,7 @@ def get_user_tree_data(event, context):
     return req_session.generate_sqlalchemy_response(200, user_group_tree)
 
 def get_user_app(event,context):
-    req_session = RequestSession(request)
+    req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True,optional_params=["clientId","userEmail"])
     if req_error:
         return req_error
