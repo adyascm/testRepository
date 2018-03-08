@@ -91,6 +91,8 @@ def get_gdrive_scan_completed_parameters(datasource):
 
         externalDocs = convert_list_pystache_format("name", externalDocsListData["rows"])
         externalUsers = convert_list_pystache_format("name", externalUserListData["rows"])
+        restFiles = externalDocsListData["totalCount"] - len(externalDocsListData["rows"])
+        restUsers = externalUserListData["totalCount"] - len(externalUserListData["rows"])
 
         data = {
             "countDocuments": countDocuments,
@@ -102,8 +104,9 @@ def get_gdrive_scan_completed_parameters(datasource):
             "countExternalUsersData": externalUserListData["totalCount"],
             "email": emails,
             "countDomainData": countDomainSharedDocs,
-            "trialLink": trial_link
-
+            "trialLink": trial_link,
+            "restFiles": restFiles,
+            "restUsers": restUsers
         }
 
         return data
