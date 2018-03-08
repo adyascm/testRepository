@@ -157,11 +157,11 @@ functions:
           method: get
           cors: true
 
-  get-getapps:
-    handler: adya.services.lambda.reports_handler.get_apps
+  get-getappsdata:
+    handler: adya.services.lambda.reports_handler.get_user_app
     events:
       - http:
-          path: getapps
+          path: getappsdata
           method: get
           cors: true
 

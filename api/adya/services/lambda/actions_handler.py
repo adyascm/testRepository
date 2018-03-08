@@ -12,15 +12,8 @@ def get_all_actions(event, context):
 
     auth_token = req_session.get_auth_token()
 
-    data_source = domain_controller.get_datasource(auth_token, None)
-    if not data_source:
-        return
-
-    datasource_type = data_source[0].datasource_type
-
-    print "Getting all actions for datasource_type: ", datasource_type
-    response = actions_controller.get_actions()
-    return req_session.generate_sqlalchemy_response(202, response)
+    actions = actions_controller.get_actions()
+    return req_session.generate_sqlalchemy_response(200, actions)
 
 
 def initiate_action(event, context):
