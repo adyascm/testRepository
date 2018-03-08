@@ -7,6 +7,43 @@ from sqlalchemy import and_
 from adya.controllers import resourceController
 from requests_futures.sessions import FuturesSession
 
+def delete_user_from_group(domain_id, datasource_id, group_email, user_email):
+    try:
+        directory_service = gutils.get_gdrive_directory_service(domain_id=domain_id)
+
+        if not directory_service:
+            print "Didn't get directory service!"
+        else:
+            print "Initiating removal of user {} from group {} ...".format(user_email, group_email)
+            response = directory_service.members().delete(groupKey=group_email, userKey=user_email)
+            print response
+
+        return errormessage.ACTION_EXECUTION_SUCCESS
+
+
+    except Exception as e:
+        print e
+        print "Exception occurred while removing {} from group {} ".format(user_email, group_email)
+
+
+def add_user_to_group(domain_id, datasource_id, group_email, user_email, user_type):
+    try:
+        directory_service = gutils.get_gdrive_directory_service(domain_id=domain_id)
+
+        if not directory_service:
+            print "Didn't get directory service!"
+        else:
+            print "Initiating addition of user {} to group {} ...".format(user_email, group_email)
+            response = directory_service.members().insert(groupKey=group_email, userKey=user_email)
+            print response
+
+        return errormessage.ACTION_EXECUTION_SUCCESS
+
+
+    except Exception as e:
+        print e
+        print "Exception occurred while adding {} to group {} ".format(user_email, group_email)
+
 
 def get_applicationDataTransfers_for_gdrive(domain_id, datatransfer_service):
     try:
