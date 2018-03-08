@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Card, Image, Label } from 'semantic-ui-react'
+import { Card, Image, Label, Dimmer, Loader } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
