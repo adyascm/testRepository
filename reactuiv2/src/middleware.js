@@ -33,7 +33,7 @@ import {
                   //if(error.response)
                   action.payload = error.response || error.message;
                   var errorMessage = error.message;
-                  if(error.response.body && error.response.body.message)
+                  if(error.response && error.response.body && error.response.body.message)
                     errorMessage = error.response.body.message
                   if (!action.skipTracking) {
                     store.dispatch({ type: ASYNC_END, promise: action.payload, errors: errorMessage });

@@ -62,7 +62,6 @@ class Actions extends Component {
         });
         if (this.props.logged_in_user.authorize_scope_name !== "drive_action_scope") {
             if (this.props.logged_in_user.is_serviceaccount_enabled) {
-                this.props.onIncrementalAuthComplete({});
                 this.executeAction(this.build_action_payload());
             }
             else {
