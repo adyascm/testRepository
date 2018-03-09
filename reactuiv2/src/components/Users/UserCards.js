@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Card, Image, Label, Dimmer, Loader } from 'semantic-ui-react'
+import { Card, Image, Label } from 'semantic-ui-react'
 import { USER_ITEM_SELECTED } from '../../constants/actionTypes'
 
 
@@ -14,9 +14,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class UserCards extends Component {
-    constructor(props) {
-        super(props);
-    }
 
     onCardClicked(event, param) {
         this.props.selectUserItem(param.user);

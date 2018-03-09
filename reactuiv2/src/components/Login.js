@@ -47,6 +47,7 @@ class Login extends Component {
     componentWillUnmount() {
         this.props.onUnload();
     }
+
     render() {
         if (!this.props.currentUser) {
             return (
@@ -63,7 +64,7 @@ class Login extends Component {
                                 <Button.Group>
                                     <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false} />
                                     <Button.Or />
-                                    <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
+                                    <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()}  />
                                 </Button.Group>
                                 {/* <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p> */}
                             </Segment>
