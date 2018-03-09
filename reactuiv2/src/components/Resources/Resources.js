@@ -61,12 +61,22 @@ class Resources extends Component {
     }
   }
   componentWillMount(){
-    if (this.props.location.search.includes("Files")) 
-      this.props.changeFilter("filterExposureType",'')
+    if (this.props.location.search.includes("Files")){
+      this.props.changeFilter("filterResourceType", '')
+      this.props.changeFilter("filterExposureType",'')  
+    } 
 
-    this.setState({
-      filterResourceType: this.props.filterResourceType
-    });
+    else if (this.props.location.search.includes("Folders")) {
+      this.props.changeFilter("filterExposureType",'')
+      this.props.changeFilter("filterResourceType", 'folder')
+      this.setState({
+        filterResourceType: 'folder'
+      });
+    }
+
+    // this.setState({
+    //   filterResourceType: this.props.filterResourceType
+    // });
   }
 
   render() {

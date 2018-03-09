@@ -32,7 +32,7 @@ class Dashboard extends Component {
       { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
       { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
       { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources?header='Files'" },
-      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
+      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources?header='Folders'" },
     ];
     this.chartWidgetConfigs = [
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
