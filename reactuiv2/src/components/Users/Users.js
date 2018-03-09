@@ -59,6 +59,10 @@ class Users extends Component {
   }
 
   componentWillMount() {
+    if (this.props.location.search.includes("Users"))
+      this.setState({
+        showOnlyExternal: false
+      })
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }
