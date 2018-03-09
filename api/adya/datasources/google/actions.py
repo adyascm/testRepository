@@ -331,10 +331,9 @@ class AddOrUpdatePermisssionForResource():
         add_permission_object = {
             "role":role,
             "type":permission_object.get('type'),
-            "emailAddress": permission_object.get("emailAddress"),
-            "transferOwnership" : True if role == 'owner' else False
+            "emailAddress": permission_object.get("emailAddress")
         }
-        data = drive_service.permissions().create(fileId=self.resource_id,body = add_permission_object,fields='id')
+        data = drive_service.permissions().create(fileId=self.resource_id,body = add_permission_object,fields='id', transferOwnership=True)
         return data
  
     def change_permisssion_for_resource(self,drive_service, permission_object):
