@@ -117,3 +117,8 @@ class ActionType(Enum):
 
 PAGE_LIMIT = 100
 
+
+class PolicyConditionMatch(Enum):
+    CONTAIN = 'contain'
+    EQUAL = 'equal'
+    NOTEQUAL = 'notequal'
