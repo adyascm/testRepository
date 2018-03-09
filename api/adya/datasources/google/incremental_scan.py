@@ -238,6 +238,15 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         messaging.trigger_post_event(
             constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
         messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "email": email, "file_id": file_id}))
+
+
+        filedata = results['files']
+        #TODO: policy check for the above action .
+        # payload = {"affected_entity_type": 'file', "affected_entity_id": filedata['id'], "actor_id": filedata['permissions']['id'],
+        #            "action_type": filedata['permissions']['role']}
+
+        # policy_respone = policy_controller.policy_checker(auth_token, payload, db_session)
+
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
             domain_id, datasource_id, email, file_id, e)
