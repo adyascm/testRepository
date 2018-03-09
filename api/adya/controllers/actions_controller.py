@@ -205,8 +205,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
+            resource_id = action_parameters["resource_id"]
             response = actions.transfer_ownership_of_resource(
-                auth_token, domain_id, datasource_id, old_owner_email, new_owner_email)
+                auth_token, domain_id, datasource_id,resource_id, old_owner_email, new_owner_email)
         elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
             resource_id = action_parameters['resource_id']
             response = actions.make_resource_private(
@@ -235,8 +236,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
             resource_owner = action_parameters['resource_owner']
+            new_permission_role = action_parameters['new_permission_role']
             response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
-                                                                      resource_id, user_email,
+                                                                      resource_id, user_email, new_permission_role,
                                                                       resource_owner)
         elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
             user_email = action_parameters['user_email']
