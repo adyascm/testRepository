@@ -33,7 +33,7 @@ def update_user_scope_name(email, scope_name, db_session):
     return True
 
 
-def create_user(email, first_name, last_name, domain_id, refresh_token, is_admin_user,scope_name):
+def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled,scope_name):
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
     auth_token = str(uuid.uuid4())
@@ -45,7 +45,7 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_admin
     login_user.auth_token = auth_token
     login_user.domain_id = domain_id
     login_user.refresh_token = refresh_token
-    login_user.is_admin_user = is_admin_user
+    login_user.is_serviceaccount_enabled = is_serviceaccount_enabled
     login_user.creation_time = creation_time
     login_user.last_login_time = creation_time
     login_user.authorize_scope_name = scope_name

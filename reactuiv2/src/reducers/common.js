@@ -62,7 +62,7 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasourceLoading: false,
-        datasources: action.payload
+        datasources: action.error ? null : action.payload
       };
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
@@ -98,7 +98,7 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasourceLoading: false,
-        datasources: [action.payload]
+        datasources: action.error ? null : [action.payload]
       };
     case DELETE_DATASOURCE_START:
       if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {

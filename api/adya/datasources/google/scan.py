@@ -19,7 +19,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
     # useremail None means servie account is not verified and we are scaning data for loggedin user only
     print "Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
 
-    drive_service = gutils.get_gdrive_service(domain_id,user_email)
+    drive_service = gutils.get_gdrive_service(auth_token, user_email)
     starttime = time.time()
     session = FuturesSession()
     last_future = None
@@ -236,7 +236,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-    directory_service = gutils.get_directory_service(domain_id)
+    directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
     session = FuturesSession()
     last_future = None
@@ -320,23 +320,26 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         print ex
 
     lastresult =None
-    if datasource.is_serviceaccount_enabled:
-        print "Google service account is enabled, starting to fetch files for each processed user"
-        for user_email in user_email_list:
-            query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email}
-            messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
-    if logged_in_user.is_admin_user:
-        print "Getting all users app and its scope"
-        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-        userEmailList = {}
-        userEmailList["userEmailList"] = user_email_list
-        messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
+    resource_usersList = user_email_list
+    if not datasource.is_serviceaccount_enabled:
+        resource_usersList = [logged_in_user.email]
+
+    print "Google service account is enabled, starting to fetch files for each processed user"
+    for user_email in resource_usersList:
+        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
+        messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
+
+    print "Getting all users app and its scope"
+    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+    userEmailList = {}
+    userEmailList["userEmailList"] = user_email_list
+    messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-    directory_service = gutils.get_directory_service(domain_id)
+    directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
     session = FuturesSession()
     last_future = None
@@ -453,24 +456,25 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
 #     if last_future:
 #         last_future.result()
 
-def get_group_data(domain_id,datasource_id,group_keys):
+def get_group_data(auth_token, domain_id,datasource_id,group_keys):
     processed_group_count =0
     total_no_of_group = len(group_keys)
     while processed_group_count <= total_no_of_group:
         hundred_group = group_keys[processed_group_count:processed_group_count+100]
         processed_group_count +=100
-        group_class = GroupData(domain_id,datasource_id,hundred_group)
+        group_class = GroupData(auth_token, domain_id,datasource_id,hundred_group)
         group_class.get_group_members()
 
 
 class GroupData():
 
-    def __init__(self, domain_id, datasource_id,group_keys):
+    def __init__(self, auth_token, domain_id, datasource_id,group_keys):
         self.domain_id = domain_id
         self.datasource_id = datasource_id
         self.group_keys = group_keys
         self.batch_length = len(group_keys)
         self.db_session = db_connection().get_session()
+        self.auth_token = auth_token
 
     def group_data_callback(self,request_id, response, exception):
         request_id = int(request_id) 
@@ -515,7 +519,7 @@ class GroupData():
                 print ex
 
     def get_group_members(self):
-        directory_service = gutils.get_directory_service(self.domain_id)
+        directory_service = gutils.get_directory_service(self.auth_token)
         batch = directory_service.new_batch_http_request(callback=self.group_data_callback)
         for group_key in self.group_keys:
             group_member_data = directory_service.members().list(groupKey=group_key)
@@ -673,7 +677,7 @@ class GetAllUserAppAndScope():
                 
 
     def get_user_apps(self):
-        directory_service = gutils.get_directory_service(self.domain_id)
+        directory_service = gutils.get_directory_service(self.auth_token)
         batch = directory_service.new_batch_http_request(callback=self.app_data_callback)
         for user_key in self.user_email_list:
             user_app_data = directory_service.tokens().list(userKey=user_key)

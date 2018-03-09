@@ -60,31 +60,46 @@ class Actions extends Component {
             ...this.state,
             inProgress: true
         });
-        if (this.props.logged_in_user.authorize_scope_name !== "drive_action_scope") {
-            authenticate("drive_action_scope").then(res => {
-                this.props.onIncrementalAuthComplete(res);
-                this.executeAction(this.build_action_payload());
-            }).catch(error => {
-                this.setState({
-                    ...this.state,
-                    inProgress: false,
-                    errorMessage: error['message']
-                });
-            });
+        if (this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
+          this.executeAction(this.build_action_payload(), resp => {
+              this.setState({
+                  ...this.state,
+                  inProgress: false,
+                  successMessage: resp['message']
+              });
+          }, error => {
+              this.setState({
+                  ...this.state,
+                  inProgress: false,
+                  errorMessage: error['message']
+              });
+          });
+
+
+
         } else {
-            this.executeAction(this.build_action_payload(), resp => {
-                this.setState({
-                    ...this.state,
-                    inProgress: false,
-                    successMessage: resp['message']
-                });
-            }, error => {
-                this.setState({
-                    ...this.state,
-                    inProgress: false,
-                    errorMessage: error['message']
-                });
-            });
+          authenticate("drive_action_scope").then(res => {
+                  this.props.onIncrementalAuthComplete(res);
+                  this.executeAction(this.build_action_payload(), resp => {
+                      this.setState({
+                          ...this.state,
+                          inProgress: false,
+                          successMessage: resp['message']
+                      });
+                  }, error => {
+                      this.setState({
+                          ...this.state,
+                          inProgress: false,
+                          errorMessage: error['message']
+                      });
+                  });
+              }).catch(error => {
+                  this.setState({
+                      ...this.state,
+                      inProgress: false,
+                      errorMessage: error['message']
+                  });
+              });
         }
     }
 
@@ -110,7 +125,7 @@ class Actions extends Component {
     }
 
     render() {
-        if (!this.props.logged_in_user.is_admin_user || this.props.datasources[0].is_dummy_datasource) {
+        if (this.props.datasources[0].is_dummy_datasource) {
             //Actions are not allowed
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;

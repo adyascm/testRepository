@@ -23,7 +23,7 @@ class get_activities_for_user(Resource):
         user_email = req_session.get_req_param('user_email')
 
         print "Getting user activities for user: ", user_email, "on domain: ", domain_id, " and datasource_id: ", datasource_id
-        response = activities.get_activities_for_user(domain_id, datasource_id, user_email, None)
+        response = activities.get_activities_for_user(auth_token, domain_id, datasource_id, user_email, None)
         response_json = json.dumps(response)
         print response_json
         return req_session.generate_response(202, payload=response_json)

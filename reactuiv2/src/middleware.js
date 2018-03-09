@@ -32,8 +32,11 @@ import {
                   action.error = true;
                   //if(error.response)
                   action.payload = error.response || error.message;
+                  var errorMessage = error.message;
+                  if(error.response && error.response.body && error.response.body.message)
+                    errorMessage = error.response.body.message
                   if (!action.skipTracking) {
-                    store.dispatch({ type: ASYNC_END, promise: action.payload, errors: error.message });
+                    store.dispatch({ type: ASYNC_END, promise: action.payload, errors: errorMessage });
                   }
                   store.dispatch(action);
               }

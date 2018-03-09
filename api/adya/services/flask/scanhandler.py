@@ -65,49 +65,6 @@ class GetPermission(Resource):
         scan_permisssion_obj.get_permission(user_email)
         return req_session.generate_response(202)
 
-
-
-class GetParent(Resource):
-    def get(self):
-        print "Get parents from google api and process"
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'],['userEmail'])
-        if req_error:
-            return req_error
-        domain_id = req_session.get_req_param('domainId')
-        datasource_id = req_session.get_req_param('dataSourceId')
-        user_email = req_session.get_req_param('userEmail')
-        auth_token = req_session.get_auth_token()
-        scan.get_parent_for_user(auth_token,domain_id,datasource_id,user_email)
-        return req_session.generate_response(202)
-
-    def post(self):
-        print "Getting Parents Data"
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'],['userEmail'])
-        if req_error:
-            return req_error
-
-        requestdata = req_session.get_body()
-        file_ids = requestdata['fileIds']
-        domain_id = req_session.get_req_param('domainId')
-        datasource_id = req_session.get_req_param('dataSourceId')
-        user_email = req_session.get_req_param('userEmail')
-        resource_count = len(file_ids)
-        processed_file_count =0
-        while processed_file_count <= resource_count:
-            ## creating the instance of parents class
-            hundred_file = file_ids[processed_file_count:processed_file_count+100]
-            scan_parent_obj = parent.GetParents(domain_id, datasource_id , hundred_file ,user_email)
-            ## calling get parents api
-            scan_parent_obj.get_parent()
-            processed_file_count += 100
-        scan.update_and_get_count(datasource_id, DataSource.processed_parent_permission_count, 1, True)
-        return req_session.generate_response(202)
-
-
 class GetDomainuser(Resource):
     def get(self):
         print("Getting domain user")
@@ -191,7 +148,7 @@ class GetGroupMembers(Resource):
         datasource_id = req_session.get_req_param('dataSourceId')
         group_keys = data.get('groupKeys')
 
-        scan.get_group_data(domain_id,datasource_id, group_keys)
+        scan.get_group_data(req_session.get_auth_token(), domain_id,datasource_id, group_keys)
         return req_session.generate_response(202)
 
 class GetUserApp(Resource):
@@ -221,5 +178,5 @@ class GetUserApp(Resource):
         datasource_id = req_session.get_req_param('dataSourceId')
         user_email = req_session.get_req_param('userEmail')
         client_id = req_session.get_req_param('clientId')
-        actions_controller.revoke_user_app_access(domain_id,datasource_id,user_email,client_id)
+        actions_controller.revoke_user_app_access(req_session.get_auth_token(), domain_id,datasource_id,user_email,client_id)
         return req_session.generate_response(204)

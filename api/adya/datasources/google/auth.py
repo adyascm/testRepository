@@ -13,7 +13,7 @@ from adya.common.scopeconstants import LOGIN_SCOPE, DRIVE_SCAN_SCOPE, SCOPE_DICT
 from adya.datasources.google import gutils
 
 from adya.common import constants
-from adya.datasources.google.gutils import get_oauth_service, get_gdrive_service
+from adya.datasources.google.gutils import get_oauth_service
 from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
@@ -58,7 +58,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     refresh_token = credentials.refresh_token
 
 
-    service = get_oauth_service(None, credentials)
+    service = get_oauth_service(credentials)
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
@@ -66,6 +66,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
     existing_user = auth_controller.get_user(login_email, db_session)
+    is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(login_email)
     if existing_user:
         auth_token = existing_user.auth_token
         if refresh_token:
@@ -74,21 +75,22 @@ def oauth_callback(oauth_code, scopes,state, error):
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
     else:
         existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
-        if existing_domain_user:
+        if existing_domain_user and is_serviceaccount_enabled:
+            data_source = domain_controller.get_datasource(None, existing_domain_user.datasource_id, db_session)
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
-                                                     refresh_token, existing_domain_user.is_admin,scope_name)
+                                                     refresh_token, data_source.is_serviceaccount_enabled,scope_name)
         else:
             # here we need to think about gmail.com.
             domain_name = gutils.get_domain_name_from_email(domain_id)
-            is_admin_user = gutils.check_if_user_isamdin(credentials,login_email)
-            if gutils.check_if_serviceaccount_enabled(login_email) or is_admin_user:
+            
+            if is_serviceaccount_enabled:# or is_admin_user:
                 domain_id = login_email.split('@')[1]
 
             domain = domain_controller.create_domain(db_session, domain_id, domain_name)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
-                                                     is_admin_user,scope_name)
+                                                     is_serviceaccount_enabled,scope_name)
 
         redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
                                                                                             login_user.auth_token)
