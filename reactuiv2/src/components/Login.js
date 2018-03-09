@@ -59,14 +59,17 @@ class Login extends Component {
                             <Header as='h3' color='teal' textAlign='center'>
                                 Manage and secure your SaaS Apps
                             </Header>
-                            <Segment >
-                                <Button.Group>
-                                    <Button content='SignIn with Google' color='google plus' icon='google' onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false} />
-                                    <Button.Or />
+                            {/*<Segment >
+                                 <Button.Group> */}
+                                    <Button basic onClick={this.signInGoogle()} loading={this.props.inProgress?true:false} disabled={this.props.inProgress||this.props.errorMessage?true:false} >
+                                        <Button.Content>
+                                            <Image src='/images/btn_google_signin_light_normal_web.png' />
+                                        </Button.Content>
+                                    </Button>
+                                    {/* <Button.Or />
                                     <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
-                                </Button.Group>
-                                {/* <p style={{color: 'red'}}>{this.props.errors?this.props.errors['Failed']:''}</p> */}
-                            </Segment>
+                                </Button.Group> 
+                            </Segment>*/}
                         </Grid.Column>
                     </Grid>
                 </div>
