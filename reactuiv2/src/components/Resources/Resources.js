@@ -39,7 +39,7 @@ class Resources extends Component {
       ]
 
       this.state = {
-        filterResourceType: ""
+        filterResourceType: "",
       }
   }
 
@@ -61,9 +61,22 @@ class Resources extends Component {
     }
   }
   componentWillMount(){
-    this.setState({
-      filterResourceType: this.props.filterResourceType
-    });
+    if (this.props.location.search.includes("Files")){
+      this.props.changeFilter("filterResourceType", '')
+      this.props.changeFilter("filterExposureType",'')  
+    } 
+
+    else if (this.props.location.search.includes("Folders")) {
+      this.props.changeFilter("filterExposureType",'')
+      this.props.changeFilter("filterResourceType", 'folder')
+      this.setState({
+        filterResourceType: 'folder'
+      });
+    }
+
+    // this.setState({
+    //   filterResourceType: this.props.filterResourceType
+    // });
   }
 
   render() {
@@ -87,7 +100,7 @@ class Resources extends Component {
                 options={this.exposureFilterOptions}
                 selection
                 onChange={this.handleExposureTypeChange}
-                defaultValue={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
+                value={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
               />
             </Grid.Column>
             <Grid.Column stretched width="5">

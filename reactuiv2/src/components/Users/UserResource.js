@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import agent from '../../utils/agent'
-import { Loader, Dimmer } from 'semantic-ui-react'
+import { Loader, Dimmer, Button } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
@@ -12,13 +12,16 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 import {
     USERS_RESOURCE_LOAD_START,
     USERS_RESOURCE_LOADED,
-    USERS_RESOURCE_ACTION_LOAD
+    USERS_RESOURCE_ACTION_LOAD,
+    RESOURCES_PAGINATION_DATA
 } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
     ...state.users,
-    ...state.common
+    ...state.common,
+    pageNumber: state.resources.pageNumber,
+    pageLimit: state.resources.pageLimit
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -27,7 +30,9 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (payload) =>
         dispatch({ type: USERS_RESOURCE_LOADED, payload }),
     onChangePermission: (actionType, resource, newValue) =>
-        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue }),
+    setPaginationData: (pageNumber, pageLimit) => 
+        dispatch({ type: RESOURCES_PAGINATION_DATA, pageNumber, pageLimit })
 });
 
 class UserResource extends Component {
@@ -48,7 +53,7 @@ class UserResource extends Component {
                     // onCellValueChanged: this.cellValueChanged
                 },
                 {
-                    headerName: "My permission",
+                    headerName: "Permission",
                     field: "myPermission",
                     editable: true,
                     cellEditor: "agSelectCellEditor",
@@ -69,7 +74,7 @@ class UserResource extends Component {
                     }
                 },
                 {
-                    headerName: "ExposureType",
+                    headerName: "Exposure",
                     field: "exposure_type",
                     cellStyle: {"textAlign":"center"}
                 },
@@ -91,20 +96,22 @@ class UserResource extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) {
+        if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) || 
+            nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit}))
         }
         if (nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart(nextProps.selectedUserItem["key"])
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
     }
 
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
+            this.props.setPaginationData(0,100)
             this.props.onLoadStart(this.props.selectedUserItem["key"])
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType}))    
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': 0, 'pageSize': 100}))    
         }
     }
 
@@ -113,6 +120,15 @@ class UserResource extends Component {
         this.gridColumnApi = params.columnApi;
         params.api.sizeColumnsToFit();
     }
+
+    handleNextClick = () => {
+        this.props.setPaginationData(this.props.pageNumber+1,this.props.pageLimit)
+    }
+
+    handlePreviousClick = () => {
+        this.props.setPaginationData(this.props.pageNumber-1,this.props.pageLimit)
+    }
+
     render() {
         if (this.props.isResourcesLoading) {
             return (
@@ -126,14 +142,20 @@ class UserResource extends Component {
         else if (this.props.selectedUserItem){
             if (this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length)
                 return (
-                    <div className="ag-theme-fresh" style={{width: '100%'}}> 
-                        <AgGridReact
-                            id="myResourceGrid" 
-                            domLayout="autoHeight"
-                            columnDefs={this.state.columnDefs}
-                            rowData={this.props.selectedUserItem.resources}
-                            onGridReady={this.onGridReady.bind(this)}
-                        />
+                    <div style={{width: '100%'}}>
+                        <div className="ag-theme-fresh" > 
+                            <AgGridReact
+                                id="myResourceGrid" 
+                                domLayout="autoHeight"
+                                columnDefs={this.state.columnDefs}
+                                rowData={this.props.selectedUserItem.resources}
+                                onGridReady={this.onGridReady.bind(this)}
+                            />
+                        </div>
+                        <div style={{ marginTop: '5px' }}>
+                            {this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length < this.props.pageLimit?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                            {this.props.pageNumber !== 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
+                        </div>
                     </div>
                 )
             else 

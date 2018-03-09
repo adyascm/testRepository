@@ -59,6 +59,15 @@ class Users extends Component {
   }
 
   componentWillMount() {
+    if (this.props.location.search.includes("Users"))
+      this.setState({
+        showOnlyExternal: false
+      })
+    else if (this.props.location.search.includes("Groups"))
+      this.setState({
+        showHierarchy: true,
+        showOnlyExternal: false
+      })
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }

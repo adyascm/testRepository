@@ -57,7 +57,7 @@ const DataSourceItem = props => {
                         {/* {syncStatus} */}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
-                        Created at: <strong><IntlProvider locale='en'  >
+                        Created on: <strong><IntlProvider locale='en'  >
                             <FormattedDate
                                 value={new Date(datasource.creation_time)}
                                 year='numeric'
