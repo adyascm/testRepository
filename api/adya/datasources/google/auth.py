@@ -87,7 +87,7 @@ def oauth_callback(oauth_code, scopes,state, error):
         if existing_domain_user and is_serviceaccount_enabled:
             data_source = domain_controller.get_datasource(None, existing_domain_user.datasource_id, db_session)
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
-                                                     existing_domain_user.last_name, existing_domain_user.domain_id,
+                                                     existing_domain_user.last_name, domain_id,
                                                      refresh_token, data_source.is_serviceaccount_enabled,scope_name)
         else:
 
