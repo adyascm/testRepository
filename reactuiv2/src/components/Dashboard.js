@@ -15,7 +15,8 @@ import ChartWidget from './Widgets/ChartWidget';
 
 const mapStateToProps = state => ({
   appName: state.common.appName,
-  currentUser: state.common.currentUser
+  currentUser: state.common.currentUser,
+  ...state.dashboard
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -38,7 +39,7 @@ class Dashboard extends Component {
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
       { id: "userAppAccess", header: "",footer: "Apps", renderType: "ChartWidget", link:"/apps?header='Apps'"  },
       { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link:"/resources"  },
-      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  },
+      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  }
     ];
   }
 
@@ -51,6 +52,12 @@ class Dashboard extends Component {
   }
 
   render() {
+    var itemsPerRow = 2
+
+    if (this.props.dashboard["userAppAccess"] && this.props.dashboard["userAppAccess"]["data"] && this.props.dashboard["userAppAccess"]["data"]["totalCount"] === 0) {
+      itemsPerRow = 3
+    }
+
     return (
       <Container>
       <Card.Group itemsPerRow='4'>
@@ -70,7 +77,7 @@ class Dashboard extends Component {
           })
         }
       </Card.Group>
-      <Card.Group itemsPerRow='2'>
+      <Card.Group itemsPerRow={itemsPerRow}>
         {
           this.chartWidgetConfigs.map(config => {
             var widget = null;
