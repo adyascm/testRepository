@@ -3,7 +3,7 @@ import Realtime from 'realtime-messaging';
 import {SCAN_UPDATE_RECEIVED, SCAN_INCREMENTAL_UPDATE_RECEIVED} from '../constants/actionTypes'
 
 
-const initializePushNotifications = (props) => {
+const initializePushNotifications = (props, datasource) => {
   Realtime.loadOrtcFactory(Realtime.IbtRealTimeSJType, (factory, error) => {
     if(!error) {
       this.realtime = factory.createClient();
@@ -15,7 +15,7 @@ const initializePushNotifications = (props) => {
           props.onPushNotification(SCAN_UPDATE_RECEIVED, msg);
         });
 
-        client.subscribe("adya-scan-incremental-update", true, (conn, channel, msg) => {
+        client.subscribe("adya-"+datasource.datasource_id, true, (conn, channel, msg) => {
           props.onPushNotification(SCAN_INCREMENTAL_UPDATE_RECEIVED, msg);
         });
       }
