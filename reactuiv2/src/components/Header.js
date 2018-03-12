@@ -32,7 +32,7 @@ const LoggedInView = props => {
                     <Menu.Item as={Link} to="/" onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
                     <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation === '/users'} >Users</Menu.Item>
                     <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation === '/resources'} >Documents</Menu.Item>
-                    <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation === '/apps'} >Apps</Menu.Item>
+                    <Menu.Item as={!props.apps || props.apps.length>0?Link:null} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation === '/apps'} disabled={!props.apps || props.apps.length>0?false:true} >Apps</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
@@ -57,7 +57,8 @@ const LoggedInView = props => {
 };
 
 const mapStateToProps = state => ({
-    ...state.common
+    ...state.common,
+    apps: state.apps.appPayLoad
 });
 
 const mapDispatchToProps = dispatch => ({
