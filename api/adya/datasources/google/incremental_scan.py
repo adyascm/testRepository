@@ -168,12 +168,15 @@ def process_notifications(datasource_id, channel_id):
             return
 
         should_mark_in_progress = True
+
         page_token = subscription.page_token
+        print "process_notifications : page_token ", page_token
         while page_token is not None:
             response = drive_service.changes().list(pageToken=page_token,
                                                     spaces='drive').execute()
             #Mark Inprogress
             if should_mark_in_progress:
+                print "should_mark_in_progress "
                 db_session.refresh(subscription)
                 subscription.in_progress = 1
                 db_session.commit()
