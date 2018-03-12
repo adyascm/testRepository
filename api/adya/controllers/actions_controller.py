@@ -109,6 +109,15 @@ def get_actions():
                                         "Remove all Access for a user", [{"key": "user_email", "label": "For user", "editable": 0}],
                                             False)
 
+    removeUserFromGroup = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_GROUP, "Remove User",
+                                             "Remove user from a group", [{"key": "user_email", "label": "For user", "editable": 0},
+                                                                          {"key": "group_email", "label": "For Group", "editable": 0}], False)
+
+    addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP, "Add User",
+                                             "Add user to a group", [{"key": "user_email", "label": "For user", "editable": 0},
+                                                                     {"key": "group_email", "label": "For Group",
+                                                                      "editable": 0}], False)
+
     actions = [transferOwnershipAction,
                 changeOwnerOfFileAction,
                 deletePermissionForUserAction,
@@ -119,7 +128,10 @@ def get_actions():
                 updatePermissionForUserAction,
                 watchActionForUser,
                 watchActionForResource,
-                removeAllAction]
+                removeAllAction,
+                removeUserFromGroup,
+                addUserToGroup
+               ]
 
     return actions
 
@@ -197,6 +209,10 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             form_input['datasource_id'] = datasource_id
             messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
 
+        elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+            user_email = action_parameters["user_email"]
+            group_email = action_parameters["group_email"]
+            response = actions
         elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
