@@ -40,6 +40,11 @@ class Apps extends Component {
   }
 
   componentWillMount(){
+    if (this.props.location.search.includes("Apps"))
+      this.setState({
+        scopeExposure: 0
+      })
+    
     this.props.onLoadStart();
     this.props.onLoad(agent.Apps.getapps());
   }
