@@ -1,6 +1,6 @@
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
-from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, ResourceParent, DomainUser
+from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser
 from adya.controllers import domain_controller
 from sqlalchemy import and_
 from adya.common import constants
@@ -222,9 +222,6 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                  "owners,size,createdTime, modifiedTime").execute()
         print("results : ", results)
-
-        db_session.query(ResourceParent).filter(
-            ResourceParent.resource_id == file_id).delete(synchronize_session=False)
         db_session.query(ResourcePermission).filter(
             ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
         db_session.query(Resource).filter(Resource.resource_id ==

@@ -65,14 +65,23 @@ def oauth_callback(oauth_code, scopes,state, error):
     domain_id = login_email
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()
-    existing_user = auth_controller.get_user(login_email, db_session)
+    login_user = auth_controller.get_user(login_email, db_session)
     is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(login_email)
-    if existing_user:
-        auth_token = existing_user.auth_token
-        if refresh_token:
-            auth_controller.update_user_refresh_token(login_email, refresh_token, db_session)
-            auth_controller.update_user_scope_name(login_email,scope_name,db_session)
-        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, auth_token)
+    if is_serviceaccount_enabled:
+        domain_id = login_email.split('@')[1]
+
+
+    if login_user:
+        if not login_user.is_serviceaccount_enabled == is_serviceaccount_enabled:
+            domain = domain_controller.create_domain(db_session, domain_id, domain_id)
+            login_user = auth_controller.create_user(login_email, profile_info['given_name'],
+                                                     profile_info['family_name'], domain_id, refresh_token,
+                                                     is_serviceaccount_enabled,scope_name)
+        elif refresh_token:
+            login_user.refresh_token = refresh_token
+            login_user.authorize_scope_name = scope_name
+            db_session.add(login_user)
+            db_session.commit()
     else:
         existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
         if existing_domain_user and is_serviceaccount_enabled:
@@ -81,17 +90,11 @@ def oauth_callback(oauth_code, scopes,state, error):
                                                      existing_domain_user.last_name, existing_domain_user.domain_id,
                                                      refresh_token, data_source.is_serviceaccount_enabled,scope_name)
         else:
-            # here we need to think about gmail.com.
-            domain_name = gutils.get_domain_name_from_email(domain_id)
-            
-            if is_serviceaccount_enabled:# or is_admin_user:
-                domain_id = login_email.split('@')[1]
 
-            domain = domain_controller.create_domain(db_session, domain_id, domain_name)
+            domain = domain_controller.create_domain(db_session, domain_id, domain_id)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_serviceaccount_enabled,scope_name)
 
-        redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email,
-                                                                                            login_user.auth_token)
+    redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
     return redirect_url

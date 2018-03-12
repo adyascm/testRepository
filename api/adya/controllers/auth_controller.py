@@ -20,19 +20,6 @@ def get_user(email, db_session=None):
     user = db_session.query(LoginUser).filter(LoginUser.email == email).first()
     return user
 
-def update_user_refresh_token(email, refresh_token, db_session=None):
-    if not db_session:
-        db_session = db_connection().get_session()
-    user = db_session.query(LoginUser).filter(LoginUser.email == email).update({"refresh_token": refresh_token})
-    db_session.commit()
-    return True
-
-def update_user_scope_name(email, scope_name, db_session):
-    user = db_session.query(LoginUser).filter(LoginUser.email == email).update({"authorize_scope_name": scope_name})
-    db_session.commit()
-    return True
-
-
 def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled,scope_name):
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow().isoformat()

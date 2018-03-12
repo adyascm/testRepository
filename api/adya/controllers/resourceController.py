@@ -80,14 +80,15 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     page_limit = page_limit if page_limit else constants.PAGE_LIMIT
 
     db_session = db_connection().get_session()
-    domain = db_session.query(Domain).filter(LoginUser.domain_id == Domain.domain_id). \
-        filter(LoginUser.auth_token == auth_token).first()
+    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
+        filter(LoginUser.auth_token == auth_token).all()
+    domain_datasource_ids = [r for r, in domain_datasource_ids]
     resources = []
     resource_alias = aliased(Resource)
     parent_alias = aliased(Resource)
-    resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, resource_alias.parent_id == parent_alias.resource_id)
+    resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
     if user_emails:
-        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.domain_id == domain.domain_id, ResourcePermission.email.in_(user_emails)))
+        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
 
     if resource_type:
@@ -98,7 +99,7 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         page_limit = 10
         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
 
-    resources = resources_query.filter(resource_alias.domain_id == domain.domain_id).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
+    resources = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids)).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
     result = []
     for resource in resources:
         resource[0].parent_name = resource.resource_name
@@ -112,7 +113,10 @@ def search_resources(auth_token, prefix):
     if not prefix:
         return []
     db_session = db_connection().get_session()
-    resources = db_session.query(Resource).filter(and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_name.ilike("%" + prefix + "%"))).filter(LoginUser.auth_token == auth_token).limit(10).all()
+    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
+        filter(LoginUser.auth_token == auth_token).all()
+    domain_datasource_ids = [r for r, in domain_datasource_ids]
+    resources = db_session.query(Resource).filter(and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_name.ilike("%" + prefix + "%"))).limit(10).all()
 
     return resources
 
@@ -123,8 +127,7 @@ def get_all_shared_files_of_user(domain_id, datasource_id, user_email):
         print "Getting all owned files of user {} on domain {} and datasource {}".format(user_email, domain_id, datasource_id)
         db_session = db_connection().get_session()
 
-        resource_filter = and_(Resource.domain_id == domain_id,
-                               Resource.datasource_id == datasource_id,
+        resource_filter = and_(Resource.datasource_id == datasource_id,
                                Resource.resource_owner_id == user_email,
                                or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
                                Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
@@ -133,7 +136,6 @@ def get_all_shared_files_of_user(domain_id, datasource_id, user_email):
         resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter)\
                             .outerjoin(ResourcePermission,
                                        and_(ResourcePermission.resource_id == Resource.resource_id,
-                                            ResourcePermission.domain_id == Resource.domain_id,
                                             ResourcePermission.datasource_id == Resource.datasource_id)).all()
 
         response_data = {}
@@ -164,18 +166,15 @@ def get_all_externally_shared_files_of_user(domain_id, datasource_id, user_email
                                                                                           datasource_id)
         db_session = db_connection().get_session()
 
-        resource_filter = and_(Resource.domain_id == domain_id,
-                               Resource.datasource_id == datasource_id,
+        resource_filter = and_(Resource.datasource_id == datasource_id,
                                Resource.resource_owner_id == user_email,
                                Resource.exposure_type == constants.ResourceExposureType.EXTERNAL)
 
         resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter) \
                        .outerjoin(ResourcePermission,
                                        and_(ResourcePermission.resource_id == Resource.resource_id,
-                                            ResourcePermission.domain_id == Resource.domain_id,
                                             ResourcePermission.datasource_id == Resource.datasource_id))\
-                       .join(DomainUser, and_(DomainUser.domain_id == ResourcePermission.domain_id,
-                                              DomainUser.datasource_id == ResourcePermission.datasource_id,
+                       .join(DomainUser, and_(DomainUser.datasource_id == ResourcePermission.datasource_id,
                                               DomainUser.email == ResourcePermission.email,
                                           DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
 
@@ -207,17 +206,14 @@ def get_external_permissions_for_resource(domain_id, datasource_id, resource_id)
                                                                                                      datasource_id)
         db_session = db_connection().get_session()
 
-        resource_filter = and_(Resource.domain_id == domain_id,
-                               Resource.datasource_id == datasource_id,
+        resource_filter = and_(Resource.datasource_id == datasource_id,
                                Resource.resource_id == resource_id)
 
         resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter) \
             .outerjoin(ResourcePermission,
                        and_(ResourcePermission.resource_id == Resource.resource_id,
-                            ResourcePermission.domain_id == Resource.domain_id,
                             ResourcePermission.datasource_id == Resource.datasource_id)) \
-            .join(DomainUser, and_(DomainUser.domain_id == ResourcePermission.domain_id,
-                                DomainUser.datasource_id == ResourcePermission.datasource_id,
+            .join(DomainUser, and_(DomainUser.datasource_id == ResourcePermission.datasource_id,
                                 DomainUser.email == ResourcePermission.email,
                                DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
 
@@ -249,14 +245,12 @@ def get_all_permissions_for_resource(domain_id, datasource_id, resource_id):
         print "Getting all permissions for resource {} on domain {} and datasource {}".format(resource_id, domain_id, datasource_id)
         db_session = db_connection().get_session()
 
-        resource_filter = and_(Resource.domain_id == domain_id,
-                               Resource.datasource_id == datasource_id,
+        resource_filter = and_(Resource.datasource_id == datasource_id,
                                Resource.resource_id == resource_id)
 
         resources_object_list = db_session.query(Resource, ResourcePermission).filter(resource_filter)\
                             .outerjoin(ResourcePermission,
                                        and_(ResourcePermission.resource_id == Resource.resource_id,
-                                            ResourcePermission.domain_id == Resource.domain_id,
                                             ResourcePermission.datasource_id == Resource.datasource_id)).all()
 
         response_data = {}
@@ -290,7 +284,6 @@ def get_permission_id_for_user_resource(domain_id, datasource_id, user_email, re
 
         permission_id = db_session.query(ResourcePermission).filter(
                        and_(ResourcePermission.resource_id == resource_id,
-                            ResourcePermission.domain_id == domain_id,
                             ResourcePermission.datasource_id == datasource_id,
                             ResourcePermission.email == user_email)).first().permission_id
 
@@ -308,7 +301,7 @@ def get_all_unowned_files_user_can_access(domain_id, datasource_id, user_email):
 
         db_session = db_connection().get_session()
 
-        file_obj = db_session.query(ResourcePermission).filter(and_(ResourcePermission.domain_id == domain_id, ResourcePermission.datasource_id ==
+        file_obj = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
                                                                  datasource_id, ResourcePermission.email == user_email,
                                                                  ResourcePermission.permission_type != "owner")).all()
 

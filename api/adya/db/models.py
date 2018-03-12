@@ -1,12 +1,13 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 from datetime import date, datetime
 
 Base = declarative_base()
 
-def alchemy_encoder(fields_to_expand = {"depth":0}):
+
+def alchemy_encoder(fields_to_expand={"depth": 0}):
     class AlchemyEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj.__class__, DeclarativeMeta):
@@ -19,7 +20,9 @@ def alchemy_encoder(fields_to_expand = {"depth":0}):
                     elif isinstance(data, list):
                         try:
                             if fields_to_expand["depth"] == 0:
-                                temp =json.dumps(data, cls=alchemy_encoder(fields_to_expand = {"depth":1}),check_circular=False)  # this will fail on non-encodable values, like other classes
+                                # this will fail on non-encodable values, like other classes
+                                temp = json.dumps(data, cls=alchemy_encoder(
+                                    fields_to_expand={"depth": 1}), check_circular=False)
                                 fields[field] = json.loads(temp)
                         except TypeError as ex:
                             fields[field] = None
@@ -27,7 +30,8 @@ def alchemy_encoder(fields_to_expand = {"depth":0}):
                         fields[field] = None
                     else:
                         try:
-                            json.dumps(data)  # this will fail on non-encodable values, like other classes
+                            # this will fail on non-encodable values, like other classes
+                            json.dumps(data)
                             fields[field] = data
                         except TypeError as ex:
                             fields[field] = None
@@ -39,21 +43,18 @@ def alchemy_encoder(fields_to_expand = {"depth":0}):
     return AlchemyEncoder
 
 
-
 class Domain(Base):
     __tablename__ = 'domain'
-    domain_id = Column(String(255), primary_key=True, index=True)
+    domain_id = Column(String(255), primary_key=True)
     domain_name = Column(String(255))
     creation_time = Column(DateTime)
     login_users = relationship("LoginUser", backref="domain")
 
-    def __repr__(self):
-        return "<Domain('%s', '%s')>" % (self.domain_id, self.domain_name)
-
 
 class LoginUser(Base):
     __tablename__ = 'login_user'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
     first_name = Column(String(255))
     last_name = Column(String(255))
@@ -64,10 +65,12 @@ class LoginUser(Base):
     last_login_time = Column(DateTime)
     authorize_scope_name = Column(String(50))
 
+
 class DataSource(Base):
     __tablename__ = 'datasource'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36), primary_key=True,index=True)
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
+    datasource_id = Column(String(36), primary_key=True)
     display_name = Column(String(255))
     datasource_type = Column(String(50))
     creation_time = Column(DateTime)
@@ -83,14 +86,15 @@ class DataSource(Base):
     user_scan_status = Column(Integer, default=0)
     is_serviceaccount_enabled = Column(Boolean)
     is_push_notifications_enabled = Column(Boolean)
-    is_dummy_datasource = Column(Boolean,default=False)
+    is_dummy_datasource = Column(Boolean, default=False)
     is_async_delete = Column(Boolean, default=False)
+
 
 class DomainUser(Base):
     __tablename__ = 'domain_user'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36), primary_key=True)
-    email = Column(String(320), primary_key=True, index=True)
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    email = Column(String(320), primary_key=True)
     # we can't put constraint for firstname and lastname null
     # because if we get External user from other domain provider that might not have Names
     first_name = Column(String(255))
@@ -98,7 +102,7 @@ class DomainUser(Base):
     full_name = Column(String(255))
     is_admin = Column(Boolean, default=False)
     creation_time = Column(DateTime)
-    is_suspended = Column(Boolean,default=False)
+    is_suspended = Column(Boolean, default=False)
     primary_email = Column(String(320))
     user_id = Column(String(260))
     photo_url = Column(Text)
@@ -108,9 +112,9 @@ class DomainUser(Base):
 
 class Resource(Base):
     __tablename__ = 'resource'
-    domain_id = Column(String(255))
-    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'),primary_key=True,index=True)
-    resource_id = Column(String(100), primary_key=True, index=True)
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
     resource_name = Column(String(260), nullable=False)
     resource_type = Column(String(50))
     resource_size = Column(BigInteger)
@@ -125,60 +129,61 @@ class Resource(Base):
     description = Column(Text)
     last_modifying_user_email = Column(String(255))
     parent_id = Column(String(100), nullable=True)
-    permissions = relationship("ResourcePermission",primaryjoin="and_(Resource.datasource_id==ResourcePermission.datasource_id,Resource.resource_id==ResourcePermission.resource_id)", backref="resource")
-    def __repr__(self):
-        return "Resource('%s','%s', '%s', '%s')" % (
-            self.domain_id, self.datasource_id, self.resource_id, self.resource_name)
+    permissions = relationship(
+        "ResourcePermission", backref="resource")
+
 
 class ResourceParent(Base):
     __tablename__ = 'resource_parent_table'
     domain_id = Column(String(255))
     datasource_id = Column(String(36))
-    resource_id = Column(String(100),ForeignKey('resource.resource_id'), primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
     email = Column(String(320), primary_key=True)
     parent_id = Column(String(260))
 
-    def __repr__(self):
-        return "ResourceParent('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
 
 class ResourcePermission(Base):
     __tablename__ = 'resource_permission_table'
-    domain_id = Column(String(255))
-    datasource_id = Column(String(36),ForeignKey('resource.datasource_id'),primary_key=True)
-    resource_id = Column(String(100), ForeignKey('resource.resource_id'), primary_key=True)
+    datasource_id = Column(String(36), primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
     name = Column(Text)
     expiration_time = Column(DateTime)
     is_deleted = Column(Boolean, default=False)
-    def __repr__(self):
-        return "ResourcePermission('%s','%s', '%s')" % (self.domain_id, self.resource_id, self.email)
-        
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'resource_id'], ['resource.datasource_id', 'resource.resource_id']),
+    )
+
 
 class DomainGroup(Base):
     __tablename__ = 'domain_group'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36) , primary_key=True)
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
     group_id = Column(String(260), nullable=False)
     email = Column(String(320), primary_key=True)
     name = Column(String(255))
-    direct_members_count = Column(Integer,default=0)
+    direct_members_count = Column(Integer, default=0)
     description = Column(Text)
     include_all_user = Column(Boolean, default=False)
     aliases = Column(Text)
-    is_external = Column(Boolean,default=False)
+    is_external = Column(Boolean, default=False)
 
 
 class DirectoryStructure(Base):
     __tablename__ = 'domain_directory_structure'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36),primary_key=True)
+    datasource_id = Column(String(36), primary_key=True)
+    parent_email = Column(String(320), primary_key=True)
     member_email = Column(String(320), primary_key=True)
     member_id = Column(String(260), nullable=False)
-    member_role =  Column(String(10), nullable=False)
-    member_type =  Column(String(10), nullable=False)
-    parent_email = Column(String(320), primary_key=True)
+    member_role = Column(String(10), nullable=False)
+    member_type = Column(String(10), nullable=False)
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'parent_email'], [
+                         'domain_group.datasource_id', 'domain_group.email']),
+    )
+    
 
 
 class Report(Base):
@@ -207,7 +212,7 @@ class PushNotificationsSubscription(Base):
     stale = Column(Boolean)
     last_accessed = Column(DateTime)
     expire_at = Column(DateTime)
-  
+
 
 class Action(Base):
     __tablename__ = 'action'
@@ -223,7 +228,7 @@ class AuditLog(Base):
     __tablename__ = 'audit_log'
     log_id = Column(Integer, autoincrement=True, primary_key=True)
     domain_id = Column(String(255))
-    datasource_id = Column(String(36),primary_key=True)
+    datasource_id = Column(String(36), primary_key=True)
     initiated_by = Column(String(100))
     action_name = Column(String(200))
     parameters = Column(String(1000))
@@ -231,21 +236,28 @@ class AuditLog(Base):
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
 
-class ApplicationUserAssociation(Base):
-    __tablename__ = 'app_user_association'
-    datasource_id = Column(String(36),primary_key =True)
-    client_id = Column(String(255), ForeignKey('application.client_id'), primary_key=True)
-    user_email = Column(String(320), ForeignKey('domain_user.email'), primary_key=True)
 
 class Application(Base):
     __tablename__ = 'application'
-    domain_id = Column(String(255))
-    datasource_id = Column(String(36),primary_key =True)
-    client_id = Column(String(255),primary_key=True,index=True)
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    client_id = Column(String(255), primary_key=True)
     display_text = Column(String(255))
-    anonymous = Column(Boolean, default= True)
+    anonymous = Column(Boolean, default=True)
     scopes = Column(Text)
     is_readonly_scope = Column(Boolean)
+
+
+class ApplicationUserAssociation(Base):
+    __tablename__ = 'app_user_association'
+    datasource_id = Column(String(36), primary_key=True)
+    client_id = Column(String(255), primary_key=True)
+    user_email = Column(String(320), primary_key=True)
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'client_id'], [
+                         'application.datasource_id', 'application.client_id']),
+    )
+    
 
 
 def get_table(tablename):
@@ -284,4 +296,3 @@ class PolicyCondition(Base):
     affected_entity_id = Column(String(255), primary_key=True)
     actor_id = Column(String(255), primary_key=True)
     actor_match_condition = Column(String(255))
-
