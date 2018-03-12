@@ -80,10 +80,10 @@ def subscribe(domain_id, datasource_id):
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
                 print "Subscribing for push notification for user {}".format(user.email)
-                _subscribe_for_user(db_session, login_user.auth_token, datasource, user)
+                _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email, user.user_id)
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
-            _subscribe_for_user(db_session, login_user.auth_token, datasource, None)
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email, datasource.datasource_id)
 
         datasource.is_push_notifications_enabled = True
         db_session.commit()
@@ -91,15 +91,11 @@ def subscribe(domain_id, datasource_id):
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
     
-def _subscribe_for_user(db_session, auth_token, datasource, user):
-    drive_service = gutils.get_gdrive_service(auth_token, user.email if user else None, db_session)
+def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
+    drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
     root_file = drive_service.files().get(fileId='root').execute()
     print("Subscribe : Got Drive root ", root_file)
     root_file_id = root_file['id']
-
-    channel_id = datasource.datasource_id
-    if user:
-        channel_id = user.user_id
 
     body = {
         "id": channel_id,
@@ -111,27 +107,16 @@ def _subscribe_for_user(db_session, auth_token, datasource, user):
     }
     print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
         datasource.domain_id, datasource.datasource_id, channel_id)
-    response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
-    print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
-        datasource.domain_id, datasource.datasource_id, channel_id, response)
+    # response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
+    # print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+    #     datasource.domain_id, datasource.datasource_id, channel_id, response)
 
     response = drive_service.changes().getStartPageToken().execute()
     start_token = response.get('startPageToken')
     print 'Start token: ', start_token
 
-    userwatch_body = {
-        "id": channel_id,
-        "type": "web_hook",
-        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-        "token": datasource.datasource_id,
-        "payload": "true",
-        "resourceId" : "115052414264436569152"
-    }
-
-    watch_response = drive_service.changes().watch( pageToken=start_token, body=body).execute()
+    watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
     print " watch_response for a user : ", watch_response
-
-
 
     push_notifications_subscription = PushNotificationsSubscription()
     push_notifications_subscription.domain_id = datasource.domain_id
@@ -141,9 +126,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, user):
     push_notifications_subscription.page_token = start_token
     push_notifications_subscription.in_progress = 0
     push_notifications_subscription.stale = 0
-
-    if user:
-        push_notifications_subscription.user_email = user.email
+    push_notifications_subscription.user_email = email
 
     db_session.add(push_notifications_subscription)
     
@@ -155,7 +138,7 @@ def process_notifications(datasource_id, channel_id):
     try:
         datasource = domain_controller.get_datasource(None, datasource_id)
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
-        user_email = None
+        user_email = login_user.email
         if datasource.datasource_id != channel_id:
             user = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first()
             user_email = user.email
@@ -255,7 +238,7 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         messaging.send_push_notification("adya-scan-incremental-update", json.dumps({"domain_id": domain_id, "datasource_id": datasource_id, "email": email, "file_id": file_id}))
 
 
-        filedata = results['files']
+        #filedata = results['files']
         #TODO: policy check for the above action .
         # payload = {"affected_entity_type": 'file', "affected_entity_id": filedata['id'], "actor_id": filedata['permissions']['id'],
         #            "action_type": filedata['permissions']['role']}
