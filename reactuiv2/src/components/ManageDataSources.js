@@ -92,7 +92,7 @@ class ManageDataSources extends Component {
   }
 
   componentWillMount() {
-    if (!this.props.common.dataSources)
+    if (!this.props.common.datasources)
       this.props.setDataSources(agent.Setting.getDataSources());
     this.newDataSourceName = "";
     this.changeField = value => { this.newDataSourceName = value; }
