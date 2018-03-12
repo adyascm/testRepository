@@ -116,14 +116,15 @@ def _subscribe_for_user(db_session, auth_token, datasource, user):
         datasource.domain_id, datasource.datasource_id, channel_id, response)
 
     response = drive_service.changes().getStartPageToken().execute()
-    print 'Start token: %s' % response.get('startPageToken')
+    start_token = response.get('startPageToken')
+    print 'Start token: ', start_token
 
     push_notifications_subscription = PushNotificationsSubscription()
     push_notifications_subscription.domain_id = datasource.domain_id
     push_notifications_subscription.datasource_id = datasource.datasource_id
     push_notifications_subscription.channel_id = channel_id
     push_notifications_subscription.drive_root_id = root_file_id
-    push_notifications_subscription.page_token = response.get('startPageToken')
+    push_notifications_subscription.page_token = start_token
     push_notifications_subscription.in_progress = 0
     push_notifications_subscription.stale = 0
 
