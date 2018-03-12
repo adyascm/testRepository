@@ -271,6 +271,10 @@ def get_table(tablename):
         return DirectoryStructure
     elif tablename == 'resource_permission':
         return ResourcePermission
+    elif tablename == 'application':
+        return Application
+    elif tablename == 'app_user_association':
+        return ApplicationUserAssociation
 
 
 class Policy(Base):

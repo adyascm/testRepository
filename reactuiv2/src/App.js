@@ -54,9 +54,9 @@ class App extends Component {
       store.dispatch(push(nextProps.redirectTo));
       this.props.onRedirect();
     }
-    if(nextProps.datasources && !nextProps.datasources[0].is_dummy_datasource)
+    if(nextProps.datasources && nextProps.datasources.length > 0 && !nextProps.datasources[0].is_dummy_datasource)
     {
-      if(!this.props.datasources || this.props.datasources[0].datasource_id !== nextProps.datasources[0].datasource_id)
+      if(!this.props.datasources || this.props.datasources.length < 1 || this.props.datasources[0].datasource_id !== nextProps.datasources[0].datasource_id)
       {
         initializePushNotifications(nextProps, nextProps.datasources[0]);
       }
