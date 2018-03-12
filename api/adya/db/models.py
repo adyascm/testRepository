@@ -207,7 +207,7 @@ class PushNotificationsSubscription(Base):
     channel_id = Column(String(100), primary_key=True)
     drive_root_id = Column(String(255))
     user_email = Column(String(255))
-    page_token = Column(Integer)
+    page_token = Column(String(225))
     in_progress = Column(Boolean)
     stale = Column(Boolean)
     last_accessed = Column(DateTime)
