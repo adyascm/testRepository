@@ -36,7 +36,14 @@ export default (state = defaultState, action) => {
     case REDIRECT:
       return { ...state, redirectTo: null };
     case LOGOUT:
-      return { ...state, redirectTo: '/login', token: null, currentUser: null, currentView: "/login" };
+      return { 
+        ...state, 
+        redirectTo: '/login', 
+        token: null, 
+        currentUser: null, 
+        currentView: "/login",
+        datasources: undefined
+      };
     case LOGIN_SUCCESS:
       return {
         ...state,
