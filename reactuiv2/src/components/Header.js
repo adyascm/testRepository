@@ -31,9 +31,9 @@ const LoggedInView = props => {
 
                 <Menu.Menu position='left' >
                     <Menu.Item as={Link} to="/" onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
-                    <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation === '/users'} >Users</Menu.Item>
-                    <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation === '/resources'} >Documents</Menu.Item>
-                    <Menu.Item as={disableAppsItem?null:Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation === '/apps'} disabled={disableAppsItem} >Apps</Menu.Item>
+                    <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
+                    <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
+                    <Menu.Item as={disableAppsItem?null:Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} disabled={disableAppsItem} >Apps</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
