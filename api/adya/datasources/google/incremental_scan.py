@@ -119,6 +119,20 @@ def _subscribe_for_user(db_session, auth_token, datasource, user):
     start_token = response.get('startPageToken')
     print 'Start token: ', start_token
 
+    userwatch_body = {
+        "id": channel_id,
+        "type": "web_hook",
+        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        "token": datasource.datasource_id,
+        "payload": "true",
+        "resourceId" : "115052414264436569152"
+    }
+
+    watch_response = drive_service.changes().watch( pageToken=start_token, body=body).execute()
+    print " watch_response for a user : ", watch_response
+
+
+
     push_notifications_subscription = PushNotificationsSubscription()
     push_notifications_subscription.domain_id = datasource.domain_id
     push_notifications_subscription.datasource_id = datasource.datasource_id
