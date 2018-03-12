@@ -13,6 +13,8 @@ class ActionNames(Enum):
     WATCH_ALL_ACTION_FOR_USER = "watch_all_action_for_user"
     WATCH_ALL_ACTION_FOR_RESOURCE = "watch_all_action_for_resource"
     REMOVE_ALL_ACCESS_FOR_USER = "remove_all_access"
+    REMOVE_USER_FROM_GROUP = "remove_user_from_group"
+    ADD_USER_TO_GROUP = "add_user_to_group"
 
 
 

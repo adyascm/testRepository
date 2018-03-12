@@ -1,6 +1,8 @@
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
-from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser
+
+from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
+    LoginUser
 from adya.controllers import domain_controller
 from sqlalchemy import and_
 from adya.common import constants
@@ -62,8 +64,8 @@ def handle_channel_expiration():
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
     try:
-        # set up a resubscribe handler that runs every midnight
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron( 0 0 ? * * * )", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
+        # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
+        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
 
         datasource = domain_controller.get_datasource(
             None, datasource_id, db_session)
@@ -90,49 +92,61 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
     
 def _subscribe_for_user(db_session, auth_token, datasource, user):
-    try:
-        drive_service = gutils.get_gdrive_service(auth_token, user.email, db_session)
-        root_file = drive_service.files().get(fileId='root').execute()
-        print("Subscribe : Got Drive root ", root_file)
-        root_file_id = root_file['id']
+    drive_service = gutils.get_gdrive_service(auth_token, user.email if user else None, db_session)
+    root_file = drive_service.files().get(fileId='root').execute()
+    print("Subscribe : Got Drive root ", root_file)
+    root_file_id = root_file['id']
 
-        channel_id = datasource.datasource_id
-        if user:
-            channel_id = user.user_id
+    channel_id = datasource.datasource_id
+    if user:
+        channel_id = user.user_id
 
-        body = {
-            "id": channel_id,
-            "type": "web_hook",
-            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-            "token": datasource.datasource_id,
-            "payload": "true",
-            "params": {"ttl": 86400}
-        }
-        print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
-            datasource.domain_id, datasource.datasource_id, channel_id)
-        response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
-        print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
-            datasource.domain_id, datasource.datasource_id, channel_id, response)
+    body = {
+        "id": channel_id,
+        "type": "web_hook",
+        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        "token": datasource.datasource_id,
+        "payload": "true",
+        "params": {"ttl": 86400}
+    }
+    print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+        datasource.domain_id, datasource.datasource_id, channel_id)
+    response = drive_service.files().watch(fileId=root_file_id, body=body).execute()
+    print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+        datasource.domain_id, datasource.datasource_id, channel_id, response)
 
-        response = drive_service.changes().getStartPageToken().execute()
-        print 'Start token: %s' % response.get('startPageToken')
+    response = drive_service.changes().getStartPageToken().execute()
+    start_token = response.get('startPageToken')
+    print 'Start token: ', start_token
 
-        push_notifications_subscription = PushNotificationsSubscription()
-        push_notifications_subscription.domain_id = datasource.domain_id
-        push_notifications_subscription.datasource_id = datasource.datasource_id
-        push_notifications_subscription.channel_id = channel_id
-        push_notifications_subscription.drive_root_id = root_file_id
-        push_notifications_subscription.page_token = response.get('startPageToken')
-        push_notifications_subscription.in_progress = 0
-        push_notifications_subscription.stale = 0
+    userwatch_body = {
+        "id": channel_id,
+        "type": "web_hook",
+        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        "token": datasource.datasource_id,
+        "payload": "true",
+        "resourceId" : "115052414264436569152"
+    }
 
-        if user:
-            push_notifications_subscription.user_email = user.email
+    watch_response = drive_service.changes().watch( pageToken=start_token, body=body).execute()
+    print " watch_response for a user : ", watch_response
 
-        db_session.add(push_notifications_subscription)
-    except Exception as ex:
-        print 'Exception occurred while subscribing for datasource_id: {} and channel_id: {} - {}'.format(datasource.datasource_id, channel_id, ex)
 
+
+    push_notifications_subscription = PushNotificationsSubscription()
+    push_notifications_subscription.domain_id = datasource.domain_id
+    push_notifications_subscription.datasource_id = datasource.datasource_id
+    push_notifications_subscription.channel_id = channel_id
+    push_notifications_subscription.drive_root_id = root_file_id
+    push_notifications_subscription.page_token = start_token
+    push_notifications_subscription.in_progress = 0
+    push_notifications_subscription.stale = 0
+
+    if user:
+        push_notifications_subscription.user_email = user.email
+
+    db_session.add(push_notifications_subscription)
+    
 
 def process_notifications(datasource_id, channel_id):
     print "Processing Subscription notification for datasource_id: {} and channel_id: {}.".format(
@@ -168,12 +182,15 @@ def process_notifications(datasource_id, channel_id):
             return
 
         should_mark_in_progress = True
+
         page_token = subscription.page_token
-        while page_token is not None:
+        print "process_notifications : page_token ", page_token
+        while True:
             response = drive_service.changes().list(pageToken=page_token,
                                                     spaces='drive').execute()
             #Mark Inprogress
             if should_mark_in_progress:
+                print "should_mark_in_progress "
                 db_session.refresh(subscription)
                 subscription.in_progress = 1
                 db_session.commit()
@@ -191,7 +208,8 @@ def process_notifications(datasource_id, channel_id):
 
             if 'newStartPageToken' in response:
                 # Last page, save this token for the next polling interval
-                page_token = response.get('nextPageToken')
+                page_token = response.get('newStartPageToken')
+                break
 
         db_session.refresh(subscription)
         if page_token != subscription.page_token:
