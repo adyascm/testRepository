@@ -171,7 +171,7 @@ def process_notifications(datasource_id, channel_id):
 
         page_token = subscription.page_token
         print "process_notifications : page_token ", page_token
-        while page_token is not None:
+        while True:
             response = drive_service.changes().list(pageToken=page_token,
                                                     spaces='drive').execute()
             #Mark Inprogress
@@ -194,7 +194,8 @@ def process_notifications(datasource_id, channel_id):
 
             if 'newStartPageToken' in response:
                 # Last page, save this token for the next polling interval
-                page_token = response.get('nextPageToken')
+                page_token = response.get('newStartPageToken')
+                break
 
         db_session.refresh(subscription)
         if page_token != subscription.page_token:
