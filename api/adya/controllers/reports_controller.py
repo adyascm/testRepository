@@ -16,26 +16,29 @@ def get_widget_data(auth_token, widget_id):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
+    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
+        filter(LoginUser.auth_token == auth_token).all()
+    domain_datasource_ids = [r for r, in domain_datasource_ids]
     data = None
     if widget_id == 'usersCount':
-        data = db_session.query(DomainUser).filter(DomainUser.domain_id == LoginUser.domain_id).filter(
+        data = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'groupsCount':
-        data = db_session.query(DomainGroup).filter(DomainGroup.domain_id == LoginUser.domain_id).filter(
+        data = db_session.query(DomainGroup).filter(DomainGroup.datasource_id.in_(domain_datasource_ids)).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'filesCount':
         data = db_session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_type != 'folder')).filter(
+            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type != 'folder')).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'foldersCount':
         data = db_session.query(Resource).filter(
-            and_(Resource.domain_id == LoginUser.domain_id, Resource.resource_type == 'folder')).filter(
+            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type == 'folder')).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'sharedDocsByType':
         data = {}
         data["rows"] = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
                                 and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
-                                Resource.domain_id == LoginUser.domain_id, 
+                                Resource.datasource_id.in_(domain_datasource_ids), 
                                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(LoginUser.auth_token == auth_token).group_by(Resource.exposure_type).all()
 
         totalcount = 0
@@ -48,32 +51,32 @@ def get_widget_data(auth_token, widget_id):
     elif widget_id == 'sharedDocsList':
         data = {}
         data["rows"] = db_session.query(Resource.resource_name, Resource.resource_type).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
+            and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
                      Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
             LoginUser.auth_token == auth_token).limit(5).all()
         data["totalCount"] = db_session.query(Resource.resource_name, Resource.resource_type).filter(
-            and_(Resource.domain_id == LoginUser.domain_id,
+            and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
                      Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id == 'externalUsersList':
         data = {}
-        data["rows"] = db_session.query(DomainUser.email, func.count(ResourcePermission.email)).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
+        data["rows"] = db_session.query(DomainUser.email, func.count(ResourcePermission.email)).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
                                                                       DomainUser.member_type == constants.UserMemberType.EXTERNAL,
-                                                            ResourcePermission.domain_id == LoginUser.domain_id ,
+                                                            ResourcePermission.datasource_id.in_(domain_datasource_ids) ,
                                                             ResourcePermission.email == DomainUser.email)).filter(
             LoginUser.auth_token == auth_token).group_by(DomainUser.email).order_by(func.count(ResourcePermission.email).desc()).limit(5).all()
-        data["totalCount"] = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id == LoginUser.domain_id,
+        data["totalCount"] = db_session.query(DomainUser.email).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
                                                                             DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
             LoginUser.auth_token == auth_token).count()
     elif widget_id =='userAppAccess':
         data ={}
         querydata = {}
         querydata["Readonly Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
-                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
+                                and_(Application.datasource_id.in_(domain_datasource_ids),Application.is_readonly_scope == True)).filter(LoginUser.auth_token == auth_token).count()
         querydata["Full Scope Apps"] = db_session.query(Application.client_id).distinct(Application.client_id).filter(
-                                and_(Application.domain_id == LoginUser.domain_id,Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
+                                and_(Application.datasource_id.in_(domain_datasource_ids),Application.is_readonly_scope == False)).filter(LoginUser.auth_token == auth_token).count()
         list_apps_data = []
         totalcount = 0
         for key,value in querydata.iteritems():

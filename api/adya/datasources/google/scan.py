@@ -18,16 +18,15 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
     # here nextPageToken as none means it is first call for resource
     # useremail None means servie account is not verified and we are scaning data for loggedin user only
     print "Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
-
-    drive_service = gutils.get_gdrive_service(auth_token, user_email)
-    starttime = time.time()
-    session = FuturesSession()
-    last_future = None
-    quotaUser = None
-    quotaUser = owner_email[0:41]
-    queryString = "'"+ owner_email +"' in owners"
-    while True:
-        try:
+    try:
+        drive_service = gutils.get_gdrive_service(auth_token, user_email)
+        starttime = time.time()
+        session = FuturesSession()
+        last_future = None
+        quotaUser = None
+        quotaUser = owner_email[0:41]
+        queryString = "'"+ owner_email +"' in owners"
+        while True:
             results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
                             "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                             "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
@@ -59,11 +58,10 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                 #Set the scan - fetch status as complete
                 update_and_get_count(datasource_id, DataSource.file_scan_status, 1, False)
                 break
-        except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
-            print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
-            print ex
-            break
+    except Exception as ex:
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
+        print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
+        print ex
 
 
 ## processing resource data for fileIds
@@ -80,7 +78,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
     for resourcedata in resources:
         resource_count = resource_count + 1
         resource = {}
-        resource["domain_id"] = domain_id
         resource["datasource_id"] = datasource_id
         resource_id = resourcedata['id']
         resource["resource_id"] = resource_id
@@ -113,7 +110,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                             and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
                             and resource_exposure_type != constants.ResourceExposureType.DOMAIN :
                                 resource_exposure_type = constants.ResourceExposureType.INTERNAL
-                        if gutils.check_if_external_user(domain_id,email_address):
+                        if gutils.check_if_external_user(db_session, domain_id,email_address):
                             if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
                                 resource_exposure_type = constants.ResourceExposureType.EXTERNAL
                             ## insert non domain user as External user in db, Domain users will be
@@ -121,7 +118,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                             if not email_address in external_user_map:
 
                                 externaluser = {}
-                                externaluser["domain_id"] = domain_id
                                 externaluser["datasource_id"] = datasource_id
                                 externaluser["email"] = email_address
                                 externaluser["first_name"] = ""
@@ -142,7 +138,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                         resource_exposure_type = constants.ResourceExposureType.PUBLIC
                         email_address = constants.ResourceExposureType.PUBLIC
                     resource_permission = {}
-                    resource_permission["domain_id"] = domain_id
                     resource_permission["datasource_id"] = datasource_id
                     resource_permission["resource_id"] = resource_id
                     resource_permission["email"] = email_address
@@ -198,8 +193,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
     useremail_resources_map = {}
     if user_email:
         resources_data = db_session.query(Resource.resource_id).distinct(Resource.resource_id)\
-                               .filter(and_(Resource.domain_id == domain_id, 
-                               Resource.datasource_id == datasource_id,Resource.resource_id != constants.ROOT)).all()
+                               .filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id != constants.ROOT)).all()
         update_and_get_count(datasource_id,DataSource.user_count_for_parent,1)
         useremail_resources_map[user_email] = []
         for data in resources_data:
@@ -212,8 +206,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
                                ResourcePermission.datasource_id == datasource_id,\
                                ResourcePermission.email.in_(alluserquery))).all()
         unique_email_id_count = db_session.query(ResourcePermission.email).distinct(ResourcePermission.email)\
-                          .filter(and_(ResourcePermission.domain_id == domain_id,\
-                          ResourcePermission.datasource_id == datasource_id,ResourcePermission.email.in_(alluserquery))).count()
+                          .filter(and_(ResourcePermission.datasource_id == datasource_id,ResourcePermission.email.in_(alluserquery))).count()
         update_and_get_count(datasource_id,DataSource.user_count_for_parent,unique_email_id_count)
         for resource_map in queried_data:
             if not resource_map.email in useremail_resources_map:
@@ -289,7 +282,6 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user_email = user_data["emails"][0]["address"]
         names = user_data["name"]
         user = {}
-        user["domain_id"] = domain_id
         user["datasource_id"] = datasource_id
         user["email"] = user_email
         user["first_name"] = names.get("givenName")
@@ -390,7 +382,6 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     for group_data in groups_data:
         group_count = group_count + 1
         group = {}
-        group["domain_id"] = domain_id
         group["datasource_id"] = datasource_id
         group["group_id"] = group_data["id"]
         groupemail = group_data["email"]
@@ -479,44 +470,49 @@ class GroupData():
     def group_data_callback(self,request_id, response, exception):
         request_id = int(request_id) 
         group_key = self.group_keys[request_id - 1]
-        update_and_get_count(self.datasource_id, DataSource.processed_group_count, 1, True)
+        
         if exception:
-            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, False)
-            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
+            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key)
             print ex
-        if response.get('members'):
-            is_external = False
-            for group_data in response['members']:
-                member_type = group_data.get("type")
-                member_id = group_data.get("id")
-                member_role = group_data.get("role")
-                if member_type == "CUSTOMER":
-                    self.db_session.query(models.DomainGroup).filter(
-                        and_(models.DomainGroup.datasource_id == self.datasource_id, models.DomainGroup.domain_id == self.domain_id,
-                            models.DomainGroup.email == group_key)).update({'include_all_user': True})
-                    continue
-                else:
-                    group = models.DirectoryStructure()
-                    group.domain_id = self.domain_id
-                    group.datasource_id = self.datasource_id
-                    group.member_email = group_data["email"]
-                    group.parent_email = group_key
-                    group.member_id = member_id
-                    group.member_role = member_role
-                    group.member_type = member_type
+            return
+        
+        try:
+            update_and_get_count(self.datasource_id, DataSource.processed_group_count, 1, True)
+            if response.get('members'):
+                is_external = False
+                for group_data in response['members']:
+                    member_type = group_data.get("type")
+                    member_id = group_data.get("id")
+                    member_role = group_data.get("role")
+                    if member_type == "CUSTOMER":
+                        self.db_session.query(models.DomainGroup).filter(
+                            and_(models.DomainGroup.datasource_id == self.datasource_id,
+                                models.DomainGroup.email == group_key)).update({'include_all_user': True})
+                        continue
+                    else:
+                        group = models.DirectoryStructure()
+                        group.datasource_id = self.datasource_id
+                        group.member_email = group_data["email"]
+                        group.parent_email = group_key
+                        group.member_id = member_id
+                        group.member_role = member_role
+                        group.member_type = member_type
 
-                    if not is_external and gutils.check_if_external_user(self.domain_id, group.member_email):
-                        is_external = True
-                        self.db_session.query(models.DomainGroup).filter(and_(models.DomainGroup.domain_id == self.domain_id,
-                                                                        models.DomainGroup.datasource_id == self.datasource_id,
-                                                                        models.DomainGroup.email ==  group_key)).update({"is_external":is_external})
-                    self.db_session.add(group)
-       
-        if self.batch_length == request_id:
-            try:
+                        if not is_external and gutils.check_if_external_user(self.db_session, self.domain_id, group.member_email):
+                            is_external = True
+                            self.db_session.query(models.DomainGroup).filter(and_(models.DomainGroup.datasource_id == self.datasource_id,
+                                                                            models.DomainGroup.email ==  group_key)).update({"is_external":is_external})
+                        self.db_session.add(group)
+        
+            if self.batch_length == request_id:
                 self.db_session.commit()
-            except Exception as ex:
-                print ex
+                
+        except Exception as ex:
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
+            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key)
+            print ex
+            return
 
     def get_group_members(self):
         directory_service = gutils.get_directory_service(self.auth_token)
@@ -525,44 +521,6 @@ class GroupData():
             group_member_data = directory_service.members().list(groupKey=group_key)
             batch.add(group_member_data)
         batch.execute()
-
-
-    # def get_group_members():
-    #     print "Initiating processing of google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
-    #     groupsmembers_db_insert_data = []
-    #     member_count = 0
-    #     is_external = False
-    #     for group_data in group_member_data:
-    #         member_count = member_count + 1
-    #         member_type = group_data.get("type")
-    #         member_id = group_data.get("id")
-    #         member_role = group_data.get("role")
-    #         if member_type == "CUSTOMER":
-    #             db_session.query(models.DomainGroup).filter(
-    #                 and_(models.DomainGroup.datasource_id == datasource_id, models.DomainGroup.domain_id == domain_id,
-    #                     models.DomainGroup.email == group_key)).update({'include_all_user': True})
-    #             continue
-    #         else:
-    #             group = {"domain_id": domain_id, "datasource_id": datasource_id, "member_email": group_data["email"],
-    #                     "parent_email": group_key,"member_id":member_id, "member_role":member_role , "member_type": member_type}
-    #             if not is_external and gutils.check_if_external_user(domain_id, group["member_email"]):
-    #                 is_external=True
-    #             groupsmembers_db_insert_data.append(group)
-    #     try:
-    #         if is_external:
-    #             db_session.query(DomainGroup).filter(and_(DomainGroup.domain_id == domain_id,
-    #                                             DomainGroup.datasource_id == datasource_id,
-    #                                             DomainGroup.email == group_key)).update({"is_external":is_external})
-    #         db_session.bulk_insert_mappings(
-    #             models.DirectoryStructure, groupsmembers_db_insert_data)
-    #         db_session.commit()
-    #         print "Processed {} google directory group members for domain_id: {} group_key: {}".format(member_count, domain_id, group_key)
-    #         update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
-    #         db_session.close()
-    #     except Exception as ex:
-    #         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
-    #         print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(domain_id, group_key)
-    #         print ex
 
 
 def update_and_get_count(datasource_id, column_name, column_value, send_message=False):
@@ -575,7 +533,10 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         print ex
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id,db_session)
+        if send_message:
+            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
         if get_scan_status(datasource) == 1:
+            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
             adya_emails.send_gdrive_scan_completed_email(datasource)
 
@@ -583,13 +544,6 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
                 print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id)
                 messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret", query_params, {})
-
-        #if send_message:
-        #ortc_client = RealtimeConnection().get_conn()
-        # ortc_client.send(datasource_id, datasource)
-        if send_message:
-            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
-            #RealtimeConnection().send("adya-datasource-update", json.dumps(datasource, cls=models.AlchemyEncoder))
 
 def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
@@ -607,13 +561,10 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
     db_session = db_connection().get_session()
     try:
         external_group_subquery = db_session.query(models.DomainGroup.email).filter(and_(models.DomainGroup.datasource_id== datasource_id,
-                                                                            models.DomainGroup.domain_id == domain_id,
                                                                             models.DomainGroup.is_external == True )).subquery()
-        all_resource_sub_query = db_session.query(models.ResourcePermission.resource_id).distinct(models.ResourcePermission.resource_id).filter(and_(models.ResourcePermission.domain_id == domain_id,
-                                                                    models.ResourcePermission.datasource_id == datasource_id,
+        all_resource_sub_query = db_session.query(models.ResourcePermission.resource_id).distinct(models.ResourcePermission.resource_id).filter(and_(models.ResourcePermission.datasource_id == datasource_id,
                                                                     models.ResourcePermission.email.in_(external_group_subquery))).subquery()
-        db_session.query(models.Resource).filter(and_(models.Resource.domain_id == domain_id,
-                                            models.Resource.datasource_id == datasource_id,
+        db_session.query(models.Resource).filter(and_(models.Resource.datasource_id == datasource_id,
                                             models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
         db_session.commit()
     except Exception as ex:
@@ -647,7 +598,6 @@ class GetAllUserAppAndScope():
         if response.get("items"):
             for app in response["items"]:
                 application = Application()
-                application.domain_id= self.domain_id
                 application.datasource_id= self.datasource_id
                 application.client_id = app["clientId"]
                 application.display_text = app.get("displayText")

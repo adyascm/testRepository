@@ -3,7 +3,7 @@ import googleapiclient.discovery as discovery
 import json
 import requests
 from adya.db.connection import db_connection
-from adya.db.models import LoginUser
+from adya.db.models import LoginUser, Domain
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE
 import os
@@ -67,7 +67,7 @@ def get_credentials(auth_token, user_email=None, db_session = None):
 def get_delegated_credentials(emailid):
     credentials = SERVICE_OBJECT.create_delegated(emailid)
     http = credentials.authorize(httplib2.Http())
-    credentials.refresh(http)
+    #credentials.refresh(http)
     return credentials
 
 
@@ -135,11 +135,12 @@ def check_if_user_isamdin(auth_token, user_email=None, db_session = None):
     return False
 
 
-def check_if_external_user(domain_id, email):
-    if not '@' in domain_id:
-        if email.endswith(domain_id):
+def check_if_external_user(db_session, domain_id, email):
+    domain_name = db_session.query(Domain.domain_name).filter(Domain.domain_id == domain_id).first()
+    if not '@' in domain_name:
+        if email.endswith(domain_name):
             return False
     else:
-        if email == domain_id:
+        if email == domain_name:
             return False
     return True
