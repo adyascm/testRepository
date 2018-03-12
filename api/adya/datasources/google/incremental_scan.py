@@ -1,6 +1,8 @@
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
-from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser
+
+from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
+    LoginUser
 from adya.controllers import domain_controller
 from sqlalchemy import and_
 from adya.common import constants
@@ -62,8 +64,8 @@ def handle_channel_expiration():
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
     try:
-        # set up a resubscribe handler that runs every midnight
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron( 0 0 ? * * * )", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
+        # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
+        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
 
         datasource = domain_controller.get_datasource(
             None, datasource_id, db_session)
