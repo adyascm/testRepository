@@ -69,7 +69,14 @@ export default (state = {}, action) => {
     
                     for (let index = 0; index < keys.length; index++) {
                         let row = action.payload[keys[index]]
-                        row.myPermission = row.permissions[0].permission_type
+                        for(let pIndex = 0; pIndex < row.permissions.length; pIndex++)
+                        {
+                            if(state.selectedUserItem.email == row.permissions[pIndex].email)
+                            {
+                                row.myPermission = row.permissions[pIndex].permission_type
+                                break;
+                            }
+                        }
                         row.isExpanded = row.isExpanded || false;
                         row.key = keys[index];
                         row.depth = 0;

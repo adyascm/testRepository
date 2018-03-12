@@ -34,16 +34,11 @@ export default (state = defaultState, action) => {
             };
         case SCAN_INCREMENTAL_UPDATE_RECEIVED:
             var updateMessage = JSON.parse(action.payload);
-            if (state.datasources && updateMessage.datasource_id === state.datasources[0].datasource_id) {
-                return {
+            return {
                     ...state,
-                    infoMessage: "Update available for a file, please refresh the app to see the latest changes...",
+                    infoMessage: "File has been changed, please refresh the app to see the latest changes...",
                     errorMessage: undefined,
                 };
-            }
-            return {
-                ...state
-            };
         default:
             return state
     }
