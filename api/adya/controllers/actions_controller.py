@@ -300,8 +300,13 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
                      "affected_entity": "",
                      "affected_entity_type": ""
                      }
-        
-        if action_to_take == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+        if action_to_take == action_constants.ActionNames.ADD_USER_TO_GROUP:
+            log_entry['affected_entity'] = action_parameters['user_email']
+            log_entry['affected_entity_type'] = "User"
+        elif action_to_take == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+            log_entry['affected_entity'] = action_parameters['user_email']
+            log_entry['affected_entity_type'] = "User"
+        elif action_to_take == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             log_entry['affected_entity'] = action_parameters['old_owner_email']
             log_entry['affected_entity_type'] = "User"
         elif action_to_take == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
