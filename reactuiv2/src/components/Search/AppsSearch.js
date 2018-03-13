@@ -8,7 +8,8 @@ import agent from '../../utils/agent';
 import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APP_USERS_LOADED,
+    APPS_SEARCH_PAYLOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -21,7 +22,9 @@ const mapDispatchToProps = dispatch => ({
     appUsersLoadStart: () => 
         dispatch({ type: APP_USERS_LOAD_START }),
     appUsersLoaded: (payload) => 
-        dispatch({ type: APP_USERS_LOADED, payload })
+        dispatch({ type: APP_USERS_LOADED, payload }),
+    setAppsSearchResults: (payload) => 
+        dispatch({ type: APPS_SEARCH_PAYLOAD, payload })
 });
 
 class AppsSearch extends Component {
@@ -46,6 +49,13 @@ class AppsSearch extends Component {
     }
 
     handleSearchChange = (e, { value }) => {
+        if (value === '') {
+            this.props.setAppsSearchResults(undefined)
+            this.setState({
+                value
+            })
+            return
+        }
         this.setState({ isLoading: true, value })
 
         setTimeout(() => {
@@ -68,6 +78,7 @@ class AppsSearch extends Component {
     }
 
     handleResultSelect = (e, { result }) => {
+        this.props.setAppsSearchResults(this.state.results)
         this.props.selectAppItem(result)
         this.props.appUsersLoadStart()
         this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id))
