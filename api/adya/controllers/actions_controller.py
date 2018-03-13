@@ -209,10 +209,14 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             form_input['datasource_id'] = datasource_id
             messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
 
-        # elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
-        #     user_email = action_parameters["user_email"]
-        #     group_email = action_parameters["group_email"]
-        #     response = actions
+        elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+            user_email = action_parameters["user_email"]
+            group_email = action_parameters["group_email"]
+            response = actions.delete_user_from_group(auth_token, group_email, user_email)
+        elif action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
+            user_email = action_parameters["user_email"]
+            group_email = action_parameters["group_email"]
+            response = actions.add_user_to_group(auth_token, group_email, user_email)
         elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
@@ -296,7 +300,7 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
                      "affected_entity": "",
                      "affected_entity_type": ""
                      }
-
+        
         if action_to_take == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             log_entry['affected_entity'] = action_parameters['old_owner_email']
             log_entry['affected_entity_type'] = "User"

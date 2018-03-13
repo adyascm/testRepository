@@ -8,7 +8,7 @@ from adya.controllers import resourceController
 from requests_futures.sessions import FuturesSession
 
 
-def delete_user_from_group(auth_token, domain_id, datasource_id, group_email, user_email):
+def delete_user_from_group(auth_token, group_email, user_email):
     try:
         directory_service = gutils.get_directory_service(auth_token)
 
@@ -16,10 +16,10 @@ def delete_user_from_group(auth_token, domain_id, datasource_id, group_email, us
             print "Didn't get directory service!"
         else:
             print "Initiating removal of user {} from group {} ...".format(user_email, group_email)
-            response = directory_service.members().delete(groupKey=group_email, userKey=user_email)
+            response = directory_service.members().delete(groupKey=group_email, memberKey=user_email).execute()
             print response
 
-        return errormessage.ACTION_EXECUTION_SUCCESS
+            return response
 
 
     except Exception as e:
@@ -27,18 +27,23 @@ def delete_user_from_group(auth_token, domain_id, datasource_id, group_email, us
         print "Exception occurred while removing {} from group {} ".format(user_email, group_email)
 
 
-def add_user_to_group(auth_token, domain_id, datasource_id, group_email, user_email, user_type):
+def add_user_to_group(auth_token, group_email, user_email):
     try:
         directory_service = gutils.get_directory_service(auth_token)
 
         if not directory_service:
             print "Didn't get directory service!"
         else:
+            body = {
+                "kind": "admin#directory#member",
+                "email": user_email,
+                "role": "MEMBER"
+            }
             print "Initiating addition of user {} to group {} ...".format(user_email, group_email)
-            response = directory_service.members().insert(groupKey=group_email, userKey=user_email)
+            response = directory_service.members().insert(groupKey=group_email, body=body).execute()
             print response
 
-        return errormessage.ACTION_EXECUTION_SUCCESS
+            return response
 
 
     except Exception as e:
@@ -372,3 +377,5 @@ class AddOrUpdatePermisssionForResource():
         permission_id = permission_object["permissionId"]
         data = drive_service.permissions().delete(fileId=self.resource_id, permissionId=permission_id)
         return data
+
+        # add_user_to_group("58317e8e-399d-4568-9b5b-a54197d02d35", "hr@serendipity-technologies.com", "bhanu.mallya@serendipity-technologies.com")
