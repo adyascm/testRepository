@@ -183,7 +183,7 @@ def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_accoun
 
 def create_dummy_datasource(db_session, domain_id, datasource_id):
     file_names = ['resource', 'user', 'group',
-                  'directory_structure', 'resource_permission']
+                  'directory_structure', 'resource_permission', 'application', 'app_user_association']
     for filename in file_names:
         results = []
         with open(gutils.dir_path + "/dummy_datasource/" + filename + ".csv") as csvDataFile:
@@ -199,7 +199,7 @@ def create_dummy_datasource(db_session, domain_id, datasource_id):
                 for cellvalue, column in zip(row, columns):
                     column_name = column.name
                     column_type = column.type
-                    if cellvalue == 'NULL':
+                    if cellvalue == 'NULL' or cellvalue == '':
                         datarow[column_name] = None
                     elif isinstance(column_type, Boolean):
                         if cellvalue == '0':

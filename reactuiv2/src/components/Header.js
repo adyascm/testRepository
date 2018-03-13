@@ -22,6 +22,9 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
+        // var disableAppsItem = (props["userAppAccess"] && props["userAppAccess"]["data"] && props["userAppAccess"]["data"]["totalCount"]>0)?false:true
+        // var disableUserItem = (props["usersCount"] && props["usersCount"]["data"]>0)?false:true
+        // var disableResourceItem = (props["filesCount"] && props["filesCount"]["data"]>0)?false:true
         return (
             <Container>
                 <Menu.Item as={Link} to="/" header>
@@ -30,9 +33,9 @@ const LoggedInView = props => {
 
                 <Menu.Menu position='left' >
                     <Menu.Item as={Link} to="/" onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
-                    <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation === '/users'} >Users</Menu.Item>
-                    <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation === '/resources'} >Documents</Menu.Item>
-                    <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation === '/apps'} >Apps</Menu.Item>
+                    <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
+                    <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
+                    <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
@@ -57,7 +60,8 @@ const LoggedInView = props => {
 };
 
 const mapStateToProps = state => ({
-    ...state.common
+    ...state.common,
+    ...state.dashboard
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -85,7 +89,7 @@ class Header extends React.Component {
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} />
-                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} />
+                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} {...this.props} />
             </Menu>
         )
     }

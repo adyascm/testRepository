@@ -61,45 +61,45 @@ class Actions extends Component {
             inProgress: true
         });
         if (this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
-          this.executeAction(this.build_action_payload(), resp => {
-              this.setState({
-                  ...this.state,
-                  inProgress: false,
-                  successMessage: resp['message']
-              });
-          }, error => {
-              this.setState({
-                  ...this.state,
-                  inProgress: false,
-                  errorMessage: error['message']
-              });
-          });
+            this.executeAction(this.build_action_payload(), resp => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    successMessage: resp['message']
+                });
+            }, error => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    errorMessage: error['message']
+                });
+            });
 
 
 
         } else {
-          authenticate("drive_action_scope").then(res => {
-                  this.props.onIncrementalAuthComplete(res);
-                  this.executeAction(this.build_action_payload(), resp => {
-                      this.setState({
-                          ...this.state,
-                          inProgress: false,
-                          successMessage: resp['message']
-                      });
-                  }, error => {
-                      this.setState({
-                          ...this.state,
-                          inProgress: false,
-                          errorMessage: error['message']
-                      });
-                  });
-              }).catch(error => {
-                  this.setState({
-                      ...this.state,
-                      inProgress: false,
-                      errorMessage: error['message']
-                  });
-              });
+            authenticate("drive_action_scope").then(res => {
+                //this.props.onIncrementalAuthComplete(res);
+                this.executeAction(this.build_action_payload(), resp => {
+                    this.setState({
+                        ...this.state,
+                        inProgress: false,
+                        successMessage: resp['message']
+                    });
+                }, error => {
+                    this.setState({
+                        ...this.state,
+                        inProgress: false,
+                        errorMessage: error['message']
+                    });
+                });
+            }).catch(error => {
+                this.setState({
+                    ...this.state,
+                    inProgress: false,
+                    errorMessage: error['message']
+                });
+            });
         }
     }
 
@@ -125,14 +125,14 @@ class Actions extends Component {
     }
 
     render() {
+        let action = this.props.action;
+        if (!action)
+            return null;
         if (this.props.datasources[0].is_dummy_datasource) {
             //Actions are not allowed
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;
         }
-        let action = this.props.action;
-        if (!action)
-            return null;
         let actionConfig = this.props.all_actions_list[action.key];
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)
@@ -144,17 +144,26 @@ class Actions extends Component {
                 readOnly={!field.editable} required={field.editable !== 0 ? true : false} />)
         });
         let message = (<div></div>)
+        let submitAction = this.takeAction;
+        let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
+        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
         if (this.state.successMessage) {
             message = (<Message
                 success
                 content={this.state.successMessage}
             />)
+            submitAction = this.props.onCancelAction;
+            cancelButton = (<div></div>)
+            submitButton = (<Button positive content='Close' />);
         }
         else if (this.state.errorMessage) {
             message = (<Message
                 error
                 content={this.state.errorMessage}
             />)
+            submitAction = this.props.onCancelAction;
+            cancelButton = (<div></div>)
+            submitButton = (<Button positive content='Close' />);
         }
         return (
             <Modal open={this.props.action !== undefined} className="scrolling" >
@@ -162,11 +171,10 @@ class Actions extends Component {
                 <Modal.Content >
                     {message}
                     <Modal.Description><Header>{actionConfig.description}</Header></Modal.Description>
-                    <Form onSubmit={this.takeAction}>
+                    <Form onSubmit={submitAction}>
                         {formFields}
-                        <Button negative onClick={this.props.onCancelAction} content='Cancel' />
-                        <Button positive loading={this.state.inProgress} labelPosition='right'
-                            icon='checkmark' content='Submit' />
+                        {cancelButton}
+                        {submitButton}
                     </Form>
                 </Modal.Content>
             </Modal>

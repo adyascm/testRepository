@@ -31,7 +31,8 @@ const mapStateToProps = state => {
     appName: state.common.appName,
     currentUser: state.common.currentUser,
     redirectTo: state.common.redirectTo,
-    appMessage: state.common.appMessage
+    appMessage: state.common.appMessage,
+    datasources: state.common.datasources
   }
 };
 
@@ -39,13 +40,11 @@ const mapDispatchToProps = dispatch => ({
   onLoad: (payload, token) => {
     dispatch({ type: APP_LOAD, payload, token, skipTracking: true });
   },
-
   onRedirect: () =>
     dispatch({ type: REDIRECT }),
   onPushNotification: (actionType, msg) => {
-    dispatch({ type: actionType, payload: msg })
-  }
-
+      dispatch({ type: actionType, payload: msg })
+    }
 });
 
 class App extends Component {
@@ -55,6 +54,13 @@ class App extends Component {
       store.dispatch(push(nextProps.redirectTo));
       this.props.onRedirect();
     }
+    if(nextProps.datasources && nextProps.datasources.length > 0 && !nextProps.datasources[0].is_dummy_datasource)
+    {
+      if(!this.props.datasources || this.props.datasources.length < 1 || this.props.datasources[0].datasource_id !== nextProps.datasources[0].datasource_id)
+      {
+        initializePushNotifications(nextProps, nextProps.datasources[0]);
+      }
+    }
   }
   componentWillMount() {
     const token = window.localStorage.getItem('jwt');
@@ -63,8 +69,6 @@ class App extends Component {
     }
 
     this.props.onLoad(token ? agent.Auth.current() : null, token);
-
-    initializePushNotifications(this.props);
   }
   render() {
     if (this.props.appLoaded) {
