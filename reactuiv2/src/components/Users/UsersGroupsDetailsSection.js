@@ -9,7 +9,8 @@ import { connect } from 'react-redux';
 import {
     USER_ITEM_SELECTED,
     USERS_RESOURCE_ACTION_LOAD,
-    RESOURCES_FILTER_CHANGE
+    RESOURCES_FILTER_CHANGE,
+    USERS_GROUP_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -23,6 +24,8 @@ const mapDispatchToProps = dispatch => ({
     onUserQuickAction: (actionType) =>
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType }),
     changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value }),
+    userGroupAction : (actionType, groupId) =>
+        dispatch({type: USERS_GROUP_ACTION_LOAD, actionType, groupId})
 })
 
 class UsersGroupsDetailsSection extends Component {
@@ -52,6 +55,7 @@ class UsersGroupsDetailsSection extends Component {
         this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
         this.onQuickAction = this.onQuickAction.bind(this);
         this.handleExposureTypeChange = this.handleExposureTypeChange.bind(this);
+        this.onUserGroupAction = this.onUserGroupAction.bind(this);
     }
 
     closeDetailsSection() {
@@ -69,6 +73,12 @@ class UsersGroupsDetailsSection extends Component {
             this.props.onUserQuickAction(action)
     }
 
+    onUserGroupAction(action, groupId) {
+      if(action !== ''){
+        this.props.userGroupAction(action, groupId)
+      }
+    }
+
     handleAppAccessRevokeClick(event,domainId,datasourceId, clientId,userEmail) {
         agent.Apps.revokeAppAccess(domainId,datasourceId, clientId,userEmail).then(resp =>{
             console.log(resp)
@@ -76,7 +86,7 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     render() {
-      
+
         var resourceLayout = (
             <Container stretched="true">
                 <Grid stretched>
@@ -110,7 +120,8 @@ class UsersGroupsDetailsSection extends Component {
                 <Segment>
                     {/* <Sticky> */}
                     <Icon name='close' onClick={this.closeDetailsSection} />
-                    <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload} onQuickAction={this.onQuickAction} />
+                    <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}
+                      onQuickAction={this.onQuickAction} onUserGroupAction={this.onUserGroupAction}/>
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                     {/* </Sticky> */}
                 </Segment>

@@ -10,7 +10,8 @@ import {
     USERS_RESOURCE_ACTION_CANCEL,
     USERS_RESOURCE_SET_FILE_SHARE_TYPE,
     GROUP_SEARCH_PAYLOAD,
-    GROUP_SEARCH_EMPTY
+    GROUP_SEARCH_EMPTY,
+    USERS_GROUP_ACTION_LOAD
 } from '../constants/actionTypes';
 
 
@@ -66,7 +67,7 @@ export default (state = {}, action) => {
             if (!action.error) {
                 if (action.payload) {
                     var keys = Object.keys(action.payload)
-    
+
                     for (let index = 0; index < keys.length; index++) {
                         let row = action.payload[keys[index]]
                         for(let pIndex = 0; pIndex < row.permissions.length; pIndex++)
@@ -87,7 +88,7 @@ export default (state = {}, action) => {
                 }
             }
             state.selectedUserItem.resources = rows;
-            
+
             return {
                 ...state,
                 isResourcesLoading: false,
@@ -104,6 +105,15 @@ export default (state = {}, action) => {
                     resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
                     new_permission_role: action.newValue,
                 }
+            }
+        case USERS_GROUP_ACTION_LOAD:
+            return{
+              ...state,
+              action: {
+                  key: action.actionType,
+                  user_email: state.selectedUserItem.email,
+                  group_email: action.groupId
+              }
             }
         case USERS_RESOURCE_ACTION_CANCEL:
             return {
