@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux';
 import GroupSearch from './GroupSearch';
 import ResourceSearch from './ResourceSearch';
+import AppsSearch from './AppsSearch';
 
 
 const mapStateToProps = state => ({
@@ -24,7 +25,8 @@ class AppSearch extends Component {
     render() {
         return (
             <div style={{textAlign: 'left'}}>
-                {this.props.common.currentView === "/users" ? <GroupSearch /> : <ResourceSearch />}
+                {this.props.common.currentView === "/users" ? <GroupSearch /> : 
+                    this.props.common.currentView === "/apps" ? <AppsSearch /> : <ResourceSearch />}
             </div>
         )
     }

@@ -18,6 +18,7 @@ export default (state = {}, action) => {
             }
         case APPS_PAGE_LOADED:
             //let appPayLoad = !action.error?action.payload:[]
+            console.log("apps : ", action.payload)
             return {
                 ...state,
                 isLoading: false,
