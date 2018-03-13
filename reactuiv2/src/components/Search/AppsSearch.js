@@ -3,9 +3,26 @@ import { connect } from 'react-redux';
 
 import { Search } from 'semantic-ui-react';
 
+import agent from '../../utils/agent';
+
+import {
+    APPS_ITEM_SELECTED,
+    APP_USERS_LOAD_START,
+    APP_USERS_LOADED
+} from '../../constants/actionTypes';
+
 const mapStateToProps = state => ({
     ...state.apps
-})
+});
+
+const mapDispatchToProps = dispatch => ({
+    selectAppItem: (payload) =>
+        dispatch({ type: APPS_ITEM_SELECTED, payload }),
+    appUsersLoadStart: () => 
+        dispatch({ type: APP_USERS_LOAD_START }),
+    appUsersLoaded: (payload) => 
+        dispatch({ type: APP_USERS_LOADED, payload })
+});
 
 class AppsSearch extends Component {
     constructor(props) {
@@ -51,6 +68,9 @@ class AppsSearch extends Component {
     }
 
     handleResultSelect = (e, { result }) => {
+        this.props.selectAppItem(result)
+        this.props.appUsersLoadStart()
+        this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id))
         this.setState({
             value: result.display_text
         })
@@ -70,4 +90,4 @@ class AppsSearch extends Component {
     }
 }
 
-export default connect(mapStateToProps)(AppsSearch);
+export default connect(mapStateToProps,mapDispatchToProps)(AppsSearch);
