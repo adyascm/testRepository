@@ -17,7 +17,8 @@ import {
 
 const mapStateToProps = state => ({
   appName: state.common.appName,
-  currentApp: state.common.currentApp
+  currentApp: state.common.currentApp,
+  appsSearchPayload: state.apps.appsSearchPayload
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -34,7 +35,7 @@ class Apps extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        scopeExposure: 2
+        scopeExposure: 0
     }
     this.onCheckBoxChecked = this.onCheckBoxChecked.bind(this)
   }
