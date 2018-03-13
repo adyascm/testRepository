@@ -209,10 +209,10 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
             form_input['datasource_id'] = datasource_id
             messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
 
-        elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
-            user_email = action_parameters["user_email"]
-            group_email = action_parameters["group_email"]
-            response = actions
+        # elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+        #     user_email = action_parameters["user_email"]
+        #     group_email = action_parameters["group_email"]
+        #     response = actions
         elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
             old_owner_email = action_parameters["old_owner_email"]
             new_owner_email = action_parameters["new_owner_email"]
@@ -251,8 +251,8 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
             user_email = action_parameters['user_email']
             resource_id = action_parameters['resource_id']
-            resource_owner = action_parameters['resource_owner']
-            new_permission_role = action_parameters['new_permission_role']
+            resource_owner = action_parameters['resource_owner_id']
+            new_permission_role = ''
             response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
                                                                       resource_id, user_email, new_permission_role,
                                                                       resource_owner)
