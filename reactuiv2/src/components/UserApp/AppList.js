@@ -47,16 +47,24 @@ class AppList extends Component {
     render() {
         var appCards =[]
         if (this.props.appPayLoad) {
+            var searchData;
+
+            if (this.props.appsSearchPayload)
+                searchData = this.props.appsSearchPayload
+            else 
+                searchData = this.props.appPayLoad
+
             let allapps = []
             if (this.state.scopeExposure === 0)
             {
-                allapps =this.props.appPayLoad
+                //allapps =this.props.appPayLoad
+                allapps = searchData
             }
             else
             {
-                for(let appkey in this.props.appPayLoad)
+                for(let appkey in searchData)
                 {
-                    let app = this.props.appPayLoad[appkey]
+                    let app = searchData[appkey]
                     if (this.state.scopeExposure === 2 && !app.is_readonly_scope)
                         allapps.push(app)
                     else if (this.state.scopeExposure === 1 && app.is_readonly_scope)
@@ -69,7 +77,7 @@ class AppList extends Component {
                 var appName = app.display_text;
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 
-                appCards.push(<Card key={appkey}  app={app} onClick={this.onCardClicked.bind(this)} color={this.props.selectedAppItem && this.props.selectedAppItem.key === appName?'blue':''}>
+                appCards.push(<Card key={appkey}  app={app} onClick={this.onCardClicked.bind(this)} color={this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName?'blue':''}>
                     <Card.Content>
                         {image}
                         <Card.Header>

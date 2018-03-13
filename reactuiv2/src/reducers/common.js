@@ -12,6 +12,7 @@ import {
   SCAN_UPDATE_RECEIVED,
   USERS_PAGE_LOADED,
   RESOURCES_PAGE_LOADED,
+  APPS_PAGE_LOADED,
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
   SET_CURRENT_URL
@@ -125,6 +126,11 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         currentView: "/resources"
+      };
+    case APPS_PAGE_LOADED:
+      return {
+        ...state,
+        currentView: "/apps"
       };
     case SET_CURRENT_URL: 
       return {

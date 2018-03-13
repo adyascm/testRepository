@@ -5,7 +5,8 @@ import {
     USER_APPS_LOAD_START,
     USER_APPS_LOADED,
     APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APP_USERS_LOADED,
+    APPS_SEARCH_PAYLOAD
 } from '../constants/actionTypes';
 
 
@@ -21,7 +22,8 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                appPayLoad: action.payload
+                appPayLoad: action.payload,
+                appsSearchPayload: undefined
             }
         case APPS_ITEM_SELECTED:
             return {
@@ -50,6 +52,11 @@ export default (state = {}, action) => {
                 ...state,
                 isLoading:false,
                 appUsers: action.payload
+            }
+        case APPS_SEARCH_PAYLOAD:
+            return {
+                ...state,
+                appsSearchPayload: action.payload
             }
         default:
             return state;
