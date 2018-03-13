@@ -48,7 +48,7 @@ class AppList extends Component {
         var appCards =[]
         if (this.props.appPayLoad) {
             var searchData;
-            
+
             if (this.props.appsSearchPayload)
                 searchData = this.props.appsSearchPayload
             else 
@@ -77,7 +77,7 @@ class AppList extends Component {
                 var appName = app.display_text;
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 
-                appCards.push(<Card key={appkey}  app={app} onClick={this.onCardClicked.bind(this)} color={this.props.selectedAppItem && this.props.selectedAppItem.key === appName?'blue':''}>
+                appCards.push(<Card key={appkey}  app={app} onClick={this.onCardClicked.bind(this)} color={this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName?'blue':''}>
                     <Card.Content>
                         {image}
                         <Card.Header>
