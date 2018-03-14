@@ -7,7 +7,9 @@ import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
-import DateComponent from './DateComponent';
+import DateComponent from '../DateComponent';
+//import ResourcesExposureFilter from './ResourcesExposureFilter';
+
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
@@ -35,7 +37,8 @@ class ResourcesList extends Component {
         this.columnDefs = [
             {
                 headerName: "Name",
-                field: "resource_name"
+                field: "resource_name",
+                //suppressFilter: true
             },
             {
                 headerName: "Type",
@@ -43,29 +46,39 @@ class ResourcesList extends Component {
             },
             {
                 headerName: "Owner",
-                field: "resource_owner_id"
+                field: "resource_owner_id",
+                //suppressFilter: true
             },
             {
                 headerName: "ExposureType",
                 field: "exposure_type",
-                cellStyle: {textAlign: "center"}
+                cellStyle: {textAlign: "center"},
+                filter: 'dropDownFilter',
+                //floatingFilterComponent: ResourcesExposureFilter
             },
             {
                 headerName: "Parent Folder",
                 field: "parent_name",
-                cellStyle: {textAlign: "left"}
+                cellStyle: {textAlign: "left"},
+                //suppressFilter: true
             },
             {
                 headerName: "Last Modified",
                 field: "last_modified_time",
                 cellStyle: {textAlign: "left"},
-                cellRendererFramework: DateComponent
+                cellRendererFramework: DateComponent,
+                //suppressFilter: true
             }
         ];
 
         this.gridOptions = {
-            onRowClicked: this.onCellClicked
+            onRowClicked: this.onCellClicked,
+            //floatingFilter: true
         }
+
+        // this.state = {
+        //     frameworkComponents: { dropDownFilter: ResourcesExposureFilter }
+        // }
     }
 
     onCellClicked(params) {
@@ -130,6 +143,8 @@ class ResourcesList extends Component {
                             columnDefs={this.columnDefs}
                             onGridReady={this.onGridReady.bind(this)}
                             gridOptions={this.gridOptions}
+                            //enableFilter={true}
+                            //frameworkComponents={this.state.frameworkComponents}
                             // pagination={true}
                         />
                     </div>

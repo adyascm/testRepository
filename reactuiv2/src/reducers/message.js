@@ -16,21 +16,23 @@ export default (state = defaultState, action) => {
         case ASYNC_END:
             return {
                 ...state,
-                errorMessage: action.errors,
+                errorMessage: !state.errorMessage?[action.errors]:state.errorMessage.push(action.errors),
                 infoMessage: undefined
             };
         case ADD_APP_MESSAGE:
             return {
                 ...state,
-                errorMessage: action.error,
-                infoMessage: action.info
+                errorMessage: !state.errorMessage?[action.error]:state.errorMessage.push(action.error),
+                infoMessage: !state.infoMessage?[action.info]:state.infoMessage.push(action.info)
             };
         case LOGOUT:
         case CLEAR_MESSAGE:
+            state.errorMessage.pop()
+            state.infoMessage.pop()
             return {
                 ...state,
-                errorMessage: undefined,
-                infoMessage: undefined
+                errorMessage: state.errorMessage,
+                infoMessage: state.infoMessage
             };
         case SCAN_INCREMENTAL_UPDATE_RECEIVED:
             var updateMessage = JSON.parse(action.payload);

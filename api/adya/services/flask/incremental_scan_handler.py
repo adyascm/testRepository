@@ -32,12 +32,10 @@ class process_notifications(Resource):
 class handle_channel_expiration(Resource):
     def get(self):
         req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request()
+        req_error = req_session.validate_authorized_request(False)
         if req_error:
             return req_error
 
-        auth_token = req_session.get_auth_token()
-        print "Handling channel expiration for ", auth_token
         response = incremental_scan.handle_channel_expiration()
         return req_session.generate_response(202, response)
 
