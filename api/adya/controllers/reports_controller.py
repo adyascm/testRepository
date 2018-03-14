@@ -118,7 +118,7 @@ def create_report(auth_token, payload):
 
         db_session.add(report)
         try:
-            db_session.commit()
+            db_connection().commit()
         except Exception as ex:
             print (ex)
 
@@ -165,7 +165,7 @@ def delete_report(auth_token, report_id):
     existing_report = db_session.query(Report).filter(Report.report_id == report_id).first()
     db_session.delete(existing_report)
     try:
-        db_session.commit()
+        db_connection().commit()
     except:
         print "Exception occured while delete a report"
 
@@ -265,7 +265,7 @@ def update_report(auth_token, payload):
         report_id = payload["report_id"]
         db_session.query(Report).filter(Report.report_id == report_id).update(report)
         try:
-            db_session.commit()
+            db_connection().commit()
         except Exception as ex:
             print ex
         return payload

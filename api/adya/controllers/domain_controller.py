@@ -33,7 +33,7 @@ def update_datasource(db_session, datasource_id, column_name, column_value):
     if column_name:
         datasources = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
             update({column_name: column_name + column_value})
-        db_session.commit()
+        db_connection().commit()
 
         return datasources
 
@@ -82,7 +82,7 @@ def create_datasource(auth_token, payload):
             db_session.query(Domain).filter(Domain.domain_id == existing_user.domain_id).update({"domain_name": domain_name})
 
         db_session.add(datasource)
-        db_session.commit()
+        db_connection().commit()
         if datasource.is_dummy_datasource:
             create_dummy_datasource(
                 db_session, existing_user.domain_id, datasource_id)
@@ -122,7 +122,7 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(DomainUser).filter(
             DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
         db_session.delete(existing_datasource)
-        db_session.commit()
+        db_connection().commit()
         print "Datasource deleted successfully"
     except Exception as ex:
         print "Exception occurred during datasource data delete - " + ex.message
@@ -136,7 +136,7 @@ def delete_datasource(auth_token, datasource_id):
     if existing_datasource:
         db_session.query(DataSource).filter(
             DataSource.datasource_id == datasource_id).update({"is_async_delete": True})
-        db_session.commit()
+        db_connection().commit()
         query_params = {"datasourceId": datasource_id}
         messaging.trigger_delete_event(
             constants.ASYNC_DELETE_DATASOURCE_PATH, auth_token, query_params)
@@ -157,7 +157,7 @@ def create_domain(db_session, domain_id, domain_name):
     domain["creation_time"] = creation_time
     db_session.execute(Domain.__table__.insert().prefix_with(
         "IGNORE").values([domain_id, domain_name, creation_time]))
-    db_session.commit()
+    db_connection().commit()
     return domain
 
 
@@ -214,7 +214,7 @@ def create_dummy_datasource(db_session, domain_id, datasource_id):
                         datarow[column_name] = cellvalue
                 results.append(datarow)
         db_session.bulk_insert_mappings(tablename, results)
-    db_session.commit()
+    db_connection().commit()
     update_datasource_column_count(db_session, domain_id, datasource_id)
 
 
@@ -239,4 +239,4 @@ def update_datasource_column_count(db_session, domain_id, datasource_id):
     datasouorce.user_scan_status = 1
 
     db_session.add(datasouorce)
-    db_session.commit()
+    db_connection().commit()

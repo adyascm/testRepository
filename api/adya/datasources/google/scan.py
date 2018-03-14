@@ -25,7 +25,9 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
         last_future = None
         quotaUser = None
         quotaUser = owner_email[0:41]
-        queryString = "'"+ owner_email +"' in owners"
+        queryString = "'"+ owner_email +"' in owners and trashed=false"
+
+        print queryString
         while True:
             results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
                             "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
@@ -165,7 +167,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         # db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
-        db_session.commit()
+        db_connection().commit()
         update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
 
         print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
@@ -301,7 +303,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user_email_list.append(user_email)
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
-        db_session.commit()
+        db_connection().commit()
         update_and_get_count(datasource_id, DataSource.processed_user_count, user_count, True)
 
         print "Processed {} google directory users for domain_id: {}".format(user_count, domain_id)
@@ -398,7 +400,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     try:
         db_session = db_connection().get_session()
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
-        db_session.commit()
+        db_connection().commit()
         
         session = FuturesSession()
         url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
@@ -471,10 +473,10 @@ class GroupData():
         request_id = int(request_id) 
         group_key = self.group_keys[request_id - 1]
         
-        if exception:
+        if exception :
             update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
             print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key)
-            print ex
+            print exception
             return
         
         try:
@@ -506,7 +508,7 @@ class GroupData():
                         self.db_session.add(group)
         
             if self.batch_length == request_id:
-                self.db_session.commit()
+                db_connection().commit()
                 
         except Exception as ex:
             update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
@@ -566,7 +568,7 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
                                                                     models.ResourcePermission.email.in_(external_group_subquery))).subquery()
         db_session.query(models.Resource).filter(and_(models.Resource.datasource_id == datasource_id,
                                             models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
-        db_session.commit()
+        db_connection().commit()
     except Exception as ex:
         print ex
 
@@ -621,9 +623,9 @@ class GetAllUserAppAndScope():
                     self.db_session.add(application)
 
         if request_id == self.length:
-            self.db_session.commit()
+            db_connection().commit()
             self.db_session.bulk_insert_mappings(ApplicationUserAssociation,self.applicationassociations)
-            self.db_session.commit()
+            db_connection().commit()
                 
 
     def get_user_apps(self):

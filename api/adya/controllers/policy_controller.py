@@ -51,7 +51,7 @@ def create_policy(auth_token, payload):
         db_session.add(policy_condition)
 
         try:
-            db_session.commit()
+            db_connection().commit()
         except Exception as ex:
             print (ex)
         return payload
@@ -62,7 +62,9 @@ def policy_checker(auth_token, payload, db_session):
     user_and_parents_email = [] #TODO : to get user and parent relationships.
     response_obj = []
     for email in user_and_parents_email:
-        response = policy_check_for_specific_user(email, payload['affected_entity_id'], payload['action_type'],auth_token, db_session)
+        user_name = ""
+        response = policy_check_for_specific_user(user_name, email, payload['affected_entity_id'], payload['affected_entity_name'],
+                                                  payload['action_type'], db_session)
         response_obj.append(response)
 
 '''
@@ -70,7 +72,7 @@ For every actor_id try to get the configs for all the policies that match the af
 '''
 
 
-def policy_check_for_specific_user(actor_id, affected_entity_id, action_type, auth_token, db_session):
+def policy_check_for_specific_user(actor_id, actor_name, affected_entity_id, affected_entity_name,  action_type, db_session):
 
     try:
 
@@ -79,7 +81,7 @@ def policy_check_for_specific_user(actor_id, affected_entity_id, action_type, au
             filter(and_(
                         or_(
                             and_(PolicyCondition.match_condition == constants.PolicyConditionMatch.CONTAIN,
-                                 PolicyCondition.affected_entity_id.ilike("%" + affected_entity_id + "%")), #TODO: to decide whether we are gonna use id or name
+                                 PolicyCondition.affected_entity_id.ilike("%" + affected_entity_name + "%")),
 
                             and_(PolicyCondition.match_condition == constants.PolicyConditionMatch.EQUAL,
                                  PolicyCondition.affected_entity_id == affected_entity_id),
@@ -91,7 +93,7 @@ def policy_check_for_specific_user(actor_id, affected_entity_id, action_type, au
 
                         or_(
                              and_(PolicyCondition.actor_match_condition == constants.PolicyConditionMatch.CONTAIN,
-                                  PolicyCondition.actor_id.ilike("%" + actor_id + "%")),
+                                  PolicyCondition.actor_id.ilike("%" + actor_name + "%")),
 
                              and_(PolicyCondition.actor_match_condition == constants.PolicyConditionMatch.EQUAL,
                                   PolicyCondition.actor_id == actor_id),

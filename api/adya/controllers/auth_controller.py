@@ -37,7 +37,7 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_servi
     login_user.last_login_time = creation_time
     login_user.authorize_scope_name = scope_name
     db_session.add(login_user)
-    db_session.commit()
+    db_connection().commit()
 
     adya_emails.send_welcome_email(login_user)
 
