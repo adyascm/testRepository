@@ -7,6 +7,7 @@ import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../utils/agent';
+import DateComponent from './DateComponent'
 
 import {
     AUDIT_LOG_LOAD_START,
@@ -30,7 +31,9 @@ class AuditLog extends Component {
         this.columnDefs = [
             {
                 headerName: "Time",
-                field: "timestamp"
+                field: "timestamp",
+                cellStyle: {textAlign: "left"},
+                cellRendererFramework: DateComponent
             },
             {
                 headerName: "Action Name",
