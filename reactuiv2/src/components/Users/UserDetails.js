@@ -1,7 +1,7 @@
 import React from 'react';
 
 
-import { Item, Label, Icon, Dropdown, Header } from 'semantic-ui-react'
+import { Item, Label, Icon, Dropdown, Header, Button } from 'semantic-ui-react'
 
 const UserDetails = props => {
 
@@ -89,6 +89,10 @@ const UserDetails = props => {
                         <Header size="tiny" floated="left">Member of </Header>
                         <Label.Group >
                             {parentGroups}
+                              <Label color='green' >
+                                <Icon name='plus' fitted={true} onClick = {(event) => props.onUserGroupAction('add_user_to_group', null)}/>
+                              </Label>
+
                         </Label.Group>
                     </Item.Description>
                     <Item.Extra extra="true">

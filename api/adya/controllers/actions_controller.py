@@ -116,7 +116,29 @@ def get_actions():
     addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP, "Add User",
                                              "Add user to a group", [{"key": "user_email", "label": "For user", "editable": 0},
                                                                      {"key": "group_email", "label": "For Group",
-                                                                      "editable": 0}], False)
+                                                                      "editable": 1}], False)
+
+    addPermissionForFile = instantiate_action("GSUITE", action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE, "Add User For File",
+                                              "Add User For A File", [{"key": "user_email", "label": "For user", "editable": 1},
+                                                                      {"key": "resource_id", "label": "For resource",
+                                                                       "editable": 0,
+                                                                       "hidden": 1},
+                                                                      {"key": "resource_name", "label": "For resource",
+                                                                       "editable": 0},
+                                                                      {"key": "new_permission_role",
+                                                                       "label": "New permission",
+                                                                       "editable": 1},
+                                                                      {
+                                                                          "key": "resource_owner_id",
+                                                                          "label": "Owner of file",
+                                                                          "editable": 0
+                                                                      },
+                                                                      {
+                                                                          "key": "user_type",
+                                                                          "label": "User Type",
+                                                                          "editable": 0
+                                                                      }
+                                                                      ], False)
 
     actions = [transferOwnershipAction,
                 changeOwnerOfFileAction,
@@ -130,7 +152,8 @@ def get_actions():
                 watchActionForResource,
                 removeAllAction,
                 removeUserFromGroup,
-                addUserToGroup
+                addUserToGroup,
+                addPermissionForFile
                ]
 
     return actions
@@ -263,6 +286,16 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
             user_email = action_parameters['user_email']
             response = actions.remove_all_access_for_user(auth_token, domain_id, datasource_id, user_email)
+
+        elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
+            user_email = action_parameters['user_email']
+            resource_id = action_parameters['resource_id']
+            permission_role = action_parameters['new_permission_role']
+            user_type = action_parameters['user_type']
+            resource_owner = action_parameters['resource_owner_id']
+
+            response = actions.add_permission_for_a_file(auth_token, domain_id, datasource_id, user_email,
+                                                         permission_role, user_type, resource_id, resource_owner)
 
         # check response and return success/failure
         return errormessage.ACTION_EXECUTION_SUCCESS

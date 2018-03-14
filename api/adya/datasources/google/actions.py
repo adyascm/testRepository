@@ -51,6 +51,24 @@ def add_user_to_group(auth_token, group_email, user_email):
         print "Exception occurred while adding {} to group {} ".format(user_email, group_email)
 
 
+def add_permission_for_a_file(auth_token, domain_id, datasource_id, user_email, role, user_type, resource_id, resource_owner_email):
+    try:
+        permission_object = {
+            "role": role,
+            "type": user_type,
+            "emailAddress": user_email
+        }
+
+        resource_actions_handler = AddOrUpdatePermisssionForResource(auth_token, domain_id, datasource_id, resource_id,
+                                                                     [permission_object], resource_owner_email)
+        response = resource_actions_handler.add_or_update_permission()
+        print response
+
+
+    except Exception as e:
+        print e
+
+
 def get_applicationDataTransfers_for_gdrive(domain_id, datatransfer_service):
     try:
 
@@ -348,9 +366,10 @@ class AddOrUpdatePermisssionForResource():
             "role": role,
             "type": permission_object.get('type'),
             "emailAddress": permission_object.get("emailAddress")
+
         }
-        data = drive_service.permissions().create(fileId=self.resource_id, body=add_permission_object, fields='id',
-                                                  transferOwnership=True)
+        data = drive_service.permissions().create(fileId=self.resource_id, body=add_permission_object,
+                                                  transferOwnership=True if role=='owner' else False)
         return data
 
     def change_permisssion_for_resource(self, drive_service, permission_object):
@@ -377,5 +396,3 @@ class AddOrUpdatePermisssionForResource():
         permission_id = permission_object["permissionId"]
         data = drive_service.permissions().delete(fileId=self.resource_id, permissionId=permission_id)
         return data
-
-        # add_user_to_group("58317e8e-399d-4568-9b5b-a54197d02d35", "hr@serendipity-technologies.com", "bhanu.mallya@serendipity-technologies.com")
