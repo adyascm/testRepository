@@ -8,6 +8,7 @@ from sqlalchemy.orm import scoped_session
 from adya.common import constants
 from adya.db.models import Base
 
+
 class db_connection:
     class __db_connection:
         _engine = None
@@ -21,6 +22,13 @@ class db_connection:
         
         def get_session(self):
             return self._session
+
+        def commit(self):
+            try:
+                self._session.commit()
+            except:
+                self._session.rollback()
+                raise
 
         def close_connection(self):
             try:
@@ -37,3 +45,4 @@ class db_connection:
             db_connection.instance = db_connection.__db_connection()
     def __getattr__(self, name):
         return getattr(self.instance, name)
+

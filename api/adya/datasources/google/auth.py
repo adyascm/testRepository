@@ -81,7 +81,7 @@ def oauth_callback(oauth_code, scopes,state, error):
             login_user.refresh_token = refresh_token
             login_user.authorize_scope_name = scope_name
             db_session.add(login_user)
-            db_session.commit()
+            db_connection().commit()
     else:
         existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
         if existing_domain_user and is_serviceaccount_enabled:

@@ -127,7 +127,7 @@ def get_actions():
                                                                        "editable": 0},
                                                                       {"key": "new_permission_role",
                                                                        "label": "New permission",
-                                                                       "editable": 1},
+                                                                       "editable": 0},
                                                                       {
                                                                           "key": "resource_owner_id",
                                                                           "label": "Owner of file",
@@ -373,7 +373,8 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         audit_log_entries.append(log_entry)
 
         db_session.bulk_insert_mappings(AuditLog, audit_log_entries)
-        db_session.commit()
+        db_connection().commit()
+
 
         return errormessage.ACTION_EXECUTION_SUCCESS
 
@@ -390,7 +391,7 @@ def revoke_user_app_access(auth_token, domain_id, datasource_id, user_email, cli
         db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
                                                   ApplicationUserAssociation.user_email == user_email,
                                                   ApplicationUserAssociation.client_id == client_id)).delete()
-        db_session.commit()
+        db_connection().commit()
     except Exception as ex:
         print ex
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id

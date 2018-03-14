@@ -100,7 +100,7 @@ class GetPermission():
                  Resource.domain_id == self.domain_id)).update({'exposure_type': resource_exposure_type})
         try:
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
-            db_session.commit()
+            db_connection().commit()
             print "Inserted permission data into db"
         except Exception as ex:
             print (ex)

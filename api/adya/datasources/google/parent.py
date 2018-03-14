@@ -71,7 +71,7 @@ class GetParents():
             data_for_parent_table.append(resource_parent)
         try:
             db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
-            db_session.commit()
+            db_connection().commit()
             print "Inserted parent data into db"
         except Exception as ex:
             print (ex)

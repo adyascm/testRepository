@@ -12,6 +12,7 @@ import uuid
 import datetime
 import json
 
+
 def handle_channel_expiration():
     db_session = db_connection.get_session()
     try:
@@ -34,13 +35,15 @@ def handle_channel_expiration():
                     }
 
                     user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
-                    drive_service = gutils.get_gdrive_service(user.auth_token)
+                    drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
 
 
                     if drive_service:
                         print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                             row.domain_id, row.datasource_id, row.channel_id)
-                        response = drive_service.files().watch(fileId=row.root_file_id, body=body).execute()
+
+                        response = drive_service.changes().watch(pageToken=row.page_token, body=body).execute()
+
                         print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                             row.domain_id, row.datasource_id, row.channel_id, response)
                     else:
@@ -72,7 +75,7 @@ def subscribe(domain_id, datasource_id):
         db_session.query(PushNotificationsSubscription).filter(
             PushNotificationsSubscription.datasource_id == datasource_id).delete()
         datasource.is_push_notifications_enabled = False
-        db_session.commit()
+        db_connection().commit()
 
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
         if datasource.is_serviceaccount_enabled:
@@ -86,7 +89,7 @@ def subscribe(domain_id, datasource_id):
             _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email, datasource.datasource_id)
 
         datasource.is_push_notifications_enabled = True
-        db_session.commit()
+        db_connection().commit()
     except Exception as e:
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
@@ -155,7 +158,7 @@ def process_notifications(datasource_id, channel_id):
         if subscription.in_progress == 1:
             if subscription.stale == 0:
                 subscription.stale = 1
-                db_session.commit()
+                db_connection().commit()
                 print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
                     datasource_id, channel_id)
             else:
@@ -176,7 +179,7 @@ def process_notifications(datasource_id, channel_id):
                 print "should_mark_in_progress "
                 db_session.refresh(subscription)
                 subscription.in_progress = 1
-                db_session.commit()
+                db_connection().commit()
                 should_mark_in_progress = False
 
             print response
@@ -199,12 +202,12 @@ def process_notifications(datasource_id, channel_id):
             subscription.page_token = page_token
         subscription.last_accessed = datetime.datetime.utcnow().isoformat()
         subscription.in_progress = 0
-        db_session.commit()
+        db_connection().commit()
 
         db_session.refresh(subscription)
         if subscription.stale == 1:
             subscription.stale = 0
-            db_session.commit()
+            db_connection().commit()
             response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                      headers={"X-Goog-Channel-Token": datasource_id,
                                               "X-Goog-Channel-ID": channel_id})
@@ -227,7 +230,7 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
             ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
         db_session.query(Resource).filter(Resource.resource_id ==
                                           file_id).delete(synchronize_session=False)
-        db_session.commit()
+        db_connection().commit()
 
         resourcedata = {}
         resourcedata["resources"] = [results]
