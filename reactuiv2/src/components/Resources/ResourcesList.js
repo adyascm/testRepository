@@ -8,7 +8,7 @@ import 'ag-grid/dist/styles/ag-theme-fresh.css';
 
 import agent from '../../utils/agent';
 import DateComponent from '../DateComponent';
-import ResourcesExposureFilter from './ResourcesExposureFilter';
+//import ResourcesExposureFilter from './ResourcesExposureFilter';
 
 import {
     RESOURCES_PAGE_LOADED,
@@ -76,9 +76,9 @@ class ResourcesList extends Component {
             //floatingFilter: true
         }
 
-        this.state = {
-            frameworkComponents: { dropDownFilter: ResourcesExposureFilter }
-        }
+        // this.state = {
+        //     frameworkComponents: { dropDownFilter: ResourcesExposureFilter }
+        // }
     }
 
     onCellClicked(params) {
