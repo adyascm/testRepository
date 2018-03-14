@@ -12,6 +12,7 @@ import uuid
 import datetime
 import json
 
+
 def handle_channel_expiration():
     db_session = db_connection.get_session()
     try:
@@ -34,13 +35,15 @@ def handle_channel_expiration():
                     }
 
                     user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
-                    drive_service = gutils.get_gdrive_service(user.auth_token)
+                    drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
 
 
                     if drive_service:
                         print "Trying to subscribe for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                             row.domain_id, row.datasource_id, row.channel_id)
-                        response = drive_service.files().watch(fileId=row.root_file_id, body=body).execute()
+
+                        response = drive_service.changes().watch(pageToken=row.page_token, body=body).execute()
+
                         print "Response for push notifications subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                             row.domain_id, row.datasource_id, row.channel_id, response)
                     else:
