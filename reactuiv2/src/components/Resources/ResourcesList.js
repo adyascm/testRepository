@@ -120,7 +120,6 @@ class ResourcesList extends Component {
     }
 
     render() {
-        
         if (this.props.isLoading) {
             return (
                 <div className="ag-theme-fresh" style={{ height: '200px' }}>
@@ -149,7 +148,7 @@ class ResourcesList extends Component {
                         />
                     </div>
                     <div style={{ marginTop: '5px' }} >
-                        {(this.props.resourceTree && this.props.resourceTree.length <= this.props.pageLimit)?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                        {(this.props.resourceTree && this.props.resourceTree.length < this.props.pageLimit)?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
                         {this.props.pageNumber !== 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
                     </div>
                 </div>
