@@ -47,17 +47,22 @@ def revoke_appaccess(auth_token, user_email=None, db_session = None):
 def get_credentials(auth_token, user_email=None, db_session = None):
     if not db_session:
         db_session = db_connection().get_session()
-    user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+
+    is_serviceaccount_enabled = True if auth_token is None else False
+    email = user_email
+    refresh_token = None
+
+    if auth_token:
+        user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+        is_serviceaccount_enabled = user.is_serviceaccount_enabled
+        refresh_token = user.refresh_token
+        email = user_email if user_email else user.email
 
     credentials = None
-    if user.is_serviceaccount_enabled:
-        if user_email:
-            credentials = get_delegated_credentials(user_email)
-        else:
-            credentials = get_delegated_credentials(user.email)
+    if is_serviceaccount_enabled:
+        credentials = get_delegated_credentials(email)
     else:
-        ## we need to pass client_id and client_secret in session to avoid dbcall/file access calls
-        credentials = Credentials(None, refresh_token=user.refresh_token,
+        credentials = Credentials(None, refresh_token=refresh_token,
                                   token_uri=GOOGLE_TOKEN_URI,
                                   client_id=CLIENT_ID,
                                   client_secret=CLIENT_SECRET)
