@@ -26,22 +26,36 @@ class GlobalMessage extends Component {
 
     render() {
 
-        if (this.props.errorMessage)
+        if (this.props.errorCount > 0) {
+            let errorMessage = this.props.errorMessage.map((message) => {
+                return (
+                    <li style={{'textAlign': 'left'}}>{message}</li>
+                )
+            })
             return (
                 <Container>
-                    <Message negative fluid={true} size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
-                        {this.props.errorMessage}
+                    <Message negative fluid={true} size='mini' style={{marginTop: '-25px', marginBottom: '20px'}} onDismiss={this.handleDismiss}>
+                        {/* <li>{this.props.errorMessage[0]}</li> */}
+                        {errorMessage}
                     </Message>
                 </Container>
             )
-        if (this.props.infoMessage)
+        }
+        if (this.props.warningCount > 0) {
+            let warningMessage = this.props.infoMessage.map((message) => {
+                return (
+                    <li style={{'textAlign': 'left'}}>{message}</li>
+                )
+            })
             return (
                 <Container>
-                    <Message warning fluid={true} size='mini' style={{marginTop: '-25px'}} onDismiss={this.handleDismiss}>
-                        {this.props.infoMessage}
+                    <Message warning fluid={true} size='mini' style={{marginTop: '-25px', marginBottom: '20px'}} onDismiss={this.handleDismiss}>
+                        {/* {this.props.infoMessage[0]} */}
+                        {warningMessage}
                     </Message>
                 </Container>
             )
+        }
         else 
             return null
     }
