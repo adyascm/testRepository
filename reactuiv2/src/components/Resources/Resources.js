@@ -8,19 +8,14 @@ import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
 //import TestResourcesList from './TestResourcesList';
 
-import {RESOURCES_FILTER_CHANGE,
-        ADD_APP_MESSAGE} from '../../constants/actionTypes';
+import {RESOURCES_FILTER_CHANGE} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.resources,
-    filesCount: state.dashboard["filesCount"],
-    foldersCount: state.dashboard["foldersCount"]
+    ...state.resources
 });
 
 const mapDispatchToProps = dispatch => ({
-  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value }),
-  flagResourcesError: (error, info) => 
-    dispatch({ type: ADD_APP_MESSAGE, error, info })
+  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
 });
 
 
@@ -78,10 +73,6 @@ class Resources extends Component {
         filterResourceType: 'folder'
       });
     }
-
-    if ((this.props.filesCount && this.props.filesCount['data'] === 0) && 
-        (this.props.foldersCount && this.props.foldersCount['data'] === 0))
-      this.props.flagResourcesError("There are no resources to display", undefined)
 
     // this.setState({
     //   filterResourceType: this.props.filterResourceType
