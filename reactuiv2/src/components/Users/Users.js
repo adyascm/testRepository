@@ -10,8 +10,10 @@ import Actions from '../actions/Actions'
 import {
   USERS_PAGE_LOADED,
   USERS_PAGE_UNLOADED,
-  USERS_PAGE_LOAD_START
+  USERS_PAGE_LOAD_START,
+  ADD_APP_MESSAGE
 } from '../../constants/actionTypes';
+
 import UsersTree from './UsersTree';
 import UserList from './UserList'
 import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
@@ -20,7 +22,9 @@ const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
-  isLoading: state.users.isLoading
+  isLoading: state.users.isLoading,
+  usersCount: state.dashboard["usersCount"],
+  groupsCount: state.dashboard["groupsCount"]
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -29,7 +33,9 @@ const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   onLoadStart: () =>
-    dispatch({ type: USERS_PAGE_LOAD_START })
+    dispatch({ type: USERS_PAGE_LOAD_START }),
+  flagUsersError: (error, info) => 
+    dispatch({ type: ADD_APP_MESSAGE, error, info })
 });
 
 class Users extends Component {
@@ -68,6 +74,11 @@ class Users extends Component {
         showHierarchy: true,
         showOnlyExternal: false
       })
+
+    if ((this.props.usersCount && this.props.usersCount['data'] === 0) &&
+        (this.props.groupsCount && this.props.groupsCount['data'] === 0))
+        this.props.flagUsersError("There are no users to display", undefined)
+
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }
