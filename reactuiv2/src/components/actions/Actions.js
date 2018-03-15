@@ -54,15 +54,6 @@ class Actions extends Component {
         return JSON.stringify(payload);
     }
 
-    cancelAction = (ev) => {
-        //ev.preventDefault()
-        this.props.onCancelAction
-        this.setState({
-            successMessage: undefined,
-            errorMessage: undefined
-        })
-    }
-
     takeAction = (ev) => {
         ev.preventDefault();
         this.setState({
