@@ -1,7 +1,8 @@
 from adya.common import constants, action_constants, errormessage, messaging
 from adya.datasources.google import actions, gutils
-from adya.db.models import AuditLog, Action, Application,ApplicationUserAssociation
+from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource
 from adya.db.connection import db_connection
+from adya.common.response_messages import ResponseMessage
 from sqlalchemy import and_
 import json
 from datetime import datetime
@@ -18,142 +19,121 @@ def get_actions():
     # elif len(actions) == 0:
     #   raise Exception("No actions defined for datasource_type: " + datasource_type)
     transferOwnershipAction = instantiate_action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
-                                                    "Transfer Ownership",
-                                                    "Transfers all files owned by one user to some other specified user",
-                                                    [{"key": "old_owner_email", "label": "Old User", "editable": 0},
-                                                    {"key": "new_owner_email", "label": "New User", "editable": 1}],
-                                                    True)
+                                                 "Transfer Ownership",
+                                                 "Transfers all documents owned by one user to another user",
+                                                 [{"key": "old_owner_email", "label": "Old User", "editable": 0},
+                                                     {"key": "new_owner_email", "label": "New User", "editable": 1}],
+                                                 True)
 
     changeOwnerOfFileAction = instantiate_action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
-                                                    "Change Owner",
-                                                    "Transfers single file owned by one user to some other specified user",
-                                                    [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                    "hidden": 1},
-                                                    {"key": "resource_name", "label": "For resource", "editable": 0},
-                                                    {"key": "old_owner_email", "label": "Old User", "editable": 0},
-                                                    {"key": "new_owner_email", "label": "New User", "editable": 1}],
-                                                    False)
+                                                 "Change Owner",
+                                                 "Change owner of the selected document",
+                                                 [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
+                                                {"key": "resource_name", "label": "Selected document", "editable": 0},
+                                                {"key": "old_owner_email", "label": "Old User", "editable": 0},
+                                                {"key": "new_owner_email", "label": "New User", "editable": 1}],
+                                                 False)
 
     removeExternalAccessAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
-                                                    "Remove external access",
-                                                    "Remove external access for all files owned by user",
+                                                    "Remove external sharing",
+                                                    "Remove external sharing for all documents owned by this user",
                                                     [{"key": "user_email", "label": "For user", "editable": 0}],
                                                     False)
 
     removeExternalAccessToResourceAction = instantiate_action("GSUITE",
-                                                                action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
-                                                                "Remove external access of file",
-                                                                "Remove all external access for the given resource",
-                                                                [{"key": "resource_id", "label": "For resource",
-                                                                "editable": 0, "hidden": 1},
-                                                                {"key": "resource_name", "label": "For resource",
-                                                                "editable": 0}], False)
+                                                              action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
+                                                              "Remove external sharing",
+                                                              "Remove external sharing for the selected document",
+                                                              [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
+                                                               {"key": "resource_name", "label": "Selected document", "editable": 0}], False)
 
     makeAllFilesPrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
-                                                    "Remove all sharing",
-                                                    "Make all files owned by user to private",
-                                                    [{"key": "user_email", "label": "For user", "editable": 0}],
-                                                    False)
+                                                   "Remove all sharing",
+                                                   "Remove all sharing for documents owned by selected user",
+                                                   [{"key": "user_email", "label": "For user", "editable": 0}],
+                                                   False)
 
     makeResourcePrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
-                                                    "Remove all sharing of file",
-                                                    "Remove all sharing on a given resource",
-                                                    [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                        "hidden": 1},
-                                                    {"key": "resource_name", "label": "For resource",
-                                                        "editable": 0}], False)
+                                                   "Remove all sharing",
+                                                   "Remove all sharing for selected document",
+                                                   [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
+                                                    {"key": "resource_name", "label": "Selected document", "editable": 0}], False)
 
     deletePermissionForUserAction = instantiate_action("GSUITE",
-                                                        action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
-                                                        "Remove permission for user",
-                                                        "Remove access granted to a user for a resource",
-                                                        [{"key": "resource_id", "label": "For resource",
-                                                            "editable": 0, "hidden": 1},
-                                                        {"key": "resource_name", "label": "For resource",
-                                                            "editable": 0},
+                                                       action_constants.ActionNames.DELETE_PERMISSION_FOR_USER,
+                                                       "Remove sharing",
+                                                       "Remove sharing of selected document with user",
+                                                       [{"key": "resource_id", "label": "Selected document",
+                                                         "editable": 0, "hidden": 1},
+                                                        {"key": "resource_name", "label": "Selected document",
+                                                         "editable": 0},
                                                         {"key": "resource_owner_id", "label": "Owner of file",
-                                                            "editable": 0},
+                                                         "editable": 0},
                                                         {"key": "user_email", "label": "For User", "editable": 0}],
-                                                        False)
+                                                       False)
 
     updatePermissionForUserAction = instantiate_action("GSUITE",
-                                                        action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
-                                                        "Change permission for user",
-                                                        "Update the permission granted to a user for a resource",
-                                                        [{"key": "resource_id", "label": "For resource",
-                                                            "editable": 0, "hidden": 1},
-                                                        {"key": "resource_name", "label": "For resource",
-                                                            "editable": 0},
+                                                       action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
+                                                       "Change permission",
+                                                       "Change permission for selected document for user",
+                                                       [{"key": "resource_id", "label": "Selected document",
+                                                         "editable": 0, "hidden": 1},
+                                                        {"key": "resource_name", "label": "Selected document",
+                                                         "editable": 0},
                                                         {"key": "resource_owner_id", "label": "Owner of file",
-                                                            "editable": 0},
-                                                        {"key": "user_email", "label": "For User", "editable": 0},
+                                                         "editable": 0},
+                                                        {"key": "user_email",
+                                                         "label": "For User", "editable": 0},
                                                         {"key": "new_permission_role", "label": "New permission",
-                                                            "editable": 1}], False)
+                                                         "editable": 1}], False)
 
     watchActionForUser = instantiate_action("GSUITE", action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER,
-                                            "Watch all my actions",
-                                            "Watch Action for a user",
+                                            "Watch activity",
+                                            "Watch all activities for selected user",
                                             [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
-    watchActionForResource = instantiate_action("GSUITE",
-                                                action_constants.ActionNames.WATCH_ALL_ACTION_FOR_RESOURCE,
-                                                "Watch all my actions",
-                                                "Watch Action for a resource",
-                                                [{"key": "resource_id", "label": "For resource", "editable": 0,
-                                                    "hidden": 1},
-                                                    {"key": "resource_name", "label": "For resource",
-                                                    "editable": 0}
-                                                    ], False)
+    removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, 
+                                        "Remove sharing",
+                                         "Remove all sharing with selected user", [
+                                             {"key": "user_email", "label": "For user", "editable": 0}],
+                                         False)
 
-    removeAllAction = instantiate_action("GSUITE" , action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, "Remove all Access ",
-                                        "Remove all Access for a user", [{"key": "user_email", "label": "For user", "editable": 0}],
-                                            False)
+    removeUserFromGroup = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_GROUP, 
+                                            "Change groups",
+                                             "Remove user from a group", 
+                                             [{"key": "user_email", "label": "For user", "editable": 0},
+                                                {"key": "group_email", "label": "For Group", "editable": 0}], False)
 
-    removeUserFromGroup = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_GROUP, "Remove User",
-                                             "Remove user from a group", [{"key": "user_email", "label": "For user", "editable": 0},
-                                                                          {"key": "group_email", "label": "For Group", "editable": 0}], False)
+    addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP, 
+                                            "Change groups",
+                                            "Add user to a group", 
+                                            [{"key": "user_email", "label": "For user", "editable": 0},
+                                            {"key": "group_email", "label": "For Group", "editable": 1}], False)
 
-    addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP, "Add User",
-                                             "Add user to a group", [{"key": "user_email", "label": "For user", "editable": 0},
-                                                                     {"key": "group_email", "label": "For Group",
-                                                                      "editable": 1}], False)
-
-    addPermissionForFile = instantiate_action("GSUITE", action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE, "Add User For File",
-                                              "Add User For A File", [{"key": "user_email", "label": "For user", "editable": 1},
-                                                                      {"key": "resource_id", "label": "For resource",
-                                                                       "editable": 0,
-                                                                       "hidden": 1},
-                                                                      {"key": "resource_name", "label": "For resource",
-                                                                       "editable": 0},
-                                                                      {"key": "new_permission_role",
-                                                                       "label": "New permission",
-                                                                       "editable": 0},
-                                                                      {
-                                                                          "key": "resource_owner_id",
-                                                                          "label": "Owner of file",
-                                                                          "editable": 0
-                                                                      },
-                                                                      {
-                                                                          "key": "user_type",
-                                                                          "label": "User Type",
-                                                                          "editable": 0
-                                                                      }
-                                                                      ], False)
+    addPermissionForFile = instantiate_action("GSUITE", action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE, 
+                                            "Add sharing",
+                                              "Share the selected resource with user", 
+                                              [{"key": "user_email", "label": "For user", "editable": 1},
+                                                {"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
+                                                {"key": "resource_name", "label": "Selected document", "editable": 0},
+                                                {"key": "new_permission_role", "label": "New permission", "editable": 0},
+                                                {"key": "resource_owner_id", "label": "Owner of file", "editable": 0},
+                                                {"key": "user_type", "label": "User Type", "editable": 0}], False)
 
     actions = [transferOwnershipAction,
-                changeOwnerOfFileAction,
-                deletePermissionForUserAction,
-                makeAllFilesPrivateAction,
-                makeResourcePrivateAction,
-                removeExternalAccessAction,
-                removeExternalAccessToResourceAction,
-                updatePermissionForUserAction,
-                watchActionForUser,
-                watchActionForResource,
-                removeAllAction,
-                removeUserFromGroup,
-                addUserToGroup,
-                addPermissionForFile
+               changeOwnerOfFileAction,
+               deletePermissionForUserAction,
+               makeAllFilesPrivateAction,
+               makeResourcePrivateAction,
+               removeExternalAccessAction,
+               removeExternalAccessToResourceAction,
+               updatePermissionForUserAction,
+               watchActionForUser,
+               watchActionForResource,
+               removeAllAction,
+               removeUserFromGroup,
+               addUserToGroup,
+               addPermissionForFile
                ]
 
     return actions
@@ -172,17 +152,11 @@ def instantiate_action(datasource_type, key, name, description, parameters, is_a
 
 
 def get_action(action_to_take):
-    try:
-        actions_list = get_actions()
-        for action in actions_list:
-            if action.key == action_to_take:
-                return action
-
-        return errormessage.UNKNOWN_ACTION
-
-    except Exception as e:
-        print e
-        print "Exception occurred while getting action, ", action_to_take
+    actions_list = get_actions()
+    for action in actions_list:
+        if action.key == action_to_take:
+            return action
+    return None
 
 
 def initiate_action(auth_token, domain_id, datasource_id, action_payload):
@@ -193,131 +167,206 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
         action_config = get_action(action_to_take)
 
-        isOkay = validate_action_parameters(action_config, action_parameters)
+        if not action_config or not validate_action_parameters(action_config, action_parameters):
+            return ResponseMessage(400, "Failed to execute action - Validation failed")
 
-        if isOkay == True:
-            print "Parameter validation for action ", action_to_take, " is successful."
-        else:
-            return "Parameter validation for action ", action_to_take, " failed."
-
-        print "Initiating action: ", action_to_take, " with parameters: ", action_payload
-        execution_status = execute_action(
-            auth_token, domain_id, datasource_id, action_config, action_payload)
-        if execution_status == errormessage.ACTION_EXECUTION_SUCCESS:
-            return audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
-        else:
-            return "Failed to execute action"
+        execution_status = execute_action(auth_token, domain_id, datasource_id, action_config, action_payload)
+        audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters)
+        return execution_status
 
     except Exception as e:
         print e
         print "Exception occurred while initiating action using payload ", action_payload, " on domain: ", domain_id, " and datasource: ", datasource_id
-        return "Failed to execute action"
+        return ResponseMessage(500, "Failed to execute action - {}".format(e))
+
+def create_watch_report(auth_token, datasource_id, action_payload):
+    action_parameters = action_payload['parameters']
+    user_email = str(action_parameters['user_email'])
+    form_input = {}
+    form_input['name'] = "Activity for " + user_email
+    form_input['description'] = "Activity for " + user_email
+    form_input['frequency'] = "cron(0 9 ? * 2 *)"
+    form_input['receivers'] = action_payload['initiated_by']
+    form_input['report_type'] = "Activity"
+    form_input['selected_entity_type'] = "user"
+    form_input['selected_entity'] = user_email
+    form_input['selected_entity_name'] = user_email
+    form_input['is_active'] = 0
+    form_input['datasource_id'] = datasource_id
+    messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
+    return ResponseMessage(201, "Watch report created for {}".format(user_email))
+
+def change_resource_permission(auth_token, datasource_id, action_payload):
+    action_parameters = action_payload['parameters']
+    user_email = action_parameters['user_email']
+    resource_id = action_parameters['resource_id']
+    resource_owner = action_parameters['resource_owner_id']
+    new_permission_role = action_parameters['new_permission_role']
+    user_type = action_parameters['user_type'] if 'user_type' in action_parameters else 'user'
+    db_session = db_connection().get_session()
+    existing_permission = db_session.query(ResourcePermission).filter(
+                    and_(ResourcePermission.resource_id == resource_id,
+                        ResourcePermission.datasource_id == datasource_id,
+                        ResourcePermission.email == user_email)).first()
+    permission_object = {
+        "permissionId": existing_permission.permission_id if existing_permission else '',
+        "role": new_permission_role,
+        "type": user_type,
+        "emailAddress": user_email
+    }
+
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id, [permission_object], resource_owner)
+    return gsuite_action.add_or_update_permission()
+
+def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, removal_type):
+    db_session = db_connection().get_session()
+        
+    if removal_type == constants.ResourceExposureType.EXTERNAL:
+        shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
+                            Resource.resource_owner_id == user_email,
+                            or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
+                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
+    else:
+        shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
+                            Resource.resource_owner_id == user_email,
+                            or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
+                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
+                            Resource.exposure_type == constants.ResourceExposureType.DOMAIN)))
+    
+    response_data = {}
+    for resource in shared_resources:
+        permission_changes = []
+        for permission in resource.permissions:
+            if permission.email != user_email:
+                new_permission = {
+                    "permissionId": permission.permission_id,
+                    "emailAddress": permission.email,
+                    "role": ''
+                }
+                permission_changes.append(new_permission)
+        
+        if len(permission_changes) > 0:
+            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
+                                                                        permission_changes, user_email)
+            resource_actions_handler.add_or_update_permission()
+    return response_messages.ResponseMessage(202, "Action submitted successfully")
+
+def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, removal_type):
+    db_session = db_connection().get_session()
+    resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id == resource_id))
+    permission_changes = []
+    for permission in resource.permissions:
+        if removal_type == constants.ResourceExposureType.EXTERNAL:
+            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
+                new_permission = {
+                    "permissionId": permission.permission_id,
+                    "emailAddress": permission.email,
+                    "role": ''
+                }
+                permission_changes.append(new_permission)
+        else:
+            if permission.permission_type != 'owner':
+                new_permission = {
+                    "permissionId": permission.permission_id,
+                    "emailAddress": permission.email,
+                    "role": ''
+                }
+                permission_changes.append(new_permission)
+        
+    if len(permission_changes) > 0:
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id, permission_changes, user_email)
+        resource_actions_handler.add_or_update_permission()
+    return response_messages.ResponseMessage(202, "Action submitted successfully")
+
+
+def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email):
+    db_session = db_connection().get_session()
+    resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
+                                                                 datasource_id, ResourcePermission.email == user_email,
+                                                                 ResourcePermission.permission_type != "owner")).group_by(ResourcePermission.resource_id).all()
+
+    for resource_id in resource_permissions:
+        permissions = resource_permissions[resource_id]
+        permission_changes = []
+        for permission in resource_permissions[resource_id]:
+            new_permission = {
+                "permissionId": permission.permission_id,
+                "emailAddress": permission.email,
+                "role": ''
+            }
+            permission_changes.append(new_permission)
+        
+        if len(permission_changes) > 0:
+            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
+                                                                        permission_changes, user_email)
+            resource_actions_handler.add_or_update_permission()
+    return response_messages.ResponseMessage(202, "Action submitted successfully")
 
 
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload):
-    try:
-        response = ""
-        action_parameters = action_payload['parameters']
-        if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER :
-            form_input = {}
-            form_input['name'] = "watch activity for " + str(action_parameters['user_email'])
-            form_input['description'] = "watch activity for " + str(action_parameters['user_email'])
-            form_input['frequency'] = "cron(0 9 ? * 2 *)"
-            form_input['receivers'] = action_payload['initiated_by']
-            form_input['report_type'] = "Activity"
-            form_input['selected_entity_type'] = "user"
-            form_input['selected_entity'] = action_parameters['user_email']
-            form_input['selected_entity_name'] = action_parameters['user_email']
-            form_input['is_active'] = 0
-            form_input['datasource_id'] = datasource_id
-            messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
+    action_parameters = action_payload['parameters']
 
-        elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
-            user_email = action_parameters["user_email"]
-            group_email = action_parameters["group_email"]
-            response = actions.delete_user_from_group(auth_token, group_email, user_email)
-        elif action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
-            user_email = action_parameters["user_email"]
-            group_email = action_parameters["group_email"]
-            response = actions.add_user_to_group(auth_token, group_email, user_email)
-        elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
-            old_owner_email = action_parameters["old_owner_email"]
-            new_owner_email = action_parameters["new_owner_email"]
-            response = actions.transfer_ownership(
-                auth_token, domain_id, old_owner_email, new_owner_email)
-        elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-            old_owner_email = action_parameters["old_owner_email"]
-            new_owner_email = action_parameters["new_owner_email"]
-            resource_id = action_parameters["resource_id"]
-            response = actions.transfer_ownership_of_resource(
-                auth_token, domain_id, datasource_id,resource_id, old_owner_email, new_owner_email)
-        elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
-            resource_id = action_parameters['resource_id']
-            response = actions.make_resource_private(
-                auth_token, domain_id, datasource_id, resource_id)
-        elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
-            user_email = action_parameters['user_email']
-            response = actions.make_all_files_owned_by_user_private(
-                auth_token, domain_id, datasource_id, user_email)
-        elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
-            resource_id = action_parameters['resource_id']
-            response = actions.remove_external_access_to_resource(
-                auth_token, domain_id, datasource_id, resource_id)
-        elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
-            user_email = action_parameters['user_email']
-            response = actions.remove_external_access_for_all_files_owned_by_user(
-                auth_token, domain_id, datasource_id, user_email)
-        elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
-            user_email = action_parameters['user_email']
-            resource_id = action_parameters['resource_id']
-            resource_owner = action_parameters['resource_owner_id']
-            new_permission_role = action_parameters['new_permission_role']
-            response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
-                                                                      resource_id, user_email, new_permission_role,
-                                                                      resource_owner)
-        elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
-            user_email = action_parameters['user_email']
-            resource_id = action_parameters['resource_id']
-            resource_owner = action_parameters['resource_owner_id']
-            new_permission_role = ''
-            response = actions.update_permissions_of_user_to_resource(auth_token, domain_id, datasource_id,
-                                                                      resource_id, user_email, new_permission_role,
-                                                                      resource_owner)
-        elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
-            user_email = action_parameters['user_email']
-            response = actions.remove_all_access_for_user(auth_token, domain_id, datasource_id, user_email)
+    #Watch report action
+    if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
+        return create_watch_report(auth_token, datasource_id, action_payload)
 
-        elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
-            user_email = action_parameters['user_email']
-            resource_id = action_parameters['resource_id']
-            permission_role = action_parameters['new_permission_role']
-            user_type = action_parameters['user_type']
-            resource_owner = action_parameters['resource_owner_id']
+    #Directory change actions
+    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+        user_email = action_parameters["user_email"]
+        group_email = action_parameters["group_email"]
+        return actions.delete_user_from_group(auth_token, group_email, user_email)
+    elif action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
+        user_email = action_parameters["user_email"]
+        group_email = action_parameters["group_email"]
+        return actions.add_user_to_group(auth_token, group_email, user_email)
 
-            response = actions.add_permission_for_a_file(auth_token, domain_id, datasource_id, user_email,
-                                                         permission_role, user_type, resource_id, resource_owner)
+    #Transfer ownership action
+    elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+        old_owner_email = action_parameters["old_owner_email"]
+        new_owner_email = action_parameters["new_owner_email"]
+        return actions.transfer_ownership(auth_token, old_owner_email, new_owner_email)
 
-        # check response and return success/failure
-        return errormessage.ACTION_EXECUTION_SUCCESS
+    #Bulk permission change actions for user
+    elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+        user_email = action_parameters['user_email']
+        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, "ALL")
+    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+        user_email = action_parameters['user_email']
+        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, constants.ResourceExposureType.EXTERNAL)
+    elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+        user_email = action_parameters['user_email']
+        return remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email)
 
-    except Exception as e:
-        print e
-        print "Exception occurred while executing action ", action_config.name, " using parameters: ", action_parameters
-
+    #Bulk permission change actions for resource
+    elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+        resource_id = action_parameters['resource_id']
+        return update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, 'ALL')
+    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+        resource_id = action_parameters['resource_id']
+        return update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, constants.ResourceExposureType.EXTERNAL)
+        
+    
+    #Single Resource permission change actions
+    elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+        return change_resource_permission(auth_token, datasource_id, action_payload)
+    elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        action_parameters['new_permission_role'] = ''
+        return change_resource_permission(auth_token, datasource_id, action_payload)
+    elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
+        return change_resource_permission(auth_token, datasource_id, action_payload)
+    elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        action_parameters['new_permission_role'] = ''
+        action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
+        action_parameters['user_email'] = action_parameters["new_owner_email"]
+        return change_resource_permission(auth_token, datasource_id, action_payload)
 
 def validate_action_parameters(action_config, action_parameters):
-    try:
-        config_params = action_config.parameters
-        for param in config_params:
-            key = param['key']
-            if key not in action_parameters:
-                return False
-        return True
-
-    except Exception as e:
-        print e
-        print "Exception occurred while validating action, ", action_config.name, " with parameters: ", action_parameters
-
+    config_params = action_config.parameters
+    for param in config_params:
+        key = param['key']
+        if key not in action_parameters:
+            return False
+    return True
 
 def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters):
     db_session = db_connection().get_session()
@@ -375,9 +424,6 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         db_session.bulk_insert_mappings(AuditLog, audit_log_entries)
         db_connection().commit()
 
-
-        return errormessage.ACTION_EXECUTION_SUCCESS
-
     except Exception as e:
         print e
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
@@ -389,9 +435,9 @@ def revoke_user_app_access(auth_token, domain_id, datasource_id, user_email, cli
         driectory_service.tokens().delete(userKey=user_email, clientId=client_id).execute()
         db_session = db_connection().get_session()
         db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
-                                                  ApplicationUserAssociation.user_email == user_email,
-                                                  ApplicationUserAssociation.client_id == client_id)).delete()
+                                                                 ApplicationUserAssociation.user_email == user_email,
+                                                                 ApplicationUserAssociation.client_id == client_id)).delete()
         db_connection().commit()
     except Exception as ex:
         print ex
-        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id
+        print "Exception occurred while deleting app for domain: ", domain_id, " and datasource_id: ", datasource_id, " and user_email: ", user_email

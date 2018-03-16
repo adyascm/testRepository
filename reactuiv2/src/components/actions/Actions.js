@@ -67,11 +67,11 @@ class Actions extends Component {
                     inProgress: false,
                     successMessage: resp['message']
                 });
-            }, error => {
+            }, errorMsg => {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    errorMessage: error['message']
+                    errorMessage: errorMsg
                 });
             });
 
@@ -86,11 +86,11 @@ class Actions extends Component {
                         inProgress: false,
                         successMessage: resp['message']
                     });
-                }, error => {
+                }, errorMsg => {
                     this.setState({
                         ...this.state,
                         inProgress: false,
-                        errorMessage: error['message']
+                        errorMessage: errorMsg
                     });
                 });
             }).catch(error => {
@@ -107,8 +107,13 @@ class Actions extends Component {
         agent.Actions.initiateAction(payload)
             .then(resp => {
                 success(resp)
-            }).catch(error => {
-                error(error)
+            }).catch(err => {
+                var message = err.message;
+                if(err.response.body)
+                {
+                    message = err.response.body.message
+                }
+                error(message)
             })
     }
     onUpdateParameters = key => e => {

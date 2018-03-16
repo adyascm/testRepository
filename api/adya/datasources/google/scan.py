@@ -58,110 +58,118 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.file_scan_status, 1, False)
+                update_and_get_count(datasource_id, DataSource.file_scan_status, 1, True)
                 break
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
         print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
         print ex
 
 
 ## processing resource data for fileIds
 def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
-    print "Initiating processing of drive resources for files using email: {}".format(user_email)
-    resources = resourcedata["resources"]
-    resourceList = []
-    session = FuturesSession()
-    db_session = db_connection().get_session()
-    data_for_permission_table =[]
-    data_for_parent_table =[]
-    external_user_map = {}
-    resource_count = 0
-    for resourcedata in resources:
-        resource_count = resource_count + 1
-        resource = {}
-        resource["datasource_id"] = datasource_id
-        resource_id = resourcedata['id']
-        resource["resource_id"] = resource_id
-        resource["resource_name"] = resourcedata['name']
-        mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
-        resource["resource_type"] = mime_type
-        resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
-        resource["resource_size"] = resourcedata.get('size')
-        resource["creation_time"] = resourcedata['createdTime'][:-1]
-        resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
-        resource["web_content_link"] = resourcedata.get("webContentLink")
-        resource["web_view_link"] = resourcedata.get("webViewLink")
-        resource["icon_link"] = resourcedata.get("iconLink")
-        resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
-        resource["description"] = resourcedata.get("description")
-        resource["last_modifying_user_email"] = ""
-        if resourcedata.get("lastModifyingUser"):
-            resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
-        resource_exposure_type = constants.ResourceExposureType.PRIVATE
-        resource_permissions = resourcedata.get('permissions')
-        if resource_permissions:
-            for permission in resource_permissions:
-                    permission_id = permission.get('id')
-                    email_address = permission.get('emailAddress')
-                    display_name = permission.get('displayName')
-                    expiration_time = permission.get('expirationTime')
-                    is_deleted = permission.get('deleted')
-                    if email_address:
-                        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
-                            and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
-                            and resource_exposure_type != constants.ResourceExposureType.DOMAIN :
-                                resource_exposure_type = constants.ResourceExposureType.INTERNAL
-                        if gutils.check_if_external_user(db_session, domain_id,email_address):
-                            if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-                                resource_exposure_type = constants.ResourceExposureType.EXTERNAL
-                            ## insert non domain user as External user in db, Domain users will be
-                            ## inserted during processing Users
-                            if not email_address in external_user_map:
-
-                                externaluser = {}
-                                externaluser["datasource_id"] = datasource_id
-                                externaluser["email"] = email_address
-                                externaluser["first_name"] = ""
-                                externaluser["last_name"] = ""
-                                if display_name and display_name != "":
-                                    name_list = display_name.split(' ')
-                                    externaluser["first_name"] = name_list[0]
-                                    if len(name_list) > 1:
-                                        externaluser["last_name"] = name_list[1]
-                                externaluser["member_type"] = constants.UserMemberType.EXTERNAL
-                                external_user_map[email_address]= externaluser
-                    elif display_name:
-                        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
-                            resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-                            resource_exposure_type = constants.ResourceExposureType.DOMAIN
-                        email_address = "__ANYONE__@"+ domain_id
-                    else:
-                        resource_exposure_type = constants.ResourceExposureType.PUBLIC
-                        email_address = constants.ResourceExposureType.PUBLIC
-                    resource_permission = {}
-                    resource_permission["datasource_id"] = datasource_id
-                    resource_permission["resource_id"] = resource_id
-                    resource_permission["email"] = email_address
-                    resource_permission["permission_id"] = permission_id
-                    resource_permission["permission_type"] = permission['role']
-                    resource_permission["name"] = display_name
-                    if expiration_time:
-                        resource_permission["expiration_time"] = expiration_time[:-1]
-                    resource_permission["is_deleted"] = is_deleted
-                    data_for_permission_table.append(resource_permission)
-        resource["exposure_type"] = resource_exposure_type
-        resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
-        # resource_parent_data = resourcedata.get('parents')
-        # resource_parent = {}
-        # resource_parent["domain_id"] = domain_id
-        # resource_parent["datasource_id"] = datasource_id
-        # resource_parent["email"] = user_email
-        # resource_parent["resource_id"] = resource_id
-        # resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
-        # data_for_parent_table.append(resource_parent)
-        resourceList.append(resource)
     try:
+        print "Initiating processing of drive resources for files using email: {}".format(user_email)
+        resources = resourcedata["resources"]
+        resourceList = []
+        session = FuturesSession()
+        db_session = db_connection().get_session()
+        data_for_permission_table =[]
+        data_for_parent_table =[]
+        external_user_map = {}
+        resource_count = 0
+        for resourcedata in resources:
+            resource_count = resource_count + 1
+            resource = {}
+            resource["datasource_id"] = datasource_id
+            resource_id = resourcedata['id']
+            resource["resource_id"] = resource_id
+            resource["resource_name"] = resourcedata['name']
+            mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
+            resource["resource_type"] = mime_type
+            resource["resource_owner_id"] = resourcedata['owners'][0].get('emailAddress')
+            resource["resource_size"] = resourcedata.get('size')
+            resource["creation_time"] = resourcedata['createdTime'][:-1]
+            resource["last_modified_time"] = resourcedata['modifiedTime'][:-1]
+            resource["web_content_link"] = resourcedata.get("webContentLink")
+            resource["web_view_link"] = resourcedata.get("webViewLink")
+            resource["icon_link"] = resourcedata.get("iconLink")
+            resource["thumthumbnail_link"] = resourcedata.get("thumbnailLink")
+            resource["description"] = resourcedata.get("description")
+            resource["last_modifying_user_email"] = ""
+            if resourcedata.get("lastModifyingUser"):
+                resource["last_modifying_user_email"] = resourcedata["lastModifyingUser"].get("emailAddress")
+            resource_exposure_type = constants.ResourceExposureType.PRIVATE
+            resource_permissions = resourcedata.get('permissions')
+            if resource_permissions:
+                for permission in resource_permissions:
+                        permission_id = permission.get('id')
+                        email_address = permission.get('emailAddress')
+                        display_name = permission.get('displayName')
+                        expiration_time = permission.get('expirationTime')
+                        is_deleted = permission.get('deleted')
+                        permission_exposure = constants.ResourceExposureType.INTERNAL
+                        if email_address:
+                            if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
+                                and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
+                                and resource_exposure_type != constants.ResourceExposureType.DOMAIN :
+                                    resource_exposure_type = constants.ResourceExposureType.INTERNAL
+                            if gutils.check_if_external_user(db_session, domain_id,email_address):
+                                if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+                                    resource_exposure_type = constants.ResourceExposureType.EXTERNAL
+
+                                permission_exposure = constants.ResourceExposureType.EXTERNAL
+                                ## insert non domain user as External user in db, Domain users will be
+                                ## inserted during processing Users
+                                if not email_address in external_user_map:
+
+                                    externaluser = {}
+                                    externaluser["datasource_id"] = datasource_id
+                                    externaluser["email"] = email_address
+                                    externaluser["first_name"] = ""
+                                    externaluser["last_name"] = ""
+                                    if display_name and display_name != "":
+                                        name_list = display_name.split(' ')
+                                        externaluser["first_name"] = name_list[0]
+                                        if len(name_list) > 1:
+                                            externaluser["last_name"] = name_list[1]
+                                    externaluser["member_type"] = constants.UserMemberType.EXTERNAL
+                                    external_user_map[email_address]= externaluser
+                        #Shared with everyone in domain
+                        elif display_name:
+                            if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
+                                resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+                                resource_exposure_type = constants.ResourceExposureType.DOMAIN
+                            email_address = "__ANYONE__@"+ domain_id
+                            permission_exposure = constants.ResourceExposureType.DOMAIN
+                        #Shared with everyone in public
+                        else:
+                            resource_exposure_type = constants.ResourceExposureType.PUBLIC
+                            email_address = constants.ResourceExposureType.PUBLIC
+                            permission_exposure = constants.ResourceExposureType.PUBLIC
+                        resource_permission = {}
+                        resource_permission["datasource_id"] = datasource_id
+                        resource_permission["resource_id"] = resource_id
+                        resource_permission["email"] = email_address
+                        resource_permission["permission_id"] = permission_id
+                        resource_permission["permission_type"] = permission['role']
+                        resource_permission["exposure_type"] = permission_exposure
+                        if expiration_time:
+                            resource_permission["expiration_time"] = expiration_time[:-1]
+                        resource_permission["is_deleted"] = is_deleted
+                        data_for_permission_table.append(resource_permission)
+            resource["exposure_type"] = resource_exposure_type
+            resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
+            # resource_parent_data = resourcedata.get('parents')
+            # resource_parent = {}
+            # resource_parent["domain_id"] = domain_id
+            # resource_parent["datasource_id"] = datasource_id
+            # resource_parent["email"] = user_email
+            # resource_parent["resource_id"] = resource_id
+            # resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
+            # data_for_parent_table.append(resource_parent)
+            resourceList.append(resource)
+        
         db_session.bulk_insert_mappings(Resource, resourceList)
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
         # db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
@@ -172,7 +180,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
 
         print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, False)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
 
@@ -258,10 +266,10 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.user_scan_status, 1, False)
+                update_and_get_count(datasource_id, DataSource.user_scan_status, 1, True)
                 break
         except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.user_scan_status, 2, False)
+            update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
             print "Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
@@ -309,7 +317,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         print "Processed {} google directory users for domain_id: {}".format(user_count, domain_id)
 
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, False)
+        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
         print "Exception occurred while processing google directory users for domain_id: {}".format(domain_id)
         print ex
 
@@ -364,10 +372,10 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.group_scan_status, 1, False)
+                update_and_get_count(datasource_id, DataSource.group_scan_status, 1, True)
                 break
         except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
+            update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
             print "Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
@@ -408,7 +416,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         utils.post_call_with_authorization_header(session,url,auth_token,json ={"groupKeys":group_key_array}).result()
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
+        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
         print "Exception occurred while processing google directory groups for domain_id: {}".format(domain_id)
         print ex
 
