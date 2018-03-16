@@ -50,7 +50,7 @@ export default (state = defaultState, action) => {
         ...state,
         redirectTo: action.error ? null : '',
         token: action.error ? null : action.token,
-        currentUser: action.error ? null : action.payload
+        currentUser: action.error ? null : action.payload,
       };
     case GET_ALL_ACTIONS:
       var actions = action.payload;
@@ -70,7 +70,8 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasourceLoading: false,
-        datasources: action.error ? null : action.payload
+        datasources: action.error ? null : action.payload,
+        currentUrl: window.location.pathname
       };
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
