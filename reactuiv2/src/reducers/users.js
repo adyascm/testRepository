@@ -129,7 +129,8 @@ export default (state = {}, action) => {
         case LOGOUT: 
             return {
                 ...state,
-                usersTreePayload: undefined
+                usersTreePayload: undefined,
+                groupSearchPayload: undefined
             }
         default:
             return state;

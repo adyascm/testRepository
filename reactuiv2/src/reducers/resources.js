@@ -140,7 +140,8 @@ export default (state = defaultState, action) => {
         case LOGOUT:
             return {
                 ...state,
-                resourceTree: undefined
+                resourceTree: undefined,
+                resourceSearchPayload: undefined
             }
 
         // case RESOURCES_TREE_CELL_EXPANDED:

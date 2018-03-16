@@ -71,7 +71,7 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: false,
         datasources: action.error ? null : action.payload,
-        currentUrl: window.location.pathname
+        currentUrl: !action.payload.length?"/datasources":window.location.pathname
       };
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
