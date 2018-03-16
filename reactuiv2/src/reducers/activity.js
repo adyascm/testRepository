@@ -2,7 +2,8 @@
 
 import {
     USERS_ACTIVITY_LOAD_START,
-    USERS_ACTIVITY_LOADED
+    USERS_ACTIVITY_LOADED,
+    LOGOUT
 } from '../constants/actionTypes';
 
 
@@ -20,6 +21,11 @@ export default (state = {}, action) => {
                 ...state,
                 isLoading: false,
                 activities: JSON.parse(action.payload)
+            }
+        case LOGOUT:
+            return {
+                ...state,
+                activities: undefined
             }
         default:
             return state;

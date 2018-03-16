@@ -11,7 +11,8 @@ import {
     USERS_RESOURCE_SET_FILE_SHARE_TYPE,
     GROUP_SEARCH_PAYLOAD,
     GROUP_SEARCH_EMPTY,
-    USERS_GROUP_ACTION_LOAD
+    USERS_GROUP_ACTION_LOAD,
+    LOGOUT
 } from '../constants/actionTypes';
 
 
@@ -27,7 +28,7 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isLoading: false,
-                usersTreePayload: action.payload,
+                usersTreePayload: !action.error?action.payload:[],
                 groupSearchPayload: undefined
             }
         case GROUP_SEARCH_PAYLOAD:
@@ -124,6 +125,11 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 exposureType: action.payload
+            }
+        case LOGOUT: 
+            return {
+                ...state,
+                usersTreePayload: undefined
             }
         default:
             return state;

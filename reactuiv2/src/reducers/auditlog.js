@@ -1,6 +1,7 @@
 import {
     AUDIT_LOG_LOAD_START,
-    AUDIT_LOG_LOADED
+    AUDIT_LOG_LOADED,
+    LOGOUT
 } from '../constants/actionTypes';
 
 export default (state={}, action) => {
@@ -16,6 +17,11 @@ export default (state={}, action) => {
                 isLoading: false,
                 log: action.payload
             };
+        case LOGOUT:
+            return {
+                ...state,
+                log: undefined
+            }
         default:
             return state
     }
