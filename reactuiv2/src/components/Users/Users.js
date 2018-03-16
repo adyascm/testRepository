@@ -23,8 +23,7 @@ const mapStateToProps = state => ({
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
   isLoading: state.users.isLoading,
-  usersCount: state.dashboard["usersCount"],
-  groupsCount: state.dashboard["groupsCount"]
+  userPayload: state.users.usersTreePayload
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -43,7 +42,8 @@ class Users extends Component {
     super(props);
     this.state = {
       showHierarchy: false,
-      showOnlyExternal: true
+      showOnlyExternal: true,
+      usersEmpty: false
     }
   }
   toggleHierarchyView = () => {
@@ -75,10 +75,6 @@ class Users extends Component {
         showOnlyExternal: false
       })
 
-    if ((this.props.usersCount && this.props.usersCount['data'] === 0) &&
-        (this.props.groupsCount && this.props.groupsCount['data'] === 0))
-        this.props.flagUsersError("There are no users to display", undefined)
-
     this.props.onLoadStart();
     this.props.onLoad(agent.Users.getUsersTree());
   }
@@ -88,6 +84,13 @@ class Users extends Component {
       this.setState({
         showOnlyExternal: false
       })
+    
+    if (nextProps.userPayload && nextProps.userPayload.length === 0 && !this.state.usersEmpty) {
+      this.props.flagUsersError("There are no users to display", undefined)
+      this.setState({
+        usersEmpty: true
+      })
+    }
   }
 
   handleContextRef = contextRef => this.setState({

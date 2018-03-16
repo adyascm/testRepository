@@ -5,7 +5,8 @@ import {
     DELETE_SCHEDULED_REPORT,
     RUN_SCHEDULED_REPORT,
     DELETE_OLD_SCHEDULED_REPORT,
-    UPDATE_SCHEDULED_REPORT
+    UPDATE_SCHEDULED_REPORT,
+    LOGOUT
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -47,12 +48,15 @@ export default (state = {}, action) => {
                ...state,
                runReportData: undefined,
                scheduledReport: undefined
-
-
              }
-       case UPDATE_SCHEDULED_REPORT:
+        case UPDATE_SCHEDULED_REPORT:
             return{
               ...state
+            }
+        case LOGOUT:
+            return {
+              ...state,
+              reports: undefined
             }
         default:
             return state;

@@ -12,7 +12,7 @@ const mapDispatchToProps = dispatch => ({
     setDataSources: (datasources) =>
         dispatch({ type: SET_DATASOURCES, payload: datasources }),
     loadActions: (payload) =>
-        dispatch({ type: GET_ALL_ACTIONS, payload }),
+        dispatch({ type: GET_ALL_ACTIONS, payload })
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -34,7 +34,6 @@ const DataSourceVerifiedView = ChildComponent => {
                     <Redirect to="/datasources" />
                 );
             }
-
             return <ChildComponent {...this.props} />
         }
     }

@@ -90,8 +90,7 @@ def get_gdrive_reports_service(auth_token, user_email=None, db_session = None):
 
 def get_gdrive_datatransfer_service(auth_token, user_email=None, db_session = None):
     credentials = get_credentials(auth_token, user_email, db_session)
-    service = discovery.build(
-        'admin', 'datatransfer_v1', credentials=credentials)
+    service = discovery.build('admin', 'datatransfer_v1', credentials=credentials)
     return service
 
 

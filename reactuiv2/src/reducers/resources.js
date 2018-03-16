@@ -7,7 +7,8 @@ import {
     RESOURCES_FILTER_CHANGE,
     RESOURCES_SEARCH_PAYLOAD,
     RESOURCES_SEARCH_EMPTY,
-    RESOURCES_PAGINATION_DATA
+    RESOURCES_PAGINATION_DATA,
+    LOGOUT
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -136,6 +137,13 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoading: true
             }
+        case LOGOUT:
+            return {
+                ...state,
+                resourceTree: undefined,
+                resourceSearchPayload: undefined
+            }
+
         // case RESOURCES_TREE_CELL_EXPANDED:
         //     return {
         //         ...state,

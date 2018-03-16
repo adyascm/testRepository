@@ -42,8 +42,8 @@ def handle_channel_expiration():
 
             if row.page_token == '':
                 response = drive_service.changes().getStartPageToken().execute()
-                ow.page_token = response.get('startPageToken')
-                print 'New start token: ', ow.page_token
+                row.page_token = response.get('startPageToken')
+                print 'New start token: ', row.page_token
 
             print "Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                 row.domain_id, row.datasource_id, row.channel_id)
@@ -99,6 +99,7 @@ def subscribe(domain_id, datasource_id):
 def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     access_time = datetime.datetime.utcnow().isoformat()
     expire_time = access_time
+    start_token = ''
     try:
         drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
         body = {

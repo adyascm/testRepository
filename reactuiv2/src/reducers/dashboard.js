@@ -1,7 +1,8 @@
 import {
     DASHBOARD_PAGE_LOADED,
     DASHBOARD_WIDGET_LOADED,
-    DASHBOARD_WIDGET_LOAD_START
+    DASHBOARD_WIDGET_LOAD_START,
+    LOGOUT
 } from '../constants/actionTypes';
 
 export default (state = {}, action) => {
@@ -11,14 +12,22 @@ export default (state = {}, action) => {
         case DASHBOARD_WIDGET_LOAD_START:
             state[action.widgetId] = {isLoaded: false};
             return {
-                ...state,
-
+                ...state
             }
         case DASHBOARD_WIDGET_LOADED:
-            state[action.widgetId] = {isLoaded: true, data: action.payload};
+            let errorPayload
+            if (action.widgetId.includes("Count"))
+                errorPayload = 0
+            else 
+                errorPayload = {totalCount:0, rows: []}
+            state[action.widgetId] = {isLoaded: true, data: !action.error?action.payload:errorPayload};
             return {
-                ...state,
-
+                ...state
+            }
+        case LOGOUT:
+            state = {}
+            return {
+                ...state
             }
         default:
             return state;
