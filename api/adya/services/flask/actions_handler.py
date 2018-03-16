@@ -25,10 +25,7 @@ class initiate_action(Resource):
             return req_error
 
         auth_token = req_session.get_auth_token()
-        print auth_token
         data_source = domain_controller.get_datasource(auth_token, None)
-
-        print data_source
         domain_id = data_source[0].domain_id
         datasource_id = data_source[0].datasource_id
 
@@ -36,7 +33,4 @@ class initiate_action(Resource):
 
         print "Initiating action using payload: ", action_payload, "on domain: ", domain_id, " and datasource_id: ", datasource_id
         response = actions_controller.initiate_action(auth_token, domain_id, datasource_id, action_payload)
-        response = {"message": response}
-        print response
-
-        return req_session.generate_response(202, response)
+        return req_session.generate_response(response.response_code, response.get_response_body())
