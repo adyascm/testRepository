@@ -80,6 +80,14 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     page_limit = page_limit if page_limit else constants.PAGE_LIMIT
 
     db_session = db_connection().get_session()
+
+    existing_user = db_session.query(DomainUser.is_admin, LoginUser.email).filter(
+        LoginUser.auth_token == auth_token).filter(LoginUser.email == DomainUser.email).first()
+
+    data = list(existing_user)
+    loggged_in_user_email = data[1]
+    is_admin = data[0]
+
     domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
         filter(LoginUser.auth_token == auth_token).all()
     domain_datasource_ids = [r for r, in domain_datasource_ids]
@@ -98,6 +106,9 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     if prefix:
         page_limit = 10
         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
+
+    if not is_admin:
+        resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
 
     resources = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids)).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
     result = []
