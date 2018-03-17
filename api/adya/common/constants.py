@@ -122,3 +122,6 @@ class PolicyConditionMatch(Enum):
     CONTAIN = 'contain'
     EQUAL = 'equal'
     NOTEQUAL = 'notequal'
+
+class ResponseType(Enum):
+    ERROR = 'error'

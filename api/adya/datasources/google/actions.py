@@ -11,10 +11,13 @@ def delete_user_from_group(auth_token, group_email, user_email):
     print "Initiating removal of user {} from group {} ...".format(user_email, group_email)
     try:
         response = directory_service.members().delete(groupKey=group_email, memberKey=user_email).execute()
-        return response_messages.ResponseMessage(200, "Action completed successfully")
+        return response
+        # return response_messages.ResponseMessage(200, "Action completed successfully")
     except Exception as ex:
         content = json.loads(ex.content)
-        return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
+        return content
+        # return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
+
 
 def add_user_to_group(auth_token, group_email, user_email):
     directory_service = gutils.get_directory_service(auth_token)
@@ -26,10 +29,12 @@ def add_user_to_group(auth_token, group_email, user_email):
     print "Initiating addition of user {} to group {} ...".format(user_email, group_email)
     try:
         response = directory_service.members().insert(groupKey=group_email, body=body).execute()
-        return response_messages.ResponseMessage(200, "Action completed successfully")
+        return response
+        # return response_messages.ResponseMessage(200, "Action completed successfully")
     except Exception as ex:
         content = json.loads(ex.content)
-        return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
+        return  content
+        # return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
 
 def get_applicationDataTransfers_for_gdrive(datatransfer_service):
 

@@ -1,9 +1,11 @@
-from adya.common import constants, action_constants, errormessage, messaging
+from adya.common import constants, action_constants, messaging, response_messages
+from adya.common.constants import ResponseType
 from adya.datasources.google import actions, gutils
-from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource
+from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource, \
+    DirectoryStructure
 from adya.db.connection import db_connection
 from adya.common.response_messages import ResponseMessage
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 import json
 from datetime import datetime
 
@@ -129,7 +131,6 @@ def get_actions():
                removeExternalAccessToResourceAction,
                updatePermissionForUserAction,
                watchActionForUser,
-               watchActionForResource,
                removeAllAction,
                removeUserFromGroup,
                addUserToGroup,
@@ -297,7 +298,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
             permission_changes.append(new_permission)
         
         if len(permission_changes) > 0:
-            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
+            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id,
                                                                         permission_changes, user_email)
             resource_actions_handler.add_or_update_permission()
     return response_messages.ResponseMessage(202, "Action submitted successfully")
@@ -314,11 +315,48 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
         user_email = action_parameters["user_email"]
         group_email = action_parameters["group_email"]
-        return actions.delete_user_from_group(auth_token, group_email, user_email)
+        response = actions.delete_user_from_group(auth_token, group_email, user_email)
+
+        if ResponseType.ERROR in response:
+            return response_messages.ResponseMessage(response.resp.status,'Action failed with error - ' + response['error']['message'])
+        else:
+            db_session = db_connection().get_session()
+            try:
+                delete_from_dirstructure = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
+                                                            DirectoryStructure.parent_email == group_email, DirectoryStructure.member_email == user_email)).delete()
+                return response_messages.ResponseMessage(200, "Action completed successfully")
+            except Exception as ex:
+                return response_messages.ResponseMessage(400, "Action completed successfully but failed to update database")
+
+    # return actions.delete_user_from_group(auth_token, group_email, user_email)
     elif action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
         user_email = action_parameters["user_email"]
         group_email = action_parameters["group_email"]
-        return actions.add_user_to_group(auth_token, group_email, user_email)
+
+        response = actions.add_user_to_group(auth_token, group_email, user_email)
+        if ResponseType.ERROR in response:
+            return response_messages.ResponseMessage(response.resp.status,
+                                                     'Action failed with error - ' + response['error']['message'])
+        else:
+            db_session = db_connection().get_session()
+            dirstructure = DirectoryStructure()
+            dirstructure.datasource_id = datasource_id
+            dirstructure.member_email = user_email
+            dirstructure.parent_email = group_email
+            dirstructure.member_type = response['type']
+            dirstructure.member_role = response['role']
+            dirstructure.member_id = response['id']
+
+            db_session.add(dirstructure)
+            try:
+                db_connection().commit()
+                return response_messages.ResponseMessage(200, "Action completed successfully")
+            except:
+                return response_messages.ResponseMessage(400, "Action completed successfully but failed to update database")
+
+
+
+        # return actions.add_user_to_group(auth_token, group_email, user_email)
 
     #Transfer ownership action
     elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
