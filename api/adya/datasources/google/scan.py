@@ -1,6 +1,6 @@
 from adya.controllers.domain_controller import update_datasource, get_datasource
 from adya.datasources.google import gutils, incremental_scan
-from adya.common import constants, errormessage
+from adya.common import constants
 from requests_futures.sessions import FuturesSession
 import uuid,json,time,datetime,sys
 from adya.db.connection import db_connection
