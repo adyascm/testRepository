@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 from datetime import date, datetime
@@ -245,7 +245,7 @@ class Application(Base):
     display_text = Column(String(255))
     anonymous = Column(Boolean, default=True)
     scopes = Column(Text)
-    is_readonly_scope = Column(Boolean)
+    score = Column(Float)
 
 
 class ApplicationUserAssociation(Base):

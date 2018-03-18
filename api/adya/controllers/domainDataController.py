@@ -1,7 +1,7 @@
 from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
     ApplicationUserAssociation
 from adya.db.connection import db_connection
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 import json
 from adya.common import utils
 from adya.datasources.google import gutils
@@ -94,7 +94,7 @@ def get_all_apps(auth_token):
         apps_query_data = apps_query_data.filter(Application.client_id == ApplicationUserAssociation.client_id,
                                                ApplicationUserAssociation.datasource_id == Application.datasource_id,
                                                ApplicationUserAssociation.user_email == login_user_email)
-    apps_data = apps_query_data.all()
+    apps_data = apps_query_data.order_by(desc(Application.score)).all()
     return apps_data
 
 
@@ -125,5 +125,5 @@ def get_apps_for_user(auth_token, user_email):
              ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))).all()
     domain_applications = [r for r, in domain_applications]
     user_apps = db_session.query(Application).filter(and_(Application.client_id.in_(domain_applications),
-                                                          Application.datasource_id.in_(domain_datasource_ids))).all()
+                                                          Application.datasource_id.in_(domain_datasource_ids))).order_by(desc(Application.score)).all()
     return user_apps

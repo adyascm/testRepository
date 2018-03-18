@@ -37,7 +37,7 @@ class Dashboard extends Component {
     ];
     this.chartWidgetConfigs = [
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
-      { id: "userAppAccess", header: "",footer: "Apps", renderType: "ChartWidget", link:"/apps?header='Apps'"  },
+      { id: "userAppAccess", header: "",footer: "installed Apps", renderType: "ChartWidget", link:"/apps?header='Apps'"  },
       { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link:"/resources"  },
       { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  }
     ];

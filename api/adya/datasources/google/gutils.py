@@ -23,19 +23,7 @@ CLIENT_SECRET = CLIENT_JSON_FILE_DATA['web']['client_secret']
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
                                                                   SERVICE_ACCOUNT_SCOPE)
-
-
-def get_read_only_scope():
-    with open(dir_path + "/scopes/readonly_scope", 'r') as content_file:
-        content = content_file.read()
-    scope_set = Set()
-    for scope in content.split(','):
-        scope_set.add(scope)
-    return scope_set
-
-
-READ_ONLY_SCOPES = get_read_only_scope()
-
+GOOGLE_API_SCOPES = json.load(open(dir_path + "/scopes/google_api_scopes.json"))
 
 def revoke_appaccess(auth_token, user_email=None, db_session = None):
     credentials = get_credentials(auth_token, user_email, db_session)

@@ -1,3 +1,4 @@
+from __future__ import division  # necessary
 from adya.controllers.domain_controller import update_datasource, get_datasource
 from adya.datasources.google import gutils, incremental_scan
 from adya.common import constants
@@ -11,6 +12,7 @@ from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,Doma
 from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
+import math
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
@@ -330,7 +332,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     print "Google service account is enabled, starting to fetch files for each processed user"
     for user_email in resource_usersList:
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
-        messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
+        #messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
     print "Getting all users app and its scope"
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
@@ -617,15 +619,17 @@ class GetAllUserAppAndScope():
                 association_table["user_email"] = user_email
                 association_table["datasource_id"] = self.datasource_id
                 self.applicationassociations.append(association_table)
-                scopes_string =""
-                is_readonly_scope = True
+                max_score = 0
                 scopes = app["scopes"]
                 for scope in scopes:
-                    if not scope in gutils.READ_ONLY_SCOPES:
-                        is_readonly_scope = False
-                        break
+                    if scope in gutils.GOOGLE_API_SCOPES:
+                        score = gutils.GOOGLE_API_SCOPES[scope]['score']
+                        if score > max_score:
+                            max_score = score
+                #sum_squares = sum([ x**2 for x in scores ])
+                #application.score = math.sqrt( sum_squares / len(scores) )
+                application.score = max_score
                 application.scopes = ','.join(scopes)
-                application.is_readonly_scope = is_readonly_scope
                 if not app["clientId"] in self.applications:
                     self.applications[app["clientId"]] ={}
                     self.db_session.add(application)

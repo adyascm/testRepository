@@ -97,7 +97,7 @@ class Apps extends Component {
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
-            <Grid.Row >
+            {/* <Grid.Row >
               <Grid.Column stretched width="5">
                 <Radio name='radioGroup'
                   label='Show all apps'
@@ -122,7 +122,7 @@ class Apps extends Component {
                   onChange={this.onCheckBoxChecked}
                 />
               </Grid.Column>
-            </Grid.Row>
+            </Grid.Row> */}
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}> 
                 {appList}

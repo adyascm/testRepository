@@ -76,8 +76,9 @@ class AppList extends Component {
                 var app = allapps[appkey]
                 var appName = app.display_text;
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
+                var color = app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow')
                 
-                appCards.push(<Card key={appkey}  app={app} onClick={this.onCardClicked.bind(this)} color={this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName?'blue':''}>
+                appCards.push(<Card key={appkey} color={color}  app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>
                     <Card.Content>
                         {image}
                         <Card.Header>

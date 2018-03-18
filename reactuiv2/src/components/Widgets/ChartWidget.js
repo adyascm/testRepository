@@ -38,7 +38,7 @@ class ChartWidget extends Component {
                 return (
                     <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
                         <Card.Content>
-                            <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />
+                            <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={['#db4437', '#fbbd08', '#4285f4']}/>
 
                         </Card.Content>
                         <Card.Content extra>

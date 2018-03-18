@@ -7,7 +7,7 @@ from flask import request
 from adya.controllers import domain_controller
 from adya.datasources.google import activities
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, \
-    Application, DirectoryStructure, ApplicationUserAssociation
+    Application, DirectoryStructure, ApplicationUserAssociation, alchemy_encoder
 from adya.db.connection import db_connection
 from adya.common import utils, constants, request_session
 from sqlalchemy import func, or_, and_
@@ -122,33 +122,22 @@ def get_widget_data(auth_token, widget_id):
     elif widget_id =='userAppAccess':
         data ={}
         querydata = {}
-        app_read_only_scopes_query = db_session.query(Application.client_id).distinct(
-            Application.client_id).filter(
-            and_(Application.datasource_id.in_(domain_datasource_ids), Application.is_readonly_scope == True)).filter(
-            LoginUser.auth_token == auth_token)
-        full_scope_app_query = db_session.query(Application.client_id).distinct(Application.client_id).filter(
-            and_(Application.datasource_id.in_(domain_datasource_ids), Application.is_readonly_scope == False)).filter(
-            LoginUser.auth_token == auth_token)
+        apps = db_session.query(Application).distinct(Application.client_id).filter(Application.datasource_id.in_(domain_datasource_ids))
 
         if is_service_account_is_enabled and not is_admin:
-            app_read_only_scopes_query = app_read_only_scopes_query.filter(and_(Application.client_id == ApplicationUserAssociation.client_id,
+            apps = apps.filter(and_(Application.client_id == ApplicationUserAssociation.client_id,
                                                                                 ApplicationUserAssociation.user_email == login_user_email,
                                                                                 ApplicationUserAssociation.datasource_id == Application.datasource_id))
-            full_scope_app_query = full_scope_app_query.filter(and_(Application.client_id == ApplicationUserAssociation.client_id,
-                                                                                ApplicationUserAssociation.user_email == login_user_email,
-                                                                    ApplicationUserAssociation.datasource_id == Application.datasource_id))
 
-        querydata["Readonly Scope Apps"] = app_read_only_scopes_query.count()
-        querydata["Full Scope Apps"] = full_scope_app_query.count()
-        list_apps_data = []
-        totalcount = 0
-        for key,value in querydata.iteritems():
-            scopes = [key, value]
-            list_apps_data.append(scopes)
-            totalcount += value
-
-        data["rows"] = list_apps_data
-        data["totalCount"] = totalcount
+        severity = {}
+        low = apps.filter(Application.score < 4).count()
+        medium = apps.filter(and_(Application.score >= 4, Application.score < 7)).count()
+        high = apps.filter(and_(Application.score >= 7, Application.score <= 10)).count()
+        severity['Acceptable'] = low
+        severity['Needs review'] = medium
+        severity['Most vulnerable'] = high
+        data["rows"] = severity
+        data["totalCount"] = low + medium + high
     return data
 
 
