@@ -332,7 +332,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     print "Google service account is enabled, starting to fetch files for each processed user"
     for user_email in resource_usersList:
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
-        #messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
+        messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
     print "Getting all users app and its scope"
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
