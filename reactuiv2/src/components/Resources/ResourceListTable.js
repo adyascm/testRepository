@@ -111,9 +111,15 @@ class ResourcesListTable extends Component {
         })
 
         let tableRowData = null
+        let resourceData = null
 
-        if (this.props.resourceTree)
-            tableRowData = this.props.resourceTree.map(rowData => {
+        if (this.props.resourceSearchPayload)
+            resourceData = this.props.resourceSearchPayload
+        else if (this.props.resourceTree)
+            resourceData = this.props.resourceTree
+        
+        if (resourceData)
+            tableRowData = resourceData.map(rowData => {
                 return (
                     <Table.Row onClick={(event) => this.handleClick(event,rowData)}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
