@@ -39,7 +39,8 @@ class Dashboard extends Component {
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
       { id: "userAppAccess", header: "",footer: "installed Apps", renderType: "ChartWidget", link:"/apps?header='Apps'"  },
       { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link:"/resources"  },
-      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  }
+      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  },
+      {id: "filesWithFileType", header: "File Types",footer: "Files Exposed", renderType: "ChartWidget", link:"/resources"}
     ];
   }
 
