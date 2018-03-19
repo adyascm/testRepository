@@ -17,4 +17,6 @@ def get_activities_for_user(event, context):
     print response
     response = json.dumps(response)
     print response
+    response = json.dumps(response)
+    print response
     return req_session.generate_response(200, response)
