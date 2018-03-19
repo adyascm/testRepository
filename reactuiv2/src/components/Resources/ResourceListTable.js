@@ -131,7 +131,7 @@ class ResourcesListTable extends Component {
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
                 return (
-                    <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#ccccff' } : null}>
+                    <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>

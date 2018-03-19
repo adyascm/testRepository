@@ -106,7 +106,7 @@ class UserActivity extends Component {
                 </div>
             )
         }
-        else if (this.props.selectedUserItem){
+        else if (this.props.selectedUserItem && this.props.selectedUserItem.activities  && this.props.selectedUserItem.activities.length > 0){
             return (
                 <div className="ag-theme-fresh">
                     <AgGridReact
@@ -115,6 +115,13 @@ class UserActivity extends Component {
                         rowData={this.props.selectedUserItem.activities}
                         onGridReady={this.onGridReady.bind(this)}
                     />
+                </div>
+            )
+        }
+        else{
+            return (
+                <div style={{ marginLeft: '30%' }}>
+                    No activities to display for user 
                 </div>
             )
         }
