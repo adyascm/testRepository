@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from datetime import datetime, timedelta
 
 
-def get_activities_for_user(auth_token, domain_id, datasource_id, user_email, start_time):
+def get_activities_for_user(auth_token, domain_id, datasource_id, user_email, start_time=None):
     try:
         reports_service = gutils.get_gdrive_reports_service(auth_token)
 
