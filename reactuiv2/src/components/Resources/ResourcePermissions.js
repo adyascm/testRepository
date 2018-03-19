@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Button, Icon, Dropdown } from 'semantic-ui-react'
+import { Grid, Button, Icon, Dropdown, Table } from 'semantic-ui-react'
 
 
 const ResourcePermissions = props => {
@@ -15,34 +15,73 @@ const ResourcePermissions = props => {
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission, index) => {
             if (permission["permission_id"] !== undefined)
+                // return (
+                //     <Grid.Row key={index}>
+                //         <Grid.Column width={2}>
+                //             <Button animated='vertical' basic color='red' onClick={(event) => props.onRemovePermission(event, permission)}>
+                //                 <Button.Content hidden>Remove</Button.Content>
+                //                 <Button.Content visible>
+                //                     <Icon name='remove' />
+                //                 </Button.Content>
+                //             </Button>
+                //         </Grid.Column>
+                //         <Grid.Column width={10}>
+                //             {permission["email"]}
+                //         </Grid.Column>
+                //         <Grid.Column width={4}>
+                //             <Dropdown fluid options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} />
+                //         </Grid.Column>
+                //     </Grid.Row>
+                // )
                 return (
-                    <Grid.Row key={index}>
-                        <Grid.Column width={2}>
+                    <Table.Row>
+                        <Table.Cell>
                             <Button animated='vertical' basic color='red' onClick={(event) => props.onRemovePermission(event, permission)}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
                                 </Button.Content>
                             </Button>
-                        </Grid.Column>
-                        <Grid.Column width={10}>
+                        </Table.Cell>
+                        <Table.Cell>
                             {permission["email"]}
-                        </Grid.Column>
-                        <Grid.Column width={4}>
-                            <Dropdown fluid options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} />
-                        </Grid.Column>
-                    </Grid.Row>
+                        </Table.Cell>
+                        <Table.Cell>
+                            <Dropdown fluid selection options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} />
+                        </Table.Cell>
+                    </Table.Row>
                 )
             else
                 return ("")
         })
     }
 
-    return (
-        <Grid celled='internally'>
-            {permissionUsers}
-        </Grid>
+    // return (
+    //     <Grid celled='internally'>
+    //         {permissionUsers}
+    //     </Grid>
 
+    // )
+
+    return (
+        <Table celled selectable striped compact='very'>
+            <Table.Header>
+                <Table.Row>
+                    <Table.HeaderCell>
+                        Remove
+                    </Table.HeaderCell>
+                    <Table.HeaderCell>
+                        Permission Email
+                    </Table.HeaderCell>
+                    <Table.HeaderCell>
+                        Permission Type
+                    </Table.HeaderCell>
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                {permissionUsers}
+            </Table.Body>
+        </Table>
     )
 
 }
