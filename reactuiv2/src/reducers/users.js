@@ -53,7 +53,7 @@ export default (state = {}, action) => {
                 isActivitiesLoading: true
             }
         case USERS_ACTIVITY_LOADED:
-            state.selectedUserItem.activities = JSON.parse(action.payload);
+            state.selectedUserItem.activities = action.payload || [];
             return {
                 ...state,
                 isActivitiesLoading: false,
