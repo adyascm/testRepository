@@ -7,6 +7,7 @@ import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
 //import TestResourcesList from './TestResourcesList';
+import ResourcesListTable from './ResourceListTable'
 
 import {RESOURCES_FILTER_CHANGE} from '../../constants/actionTypes';
 
@@ -15,7 +16,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
+  //changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
 });
 
 
@@ -23,43 +24,43 @@ class Resources extends Component {
   constructor(props) {
     super(props);
 
-    this.handleExposureTypeChange = this.handleExposureTypeChange.bind(this);
-    this.handleResourceTypeChange = this.handleResourceTypeChange.bind(this);
-    this.handleKeyPress = this.handleKeyPress.bind(this);
+    // this.handleExposureTypeChange = this.handleExposureTypeChange.bind(this);
+    // this.handleResourceTypeChange = this.handleResourceTypeChange.bind(this);
+    // this.handleKeyPress = this.handleKeyPress.bind(this);
 
-    this.exposureFilterOptions = [
-        {text: 'Externally Shared',
-         value: 'EXT'},
-        {text: 'Domain Shared',
-         value: 'DOMAIN'},
-        {text: 'Internally Shared',
-         value: 'INT'},
-         {text: 'All Files',
-         value: 'ALL'}
-      ]
+    // this.exposureFilterOptions = [
+    //     {text: 'Externally Shared',
+    //      value: 'EXT'},
+    //     {text: 'Domain Shared',
+    //      value: 'DOMAIN'},
+    //     {text: 'Internally Shared',
+    //      value: 'INT'},
+    //      {text: 'All Files',
+    //      value: 'ALL'}
+    //   ]
 
-      this.state = {
-        filterResourceType: "",
-      }
+    //   this.state = {
+    //     filterResourceType: "",
+    //   }
   }
 
-  handleExposureTypeChange(event,data) {
-    let value = data.value === 'ALL'?'':data.value
-    if (value !== this.props.filterExposureType)
-      this.props.changeFilter("filterExposureType", value);
-  }
+  // handleExposureTypeChange(event,data) {
+  //   let value = data.value === 'ALL'?'':data.value
+  //   if (value !== this.props.filterExposureType)
+  //     this.props.changeFilter("filterExposureType", value);
+  // }
 
-  handleResourceTypeChange(event) {
-    this.setState({
-      filterResourceType: event.target.value
-    });
-  }
+  // handleResourceTypeChange(event) {
+  //   this.setState({
+  //     filterResourceType: event.target.value
+  //   });
+  // }
 
-  handleKeyPress(event) {
-    if (event.key === 'Enter') {
-      this.props.changeFilter("filterResourceType", this.state.filterResourceType);
-    }
-  }
+  // handleKeyPress(event) {
+  //   if (event.key === 'Enter') {
+  //     this.props.changeFilter("filterResourceType", this.state.filterResourceType);
+  //   }
+  // }
   componentWillMount(){
     if (this.props.location.search.includes("Files")){
       this.props.changeFilter("filterResourceType", '')
@@ -94,7 +95,7 @@ class Resources extends Component {
     return (
       <Container style={containerStyle}>
         <Grid divided='vertically' stretched >
-          <Grid.Row >
+          {/* <Grid.Row >
             <Grid.Column stretched width="5">
               <Dropdown
                 options={this.exposureFilterOptions}
@@ -110,10 +111,11 @@ class Resources extends Component {
                 </Form.Field>
               </Form>
             </Grid.Column>
-          </Grid.Row>
+          </Grid.Row> */}
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              <ResourcesList gridWidth={gridWidth} />
+              <ResourcesListTable />
+              {/* <ResourcesList gridWidth={gridWidth} /> */}
               {/* <TestResourcesList /> */}
             </Grid.Column>
             {
