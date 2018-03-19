@@ -134,61 +134,56 @@ class ResourcesListTable extends Component {
                 )
             })
 
-        if (this.props.isLoading) {
-            return (
-                <div className="ag-theme-fresh" style={{ height: '200px' }}>
-                    <Dimmer active inverted>
-                        <Loader inverted content='Loading' />
-                    </Dimmer>
+        let dimmer = (
+            <Dimmer active inverted>
+                <Loader inverted content='Loading' />
+            </Dimmer>
+        )
+        
+        return (
+            <div>
+                <div style={{'maxHeight': document.body.clientHeight, 'overflow': 'scroll', 'cursor': 'pointer' }}>
+                    <Table celled selectable striped>
+                        <Table.Header>
+                            <Table.Row>
+                                {tableHeaders}
+                            </Table.Row>
+                        </Table.Header>
+                        <Table.Body>
+                            <Table.Row>
+                                <Table.Cell>
+                                    <ResourceSearch />
+                                </Table.Cell>
+                                <Table.Cell>
+                                    <Form>
+                                        <Form.Field>
+                                        <input placeholder='Filter by File type ...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
+                                        </Form.Field>
+                                    </Form>
+                                </Table.Cell>
+                                <Table.Cell></Table.Cell>
+                                <Table.Cell>
+                                    <Dropdown
+                                        options={this.exposureFilterOptions}
+                                        selection
+                                        value={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
+                                        onChange={this.handleExposureTypeChange}
+                                    />
+                                </Table.Cell>
+                                <Table.Cell></Table.Cell>
+                                <Table.Cell></Table.Cell>
+                            </Table.Row>
+                            {tableRowData}
+                        </Table.Body>
+                        {this.props.isLoading?dimmer:null}    
+                    </Table>
                 </div>
-            )
-        }
-        else {
-            return (
-                <div>
-                    <div style={{'maxHeight': document.body.clientHeight, 'overflow': 'scroll', 'cursor': 'pointer' }}>
-                        <Table celled selectable striped>
-                            <Table.Header>
-                                <Table.Row>
-                                    {tableHeaders}
-                                </Table.Row>
-                            </Table.Header>
-                            <Table.Body>
-                                <Table.Row>
-                                    <Table.Cell>
-                                        <ResourceSearch />
-                                    </Table.Cell>
-                                    <Table.Cell>
-                                        <Form>
-                                            <Form.Field>
-                                            <input placeholder='Filter by File type ...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
-                                            </Form.Field>
-                                        </Form>
-                                    </Table.Cell>
-                                    <Table.Cell></Table.Cell>
-                                    <Table.Cell>
-                                        <Dropdown
-                                            options={this.exposureFilterOptions}
-                                            selection
-                                            value={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
-                                            onChange={this.handleExposureTypeChange}
-                                        />
-                                    </Table.Cell>
-                                    <Table.Cell></Table.Cell>
-                                    <Table.Cell></Table.Cell>
-                                </Table.Row>
-                                {tableRowData}
-                            </Table.Body>    
-                        </Table>
-                    </div>
-                    <div style={{ marginTop: '5px' }} >
-                        {(this.props.resourceTree && this.props.resourceTree.length < this.props.pageLimit)?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
-                        {this.props.pageNumber !== 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
-                    </div>
+                <div style={{ marginTop: '5px' }} >
+                    {(this.props.resourceTree && this.props.resourceTree.length < this.props.pageLimit)||(this.props.isLoading)?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                    {this.props.pageNumber !== 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
                 </div>
-            )
-        }
-
+            </div>
+        )
     }
 }
 
