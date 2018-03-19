@@ -34,23 +34,24 @@ class ChartWidget extends Component {
             if (this.props[this.props.config.id].isLoaded) {
                 if (!this.props[this.props.config.id].data.totalCount)
                     return null
-      var color = []
+                let chart = null
 
-      if(this.props.config.id === 'filesWithFileType'){
-          color = ['#db4437']
-      }
-      else{
-        color = ['#db4437', '#fbbd08', '#4285f4']
-      }
+                if (this.props.config.id === 'filesWithFileType') {
+                    chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />
+                }
+                else {
+                    var color = ['#db4437', '#fbbd08', '#4285f4']
+                    chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={color} />
+                }
                 return (
                     <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
                         <Card.Content>
-                            <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={color}/>
+                            {chart}
                         </Card.Content>
                         <Card.Content extra>
                             <div className='ui'>
                                 <Label color='green'>{this.props[this.props.config.id].data.totalCount}
-                                  &nbsp;{this.props.config.footer}</Label>
+                                    &nbsp;{this.props.config.footer}</Label>
                             </div>
                         </Card.Content>
                     </Card>

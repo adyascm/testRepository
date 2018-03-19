@@ -36,11 +36,11 @@ class Dashboard extends Component {
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources?header='Folders'" },
     ];
     this.chartWidgetConfigs = [
-      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link:"/resources" },
-      { id: "userAppAccess", header: "",footer: "installed Apps", renderType: "ChartWidget", link:"/apps?header='Apps'"  },
-      { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link:"/resources"  },
-      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link:"/users"  },
-      {id: "filesWithFileType", header: "File Types",footer: "Files Exposed", renderType: "ChartWidget", link:"/resources"}
+      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources" },
+      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps?header='Apps'" },
+      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources" },
+      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link: "/users" },
+      // { id: "sharedDocsList", header: "Exposed documents", renderType: "ListWidget", link: "/resources" },
     ];
   }
 
@@ -61,33 +61,33 @@ class Dashboard extends Component {
 
     return (
       <Container>
-      <Card.Group itemsPerRow='4'>
-        {
-          this.simpleWidgetConfigs.map(config => {
-            var widget = null;
-            if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget key={config["id"]} config={config} />
-            else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget key={config["id"]} config={config} />
-            else
-              widget = <ListWidget key={config["id"]} config={config} />
+        <Card.Group itemsPerRow='4'>
+          {
+            this.simpleWidgetConfigs.map(config => {
+              var widget = null;
+              if (config.renderType === "SimpleNumberWidget")
+                widget = <SimpleNumberWidget key={config["id"]} config={config} />
+              else if (config.renderType === "ChartWidget")
+                widget = <ChartWidget key={config["id"]} config={config} />
+              else
+                widget = <ListWidget key={config["id"]} config={config} />
 
-            return (
-              widget
-            )
-          })
-        }
-      </Card.Group>
-      <Card.Group itemsPerRow={itemsPerRow}>
-        {
-          this.chartWidgetConfigs.map(config => {
-            var widget = null;
-            if (config.renderType === "SimpleNumberWidget")
-              widget = <SimpleNumberWidget key={config["id"]} config={config} />
-            else if (config.renderType === "ChartWidget")
-              widget = <ChartWidget key={config["id"]} config={config} />
-            else
-              widget = <ListWidget key={config["id"]} config={config} />
+              return (
+                widget
+              )
+            })
+          }
+        </Card.Group>
+        <Card.Group itemsPerRow={itemsPerRow}>
+          {
+            this.chartWidgetConfigs.map(config => {
+              var widget = null;
+              if (config.renderType === "SimpleNumberWidget")
+                widget = <SimpleNumberWidget key={config["id"]} config={config} />
+              else if (config.renderType === "ChartWidget")
+                widget = <ChartWidget key={config["id"]} config={config} />
+              else
+                widget = <ListWidget key={config["id"]} config={config} />
 
               return (
                 widget

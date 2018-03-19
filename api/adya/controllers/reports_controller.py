@@ -75,13 +75,20 @@ def get_widget_data(auth_token, widget_id):
         if is_service_account_is_enabled and not is_admin:
             shared_docsByType_query = shared_docsByType_query.filter(Resource.resource_owner_id == login_user_email)
 
-        data["rows"] = shared_docsByType_query.all()
-        totalcount = 0
-        if data["rows"] > 0:
-            for count in data["rows"]:
-                totalcount += count[1]
-
-        data["totalCount"] = totalcount
+        shared_docs_by_type = shared_docsByType_query.all()
+        public_count = 0
+        external_count = 0
+        domain_count = 0
+        for share_type in shared_docs_by_type:
+            print share_type
+            if share_type[0] == constants.ResourceExposureType.EXTERNAL:
+                external_count = share_type[1]
+            elif share_type[0] == constants.ResourceExposureType.PUBLIC:
+                public_count = share_type[1]
+            elif share_type[0] == constants.ResourceExposureType.DOMAIN:
+                domain_count = share_type[1]
+        data["rows"] = [["Shared public links", public_count], ["Shared with users outside company", external_count], ["Shared across company", domain_count]]
+        data["totalCount"] = public_count + external_count + domain_count
 
     elif widget_id == 'sharedDocsList':
         data = {}
