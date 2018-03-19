@@ -335,7 +335,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
     #Scan apps only for service account
-    if not datasource.is_serviceaccount_enabled:
+    if datasource.is_serviceaccount_enabled:
         print "Getting all users app and its scope"
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
         userEmailList = {}
