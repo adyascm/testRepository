@@ -189,7 +189,7 @@ class ResourcesListTable extends Component {
                     </Table>
                 </div>
                 <div style={{ marginTop: '5px' }} >
-                    {(this.props.resourceTree && this.props.resourceTree.length < this.props.pageLimit) || (this.props.isLoading) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                    {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                     {this.props.pageNumber !== 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                 </div>
             </div>
