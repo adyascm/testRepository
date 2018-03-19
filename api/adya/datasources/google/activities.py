@@ -26,7 +26,7 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
 def process_user_activity(domain_id, datasource_name, user_email, activities):
     print "got activities: ", activities
     processed_activities = []
-    if activities.get('items'):
+    if 'items' in activities:
         activity_log_list = activities['items']
         print("PROCESS ACTIVITY USER LOG : Drive Returned ", len(activity_log_list), " Activity Details ")
 
