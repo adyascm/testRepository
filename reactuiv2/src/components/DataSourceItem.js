@@ -78,7 +78,7 @@ const DataSourceItem = props => {
                 <Card.Content extra>
                     <div className='ui buttons'>
                         {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
-                        {(status["props"]["success"] || status["props"]["error"])?(<Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>):null}
+                        <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
                         {status["props"]["success"]?(<Button as={Link} to='/' basic color='green' style={{marginLeft: '5px'}} onClick={() => props.handleClick()} >Go To Dashboard</Button>):null}
                     </div>
                 </Card.Content>
