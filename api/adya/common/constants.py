@@ -125,3 +125,9 @@ class PolicyConditionMatch(Enum):
 
 class ResponseType(Enum):
     ERROR = 'error'
+
+
+class DocType(Enum):
+    PUBLIC_COUNT = 'Shared public links'
+    EXTERNAL_COUNT = 'Shared with users outside company'
+    DOMAIN_COUNT = 'Shared across company'
