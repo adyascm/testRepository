@@ -334,11 +334,13 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
         messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params)
 
-    print "Getting all users app and its scope"
-    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-    userEmailList = {}
-    userEmailList["userEmailList"] = user_email_list
-    messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
+    #Scan apps only for service account
+    if datasource.is_serviceaccount_enabled:
+        print "Getting all users app and its scope"
+        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
+        userEmailList = {}
+        userEmailList["userEmailList"] = user_email_list
+        messaging.trigger_post_event(constants.SCAN_USERS_APP,auth_token, query_params,userEmailList)
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
