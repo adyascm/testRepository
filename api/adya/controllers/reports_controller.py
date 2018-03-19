@@ -4,6 +4,7 @@ import uuid
 
 from flask import request
 
+from adya.common.constants import DocType
 from adya.controllers import domain_controller
 from adya.datasources.google import activities
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, \
@@ -87,7 +88,7 @@ def get_widget_data(auth_token, widget_id):
                 public_count = share_type[1]
             elif share_type[0] == constants.ResourceExposureType.DOMAIN:
                 domain_count = share_type[1]
-        data["rows"] = [["Shared public links", public_count], ["Shared with users outside company", external_count], ["Shared across company", domain_count]]
+        data["rows"] = [[DocType.PUBLIC_COUNT, public_count], [DocType.EXTERNAL_COUNT, external_count], [DocType.DOMAIN_COUNT, domain_count]]
         data["totalCount"] = public_count + external_count + domain_count
 
     elif widget_id == 'sharedDocsList':

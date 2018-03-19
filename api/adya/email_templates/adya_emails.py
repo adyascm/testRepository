@@ -76,11 +76,11 @@ def get_gdrive_scan_completed_parameters(datasource):
         countPublicSharedDocs = 0
 
         for item in countSharedDocumentsByType:
-            if item[0] == constants.ResourceExposureType.DOMAIN:
+            if item[0] == constants.DocType.DOMAIN_COUNT:
                 countDomainSharedDocs = item[1]
-            elif item[0] == constants.ResourceExposureType.EXTERNAL:
+            elif item[0] == constants.DocType.EXTERNAL_COUNT:
                 countExternalSharedDocs = item[1]
-            elif item[0] == constants.ResourceExposureType.PUBLIC:
+            elif item[0] == constants.DocType.PUBLIC_COUNT:
                 countPublicSharedDocs = item[1]
 
         countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs
