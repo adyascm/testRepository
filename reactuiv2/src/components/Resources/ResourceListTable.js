@@ -5,6 +5,7 @@ import { Loader, Dimmer, Button, Table, Dropdown, Form } from 'semantic-ui-react
 
 import agent from '../../utils/agent';
 import DateComponent from '../DateComponent';
+import ResourceSearch from '../Search/ResourceSearch'
 
 import {
     RESOURCES_PAGE_LOADED,
@@ -153,7 +154,9 @@ class ResourcesListTable extends Component {
                             </Table.Header>
                             <Table.Body>
                                 <Table.Row>
-                                    <Table.Cell></Table.Cell>
+                                    <Table.Cell>
+                                        <ResourceSearch />
+                                    </Table.Cell>
                                     <Table.Cell>
                                         <Form>
                                             <Form.Field>
