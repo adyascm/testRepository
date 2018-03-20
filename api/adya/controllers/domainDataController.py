@@ -9,14 +9,12 @@ from adya.datasources.google import gutils
 
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
-    existing_user = db_session.query(DomainUser, LoginUser).filter(and_(LoginUser.auth_token == auth_token,
-                                                                        LoginUser.email == DomainUser.email)).first()
-
-    is_admin = existing_user.DomainUser.is_admin
-    user_domain_id = existing_user.LoginUser.domain_id
-    login_user_email = existing_user.LoginUser.email
-    is_service_account_is_enabled = existing_user.LoginUser.is_serviceaccount_enabled
-
+    existing_user = auth_controller.get_user_session(auth_token)
+    user_domain_id = existing_user.domain_id
+    login_user_email = existing_user.email
+    is_admin = existing_user.is_admin
+    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+    
     datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(
         DataSource.domain_id == user_domain_id).all()
 

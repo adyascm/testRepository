@@ -80,16 +80,12 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     page_limit = page_limit if page_limit else constants.PAGE_LIMIT
 
     db_session = db_connection().get_session()
+    existing_user = auth_controller.get_user_session(auth_token)
+    user_domain_id = existing_user.domain_id
+    loggged_in_user_email = existing_user.email
+    is_admin = existing_user.is_admin
 
-    existing_user = db_session.query(DomainUser.is_admin, LoginUser.email).filter(
-        LoginUser.auth_token == auth_token).filter(LoginUser.email == DomainUser.email).first()
-
-    data = list(existing_user)
-    loggged_in_user_email = data[1]
-    is_admin = data[0]
-
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token).all()
+    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in domain_datasource_ids]
     resources = []
     resource_alias = aliased(Resource)
