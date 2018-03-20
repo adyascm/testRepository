@@ -251,6 +251,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
         permission_type.append(constants.ResourceExposureType.DOMAIN)
+        permission_type.append(constants.ResourceExposureType.INTERNAL)
 
     shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                             Resource.resource_owner_id == user_email, Resource.exposure_type.in_(permission_type))).all()
@@ -278,6 +279,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
             else:
                 return response_messages.ResponseMessage(200, 'Action completed successfully')
     return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
+
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, removal_type):
     db_session = db_connection().get_session()
@@ -335,6 +337,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
             else:
                 return response_messages.ResponseMessage(200, 'Action completed successfully')
     return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
+
 
 def modify_group_membership(auth_token, datasource_id, action_name, action_parameters):
     user_email = action_parameters["user_email"]

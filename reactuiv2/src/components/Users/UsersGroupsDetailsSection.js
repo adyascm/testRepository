@@ -114,10 +114,16 @@ class UsersGroupsDetailsSection extends Component {
             return null;
         else {
             let panes = [
-                { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
-                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
-                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> },
+                { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> }
             ]
+            let extraPanes = [
+                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
+                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> }
+            ]
+
+            if (this.props.selectedUserItem["member_type"] !== 'EXT')
+                panes.push(...extraPanes)
+
             return (
                 <Segment>
                     {/* <Sticky> */}

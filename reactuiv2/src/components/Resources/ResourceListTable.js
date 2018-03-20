@@ -5,6 +5,8 @@ import { Loader, Dimmer, Button, Table, Dropdown, Form, Input } from 'semantic-u
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 
 import {
@@ -61,6 +63,10 @@ class ResourcesListTable extends Component {
             {
                 text: 'All Files',
                 value: 'ALL'
+            },
+            {
+                text: 'Publicly Shared',
+                value: 'PUBLIC'
             }
         ]
     }
@@ -78,8 +84,12 @@ class ResourcesListTable extends Component {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'permissionType': nextProps.filterPermissionType }))
             }
+            if (nextProps.filterResourceType !== this.state.filterResourceType)
+                this.setState({
+                    filterResourceType: nextProps.filterResourceType
+                })
         }
     }
 
@@ -104,6 +114,10 @@ class ResourcesListTable extends Component {
         this.setState({
             filterEmailId: event.target.value
         })
+    }
+
+    handleDateChange = (date) => {
+        console.log("date change : ", date.format())
     }
 
     handleKeyPress = (event, filterType, filterValue) => {
@@ -142,11 +156,11 @@ class ResourcesListTable extends Component {
                 return (
                     <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
-                        <Table.Cell>{rowData["resource_type"]}</Table.Cell>
+                        <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell textAlign="center">{rowData["exposure_type"]}</Table.Cell>
-                        <Table.Cell>{rowData["parent_name"]}</Table.Cell>
-                        <Table.Cell><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
+                        <Table.Cell textAlign='center'>{rowData["exposure_type"]}</Table.Cell>
+                        <Table.Cell width='3'>{rowData["parent_name"]}</Table.Cell>
+                        <Table.Cell width='2'><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
                     </Table.Row>
                 )
             })
@@ -173,13 +187,14 @@ class ResourcesListTable extends Component {
                                         <ResourceSearch />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
+                                        <Input fluid placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by email...' value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
+                                        <Input fluid placeholder='Filter by email...' value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Dropdown
+                                            fluid
                                             options={this.exposureFilterOptions}
                                             selection
                                             value={this.props.filterExposureType === '' ? 'ALL' : this.props.filterExposureType}
@@ -187,10 +202,11 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by folder...' />
+                                        <Input fluid placeholder='Filter by folder...' />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by date...' />
+                                        {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
+                                        <DatePicker onChange={this.handleDateChange} />
                                     </Table.Cell>
                                 </Table.Row>
                                 {tableRowData}

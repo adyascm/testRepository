@@ -70,9 +70,9 @@ class Resources extends Component {
     else if (this.props.location.search.includes("Folders")) {
       this.props.changeFilter("filterExposureType",'')
       this.props.changeFilter("filterResourceType", 'folder')
-      this.setState({
-        filterResourceType: 'folder'
-      });
+      // this.setState({
+      //   filterResourceType: 'folder'
+      // });
     }
 
     // this.setState({
