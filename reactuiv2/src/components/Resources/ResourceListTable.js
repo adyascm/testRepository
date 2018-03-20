@@ -148,52 +148,59 @@ class ResourcesListTable extends Component {
             </Dimmer>
         )
 
-        return (
-            <div>
-                <div style={{ 'minHeight': document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
-                    <Table celled selectable striped compact='very' sortable>
-                        <Table.Header>
-                            <Table.Row>
-                                {tableHeaders}
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            <Table.Row>
-                                <Table.Cell>
-                                    <ResourceSearch />
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Input placeholder='Filter by email...' />
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Dropdown
-                                        options={this.exposureFilterOptions}
-                                        selection
-                                        value={this.props.filterExposureType === '' ? 'ALL' : this.props.filterExposureType}
-                                        onChange={this.handleExposureTypeChange}
-                                    />
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Input placeholder='Filter by folder...' />
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Input placeholder='Filter by date...' />
-                                </Table.Cell>
-                            </Table.Row>
-                            {tableRowData}
-                        </Table.Body>
-                        {this.props.isLoading ? dimmer : null}
-                    </Table>
+        if (this.props.isLoading || resourceData)
+            return (
+                <div>
+                    <div style={{ 'minHeight': document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                        <Table celled selectable striped compact='very' sortable>
+                            <Table.Header>
+                                <Table.Row>
+                                    {tableHeaders}
+                                </Table.Row>
+                            </Table.Header>
+                            <Table.Body>
+                                <Table.Row>
+                                    <Table.Cell>
+                                        <ResourceSearch />
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <Input placeholder='Filter by email...' />
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <Dropdown
+                                            options={this.exposureFilterOptions}
+                                            selection
+                                            value={this.props.filterExposureType === '' ? 'ALL' : this.props.filterExposureType}
+                                            onChange={this.handleExposureTypeChange}
+                                        />
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <Input placeholder='Filter by folder...' />
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <Input placeholder='Filter by date...' />
+                                    </Table.Cell>
+                                </Table.Row>
+                                {tableRowData}
+                            </Table.Body>
+                            {this.props.isLoading ? dimmer : null}
+                        </Table>
+                    </div>
+                    <div style={{ marginTop: '5px' }} >
+                        {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                        {this.props.pageNumber !== 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                    </div>
                 </div>
-                <div style={{ marginTop: '5px' }} >
-                    {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                    {this.props.pageNumber !== 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+            )
+        else
+            return (
+                <div style={{ textAlign: 'center' }}>
+                    No Resources to display for user 
                 </div>
-            </div>
-        )
+            )
     }
 }
 

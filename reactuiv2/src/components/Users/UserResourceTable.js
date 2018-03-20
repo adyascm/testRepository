@@ -76,6 +76,13 @@ class UserResourceTable extends Component {
             this.props.onChangePermission("update_permission_for_user", resourceData, newValue);
     }
 
+    handleNextClick = () => {
+        this.props.setPaginationData(this.props.pageNumber+1,this.props.pageLimit)
+    }
+
+    handlePreviousClick = () => {
+        this.props.setPaginationData(this.props.pageNumber-1,this.props.pageLimit)
+    }
 
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
@@ -119,23 +126,35 @@ class UserResourceTable extends Component {
                     </Dimmer>
                 </div>
             )
-
-        return (
-            <div>
-                <div>
-                    <Table celled selectable striped>
-                        <Table.Header>
-                            <Table.Row>
-                                {tableHeaders}
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            {tableRowData}
-                        </Table.Body>
-                    </Table>
-                </div>
-            </div>
-        )
+        else {
+            if (this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length)
+                return (
+                    <div>
+                        <div>
+                            <Table celled selectable striped>
+                                <Table.Header>
+                                    <Table.Row>
+                                        {tableHeaders}
+                                    </Table.Row>
+                                </Table.Header>
+                                <Table.Body>
+                                    {tableRowData}
+                                </Table.Body>
+                            </Table>
+                        </div>
+                        <div style={{ marginTop: '5px' }} >
+                            {this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length < this.props.pageLimit?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                            {this.props.pageNumber !== 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
+                        </div>
+                    </div>
+                )
+            else 
+                return (
+                    <div style={{ marginLeft: '30%' }}>
+                        No Resources to display for user 
+                    </div>
+                )
+        }        
     }
 }
 

@@ -226,13 +226,13 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
         shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                             Resource.resource_owner_id == user_email,
                             or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
+                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).all()
     else:
         shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                             Resource.resource_owner_id == user_email,
                             or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
                             Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
-                            Resource.exposure_type == constants.ResourceExposureType.DOMAIN)))
+                            Resource.exposure_type == constants.ResourceExposureType.DOMAIN))).all()
     
     response_data = {}
     for resource in shared_resources:
@@ -245,7 +245,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                     "role": ''
                 }
                 permission_changes.append(new_permission)
-        
+
         if len(permission_changes) > 0:
             resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
                                                                         permission_changes, user_email)
@@ -284,21 +284,19 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     db_session = db_connection().get_session()
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
                                                                  datasource_id, ResourcePermission.email == user_email,
-                                                                 ResourcePermission.permission_type != "owner")).group_by(ResourcePermission.resource_id).all()
+                                                                 ResourcePermission.permission_type != "owner")).all()
 
-    for resource_id in resource_permissions:
-        permissions = resource_permissions[resource_id]
+    for resource in resource_permissions:
         permission_changes = []
-        for permission in resource_permissions[resource_id]:
-            new_permission = {
-                "permissionId": permission.permission_id,
-                "emailAddress": permission.email,
-                "role": ''
-            }
-            permission_changes.append(new_permission)
+        new_permission = {
+            "permissionId": resource.permission_id,
+            "emailAddress": resource.email,
+            "role": ''
+        }
+        permission_changes.append(new_permission)
         
         if len(permission_changes) > 0:
-            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id,
+            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
                                                                         permission_changes, user_email)
             resource_actions_handler.add_or_update_permission()
     return response_messages.ResponseMessage(202, "Action submitted successfully")
@@ -345,7 +343,8 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
         old_owner_email = action_parameters["old_owner_email"]
         new_owner_email = action_parameters["new_owner_email"]
-        return actions.transfer_ownership(auth_token, old_owner_email, new_owner_email)
+        response = actions.transfer_ownership(auth_token, old_owner_email, new_owner_email)
+        return response_messages.ResponseMessage(202, "Action submitted successfully")
 
     #Bulk permission change actions for user
     elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:

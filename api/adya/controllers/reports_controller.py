@@ -314,7 +314,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
 
     elif report_type == "Activity":
         if selected_entity_type == "user":
-            get_activity_report = activities.get_activities_for_user(auth_token, domain_id, datasource_id,
+            get_activity_report = activities.get_activities_for_user(auth_token,
                                                                      selected_entity,
                                                                      last_run_time)
             for datalist in get_activity_report:
