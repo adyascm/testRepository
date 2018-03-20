@@ -181,6 +181,7 @@ def process_notifications(datasource_id, channel_id):
                 print "should_mark_in_progress "
                 db_session.refresh(subscription)
                 subscription.in_progress = 1
+                subscription.last_accessed = datetime.datetime.utcnow().isoformat()
                 db_connection().commit()
                 should_mark_in_progress = False
 
