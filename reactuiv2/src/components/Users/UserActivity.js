@@ -3,7 +3,7 @@ import agent from '../../utils/agent'
 import { Loader, Dimmer } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
-
+import DateComponent from '../DateComponent';
 
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
@@ -37,6 +37,7 @@ class UserActivity extends Component {
             columnDefs: [
                 {
                     headerName: "Date",
+                    cellRendererFramework: DateComponent,
                     valueGetter: params => {
                         return params.data[0];
                     }
@@ -121,7 +122,7 @@ class UserActivity extends Component {
         else{
             return (
                 <div style={{ marginLeft: '30%' }}>
-                    No activities to display for user 
+                    No activities to display for user
                 </div>
             )
         }
