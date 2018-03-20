@@ -41,7 +41,8 @@ class ResourcesListTable extends Component {
                 "Parent Folder",
                 "Last Modified"
             ],
-            filterResourceType: ""
+            filterResourceType: "",
+            filterEmailId: ""
         }
 
         this.exposureFilterOptions = [
@@ -75,9 +76,9 @@ class ResourcesListTable extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-                nextProps.pageNumber !== this.props.pageNumber) {
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
             }
         }
     }
@@ -99,9 +100,17 @@ class ResourcesListTable extends Component {
         });
     }
 
-    handleKeyPress = (event) => {
+    handleEmailIdChange = (event) => {
+        this.setState({
+            filterEmailId: event.target.value
+        })
+    }
+
+    handleKeyPress = (event, filterType, filterValue) => {
         if (event.key === 'Enter') {
-            this.props.changeFilter("filterResourceType", this.state.filterResourceType);
+            console.log("filterType : ", filterType)
+            console.log("filterValue : ", filterValue)
+            this.props.changeFilter(filterType, filterValue);
         }
     }
 
@@ -164,10 +173,10 @@ class ResourcesListTable extends Component {
                                         <ResourceSearch />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
+                                        <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by email...' />
+                                        <Input placeholder='Filter by email...' value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Dropdown

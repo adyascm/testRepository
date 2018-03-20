@@ -15,7 +15,8 @@ const defaultState = {
     isLoading: false,
     filterExposureType: 'EXT',
     filterResourceName: '',
-    filterResourceType: ''
+    filterResourceType: '',
+    filterEmailId: ''
 };
 
 export default (state = defaultState, action) => {
@@ -132,7 +133,10 @@ export default (state = defaultState, action) => {
                 action: undefined
             }
         case RESOURCES_FILTER_CHANGE:
-            state[action.property] = action.value
+            if (action.property === 'filterEmailId')
+                state[action.property] = action.value?[action.value]:[]
+            else 
+                state[action.property] = action.value
             return {
                 ...state,
                 isLoading: true
