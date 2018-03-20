@@ -10,7 +10,7 @@ import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown'
 const LoggedOutView = props => {
     if (!props.currentUser) {
         return (
-            <Container>
+            <Container fluid>
                 <Menu.Item as={Link} to="/" header>
                     <Image size='tiny' src={AdyaLogo} />
                 </Menu.Item>
@@ -26,7 +26,7 @@ const LoggedInView = props => {
         // var disableUserItem = (props["usersCount"] && props["usersCount"]["data"]>0)?false:true
         // var disableResourceItem = (props["filesCount"] && props["filesCount"]["data"]>0)?false:true
         return (
-            <Container>
+            <Container fluid>
                 <Menu.Item as={Link} to="/" header>
                     <Image size='tiny' src={AdyaLogo} onClick={() => props.handleClick("/")} />
                 </Menu.Item>

@@ -60,7 +60,7 @@ class Dashboard extends Component {
     }
 
     return (
-      <Container>
+      <Container fluid>
         <Card.Group itemsPerRow='4'>
           {
             this.simpleWidgetConfigs.map(config => {
