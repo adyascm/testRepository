@@ -129,6 +129,13 @@ class ManageDataSources extends Component {
       )
     }
     else {
+      if (this.props.currentUser.is_serviceaccount_enabled && !this.props.currentUser.is_admin) {
+        return (
+          <Container>
+            You are not authorized to manage datasources. Please contact your administrator.
+            </Container>
+        )
+      }
       return (
         <Container>
           <Card.Group>
