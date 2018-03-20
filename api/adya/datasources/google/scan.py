@@ -554,10 +554,10 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
             adya_emails.send_gdrive_scan_completed_email(datasource)
 
-            if constants.DEPLOYMENT_ENV != "local":
-                query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
-                print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id)
-                messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret", query_params, {})
+            #if constants.DEPLOYMENT_ENV != "local":
+                #query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
+                #print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id)
+                #messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret", query_params, {})
 
 def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
