@@ -150,7 +150,7 @@ class ResourcesListTable extends Component {
 
         return (
             <div>
-                <div style={{ 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                <div style={{ 'minHeight': document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
                     <Table celled selectable striped compact='very' sortable>
                         <Table.Header>
                             <Table.Row>
