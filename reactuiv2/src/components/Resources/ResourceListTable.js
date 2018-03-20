@@ -84,7 +84,7 @@ class ResourcesListTable extends Component {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'permissionType': nextProps.filterPermissionType }))
             }
             if (nextProps.filterResourceType !== this.state.filterResourceType)
                 this.setState({
@@ -158,7 +158,7 @@ class ResourcesListTable extends Component {
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
+                        <Table.Cell textAlign='center'>{rowData["exposure_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["parent_name"]}</Table.Cell>
                         <Table.Cell width='2'><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
                     </Table.Row>
