@@ -3,6 +3,7 @@ from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,Reso
 from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import aliased
 from adya.common import constants
+from adya.controllers import auth_controller
 
 # def get_resource_tree(auth_token, parent_id,emailList=None):
 #     if not auth_token:

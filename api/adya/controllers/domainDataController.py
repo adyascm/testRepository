@@ -5,7 +5,7 @@ from sqlalchemy import and_, desc
 import json
 from adya.common import utils
 from adya.datasources.google import gutils
-
+from adya.controllers import auth_controller
 
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
