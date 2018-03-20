@@ -44,9 +44,11 @@ def get_applicationDataTransfers_for_gdrive(datatransfer_service):
     applicationDataTransfers = []
     if not applications:
         return applicationDataTransfers
+
     
     for application in applications:
         if application['name'] == 'Drive and Docs':
+            applicationDataTransfer = {}
             applicationDataTransfer['applicationId'] = application['id']
             applicationDataTransfer['applicationTransferParams'] = application['transferParams']
             applicationDataTransfers.append(applicationDataTransfer)

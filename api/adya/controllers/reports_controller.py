@@ -5,7 +5,7 @@ import uuid
 from flask import request
 
 from adya.common.constants import DocType
-from adya.controllers import domain_controller
+from adya.controllers import domain_controller, common
 from adya.datasources.google import activities
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, alchemy_encoder
@@ -18,12 +18,11 @@ def get_widget_data(auth_token, widget_id):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
-    existing_user = db_session.query(DomainUser.is_admin, LoginUser).filter(and_(LoginUser.auth_token == auth_token,
-                                                                                 DomainUser.email == LoginUser.email)).first()
-    user_domain_id = existing_user.LoginUser.domain_id
-    login_user_email = existing_user.LoginUser.email
+    existing_user = common.get_user_session(auth_token)
+    user_domain_id = existing_user.domain_id
+    login_user_email = existing_user.email
     is_admin = existing_user.is_admin
-    is_service_account_is_enabled = existing_user.LoginUser.is_serviceaccount_enabled
+    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
 
     domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
         DataSource.domain_id == user_domain_id).all()
@@ -314,7 +313,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
 
     elif report_type == "Activity":
         if selected_entity_type == "user":
-            get_activity_report = activities.get_activities_for_user(auth_token, domain_id, datasource_id,
+            get_activity_report = activities.get_activities_for_user(auth_token,
                                                                      selected_entity,
                                                                      last_run_time)
             for datalist in get_activity_report:

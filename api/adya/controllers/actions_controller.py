@@ -199,53 +199,57 @@ def create_watch_report(auth_token, datasource_id, action_payload):
 
 def change_resource_permission(auth_token, datasource_id, action_payload):
     action_parameters = action_payload['parameters']
-    user_email = action_parameters['user_email']
-    resource_id = action_parameters['resource_id']
-    resource_owner = action_parameters['resource_owner_id']
     new_permission_role = action_parameters['new_permission_role']
     user_type = action_parameters['user_type'] if 'user_type' in action_parameters else 'user'
-    db_session = db_connection().get_session()
-    existing_permission = db_session.query(ResourcePermission).filter(
-                    and_(ResourcePermission.resource_id == resource_id,
-                        ResourcePermission.datasource_id == datasource_id,
-                        ResourcePermission.email == user_email)).first()
-    permission_object = {
-        "permissionId": existing_permission.permission_id if existing_permission else '',
-        "role": new_permission_role,
-        "type": user_type,
-        "emailAddress": user_email
-    }
+    resource_id = action_parameters['resource_id']
+    if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        permission_object = {
+            "role": new_permission_role,
+            "type": user_type,
+            "emailAddress": action_parameters['new_owner_email']
+        }
+        resource_owner = action_parameters['old_owner_email']
+
+    else:
+         user_email = action_parameters['user_email']
+         resource_owner = action_parameters['resource_owner_id']
+         db_session = db_connection().get_session()
+         existing_permission = db_session.query(ResourcePermission).filter(
+                            and_(ResourcePermission.resource_id == resource_id,
+                                ResourcePermission.datasource_id == datasource_id,
+                                ResourcePermission.email == user_email)).first()
+         permission_object = {
+                "permissionId": existing_permission.permission_id if existing_permission else '',
+                "role": new_permission_role,
+                "type": user_type,
+                "emailAddress": user_email
+            }
 
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id, [permission_object], resource_owner)
     return gsuite_action.add_or_update_permission()
 
+
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, removal_type):
     db_session = db_connection().get_session()
-        
-    if removal_type == constants.ResourceExposureType.EXTERNAL:
-        shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
-                            Resource.resource_owner_id == user_email,
-                            or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
-    else:
-        shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
-                            Resource.resource_owner_id == user_email,
-                            or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                            Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
-                            Resource.exposure_type == constants.ResourceExposureType.DOMAIN)))
+    permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+    if not removal_type == constants.ResourceExposureType.EXTERNAL:
+        permission_type.append(constants.ResourceExposureType.DOMAIN)
+
+    shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
+                            Resource.resource_owner_id == user_email, Resource.exposure_type.in_(permission_type))).all()
     
     response_data = {}
     for resource in shared_resources:
         permission_changes = []
         for permission in resource.permissions:
-            if permission.email != user_email:
+            if permission.exposure_type in permission_type and permission.email != user_email:
                 new_permission = {
                     "permissionId": permission.permission_id,
                     "emailAddress": permission.email,
                     "role": ''
                 }
                 permission_changes.append(new_permission)
-        
+
         if len(permission_changes) > 0:
             resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
                                                                         permission_changes, user_email)
@@ -254,11 +258,12 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, removal_type):
     db_session = db_connection().get_session()
-    resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id == resource_id))
+    resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id == resource_id)).all()
     permission_changes = []
-    for permission in resource.permissions:
+    for permission in resource[0].permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
-            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
+            permission_exposure_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+            if permission.exposure_type in permission_exposure_type:
                 new_permission = {
                     "permissionId": permission.permission_id,
                     "emailAddress": permission.email,
@@ -275,7 +280,8 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
                 permission_changes.append(new_permission)
         
     if len(permission_changes) > 0:
-        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id, permission_changes, user_email)
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource[0].resource_id,
+                                                                             permission_changes, resource[0].resource_owner_id)
         resource_actions_handler.add_or_update_permission()
     return response_messages.ResponseMessage(202, "Action submitted successfully")
 
@@ -284,21 +290,19 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     db_session = db_connection().get_session()
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
                                                                  datasource_id, ResourcePermission.email == user_email,
-                                                                 ResourcePermission.permission_type != "owner")).group_by(ResourcePermission.resource_id).all()
+                                                                 ResourcePermission.permission_type != "owner")).all()
 
-    for resource_id in resource_permissions:
-        permissions = resource_permissions[resource_id]
+    for resource in resource_permissions:
         permission_changes = []
-        for permission in resource_permissions[resource_id]:
-            new_permission = {
-                "permissionId": permission.permission_id,
-                "emailAddress": permission.email,
-                "role": ''
-            }
-            permission_changes.append(new_permission)
+        new_permission = {
+            "permissionId": resource.permission_id,
+            "emailAddress": resource.email,
+            "role": ''
+        }
+        permission_changes.append(new_permission)
         
         if len(permission_changes) > 0:
-            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id,
+            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
                                                                         permission_changes, user_email)
             resource_actions_handler.add_or_update_permission()
     return response_messages.ResponseMessage(202, "Action submitted successfully")
@@ -345,7 +349,8 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
         old_owner_email = action_parameters["old_owner_email"]
         new_owner_email = action_parameters["new_owner_email"]
-        return actions.transfer_ownership(auth_token, old_owner_email, new_owner_email)
+        response = actions.transfer_ownership(auth_token, old_owner_email, new_owner_email)
+        return response_messages.ResponseMessage(202, "Action submitted successfully")
 
     #Bulk permission change actions for user
     elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
@@ -376,7 +381,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
         return change_resource_permission(auth_token, datasource_id, action_payload)
     elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-        action_parameters['new_permission_role'] = ''
+        action_parameters['new_permission_role'] = constants.Role.OWNER
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
         return change_resource_permission(auth_token, datasource_id, action_payload)
