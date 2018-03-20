@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  //changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
+  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
 });
 
 
@@ -93,7 +93,7 @@ class Resources extends Component {
 
       
     return (
-      <Container style={containerStyle}>
+      <Container fluid style={containerStyle}>
         <Grid divided='vertically' stretched >
           {/* <Grid.Row >
             <Grid.Column stretched width="5">

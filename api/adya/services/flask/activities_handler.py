@@ -16,4 +16,4 @@ class get_activities_for_user(Resource):
 
         user_email = req_session.get_req_param('user_email')
         response = activities.get_activities_for_user(auth_token, user_email, None)
-        return req_session.generate_response(200, json.dumps(response))
+        return req_session.generate_response(200, response)

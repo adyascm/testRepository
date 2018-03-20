@@ -84,7 +84,7 @@ class AuditLog extends Component {
         }
         else {
             return (
-                <Container style={containerStyle}>
+                <Container fluid style={containerStyle}>
                 <div className="ag-theme-fresh" style={{ "height": document.body.clientHeight }}>
                     <AgGridReact
                         id="myGrid" 

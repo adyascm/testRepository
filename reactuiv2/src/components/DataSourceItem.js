@@ -11,14 +11,7 @@ const DataSourceItem = props => {
         ev.preventDefault();
         props.onDelete(datasource);
     };
-    // const onScanButtonClick = (e) => {
-    //     console.log("onclick scan called")
-    //     e.preventDefault();
-    //     agent.Setting.processNotifications().then(res => {
-    //         console.log(res);
-    //     });
-    // }
-
+    
     const getScanStatus = (datasource) => {
         var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
         if (datasource.total_file_count === 0)
