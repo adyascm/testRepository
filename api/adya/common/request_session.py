@@ -7,7 +7,7 @@ from adya.db.connection import db_connection
 
 class RequestSession():
     def __init__(self, req):
-        self.req = req
+        self.req = req if req else {}
         self.auth_token = None
         self.params = {}
         self.headers = {}

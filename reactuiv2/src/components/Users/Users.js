@@ -33,7 +33,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: USERS_PAGE_UNLOADED }),
   onLoadStart: () =>
     dispatch({ type: USERS_PAGE_LOAD_START }),
-  flagUsersError: (error, info) => 
+  flagUsersError: (error, info) =>
     dispatch({ type: ADD_APP_MESSAGE, error, info })
 });
 
@@ -80,11 +80,11 @@ class Users extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT') && this.state.showOnlyExternal) 
+    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT') && this.state.showOnlyExternal)
       this.setState({
         showOnlyExternal: false
       })
-    
+
     if (nextProps.userPayload && nextProps.userPayload.length === 0 && !this.state.usersEmpty) {
       this.props.flagUsersError("There are no users to display", undefined)
       this.setState({
@@ -105,62 +105,53 @@ class Users extends Component {
     };
 
     var gridWidth = 16;
-    
+
     if (this.props.users.selectedUserItem) {
       gridWidth = 4;
     }
+    let dimmer = (<Dimmer active inverted><Loader inverted content='Loading' /></Dimmer>)
+    var flatList = (<UserList showOnlyExternal={this.state.showOnlyExternal} />)
+    var treeView = (<UsersTree showOnlyExternal={this.state.showOnlyExternal} />)
+    return (
+      <Container style={containerStyle}>
+        
+        <Grid divided='vertically' stretched>
+          <Grid.Row >
+            <Grid.Column stretched width="5">
+              <Checkbox toggle
+                label='Show only external users'
+                onChange={this.toggleExternalUserView}
+                checked={this.state.showOnlyExternal}
+              />
+            </Grid.Column>
+            <Grid.Column stretched width="5">
+              <Checkbox toggle
+                label='Show groups tree'
+                onChange={this.toggleHierarchyView}
+                checked={this.state.showHierarchy}
+              />
+            </Grid.Column>
+          </Grid.Row>
 
-    if (this.props.isLoading) {
-      return (
-        <Container style={containerStyle}>
-          <Dimmer active inverted>
-            <Loader inverted content='Loading' />
-          </Dimmer>
-        </Container >
-      )
-    }
-    else {
-      var flatList = (<UserList showOnlyExternal={this.state.showOnlyExternal} />)
-      var treeView = (<UsersTree showOnlyExternal={this.state.showOnlyExternal} />)
-      return (
-        <Container style={containerStyle}>
-          <Grid divided='vertically' stretched>
-            <Grid.Row >
-              <Grid.Column stretched width="5">
-                <Checkbox toggle
-                  label='Show only external users'
-                  onChange={this.toggleExternalUserView}
-                  checked={this.state.showOnlyExternal}
-                />
-              </Grid.Column>
-              <Grid.Column stretched width="5">
-                <Checkbox toggle
-                  label='Show groups tree'
-                  onChange={this.toggleHierarchyView}
-                  checked={this.state.showHierarchy}
-                />
-              </Grid.Column>
-            </Grid.Row>
-
-            <Grid.Row stretched>
-              <Grid.Column stretched width={gridWidth}> 
-                {!this.state.showHierarchy ? flatList : treeView}
-              </Grid.Column>
-              {
-                this.props.users.selectedUserItem?
+          <Grid.Row stretched>
+            <Grid.Column stretched width={gridWidth}>
+              {this.props.isLoading ? dimmer : null}
+              {!this.state.showHierarchy ? flatList : treeView}
+            </Grid.Column>
+            {
+              this.props.users.selectedUserItem ?
                 (<Grid.Column width='12'>
-                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
+                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem} />
                 </Grid.Column>) : null
-              }
-              {/* <Grid.Column width={16 - gridWidth}>
+            }
+            {/* <Grid.Column width={16 - gridWidth}>
                 <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
               </Grid.Column> */}
-            </Grid.Row>
-          </Grid>
-          <Actions />
-        </Container >
-      )
-    }
+          </Grid.Row>
+        </Grid>
+        <Actions />
+      </Container >
+    )
   }
 }
 
