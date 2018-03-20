@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Tab, Segment, Icon, Grid, Dropdown, Container } from 'semantic-ui-react';
 import UserDetails from './UserDetails';
 import UserResource from './UserResource';
+import UserResourceTable from './UserResourceTable'
 import UserActivity from './UserActivity';
 import UserApps from '../UserApp/UserApps';
 import agent from '../../utils/agent'
@@ -102,7 +103,8 @@ class UsersGroupsDetailsSection extends Component {
 
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
-                        <UserResource filterExposureType={this.props.filterExposureType}/>
+                        {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
+                        <UserResourceTable filterExposureType={this.props.filterExposureType} />
                     </Grid.Row>
                 </Grid>
             </Container>
