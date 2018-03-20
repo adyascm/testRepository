@@ -5,6 +5,8 @@ import { Loader, Dimmer, Button, Table, Dropdown, Form, Input } from 'semantic-u
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 
 import {
@@ -110,6 +112,10 @@ class ResourcesListTable extends Component {
         })
     }
 
+    handleDateChange = (date) => {
+        console.log("date change : ", date.format())
+    }
+
     handleKeyPress = (event, filterType, filterValue) => {
         if (event.key === 'Enter') {
             console.log("filterType : ", filterType)
@@ -195,7 +201,8 @@ class ResourcesListTable extends Component {
                                         <Input fluid placeholder='Filter by folder...' />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by date...' />
+                                        {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
+                                        <DatePicker onChange={this.handleDateChange} />
                                     </Table.Cell>
                                 </Table.Row>
                                 {tableRowData}
