@@ -63,6 +63,10 @@ class ResourcesListTable extends Component {
             {
                 text: 'All Files',
                 value: 'ALL'
+            },
+            {
+                text: 'Publicly Shared',
+                value: 'PUBLIC'
             }
         ]
     }
