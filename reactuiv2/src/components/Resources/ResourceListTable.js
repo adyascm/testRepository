@@ -41,7 +41,8 @@ class ResourcesListTable extends Component {
                 "Parent Folder",
                 "Last Modified"
             ],
-            filterResourceType: ""
+            filterResourceType: "",
+            filterEmailId: ""
         }
 
         this.exposureFilterOptions = [
@@ -75,10 +76,14 @@ class ResourcesListTable extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-                nextProps.pageNumber !== this.props.pageNumber) {
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit }))
             }
+            if (nextProps.filterResourceType !== this.state.filterResourceType)
+                this.setState({
+                    filterResourceType: nextProps.filterResourceType
+                })
         }
     }
 
@@ -99,9 +104,17 @@ class ResourcesListTable extends Component {
         });
     }
 
-    handleKeyPress = (event) => {
+    handleEmailIdChange = (event) => {
+        this.setState({
+            filterEmailId: event.target.value
+        })
+    }
+
+    handleKeyPress = (event, filterType, filterValue) => {
         if (event.key === 'Enter') {
-            this.props.changeFilter("filterResourceType", this.state.filterResourceType);
+            console.log("filterType : ", filterType)
+            console.log("filterValue : ", filterValue)
+            this.props.changeFilter(filterType, filterValue);
         }
     }
 
@@ -133,11 +146,11 @@ class ResourcesListTable extends Component {
                 return (
                     <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
-                        <Table.Cell>{rowData["resource_type"]}</Table.Cell>
+                        <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell textAlign="center">{rowData["exposure_type"]}</Table.Cell>
-                        <Table.Cell>{rowData["parent_name"]}</Table.Cell>
-                        <Table.Cell><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
+                        <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
+                        <Table.Cell width='3'>{rowData["parent_name"]}</Table.Cell>
+                        <Table.Cell width='2'><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
                     </Table.Row>
                 )
             })
@@ -151,7 +164,7 @@ class ResourcesListTable extends Component {
         if (this.props.isLoading || resourceData)
             return (
                 <div>
-                    <div style={{ 'minHeight': document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                    <div style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header>
                                 <Table.Row>
@@ -164,13 +177,14 @@ class ResourcesListTable extends Component {
                                         <ResourceSearch />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
+                                        <Input fluid placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by email...' />
+                                        <Input fluid placeholder='Filter by email...' value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Dropdown
+                                            fluid
                                             options={this.exposureFilterOptions}
                                             selection
                                             value={this.props.filterExposureType === '' ? 'ALL' : this.props.filterExposureType}
@@ -178,10 +192,10 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by folder...' />
+                                        <Input fluid placeholder='Filter by folder...' />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input placeholder='Filter by date...' />
+                                        <Input fluid placeholder='Filter by date...' />
                                     </Table.Cell>
                                 </Table.Row>
                                 {tableRowData}
