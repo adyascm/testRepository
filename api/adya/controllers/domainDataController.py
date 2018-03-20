@@ -5,11 +5,11 @@ from sqlalchemy import and_, desc
 import json
 from adya.common import utils
 from adya.datasources.google import gutils
-from adya.controllers import auth_controller
+from adya.controllers import common
 
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
-    existing_user = auth_controller.get_user_session(auth_token)
+    existing_user = common.get_user_session(auth_token)
     user_domain_id = existing_user.domain_id
     login_user_email = existing_user.email
     is_admin = existing_user.is_admin

@@ -3,7 +3,7 @@ from adya.db.models import Resource,ResourcePermission,LoginUser,DataSource,Reso
 from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import aliased
 from adya.common import constants
-from adya.controllers import auth_controller
+from adya.controllers import common
 
 # def get_resource_tree(auth_token, parent_id,emailList=None):
 #     if not auth_token:
@@ -81,7 +81,7 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     page_limit = page_limit if page_limit else constants.PAGE_LIMIT
 
     db_session = db_connection().get_session()
-    existing_user = auth_controller.get_user_session(auth_token)
+    existing_user = common.get_user_session(auth_token)
     user_domain_id = existing_user.domain_id
     loggged_in_user_email = existing_user.email
     is_admin = existing_user.is_admin

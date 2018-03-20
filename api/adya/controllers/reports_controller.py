@@ -5,7 +5,7 @@ import uuid
 from flask import request
 
 from adya.common.constants import DocType
-from adya.controllers import domain_controller, auth_controller
+from adya.controllers import domain_controller, common
 from adya.datasources.google import activities
 from adya.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, alchemy_encoder
@@ -18,7 +18,7 @@ def get_widget_data(auth_token, widget_id):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
-    existing_user = auth_controller.get_user_session(auth_token)
+    existing_user = common.get_user_session(auth_token)
     user_domain_id = existing_user.domain_id
     login_user_email = existing_user.email
     is_admin = existing_user.is_admin
