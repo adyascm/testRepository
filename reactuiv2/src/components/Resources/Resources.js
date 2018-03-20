@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  //changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
+  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
 });
 
 
