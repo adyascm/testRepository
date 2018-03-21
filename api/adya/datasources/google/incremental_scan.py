@@ -270,7 +270,7 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                     "params": {"ttl": 86400}
                 }
 
-                response = drive_service.channels.stop(body=body)
+                response = drive_service.channels().stop(body=body)
                 print response
                 print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 
@@ -282,5 +282,5 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
     except Exception as ex:
         print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
             datasource_id, ex)
-        print json.loads(ex.content)
-        return json.loads(ex.content)
+        error_res = {'error': ex}
+        return error_res
