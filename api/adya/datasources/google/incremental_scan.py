@@ -269,7 +269,9 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                 "params": {"ttl": 86400}
             }
 
+
             unsubscribe_response = drive_service.channels().stop(body=body).execute()
+
             print "google unsubscribe response : ", unsubscribe_response
             print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 

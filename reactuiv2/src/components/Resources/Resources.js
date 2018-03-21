@@ -9,14 +9,17 @@ import Actions from '../actions/Actions';
 //import TestResourcesList from './TestResourcesList';
 import ResourcesListTable from './ResourceListTable'
 
-import {RESOURCES_FILTER_CHANGE} from '../../constants/actionTypes';
+import {  RESOURCES_FILTER_CHANGE,
+          RESOURCES_SEARCH_EMPTY
+      } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.resources
 });
 
 const mapDispatchToProps = dispatch => ({
-  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
+  changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value }),
+  clearSearchData: () => dispatch({ type: RESOURCES_SEARCH_EMPTY })
 });
 
 
@@ -78,6 +81,10 @@ class Resources extends Component {
     // this.setState({
     //   filterResourceType: this.props.filterResourceType
     // });
+  }
+
+  componentWillUnmount() {
+    this.props.clearSearchData()
   }
 
   render() {
