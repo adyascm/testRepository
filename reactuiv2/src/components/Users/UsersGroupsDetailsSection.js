@@ -80,8 +80,8 @@ class UsersGroupsDetailsSection extends Component {
       }
     }
 
-    handleAppAccessRevokeClick(event,domainId,datasourceId, clientId,userEmail) {
-        agent.Apps.revokeAppAccess(domainId,datasourceId, clientId,userEmail).then(resp =>{
+    handleAppAccessRevokeClick(event,datasourceId, clientId,userEmail) {
+        agent.Apps.revokeAppAccess(datasourceId, clientId,userEmail).then(resp =>{
             console.log(resp)
         })
     }

@@ -490,7 +490,7 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
 
 
-def revoke_user_app_access(auth_token, domain_id, datasource_id, user_email, client_id):
+def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
     try:
         driectory_service = gutils.get_directory_service(auth_token)
         driectory_service.tokens().delete(userKey=user_email, clientId=client_id).execute()
@@ -501,4 +501,4 @@ def revoke_user_app_access(auth_token, domain_id, datasource_id, user_email, cli
         db_connection().commit()
     except Exception as ex:
         print ex
-        print "Exception occurred while deleting app for domain: ", domain_id, " and datasource_id: ", datasource_id, " and user_email: ", user_email
+        print "Exception occurred while deleting app for datasource_id: ", datasource_id, " and user_email: ", user_email

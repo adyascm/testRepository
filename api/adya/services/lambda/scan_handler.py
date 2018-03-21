@@ -160,19 +160,20 @@ def get_user_app(event,context):
     scan.get_all_user_app(req_session.get_auth_token(), domain_id,datasource_id, user_email_list)
     return req_session.generate_response(202)    
 
+
 def revoke_user_app_access(event,context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId',"userEmail","clientId"])
+        True, ['dataSourceId', "userEmail","clientId"])
     if req_error:
         return req_error
 
-    domain_id = req_session.get_req_param('domainId')
     datasource_id = req_session.get_req_param('dataSourceId')
     user_email = req_session.get_req_param('userEmail')
     client_id = req_session.get_req_param('clientId')
-    actions_controller.revoke_user_app_access(req_session.get_auth_token(), domain_id,datasource_id,user_email,client_id)
+    actions_controller.revoke_user_app_access(req_session.get_auth_token(), datasource_id,user_email,client_id)
     return req_session.generate_response(204)
+
 
 def subscribe_gdrive_notifications(event, context):
     req_session = RequestSession(event)

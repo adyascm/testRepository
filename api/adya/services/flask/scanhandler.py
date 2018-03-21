@@ -170,13 +170,12 @@ class GetUserApp(Resource):
     def delete(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId',"userEmail","clientId"])
+            True, ['dataSourceId',"userEmail","clientId"])
         if req_error:
             return req_error
 
-        domain_id = req_session.get_req_param('domainId')
         datasource_id = req_session.get_req_param('dataSourceId')
         user_email = req_session.get_req_param('userEmail')
         client_id = req_session.get_req_param('clientId')
-        actions_controller.revoke_user_app_access(req_session.get_auth_token(), domain_id,datasource_id,user_email,client_id)
+        actions_controller.revoke_user_app_access(req_session.get_auth_token(), datasource_id,user_email,client_id)
         return req_session.generate_response(204)

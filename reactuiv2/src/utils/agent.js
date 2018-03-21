@@ -73,7 +73,7 @@ const Users = {
 const Apps = {
     getapps: () => requests.get('/getappsdata'),
     revokeAppAccess: (domainId,datasourceId, clientId,userEmail) =>
-        requests.del('/scan/usersapp?domainId=' + domainId+ "&dataSourceId=" +datasourceId+
+        requests.del('/scan/usersapp?dataSourceId=' +datasourceId+
                 "&userEmail="+ userEmail + "&clientId="+clientId ),
     getuserapps: (userEmail) => requests.get('/getappsdata?userEmail=' + userEmail),
     getappusers: (clientId) => requests.get('/getappsdata?clientId=' + clientId),
@@ -101,7 +101,7 @@ const Scheduled_Report = {
 }
 
 const AuditLog = {
-    getAuditLogList: () => 
+    getAuditLogList: () =>
         requests.get('/getauditlog')
 }
 
