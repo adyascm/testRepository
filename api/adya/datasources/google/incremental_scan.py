@@ -2,10 +2,10 @@ from adya.datasources.google import gutils
 from adya.db.connection import db_connection
 
 from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
-    LoginUser
-from adya.controllers import domain_controller
+    LoginUser, DataSource
+
 from sqlalchemy import and_
-from adya.common import constants
+from adya.common import constants, response_messages
 from adya.common import utils, messaging, aws_utils
 import requests
 import uuid
@@ -72,8 +72,7 @@ def subscribe(domain_id, datasource_id):
         # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
 
-        datasource = domain_controller.get_datasource(
-            None, datasource_id, db_session)
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
             PushNotificationsSubscription.datasource_id == datasource_id).delete()
         datasource.is_push_notifications_enabled = False
@@ -141,7 +140,7 @@ def process_notifications(datasource_id, channel_id):
                     datasource_id, channel_id)
     db_session = db_connection().get_session()
     try:
-        datasource = domain_controller.get_datasource(None, datasource_id)
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
         user_email = login_user.email
         if datasource.datasource_id != channel_id:
@@ -150,7 +149,6 @@ def process_notifications(datasource_id, channel_id):
         drive_service = gutils.get_gdrive_service(
             login_user.auth_token, user_email, db_session)
 
-        
         subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
                                                                                    PushNotificationsSubscription.datasource_id == datasource_id)).first()
         if not subscription:
@@ -254,4 +252,35 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
             domain_id, datasource_id, email, file_id, e)
-    
+
+
+def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
+    try:
+        drive_service = gutils.get_gdrive_service(auth_token, None, db_session)
+        subscription_list = db_session.query(PushNotificationsSubscription).all()
+        for row in subscription_list:
+            print "trying to unsubscribe the channel "
+            if row.datasource_id == datasource_id:
+                body = {
+                    "id": row.channel_id,
+                    "type": "web_hook",
+                    "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                    "token": row.datasource_id,
+                    "payload": "true",
+                    "params": {"ttl": 86400}
+                }
+
+                response = drive_service.channels().stop(body=body)
+                print response
+                print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
+
+        #delete the entry from database
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+        db_connection().commit()
+        return response
+
+    except Exception as ex:
+        print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
+            datasource_id, ex)
+        error_res = {'error': ex}
+        return error_res

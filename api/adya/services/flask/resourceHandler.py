@@ -41,6 +41,6 @@ class GetResources(Resource):
         resource_type = payload.get("resourceType")
         page_number = payload.get("pageNumber")
         page_size = payload.get("pageSize")
-        permission_type = payload.get("permissionType")
-        resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, '', permission_type)
+        owner_email_id = payload.get("ownerEmailId")
+        resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, '', owner_email_id)
         return req_session.generate_sqlalchemy_response(200, resource_list)
