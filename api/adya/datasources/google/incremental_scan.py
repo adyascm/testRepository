@@ -18,7 +18,7 @@ def handle_channel_expiration():
     db_session = db_connection().get_session()
     subscription_list = db_session.query(PushNotificationsSubscription).all()
     for row in subscription_list:
-        access_time = datetime.datetime.utcnow().isoformat()
+        access_time = datetime.datetime.utcnow()
         expire_time = access_time
         try:
             is_service_account_enabled = True
@@ -96,7 +96,7 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
     
 def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
-    access_time = datetime.datetime.utcnow().isoformat()
+    access_time = datetime.datetime.utcnow()
     expire_time = access_time
     start_token = ''
     try:
@@ -257,22 +257,21 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
 def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
     try:
         drive_service = gutils.get_gdrive_service(auth_token, None, db_session)
-        subscription_list = db_session.query(PushNotificationsSubscription).all()
+        subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).all()
         for row in subscription_list:
             print "trying to unsubscribe the channel "
-            if row.datasource_id == datasource_id:
-                body = {
-                    "id": row.channel_id,
-                    "type": "web_hook",
-                    "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                    "token": row.datasource_id,
-                    "payload": "true",
-                    "params": {"ttl": 86400}
-                }
+            body = {
+                "id": row.channel_id,
+                "type": "web_hook",
+                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                "token": row.datasource_id,
+                "payload": "true",
+                "params": {"ttl": 86400}
+            }
 
-                unsubscribe_response = drive_service.channels().stop(body=body)
-                print "google unsubscribe response : ", unsubscribe_response
-                print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
+            unsubscribe_response = drive_service.channels().stop(body=body).execute()
+            print "google unsubscribe response : ", unsubscribe_response
+            print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 
         #delete the entry from database
         response = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
