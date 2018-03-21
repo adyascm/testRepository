@@ -3,6 +3,7 @@ from adya.common import utils, response_messages
 from adya.common import constants
 from sqlalchemy import and_
 from requests_futures.sessions import FuturesSession
+from adya.db.connection import db_connection
 import json
 
 
@@ -80,89 +81,86 @@ def transfer_ownership(auth_token, old_owner_email, new_owner_email):
 # here batch data is an array of resource_id and permissionid/useremail list
 
 class AddOrUpdatePermisssionForResource():
-    def __init__(self, auth_token, resource_id, permissison_object_batch_data, owner_email):
-        self.resource_id = resource_id
-        self.batch_data = permissison_object_batch_data
+    def __init__(self, auth_token, permissions, owner_email):
+        self.permissions = permissions
+        self.updated_permissions = []
         self.owner_email = owner_email
+        self.change_requests = []
         self.drive_service = gutils.get_gdrive_service(auth_token, owner_email)
+        self.exception_message = response_messages.ResponseMessage(200, "Action completed successfully")
+        self.batch_number = -1
 
-    def add_or_update_permission(self):
-        if len(self.batch_data) == 1:
-            request = self.get_request(self.batch_data[0])
+    def execute(self):
+        if len(self.change_requests) == 1:
             try:
-                request.execute()
-                return response_messages.ResponseMessage(200, "Action completed successfully")
+                response = self.change_requests[0].execute()
+                self.updated_permissions.append(self.permissions[0])
+                return self.updated_permissions
+                #return response_messages.ResponseMessage(200, "Action completed successfully")
             except Exception as ex:
                 content = json.loads(ex.content)
-                return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
+                self.exception_message = content['error']['message']
+                #return response_messages.ResponseMessage(ex.resp.status, 'Action failed with error - ' + content['error']['message'])
 
-        batch_service = self.drive_service.new_batch_http_request(callback=self.batch_request_callback)
-        i = 0
-        for permission_object in self.batch_data:
-            request = self.get_request(permission_object)
-            batch_service.add(request)
-            i += 1
-            if i == 100:
+        else:
+            batch_service = self.drive_service.new_batch_http_request(callback=self.batch_request_callback)
+            i = 0
+            for request in self.change_requests:
+                batch_service.add(request)
+                i += 1
+                if i == 100:
+                    self.batch_number += 1
+                    batch_service.execute()
+                    i = 0
+            if i > 0:
+                self.batch_number += 1
                 batch_service.execute()
-                i = 0
-        if i > 0:
-            batch_service.execute()
-        return response_messages.ResponseMessage(202, "Action submitted successfully")
-
-    def get_request(self, permission_object):
-        permission_id = permission_object.get("permissionId")
-        role = permission_object.get("role")
-        if not permission_id:
-            request = self.create_add_permission_request(permission_object)
-        elif permission_id and role:
-            request = self.create_update_permission_request(permission_object)
-        elif permission_id and (not role):
-            request = self.create_delete_permission_request(permission_object)
-        return request
+            return self.updated_permissions
 
     def batch_request_callback(self, request_id, response, exception):
         if exception:
+            self.exception_message = str(exception)
+            print "Exception occurred while updating permissions in batch."
             print exception
-            session = FuturesSession()
-            push_message = {
-                "resourceId": self.resource_id,
-                "message": exception.message
-            }
-            notification = session.post(url=constants.REAL_TIME_URL, json=push_message)
-            notification.result()
-
-    def create_add_permission_request(self, permission_object):
-        role = permission_object.get('role')
-        add_permission_object = {
-            "role": role,
-            "type": permission_object.get('type'),
-            "emailAddress": permission_object.get("emailAddress")
-
-        }
-        data = self.drive_service.permissions().create(fileId=self.resource_id, body=add_permission_object,
-                                                  transferOwnership=True if role=='owner' else False)
-        return data
-
-    def create_update_permission_request(self, permission_object):
-        permission_id = permission_object.get("permissionId")
-        role = permission_object['role']
-        user_permission = {
-            'role': role,
-        }
-        print "user_permission: ", user_permission
-        if role == constants.Role.OWNER:
-            permission_object['role'] = constants.Role.WRITER
-            add_permission_response = self.add_permisssion_for_resource(self.drive_service, permission_object).execute()
-            data = self.drive_service.permissions().update(fileId=self.resource_id,
-                                                      permissionId=add_permission_response['id'],
-                                                      transferOwnership=True,
-                                                      body=user_permission)
         else:
-            data = self.drive_service.permissions().update(fileId=self.resource_id, permissionId=permission_id,
-                                                      body=user_permission)
-        return data
+            index = int(request_id) - 1
+            self.updated_permissions.append(self.permissions[(self.batch_number*100) + index])
 
-    def create_delete_permission_request(self, permission_object):
-        permission_id = permission_object["permissionId"]
-        data = self.drive_service.permissions().delete(fileId=self.resource_id, permissionId=permission_id)
-        return data
+    def get_exception_message(self):
+        return self.exception_message
+
+    def add_permissions(self):
+        for permission in self.permissions:
+            resource_id = permission.resource_id
+            role= permission.permission_type
+            add_permission_object = {
+                "role": role,
+                "type": 'user',
+                "emailAddress": permission.email
+
+            }
+            request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
+                                                    transferOwnership=True if role=='owner' else False)
+            self.change_requests.append(request)
+        return self.execute()
+
+    def update_permissions(self):
+        for permission in self.permissions:
+            resource_id = permission.resource_id
+            permission_id = permission.permission_id
+            role= permission.permission_type
+            update_permission_object = {
+                "role": role,
+            }
+            request = self.drive_service.permissions().update(fileId=resource_id, body=update_permission_object, permissionId=permission_id,
+                                                    transferOwnership=True if role=='owner' else False)
+            self.change_requests.append(request)
+        return self.execute()
+
+    def delete_permissions(self):
+        for permission in self.permissions:
+            resource_id = permission.resource_id
+            permission_id = permission.permission_id
+            request = self.drive_service.permissions().delete(fileId=resource_id, permissionId=permission_id,)
+            self.change_requests.append(request)
+        return self.execute()

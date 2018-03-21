@@ -197,39 +197,56 @@ def create_watch_report(auth_token, datasource_id, action_payload):
     messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
     return ResponseMessage(201, "Watch report created for {}".format(user_email))
 
-def change_resource_permission(auth_token, datasource_id, action_payload):
+def add_resource_permission(auth_token, datasource_id, action_payload):
     action_parameters = action_payload['parameters']
     new_permission_role = action_parameters['new_permission_role']
     user_type = action_parameters['user_type'] if 'user_type' in action_parameters else 'user'
     resource_id = action_parameters['resource_id']
+    resource_owner = action_parameters['resource_owner_id']
+
+    permission = {}
+    permission.datasource_id = datasource_id
+    permission.resource_id = resource_id
+    permission.email = action_parameters['user_email']
+    permission.permission_type = new_permission_role
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
+    return gsuite_action.add_permissions()
+
+def update_or_delete_resource_permission(auth_token, datasource_id, action_payload):
+    action_parameters = action_payload['parameters']
+    new_permission_role = action_parameters['new_permission_role']
+    user_type = action_parameters['user_type'] if 'user_type' in action_parameters else 'user'
+    resource_id = action_parameters['resource_id']
+    resource_owner = action_parameters['resource_owner_id']
+    user_email = action_parameters['user_email']
+    db_session = db_connection().get_session()
+    existing_permission = db_session.query(ResourcePermission).filter(
+                        and_(ResourcePermission.resource_id == resource_id,
+                            ResourcePermission.datasource_id == datasource_id,
+                            ResourcePermission.email == user_email)).first()
+    if not existing_permission:
+        print "Permission does not exist in db, so cannot update - Bad Request"
+        return ResponseMessage(400, "Bad Request - Permission not found in records")
+
+    existing_permission.permission_type = new_permission_role
     if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-        permission_object = {
-            "role": new_permission_role,
-            "type": user_type,
-            "emailAddress": action_parameters['new_owner_email']
-        }
         resource_owner = action_parameters['old_owner_email']
-
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
+    if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        updated_permissions = gsuite_action.delete_permissions()
     else:
-         user_email = action_parameters['user_email']
-         resource_owner = action_parameters['resource_owner_id']
-         db_session = db_connection().get_session()
-         existing_permission = db_session.query(ResourcePermission).filter(
-                            and_(ResourcePermission.resource_id == resource_id,
-                                ResourcePermission.datasource_id == datasource_id,
-                                ResourcePermission.email == user_email)).first()
-         permission_object = {
-                "permissionId": existing_permission.permission_id if existing_permission else '',
-                "role": new_permission_role,
-                "type": user_type,
-                "emailAddress": user_email
-            }
+        updated_permissions =  gsuite_action.update_permissions()
 
-    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, resource_id, [permission_object], resource_owner)
-    return gsuite_action.add_or_update_permission()
+    if len(updated_permissions) < 1:
+        return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
 
+    if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        db_session.delete(existing_permission)
+    db_connection().commit()
+    return response_messages.ResponseMessage(200, 'Action completed successfully')
+    
 
-def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, removal_type):
+def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type):
     db_session = db_connection().get_session()
     permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
@@ -239,75 +256,87 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                             Resource.resource_owner_id == user_email, Resource.exposure_type.in_(permission_type))).all()
     
+    permissions_to_update = []
     response_data = {}
     for resource in shared_resources:
         permission_changes = []
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
-                new_permission = {
-                    "permissionId": permission.permission_id,
-                    "emailAddress": permission.email,
-                    "role": ''
-                }
-                permission_changes.append(new_permission)
+                permissions_to_update.append(permission)
 
-        if len(permission_changes) > 0:
-            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
-                                                                        permission_changes, user_email)
-            resource_actions_handler.add_or_update_permission()
-    return response_messages.ResponseMessage(202, "Action submitted successfully")
+    if len(permissions_to_update) > 0:
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        updated_permissions = resource_actions_handler.delete_permissions()
+        
+        if len(updated_permissions) < 1:
+            return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
+        else:
+            for updated_permission in updated_permissions:
+                db_session.delete(updated_permission)
+            db_connection().commit()
+            if len(updated_permissions) < len(permissions_to_update):
+                return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
+            else:
+                return response_messages.ResponseMessage(200, 'Action completed successfully')
+    return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
 
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, removal_type):
     db_session = db_connection().get_session()
-    resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id == resource_id)).all()
-    permission_changes = []
-    for permission in resource[0].permissions:
+    resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id == resource_id)).first()
+    if not resource:
+        return response_messages.ResponseMessage(400, "Bad Request - No such file found")
+
+    permissions_to_update = []
+    for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
-            permission_exposure_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
-            if permission.exposure_type in permission_exposure_type:
-                new_permission = {
-                    "permissionId": permission.permission_id,
-                    "emailAddress": permission.email,
-                    "role": ''
-                }
-                permission_changes.append(new_permission)
+            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
+                permissions_to_update.append(permission)
         else:
             if permission.permission_type != 'owner':
-                new_permission = {
-                    "permissionId": permission.permission_id,
-                    "emailAddress": permission.email,
-                    "role": ''
-                }
-                permission_changes.append(new_permission)
+                permissions_to_update.append(permission)
         
-    if len(permission_changes) > 0:
-        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource[0].resource_id,
-                                                                             permission_changes, resource[0].resource_owner_id)
-        resource_actions_handler.add_or_update_permission()
-    return response_messages.ResponseMessage(202, "Action submitted successfully")
+    if len(permissions_to_update) > 0:
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
+        updated_permissions = resource_actions_handler.delete_permissions()
+        
+        if len(updated_permissions) < 1:
+            return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
+        else:
+            for updated_permission in updated_permissions:
+                db_session.delete(updated_permission)
+            db_connection().commit()
+            if len(updated_permissions) < len(permissions_to_update):
+                return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
+            else:
+                return response_messages.ResponseMessage(200, 'Action completed successfully')
+    return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
 
 
-def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email):
+def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by):
     db_session = db_connection().get_session()
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
                                                                  datasource_id, ResourcePermission.email == user_email,
                                                                  ResourcePermission.permission_type != "owner")).all()
-
-    for resource in resource_permissions:
-        permission_changes = []
-        new_permission = {
-            "permissionId": resource.permission_id,
-            "emailAddress": resource.email,
-            "role": ''
-        }
-        permission_changes.append(new_permission)
+    permissions_to_update = []
+    for permission in resource_permissions:
+        permissions_to_update.append(permission)
         
-        if len(permission_changes) > 0:
-            resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, resource.resource_id,
-                                                                        permission_changes, user_email)
-            resource_actions_handler.add_or_update_permission()
-    return response_messages.ResponseMessage(202, "Action submitted successfully")
+    if len(permissions_to_update) > 0:
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        updated_permissions = resource_actions_handler.delete_permissions()
+        
+        if len(updated_permissions) < 1:
+            return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
+        else:
+            for updated_permission in updated_permissions:
+                db_session.delete(updated_permission)
+            db_connection().commit()
+            if len(updated_permissions) < len(permissions_to_update):
+                return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
+            else:
+                return response_messages.ResponseMessage(200, 'Action completed successfully')
+    return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
 
 
 def modify_group_membership(auth_token, datasource_id, action_name, action_parameters):
@@ -358,13 +387,16 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     #Bulk permission change actions for user
     elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
         user_email = action_parameters['user_email']
-        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, "ALL")
+        initiated_by = action_payload['initiated_by']
+        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, "ALL")
     elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
         user_email = action_parameters['user_email']
-        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, constants.ResourceExposureType.EXTERNAL)
+        initiated_by = action_payload['initiated_by']
+        return update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, constants.ResourceExposureType.EXTERNAL)
     elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
         user_email = action_parameters['user_email']
-        return remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email)
+        initiated_by = action_payload['initiated_by']
+        return remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by)
 
     #Bulk permission change actions for resource
     elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
@@ -377,17 +409,17 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     
     #Single Resource permission change actions
     elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
-        return change_resource_permission(auth_token, datasource_id, action_payload)
+        return update_or_delete_resource_permission(auth_token, datasource_id, action_payload)
     elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         action_parameters['new_permission_role'] = ''
-        return change_resource_permission(auth_token, datasource_id, action_payload)
+        return update_or_delete_resource_permission(auth_token, datasource_id, action_payload)
     elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
-        return change_resource_permission(auth_token, datasource_id, action_payload)
+        return add_resource_permission(auth_token, datasource_id, action_payload)
     elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         action_parameters['new_permission_role'] = constants.Role.OWNER
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
-        return change_resource_permission(auth_token, datasource_id, action_payload)
+        return update_or_delete_resource_permission(auth_token, datasource_id, action_payload)
 
 def validate_action_parameters(action_config, action_parameters):
     config_params = action_config.parameters
