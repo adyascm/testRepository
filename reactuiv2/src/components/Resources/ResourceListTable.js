@@ -175,7 +175,7 @@ class ResourcesListTable extends Component {
         if (this.props.isLoading || resourceData)
             return (
                 <div>
-                    <div style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                    <div style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight/1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header>
                                 <Table.Row>
