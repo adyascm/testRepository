@@ -106,7 +106,7 @@ def async_delete_datasource(auth_token, datasource_id):
     try:
         response = unsubscribe_for_a_user(db_session, auth_token, datasource_id)
         print "async_delete_datasource : ", response
-        if not 'error' in response:
+        if response:
             db_session.query(DirectoryStructure).filter(
                 DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
             db_session.query(DomainGroup).filter(

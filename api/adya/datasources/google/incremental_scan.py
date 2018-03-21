@@ -270,12 +270,12 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                     "params": {"ttl": 86400}
                 }
 
-                response = drive_service.channels().stop(body=body)
-                print response
+                unsubscribe_response = drive_service.channels().stop(body=body)
+                print "google unsubscribe response : ", unsubscribe_response
                 print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 
         #delete the entry from database
-        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+        response = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
         db_connection().commit()
         return response
 
