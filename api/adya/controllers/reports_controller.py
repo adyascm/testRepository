@@ -147,9 +147,9 @@ def get_widget_data(auth_token, widget_id):
         low = apps.filter(Application.score < 4).count()
         medium = apps.filter(and_(Application.score >= 4, Application.score < 7)).count()
         high = apps.filter(and_(Application.score >= 7, Application.score <= 10)).count()
-        severity['Acceptable'] = low
-        severity['Needs review'] = medium
-        severity['Most vulnerable'] = high
+        severity['Low Risk'] = low
+        severity['Medium Risk'] = medium
+        severity['High Risk'] = high
         data["rows"] = severity
         data["totalCount"] = low + medium + high
     elif widget_id == 'filesWithFileType':
