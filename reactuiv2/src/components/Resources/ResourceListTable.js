@@ -84,7 +84,7 @@ class ResourcesListTable extends Component {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': nextProps.filterEmailId, 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'permissionType': nextProps.filterPermissionType }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId }))
             }
             if (nextProps.filterResourceType !== this.state.filterResourceType)
                 this.setState({
@@ -153,6 +153,7 @@ class ResourcesListTable extends Component {
 
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
+                //console.log("lastmodifiedtime : ", rowData["last_modified_time"])
                 return (
                     <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>

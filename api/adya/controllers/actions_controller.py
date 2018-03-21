@@ -265,8 +265,8 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                 permissions_to_update.append(permission)
 
     if len(permissions_to_update) > 0:
-        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
-        updated_permissions = resource_actions_handler.delete_permissions()
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        updated_permissions = gsuite_action.delete_permissions()
         
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
@@ -297,8 +297,8 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
                 permissions_to_update.append(permission)
         
     if len(permissions_to_update) > 0:
-        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
-        updated_permissions = resource_actions_handler.delete_permissions()
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
+        updated_permissions = gsuite_action.delete_permissions()
         
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
