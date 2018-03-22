@@ -128,7 +128,6 @@ class ResourcesListTable extends Component {
 
     handleDateChange = (date) => {
         let selectedDate = date.format('YYYY-MM-DD HH:MM:SS')
-        console.log("selected date : ", selectedDate)
         this.setState({
             currentDate: date
         })
