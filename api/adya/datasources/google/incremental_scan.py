@@ -227,19 +227,25 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                  "owners,size,createdTime, modifiedTime").execute()
         print("results : ", results)
-        db_session.query(ResourcePermission).filter(
-            ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
-        db_session.query(Resource).filter(Resource.resource_id ==
-                                          file_id).delete(synchronize_session=False)
-        db_connection().commit()
+        print ("last modified time : ", results['modifiedTime'])
 
-        resourcedata = {}
-        resourcedata["resources"] = [results]
+        last_modified_time_based_response = db_session.query(Resource).filter(and_(Resource.resource_id == file_id ,
+                                                                                   Resource.last_modified_time < results['modifiedTime'])).all()
+        print ("last_modified_time_based_response : ", last_modified_time_based_response)
+        if last_modified_time_based_response:
+            db_session.query(ResourcePermission).filter(
+                ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
+            db_session.query(Resource).filter(Resource.resource_id ==
+                                              file_id).delete(synchronize_session=False)
+            db_connection().commit()
 
-        query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
-        messaging.trigger_post_event(
-            constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
+            resourcedata = {}
+            resourcedata["resources"] = [results]
+
+            query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
+            messaging.trigger_post_event(
+                constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
+            messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
 
 
         #filedata = results['files']
