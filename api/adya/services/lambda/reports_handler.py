@@ -61,13 +61,15 @@ def get_resource_tree_data(event, context):
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
-    page_number = req_session.get_req_param("pageNumber")
-    page_size = req_session.get_req_param("pageSize")
+
     payload = req_session.get_body()
     user_emails = payload.get("userEmails")
     exposure_type = payload.get("exposureType")
     resource_type = payload.get("resourceType")
-    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type)
+    page_number = payload.get("pageNumber")
+    page_size = payload.get("pageSize")
+    owner_email_id = payload.get("ownerEmailId")
+    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, '', owner_email_id)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 
