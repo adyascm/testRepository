@@ -69,7 +69,8 @@ def get_resource_tree_data(event, context):
     page_number = payload.get("pageNumber")
     page_size = payload.get("pageSize")
     owner_email_id = payload.get("ownerEmailId")
-    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, '', owner_email_id)
+    parent_folder = payload.get("parentFolder")
+    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, '', owner_email_id, parent_folder)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 
