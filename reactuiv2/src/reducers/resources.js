@@ -17,7 +17,8 @@ const defaultState = {
     filterResourceName: '',
     filterResourceType: '',
     filterEmailId: '',
-    filterParentFolder: ''
+    filterParentFolder: '',
+    filterByDate: ''
 };
 
 export default (state = defaultState, action) => {
@@ -88,7 +89,6 @@ export default (state = defaultState, action) => {
             //     row.parent = parent;
             //     rows.push(row)
             // }
-            console.log("resource payload : ", action.payload)
             return {
                 ...state,
                 isLoading: false,
