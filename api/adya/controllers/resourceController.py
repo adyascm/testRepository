@@ -74,7 +74,7 @@ from adya.controllers import common
 #     return responsedata
 
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='', owner_email_id=None):
+def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='', owner_email_id=None, parent_folder=None):
     if not auth_token:
         return None
     page_number = page_number if page_number else 0
@@ -95,6 +95,8 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     if user_emails:
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
+    if parent_folder:
+        resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
     if owner_email_id:
         resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
     if resource_type:

@@ -44,7 +44,8 @@ class ResourcesListTable extends Component {
                 "Last Modified"
             ],
             filterResourceType: "",
-            filterEmailId: ""
+            filterEmailId: "",
+            filterParentFolder: ""
         }
 
         this.exposureFilterOptions = [
@@ -82,9 +83,9 @@ class ResourcesListTable extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId || nextProps.filterParentFolder !== this.props.filterParentFolder ) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId, 'parentFolder': nextProps.filterParentFolder }))
             }
             if (nextProps.filterResourceType !== this.state.filterResourceType)
                 this.setState({
@@ -113,6 +114,12 @@ class ResourcesListTable extends Component {
     handleEmailIdChange = (event) => {
         this.setState({
             filterEmailId: event.target.value
+        })
+    }
+
+    handleParentFolderChange = (event) => {
+        this.setState({
+            filterParentFolder: event.target.value
         })
     }
 
@@ -203,7 +210,7 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by folder...' />
+                                        <Input fluid placeholder='Filter by folder...' value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
