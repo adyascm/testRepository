@@ -258,6 +258,7 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
     try:
         drive_service = gutils.get_gdrive_service(auth_token, None, db_session)
         subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).all()
+        unsubscribe_response = None
         for row in subscription_list:
             print "trying to unsubscribe the channel "
             body = {
@@ -275,10 +276,7 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
             print "google unsubscribe response : ", unsubscribe_response
             print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 
-        #delete the entry from database
-        response = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
-        db_connection().commit()
-        return response
+        return unsubscribe_response
 
     except Exception as ex:
         print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
