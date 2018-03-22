@@ -10,7 +10,7 @@ const openLink = (link) => function (ev) {
     }
 }
 const ResourceDetails = props => {
-    
+
     var quickActions = [
         {
             text: '',
@@ -28,6 +28,7 @@ const ResourceDetails = props => {
             text: 'Make this private',
             value: 'make_resource_private'
         }];
+
     var image = null;
     if (props.rowData.icon_link) {
         image = <Item.Image inline floated='right' size='mini' src={props.rowData.icon_link}></Item.Image>
@@ -48,7 +49,10 @@ const ResourceDetails = props => {
 
                         <div style={{ marginBottom: "10px" }}>
                             <Label as='a' color='blue' active onClick={openLink(props.rowData['web_view_link'])}>View</Label>
+                            {props.rowData['web_content_link']?
                             <Label as='a' color='orange' active onClick={openLink(props.rowData['web_content_link'])}>Download</Label>
+                            :null
+                          }
                         </div>
                     </Item.Meta>
                     <Item.Extra extra="true">

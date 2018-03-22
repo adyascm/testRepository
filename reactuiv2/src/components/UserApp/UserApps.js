@@ -29,7 +29,7 @@ class UserApps extends Component {
             this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
         }
     }
-    
+
 
     render(){
         let selectedUser = this.props.selectedUser
@@ -52,7 +52,7 @@ class UserApps extends Component {
                     return (
                     <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
                             {scope}
-                        </Grid.Row>  
+                        </Grid.Row>
                     )
                     })
 
@@ -60,7 +60,7 @@ class UserApps extends Component {
                         <Grid.Row key={index}>
                             <Grid.Column verticalAlign='middle'  width={2}>
                                 <Button animated='vertical' basic color='red' onClick={(event) =>
-                                    this.props.handleAppAccessRevokeClick(event,selectedUser.domain_id,selectedUser.datasource_id,application.client_id,selectedUser.email)}>
+                                    this.props.handleAppAccessRevokeClick(event,selectedUser.datasource_id,application.client_id,selectedUser.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />
@@ -80,13 +80,13 @@ class UserApps extends Component {
                     return ""
             })
         }
-        else 
+        else
             applications = [<Grid.Row key={0}><Grid.Column textAlign='center'>{"No Apps to show"}</Grid.Column></Grid.Row>]
         return (
             <Grid celled='internally'>
                 {applications}
             </Grid>
-    
+
         )
     }
 }

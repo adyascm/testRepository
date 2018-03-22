@@ -227,19 +227,25 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                  "owners,size,createdTime, modifiedTime").execute()
         print("results : ", results)
-        db_session.query(ResourcePermission).filter(
-            ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
-        db_session.query(Resource).filter(Resource.resource_id ==
-                                          file_id).delete(synchronize_session=False)
-        db_connection().commit()
+        print ("last modified time : ", results['modifiedTime'])
 
-        resourcedata = {}
-        resourcedata["resources"] = [results]
+        last_modified_time_based_response = db_session.query(Resource).filter(and_(Resource.resource_id == file_id ,
+                                                                                   Resource.last_modified_time < results['modifiedTime'])).all()
+        print ("last_modified_time_based_response : ", last_modified_time_based_response)
+        if last_modified_time_based_response:
+            db_session.query(ResourcePermission).filter(
+                ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
+            db_session.query(Resource).filter(Resource.resource_id ==
+                                              file_id).delete(synchronize_session=False)
+            db_connection().commit()
 
-        query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
-        messaging.trigger_post_event(
-            constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
+            resourcedata = {}
+            resourcedata["resources"] = [results]
+
+            query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
+            messaging.trigger_post_event(
+                constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
+            messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
 
 
         #filedata = results['files']
@@ -258,6 +264,7 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
     try:
         drive_service = gutils.get_gdrive_service(auth_token, None, db_session)
         subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).all()
+        unsubscribe_response = None
         for row in subscription_list:
             print "trying to unsubscribe the channel "
             body = {
@@ -268,17 +275,14 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                 "payload": "true",
                 "params": {"ttl": 86400}
             }
-
+            print "body : ",body
 
             unsubscribe_response = drive_service.channels().stop(body=body).execute()
 
             print "google unsubscribe response : ", unsubscribe_response
             print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
 
-        #delete the entry from database
-        response = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
-        db_connection().commit()
-        return response
+        return unsubscribe_response
 
     except Exception as ex:
         print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(

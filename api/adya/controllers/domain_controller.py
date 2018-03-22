@@ -121,6 +121,8 @@ def async_delete_datasource(auth_token, datasource_id):
                 Application.datasource_id == datasource_id).delete(synchronize_session=False)
             db_session.query(AuditLog).filter(
                 AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
+            db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
+                                                                   datasource_id).delete(synchronize_session=False)
             db_session.query(DomainUser).filter(
                 DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
             db_session.delete(existing_datasource)
