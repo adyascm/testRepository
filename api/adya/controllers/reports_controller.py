@@ -127,8 +127,13 @@ def get_widget_data(auth_token, widget_id):
             LoginUser.auth_token == auth_token)
 
         if is_service_account_is_enabled and not is_admin:
-            external_user_list = external_user_list.filter(DomainUser.email == login_user_email)
-            external_user_total_count = external_user_total_count.filter(DomainUser.email == login_user_email)
+            external_user_list = external_user_list.filter(and_(Resource.resource_owner_id == login_user_email,
+                                                    ResourcePermission.resource_id == Resource.resource_id,
+                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL))
+            external_user_total_count = external_user_total_count.filter(and_(Resource.resource_owner_id == login_user_email,
+                                                    ResourcePermission.resource_id == Resource.resource_id,
+                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL))
+           
 
         data["rows"] = external_user_list.limit(5).all()
         data["totalCount"] = external_user_total_count.count()
