@@ -6,6 +6,8 @@ import UserResourceTable from './UserResourceTable'
 //import UserActivity from './UserActivity';
 import UserActivityTable from './UserActivityTable'
 import UserApps from '../UserApp/UserApps';
+import UserOwnedResources from './UserOwnedResources'
+
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 import {
@@ -115,16 +117,21 @@ class UsersGroupsDetailsSection extends Component {
             return null;
         else {
             let panes = [
-                { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> }
+                { menuItem: 'Has Ownership', render: () => <Tab.Pane attached={false}><UserOwnedResources /></Tab.Pane> }
             ]
             let extraPanes = [
+                { menuItem: 'Has Access', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
                 { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> },
                 { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> }
             ]
 
             if (this.props.selectedUserItem["member_type"] !== 'EXT')
                 panes.push(...extraPanes)
-
+            else {
+                panes.pop()
+                panes.push(extraPanes[0])
+            } 
+                
             return (
                 <Segment>
                     {/* <Sticky> */}

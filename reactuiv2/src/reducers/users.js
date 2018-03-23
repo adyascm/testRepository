@@ -12,6 +12,8 @@ import {
     GROUP_SEARCH_PAYLOAD,
     GROUP_SEARCH_EMPTY,
     USERS_GROUP_ACTION_LOAD,
+    USERS_OWNED_RESOURCES_LOAD_START,
+    USERS_OWNED_RESOURCES_LOADED,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -57,6 +59,17 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 isActivitiesLoading: false,
+            }
+        case USERS_OWNED_RESOURCES_LOAD_START:
+            return {
+                ...state,
+                isLoading: true
+            }
+        case USERS_OWNED_RESOURCES_LOADED:
+            state.selectedUserItem.ownedResources = !action.error?action.payload:[]
+            return {
+                ...state,
+                isLoading: false
             }
         case USERS_RESOURCE_LOAD_START:
             return {
