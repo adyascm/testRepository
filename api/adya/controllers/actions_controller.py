@@ -230,12 +230,16 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     existing_permission.permission_type = new_permission_role
     if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner, ResourcePermission.resource_id== resource_id,
+                            ResourcePermission.datasource_id == datasource_id)).update({ResourcePermission.permission_type: constants.Role.WRITER})
+
         resource_owner = action_parameters['old_owner_email']
+
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         updated_permissions = gsuite_action.delete_permissions()
     else:
-        updated_permissions =  gsuite_action.update_permissions()
+        updated_permissions = gsuite_action.update_permissions()
 
     if len(updated_permissions) < 1:
         return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())

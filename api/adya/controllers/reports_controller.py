@@ -132,8 +132,9 @@ def get_widget_data(auth_token, widget_id):
                                                     ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL))
             external_user_total_count = external_user_total_count.filter(and_(Resource.resource_owner_id == login_user_email,
                                                     ResourcePermission.resource_id == Resource.resource_id,
-                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL))
-           
+                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
+                                                    DomainUser.email == ResourcePermission.email))
+
 
         data["rows"] = external_user_list.limit(5).all()
         data["totalCount"] = external_user_total_count.count()
