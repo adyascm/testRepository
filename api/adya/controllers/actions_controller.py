@@ -2,7 +2,7 @@ from adya.common import constants, action_constants, messaging, response_message
 from adya.common.constants import ResponseType
 from adya.datasources.google import actions, gutils
 from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource, \
-    DirectoryStructure
+    DirectoryStructure, DomainUser
 from adya.db.connection import db_connection
 from adya.common.response_messages import ResponseMessage
 from sqlalchemy import and_, or_
@@ -323,7 +323,9 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
                                                                  datasource_id, ResourcePermission.email == user_email,
                                                                  ResourcePermission.permission_type != "owner")).all()
     permissions_to_update = []
+    exposure_type = ''
     for permission in resource_permissions:
+        exposure_type = permission.exposure_type
         permissions_to_update.append(permission)
         
     if len(permissions_to_update) > 0:
@@ -335,6 +337,9 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         else:
             for updated_permission in updated_permissions:
                 db_session.delete(updated_permission)
+            if exposure_type == constants.UserMemberType.EXTERNAL:
+                db_session.query(DomainUser).filter(and_(DomainUser.email == user_email, DomainUser.datasource_id == datasource_id,
+                                                         DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
             db_connection().commit()
             if len(updated_permissions) < len(permissions_to_update):
                 return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
