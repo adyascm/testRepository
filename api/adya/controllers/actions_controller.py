@@ -219,6 +219,8 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     resource_id = action_parameters['resource_id']
     resource_owner = action_parameters['resource_owner_id']
     user_email = action_parameters['user_email']
+    initiated_user = action_payload['initiated_by']
+    current_time = datetime.utcnow()
     db_session = db_connection().get_session()
     existing_permission = db_session.query(ResourcePermission).filter(
                         and_(ResourcePermission.resource_id == resource_id,
@@ -230,8 +232,14 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     existing_permission.permission_type = new_permission_role
     if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-        db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner, ResourcePermission.resource_id== resource_id,
-                            ResourcePermission.datasource_id == datasource_id)).update({ResourcePermission.permission_type: constants.Role.WRITER})
+
+        db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner,
+                        ResourcePermission.resource_id == resource_id, ResourcePermission.datasource_id == datasource_id)).\
+                          update({ResourcePermission.permission_type: constants.Role.WRITER})
+
+        db_session.query(Resource).filter(and_(Resource.resource_id == resource_id, Resource.datasource_id == datasource_id,
+                        Resource.resource_owner_id == resource_owner)).update({Resource.resource_owner_id: user_email,
+                        Resource.last_modified_time: current_time,Resource.last_modifying_user_email: initiated_user})
 
         resource_owner = action_parameters['old_owner_email']
 
