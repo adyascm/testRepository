@@ -23,49 +23,29 @@
 
         <tr style="border-right:1px solid #757575;border-left: 1px solid #757575;" align="center">
           <td align="" style="font-size: 23px; color:#454545; text-align: center;padding: 18px 0 18px 0;font-weight: bold;font-family: 'Open Sans', sans-serif;">
-           Google Drive Exposure Report
+           Google Drive Exposure Summary
           </td>
         </tr>
+      
         </table>
+      
       <table border="0" width="90%" cellpadding="0" cellspacing="0" bgcolor="#fff" align="center" style="margin-bottom:25px;">
         <tr>
           <th bgcolor="#636363" colspan="2"><h3 style="color:#fff;margin:5px 0;font-family: 'Open Sans', sans-serif;font-weight: bold;">Summary</h3></th>
         </tr>
         <tr bgcolor="#ededed" style="font-family: 'Open Sans', sans-serif;">
-            <td valign="left" width="55%" style="padding-left: 10%; text-align:left; line-height: 0;">
+            <td valign="left" width="45%" style="padding-left: 10%; text-align:left; line-height: 0;">
              <p style="color:#2e419a;font-size: 26px;font-weight: bold;line-height: 7px;">{{countDocuments}}</p>
              <p style="color:#000;font-size: 24px;font-weight: bold;line-height: 7px;">Shared</p>
              <p style="color:#000;font-size: 24px;font-weight: bold;line-height: 7px;">Documents</p>
             </td>
-            <td valign="middle" width="45%" style="text-align:left;">
+            <td valign="middle" width="55%" style="text-align:left;">
              <ul style="font-size: 18px;font-weight: bold;padding: 0;">
-              <li style="margin: 10px 0px;color: #3040d8;">{{countDomainData}} in Domain</li>
-              <li style="margin: 10px 0px;color:#db0505;">{{countExternalData}} External</li>
-              <li style="margin: 10px 0px;color:#db0505;">{{countLinkData}} Anyone with Link</li>
+              <li style="margin: 10px 0px;color: #4285f4;">{{countDomainData}} shared across company</li>
+              <li style="margin: 10px 0px;color:#f8be32;">{{countExternalData}} shared with users outside the company</li>
+              <li style="margin: 10px 0px;color:#db4437;">{{countLinkData}} shared public links</li>
             </ul>
             </td>
-          </tr>
-        </table>
-
-        <table border="0" width="90%"  bgcolor="#fff" align="center" style="margin-bottom:25px;font-family: 'Open Sans', sans-serif; ">
-          <tr>
-            <th bgcolor="#636363"><h3 style="color:#fff;margin:5px 0;">Externally Shared Documents</h3></th>
-          </tr>
-          <tr bgcolor="#ededed" style="border-bottom: 2px solid #fff;">
-            <td valign="left" style="padding-left: 10%; text-align:left;">
-              <ul style="list-style-type: none;border-left:5px solid #CACACA;color: #919191;font-size: 14px;line-height: 23px;font-style: italic;">
-                {{#externalDocs}}
-                 <li>{{name}}
-                 </li>
-                 {{/externalDocs}}
-                <!-- <li>...and {{restFiles}} other documents</li> -->
-                <li>{{restFiles}}</li>
-              </ul>
-            </td>
-          </tr>
-           <tr bgcolor="#fff" style="background-color: #fff;margin-bottom: 2px;height:2px;"><td></td>
-          </tr>
-          <tr bgcolor="#ededed" style="text-align: center;"><td><p style="color:#E35B5B;font-weight: bold;">{{documentsCountData}} Externally Shared </p></td>
           </tr>
         </table>
 
@@ -77,9 +57,9 @@
             <td valign="left" style="padding-left: 10%; text-align:left;" width="100%">
               <ul style="list-style-type: none;border-left:5px solid #CACACA;color: #919191;font-size: 14px;line-height: 23px;font-style: italic;">
                 {{#externalUsers}}
-                 <li>{{name}}
-                 </li>
-                 {{/externalUsers}}
+                <li>{{name}}
+                </li>
+                {{/externalUsers}}               
                 <!-- <li>...and {{restUsers}} other external users </li> -->
                 <li>{{restUsers}}</li>
               </ul>
@@ -87,26 +67,15 @@
           </tr>
            <tr bgcolor="#fff" style="background-color: #fff;margin-bottom: 2px;height:2px;"><td></td>
           </tr>
-          <tr bgcolor="#ededed" style="text-align: center;"><td><p style="color:#E35B5B;font-weight: bold;">{{countExternalUsersData}} Have Access </p></td>
+          <tr bgcolor="#ededed" style="text-align: center;"><td><p style="color:#E35B5B;font-weight: bold;">{{countExternalUsersData}} external users have access</p></td>
           </tr>
         </table>
 
         <table border="0" width="90%" cellpadding="0" cellspacing="0" bgcolor="#fff" align="center" style="font-family: 'Open Sans', sans-serif;">
-          <tr style="border-bottom: 2px solid #fff;">
-            <td valign="left" style="padding-left: 1%; text-align:left;">
-              <h4 style="margin-top: 0;margin-bottom: 11px;">For the full list, please sign up for a trial of Adya which gives you the ability to:</h4>
-              <ul style="font-size: 14px;line-height: 19px;padding-left: 21px;list-style-image: url('https://www.moneyup.in/wp-content/themes/moneyUp/images/emailTemplate/Bullet.png');">
-                <li>See the full list of exposed files and folders.</li>
-                <li>See the full list of external users who have access.</li>
-                <li>See internal/external users who HAVE access and who ARE accessing your document</li>
-                <li>Subscribe to reports and alerts to watch sensitive users, groups, files or folders</li>
-                <p style="margin-top: 5px;">...and many more features</p>
-              </ul>
-            </td>
-          </tr>
+     
            <tr align="center">
             <td>
-              <a href={{trialLink}}><button style="font-family: 'Open Sans', sans-serif;cursor:pointer;border:0px solid;padding:10px;background-color: #F46518;width:97%;color:#fff;font-size: 18px;font-weight: bold;">Signup for 30 Day Free Trial of ADYA</button></a>
+              <a href="https://app.adya.io/"><button style="font-family: 'Open Sans', sans-serif;cursor:pointer;border:0px solid;padding:10px;background-color: #F46518;width:97%;color:#fff;font-size: 18px;font-weight: bold;">Login to Adya to see more</button></a>
             </td>
             </tr>
            <tr bgcolor="#fff" style="background-color: #fff;margin-bottom: 2px;height:2px;"><td></td>

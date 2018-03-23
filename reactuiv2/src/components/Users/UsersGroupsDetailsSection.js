@@ -3,7 +3,8 @@ import { Tab, Segment, Icon, Grid, Dropdown, Container } from 'semantic-ui-react
 import UserDetails from './UserDetails';
 import UserResource from './UserResource';
 import UserResourceTable from './UserResourceTable'
-import UserActivity from './UserActivity';
+//import UserActivity from './UserActivity';
+import UserActivityTable from './UserActivityTable'
 import UserApps from '../UserApp/UserApps';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
@@ -117,7 +118,7 @@ class UsersGroupsDetailsSection extends Component {
                 { menuItem: 'Resources', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> }
             ]
             let extraPanes = [
-                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivity /></Tab.Pane> },
+                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> },
                 { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> }
             ]
 

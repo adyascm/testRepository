@@ -6,6 +6,8 @@ import { Loader, Dimmer, Button, Table, Dropdown, Form, Input } from 'semantic-u
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
 import DatePicker from 'react-datepicker'
+import moment from 'moment'
+import Moment from 'react-moment'
 import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 
@@ -44,7 +46,9 @@ class ResourcesListTable extends Component {
                 "Last Modified"
             ],
             filterResourceType: "",
-            filterEmailId: ""
+            filterEmailId: "",
+            filterParentFolder: "",
+            currentDate: moment()
         }
 
         this.exposureFilterOptions = [
@@ -82,9 +86,9 @@ class ResourcesListTable extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId) {
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate }))
             }
             if (nextProps.filterResourceType !== this.state.filterResourceType)
                 this.setState({
@@ -116,8 +120,18 @@ class ResourcesListTable extends Component {
         })
     }
 
+    handleParentFolderChange = (event) => {
+        this.setState({
+            filterParentFolder: event.target.value
+        })
+    }
+
     handleDateChange = (date) => {
-        console.log("date change : ", date.format())
+        let selectedDate = date.format('YYYY-MM-DD HH:MM:SS')
+        this.setState({
+            currentDate: date
+        })
+        this.props.changeFilter("filterByDate", selectedDate)
     }
 
     handleKeyPress = (event, filterType, filterValue) => {
@@ -137,6 +151,7 @@ class ResourcesListTable extends Component {
     }
 
     render() {
+
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             return (
                 <Table.HeaderCell>{headerName}</Table.HeaderCell>
@@ -203,11 +218,16 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by folder...' />
+                                        <Input fluid placeholder='Filter by folder...' value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
-                                        <DatePicker onChange={this.handleDateChange} />
+                                        <DatePicker 
+                                            selected={this.state.currentDate} 
+                                            onChange={this.handleDateChange} 
+                                            showTimeSelect 
+                                            dateFormat="LLL"
+                                        />
                                     </Table.Cell>
                                 </Table.Row>
                                 {tableRowData}
