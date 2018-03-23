@@ -121,7 +121,7 @@ class UsersTree extends Component {
                 rowItem.isExpanded = rowItem.isExpanded || false
                 if (!rowItem.name ) {
                     rowItem.type = rowItem.type || "user";
-                    rowItem.name = rowItem.firstName + " " + rowItem.lastName;
+                    rowItem.name = rowItem.first_name + " " + rowItem.last_name;
                 }
                 else
                     rowItem.type = rowItem.type || "group";
@@ -167,7 +167,7 @@ class UsersTree extends Component {
                 rowItem.isExpanded = rowItem.isExpanded || false
                 if (!rowItem.name ) {
                     rowItem.type = rowItem.type || "user";
-                    rowItem.name = rowItem.firstName + " " + rowItem.lastName;
+                    rowItem.name = rowItem.first_name + " " + rowItem.last_name;
                 }
                 else
                     rowItem.type = rowItem.type || "group";
