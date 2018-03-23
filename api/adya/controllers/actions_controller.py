@@ -275,6 +275,11 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
                 permissions_to_update.append(permission)
+        #updating the exposure type in resource table
+        if not removal_type == constants.ResourceExposureType.EXTERNAL:
+            resource.exposure_type = constants.ResourceExposureType.PRIVATE
+        else:
+            resource.exposure_type = constants.ResourceExposureType.INTERNAL
 
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
@@ -285,6 +290,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
         else:
             for updated_permission in updated_permissions:
                 db_session.delete(updated_permission)
+
             db_connection().commit()
             if len(updated_permissions) < len(permissions_to_update):
                 return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
@@ -304,9 +310,12 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
         if removal_type == constants.ResourceExposureType.EXTERNAL:
             if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
                 permissions_to_update.append(permission)
+                resource.exposure_type = constants.ResourceExposureType.INTERNAL
+
         else:
             if permission.permission_type != 'owner':
                 permissions_to_update.append(permission)
+                resource.exposure_type = constants.ResourceExposureType.PRIVATE
         
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
