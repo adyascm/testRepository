@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Dropdown, Form, Input } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Input } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
@@ -43,12 +43,12 @@ class ResourcesListTable extends Component {
                 "Owner",
                 "Exposure Type",
                 "Parent Folder",
-                "Last Modified"
+                "Modified On or Before"
             ],
             filterResourceType: "",
             filterEmailId: "",
             filterParentFolder: "",
-            currentDate: moment()
+            currentDate: ""
         }
 
         this.exposureFilterOptions = [
@@ -136,8 +136,6 @@ class ResourcesListTable extends Component {
 
     handleKeyPress = (event, filterType, filterValue) => {
         if (event.key === 'Enter') {
-            console.log("filterType : ", filterType)
-            console.log("filterValue : ", filterValue)
             this.props.changeFilter(filterType, filterValue);
         }
     }
