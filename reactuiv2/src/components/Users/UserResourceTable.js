@@ -21,8 +21,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLoadStart: (payload) =>
-        dispatch({ type: USERS_RESOURCE_LOAD_START, payload }),
+    onLoadStart: () =>
+        dispatch({ type: USERS_RESOURCE_LOAD_START }),
     onLoad: (payload) =>
         dispatch({ type: USERS_RESOURCE_LOADED, payload }),
     onChangePermission: (actionType, resource, newValue) =>
@@ -54,7 +54,7 @@ class UserResourceTable extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.setPaginationData(0,100)
-            this.props.onLoadStart(this.props.selectedUserItem["key"])
+            this.props.onLoadStart()
             this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': 0, 'pageSize': 100}))    
         }
     }
@@ -62,11 +62,11 @@ class UserResourceTable extends Component {
     componentWillReceiveProps(nextProps) {
         if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) || 
             nextProps.pageNumber !== this.props.pageNumber) {
-            nextProps.onLoadStart(nextProps.selectedUserItem["key"])
+            nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit}))
         }
         if (nextProps.filterExposureType !== this.props.filterExposureType) {
-            nextProps.onLoadStart(nextProps.selectedUserItem["key"])
+            nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
     }
@@ -131,7 +131,7 @@ class UserResourceTable extends Component {
                 return (
                     <div>
                         <div>
-                            <Table celled selectable striped>
+                            <Table celled selectable striped compact="very">
                                 <Table.Header>
                                     <Table.Row>
                                         {tableHeaders}

@@ -89,7 +89,7 @@ const UserDetails = props => {
                         <Header size="tiny" floated="left">Member of </Header>
                         <Label.Group >
                             {parentGroups}
-                              <Label as='a' color='green' >
+                              <Label as='a' color='green' style={{'paddingRight': '2px'}}>
                                 <Icon name='plus' fitted={true} onClick = {(event) => props.onUserGroupAction('add_user_to_group', null)}/>
                               </Label>
 
