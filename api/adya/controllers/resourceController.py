@@ -97,7 +97,7 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
     if selected_date:
-        resources_query = resources_query.filter(resource_alias.last_modified_time >= selected_date)
+        resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
     if parent_folder:
         resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
     if owner_email_id:
