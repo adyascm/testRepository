@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Header, Modal, Form, Message } from 'semantic-ui-react'
+import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-react'
 import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL, LOGIN_SUCCESS, ADD_APP_MESSAGE } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
@@ -30,7 +30,12 @@ class Actions extends Component {
         super(props);
         this.state = {
             inProgress: false,
-            initiated_by: props.logged_in_user['email']
+            initiated_by: props.logged_in_user['email'],
+            permissionDropdown: [
+                    { text: 'Can Read', value: 'reader' },
+                    { text: 'Can Write', value: 'writer' },
+                    { text: 'Owner', value: 'owner' }
+                ]
         };
         this.takeAction = this.takeAction.bind(this);
         this.executeAction = this.executeAction.bind(this);
@@ -153,7 +158,7 @@ class Actions extends Component {
         let message = (<div></div>)
         let submitAction = this.takeAction;
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
-        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
+        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit'  />);
         if (this.state.successMessage) {
             message = (<Message
                 success

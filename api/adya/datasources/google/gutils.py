@@ -60,7 +60,7 @@ def get_credentials(auth_token, user_email=None, db_session = None):
 def get_delegated_credentials(emailid):
     credentials = SERVICE_OBJECT.create_delegated(emailid)
     http = credentials.authorize(httplib2.Http())
-    #credentials.refresh(http)
+    credentials.refresh(http)
     return credentials
 
 

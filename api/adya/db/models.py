@@ -212,6 +212,8 @@ class PushNotificationsSubscription(Base):
     stale = Column(Boolean)
     last_accessed = Column(DateTime)
     expire_at = Column(DateTime)
+    resource_id = Column(String(255))
+    resource_uri = Column(String(255))
 
 
 class Action(Base):

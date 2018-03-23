@@ -94,7 +94,7 @@ export default (state = defaultState, action) => {
                 isLoading: false,
                 resourceTree: !action.error ? action.payload : []
             }
-        case RESOURCES_PAGINATION_DATA: 
+        case RESOURCES_PAGINATION_DATA:
             return {
                 ...state,
                 pageNumber: action.pageNumber,
@@ -125,7 +125,8 @@ export default (state = defaultState, action) => {
                     old_owner_email: state.rowData.resource_owner_id,
                     resource_owner_id: state.rowData.resource_owner_id,
                     new_permission_role: action.newValue,
-                    user_email: action.permission ? action.permission.email : undefined
+                    user_email: action.permission ? action.permission.email : undefined,
+                    user_type: action.permission ? action.permission.type: undefined
                 }
             }
         case RESOURCES_ACTION_CANCEL:
