@@ -270,16 +270,25 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     
     permissions_to_update = []
     response_data = {}
+    is_domain_exp_type = []
     for resource in shared_resources:
         permission_changes = []
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
                 permissions_to_update.append(permission)
+
+            if removal_type == constants.ResourceExposureType.EXTERNAL and permission.exposure_type == constants.ResourceExposureType.DOMAIN:
+                is_domain_exp_type.append(permission)
+
+
         #updating the exposure type in resource table
         if not removal_type == constants.ResourceExposureType.EXTERNAL:
             resource.exposure_type = constants.ResourceExposureType.PRIVATE
         else:
-            resource.exposure_type = constants.ResourceExposureType.INTERNAL
+            if len(is_domain_exp_type) > 0:
+                resource.exposure_type = constants.ResourceExposureType.DOMAIN
+            else:
+                resource.exposure_type = constants.ResourceExposureType.INTERNAL
 
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
@@ -306,16 +315,25 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
         return response_messages.ResponseMessage(400, "Bad Request - No such file found")
 
     permissions_to_update = []
+    is_domain_exp_type = []
     for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
             if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
                 permissions_to_update.append(permission)
-                resource.exposure_type = constants.ResourceExposureType.INTERNAL
+            elif permission.exposure_type == constants.ResourceExposureType.DOMAIN:
+                is_domain_exp_type.append(permission)
 
         else:
             if permission.permission_type != 'owner':
                 permissions_to_update.append(permission)
-                resource.exposure_type = constants.ResourceExposureType.PRIVATE
+
+    if len(permissions_to_update) > 0 and removal_type == constants.ResourceExposureType.EXTERNAL:
+        if len(is_domain_exp_type) > 0:
+            resource.exposure_type = constants.ResourceExposureType.DOMAIN
+        else:
+            resource.exposure_type = constants.ResourceExposureType.INTERNAL
+    else:
+        resource.exposure_type = constants.ResourceExposureType.PRIVATE
         
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
