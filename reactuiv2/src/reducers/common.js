@@ -37,11 +37,11 @@ export default (state = defaultState, action) => {
     case REDIRECT:
       return { ...state, redirectTo: null };
     case LOGOUT:
-      return { 
-        ...state, 
-        redirectTo: '/login', 
-        token: null, 
-        currentUser: null, 
+      return {
+        ...state,
+        redirectTo: '/login',
+        token: null,
+        currentUser: null,
         currentView: "/login",
         datasources: undefined
       };
@@ -133,7 +133,7 @@ export default (state = defaultState, action) => {
         ...state,
         currentView: "/apps"
       };
-    case SET_CURRENT_URL: 
+    case SET_CURRENT_URL:
       return {
         ...state,
         currentUrl: action.url

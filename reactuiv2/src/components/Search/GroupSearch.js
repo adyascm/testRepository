@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
     onsearchEmpty: () =>
         dispatch({ type: GROUP_SEARCH_EMPTY }),
     setSelectedUser: (payload) =>
-        dispatch({ type: USER_ITEM_SELECTED, payload }) 
+        dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
 class GroupSearch extends Component {
@@ -66,7 +66,7 @@ class GroupSearch extends Component {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
            this.props.onChangeReportInput(entityinfokey, entityinfovalue)
-            
+
         }
         this.setState({
             value: result.email
@@ -77,7 +77,7 @@ class GroupSearch extends Component {
         if (value === '') {
             this.props.onsearchEmpty()
             this.setState({ value })
-            return 
+            return
         }
         this.setState({ isLoading: true, value })
 
@@ -106,8 +106,8 @@ class GroupSearch extends Component {
 
     render() {
         const { isLoading, value, results } = this.state
-        if(!this.props.users.usersTreePayload)
-            return null;
+        // if(!this.props.users.usersTreePayload)
+        //     return null;
         return (
             <Search aligned="left"
                 loading={isLoading}

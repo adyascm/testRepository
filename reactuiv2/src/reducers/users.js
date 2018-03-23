@@ -126,7 +126,7 @@ export default (state = {}, action) => {
                 ...state,
                 exposureType: action.payload
             }
-        case LOGOUT: 
+        case LOGOUT:
             return {
                 ...state,
                 usersTreePayload: undefined,
