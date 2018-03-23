@@ -99,6 +99,8 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     access_time = datetime.datetime.utcnow()
     expire_time = access_time
     start_token = ''
+    resource_id = ''
+    resource_uri = ''
     try:
         drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
         body = {
@@ -117,6 +119,9 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
         watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
         print " watch_response for a user : ", watch_response
         expire_time = access_time + timedelta(seconds=86400)
+        resource_id = watch_response['resourceId']
+        resource_uri = watch_response['resourceUri']
+
     
     except Exception as ex:
         print "Exception occurred while subscribing for push notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
@@ -133,7 +138,10 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     push_notifications_subscription.user_email = email
     push_notifications_subscription.last_accessed = access_time
     push_notifications_subscription.expire_at = expire_time
+    push_notifications_subscription.resource_id = resource_id
+    push_notifications_subscription.resource_uri = resource_uri
     db_session.add(push_notifications_subscription)
+
 
 def process_notifications(datasource_id, channel_id):
     print "Processing Subscription notification for datasource_id: {} and channel_id: {}.".format(
@@ -273,7 +281,9 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                 "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "token": row.datasource_id,
                 "payload": "true",
-                "params": {"ttl": 86400}
+                "params": {"ttl": 86400},
+                "resourceId": row.resource_id,
+                "resourceUri": row.resource_uri
             }
             print "body : ",body
 
