@@ -29,6 +29,7 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
     setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: RESOURCES_PAGINATION_DATA, pageNumber, pageLimit }),
+    resetPaginationData: (pageNumber, pageLimit) => dispatch({ type: RESOURCES_PAGINATION_DATA, pageNumber, pageLimit }),
     changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
 });
 
@@ -76,12 +77,16 @@ class ResourcesListTable extends Component {
     }
 
     componentWillMount() {
-        if (!this.props.pageNumber)
-            this.props.setPaginationData(0, 100)
+        // if (!this.props.pageNumber)
+        //     this.props.setPaginationData(0, 100)
 
         this.props.onLoadStart()
-        this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': 0, 'pageSize': 100 }))
+        this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit }))
     }
+
+    // componentWillUnmount() {
+    //     this.props.resetPaginationData(undefined, undefined)
+    // }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
@@ -235,7 +240,7 @@ class ResourcesListTable extends Component {
                     </div>
                     <div style={{ marginTop: '5px' }} >
                         {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                        {this.props.pageNumber !== 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                        {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                     </div>
                 </div>
             )
