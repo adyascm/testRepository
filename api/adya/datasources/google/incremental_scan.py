@@ -95,6 +95,7 @@ def subscribe(domain_id, datasource_id):
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
     
+
 def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     access_time = datetime.datetime.utcnow()
     expire_time = access_time
@@ -148,78 +149,80 @@ def process_notifications(datasource_id, channel_id):
                     datasource_id, channel_id)
     db_session = db_connection().get_session()
     try:
-        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
-        user_email = login_user.email
-        if datasource.datasource_id != channel_id:
-            user = db_session.query(DomainUser).filter(DomainUser.user_id == channel_id).first()
-            user_email = user.email
-        drive_service = gutils.get_gdrive_service(
-            login_user.auth_token, user_email, db_session)
 
-        subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id,
-                                                                                   PushNotificationsSubscription.datasource_id == datasource_id)).first()
-        if not subscription:
-            print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-                datasource_id, channel_id)
+        is_user_exist = db_session.query(DomainUser).filter(and_(DomainUser.user_id == channel_id, DomainUser.member_type == 'INT')).first()
+        if is_user_exist:
+            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == is_user_exist.datasource_id).first()
+            user_email = is_user_exist.email
 
-        if subscription.in_progress == 1:
-            if subscription.stale == 0:
-                subscription.stale = 1
-                db_connection().commit()
-                print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
-                    datasource_id, channel_id)
-            else:
-                print "Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(
-                    datasource_id, channel_id)
+            drive_service = gutils.get_gdrive_service(
+                None, user_email, db_session)
+            subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id)).first()
+            if not subscription:
+                print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
+                    datasource.datasource_id, channel_id)
 
-            return
+            if subscription.in_progress == 1:
+                if subscription.stale == 0:
+                    subscription.stale = 1
+                    db_connection().commit()
+                    print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
+                        datasource.datasource_id, channel_id)
+                else:
+                    print "Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(
+                        datasource.datasource_id, channel_id)
 
-        should_mark_in_progress = True
+                return
 
-        page_token = subscription.page_token
-        print "process_notifications : page_token ", page_token
-        while True:
-            response = drive_service.changes().list(pageToken=page_token,
-                                                    spaces='drive').execute()
-            #Mark Inprogress
-            if should_mark_in_progress:
-                print "should_mark_in_progress "
-                db_session.refresh(subscription)
-                subscription.in_progress = 1
-                subscription.last_accessed = datetime.datetime.utcnow().isoformat()
-                db_connection().commit()
-                should_mark_in_progress = False
+            should_mark_in_progress = True
 
-            print response
-            for change in response.get('changes'):
-                # Process change
-                fileId = change.get('fileId')
-                print 'Change found for file: %s' % fileId
-                print change
+            page_token = subscription.page_token
+            print "process_notifications : page_token ", page_token
+            while True:
+                response = drive_service.changes().list(pageToken=page_token,
+                                                        spaces='drive').execute()
+                #Mark Inprogress
+                if should_mark_in_progress:
+                    print "should_mark_in_progress "
+                    db_session.refresh(subscription)
+                    subscription.in_progress = 1
+                    subscription.last_accessed = datetime.datetime.utcnow().isoformat()
+                    db_connection().commit()
+                    should_mark_in_progress = False
 
-                handle_change(drive_service, datasource.domain_id,
-                              datasource.datasource_id, user_email, fileId)
+                print response
+                for change in response.get('changes'):
+                    # Process change
+                    fileId = change.get('fileId')
+                    print 'Change found for file: %s' % fileId
+                    print change
 
-            if 'newStartPageToken' in response:
-                # Last page, save this token for the next polling interval
-                page_token = response.get('newStartPageToken')
-                break
+                    handle_change(drive_service, datasource.domain_id,
+                                  datasource.datasource_id, user_email, fileId)
 
-        db_session.refresh(subscription)
-        if page_token != subscription.page_token:
-            subscription.page_token = page_token
-        subscription.last_accessed = datetime.datetime.utcnow().isoformat()
-        subscription.in_progress = 0
-        db_connection().commit()
+                if 'newStartPageToken' in response:
+                    # Last page, save this token for the next polling interval
+                    page_token = response.get('newStartPageToken')
+                    break
 
-        db_session.refresh(subscription)
-        if subscription.stale == 1:
-            subscription.stale = 0
+            db_session.refresh(subscription)
+            if page_token != subscription.page_token:
+                subscription.page_token = page_token
+            subscription.last_accessed = datetime.datetime.utcnow().isoformat()
+            subscription.in_progress = 0
             db_connection().commit()
-            response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                     headers={"X-Goog-Channel-Token": datasource_id,
-                                              "X-Goog-Channel-ID": channel_id})
+
+            db_session.refresh(subscription)
+            if subscription.stale == 1:
+                subscription.stale = 0
+                db_connection().commit()
+                response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                                         headers={"X-Goog-Channel-Token": datasource_id,
+                                                  "X-Goog-Channel-ID": channel_id})
+
+        else:
+            print "the subscribed user does not exist "
+            return
 
     except Exception as e:
         print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(

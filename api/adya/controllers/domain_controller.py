@@ -7,7 +7,6 @@ import time
 import os
 
 from adya.common import constants, utils
-from adya.datasources.google.incremental_scan import unsubscribe_for_a_user
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup,\
     DomainUser, ResourcePermission, Resource, get_table,\
@@ -104,30 +103,27 @@ def async_delete_datasource(auth_token, datasource_id):
     existing_datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
     try:
-        response = unsubscribe_for_a_user(db_session, auth_token, datasource_id)
-        print "async_delete_datasource : ", response
-        if response:
-            db_session.query(DirectoryStructure).filter(
-                DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(DomainGroup).filter(
-                DomainGroup.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(ResourcePermission).filter(
-                ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(Resource).filter(
-                Resource.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(ApplicationUserAssociation).filter(
-                ApplicationUserAssociation.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(Application).filter(
-                Application.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(AuditLog).filter(
-                AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
-                                                                   datasource_id).delete(synchronize_session=False)
-            db_session.query(DomainUser).filter(
-                DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.delete(existing_datasource)
-            db_connection().commit()
-            print "Datasource deleted successfully"
+        db_session.query(DirectoryStructure).filter(
+            DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(DomainGroup).filter(
+            DomainGroup.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(ResourcePermission).filter(
+            ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(Resource).filter(
+            Resource.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(ApplicationUserAssociation).filter(
+            ApplicationUserAssociation.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(Application).filter(
+            Application.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(AuditLog).filter(
+            AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
+                                                               datasource_id).delete(synchronize_session=False)
+        db_session.query(DomainUser).filter(
+            DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.delete(existing_datasource)
+        db_connection().commit()
+        print "Datasource deleted successfully"
     except Exception as ex:
         print "Exception occurred during datasource data delete - " + ex.message
 
