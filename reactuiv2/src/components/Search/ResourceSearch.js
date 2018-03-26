@@ -70,17 +70,33 @@ class ResourceSearch extends Component {
             //const re = new RegExp(this.state.value, 'i')
             //var results = [];
 
-            agent.Resources.searchResources(this.state.value).then(res => {
-                this.setState({
-                    isLoading: false,
-                    results: res,
+            if (this.props.filterMetadata) {
+                this.props.filterMetadata['prefix'] = this.state.value
+                agent.Resources.getResourcesTree(this.props.filterMetadata).then(res => {
+                    this.setState({
+                        isLoading: false,
+                        results: res
+                    })
+                }, error => {
+                    this.setState({
+                        isLoading: false,
+                        results: []
+                    })
                 })
-            }, error => {
-                this.setState({
-                    isLoading: false,
-                    results: [],
-                })
-            });
+            }            
+            else {
+                agent.Resources.searchResources(this.state.value).then(res => {
+                    this.setState({
+                        isLoading: false,
+                        results: res,
+                    })
+                }, error => {
+                    this.setState({
+                        isLoading: false,
+                        results: [],
+                    })
+                });
+            }
         }, 1000)
     }
 
@@ -95,6 +111,7 @@ class ResourceSearch extends Component {
                 results={results}
                 value={value}
                 resultRenderer={this.resultRenderer}
+                fluid
                 // {...this.props} 
             />
         )

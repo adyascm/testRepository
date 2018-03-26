@@ -190,7 +190,8 @@ class ResourcesListTable extends Component {
             </Dimmer>
         )
 
-        if (this.props.isLoading || resourceData)
+        if (this.props.isLoading || resourceData) {
+            let filterMetadata = { 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
             return (
                 <div>
                     <div style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight/1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>
@@ -203,7 +204,7 @@ class ResourcesListTable extends Component {
                             <Table.Body>
                                 <Table.Row>
                                     <Table.Cell>
-                                        <ResourceSearch />
+                                        <ResourceSearch filterMetadata={filterMetadata} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Input fluid placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
@@ -244,6 +245,7 @@ class ResourcesListTable extends Component {
                     </div>
                 </div>
             )
+        }
         else
             return (
                 <div style={{ textAlign: 'center' }}>
