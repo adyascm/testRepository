@@ -1,6 +1,21 @@
 import React from 'react';
-import { Grid, Button, Icon, Dropdown, Table } from 'semantic-ui-react'
+import { Grid, Button, Icon, Dropdown, Table, Input } from 'semantic-ui-react'
 
+
+let newPermission = {
+    email: '',
+    type: ''
+}
+
+let newPermissionType = ''
+
+const handleEmailChange = (event) => {
+    newPermission['email'] = event.target.value
+}
+
+const handleDropDownChange = (event,data) => {
+    newPermissionType = data
+}
 
 const ResourcePermissions = props => {
     let permissionOptions = [
@@ -11,6 +26,7 @@ const ResourcePermissions = props => {
 
     let permissions = props.rowData.permissions
     let permissionUsers = []
+
 
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission, index) => {
@@ -68,7 +84,7 @@ const ResourcePermissions = props => {
             <Table.Header>
                 <Table.Row>
                     <Table.HeaderCell>
-                        Remove
+                        Add/Remove
                     </Table.HeaderCell>
                     <Table.HeaderCell>
                         Permission Email
@@ -79,6 +95,22 @@ const ResourcePermissions = props => {
                 </Table.Row>
             </Table.Header>
             <Table.Body>
+                <Table.Row>
+                    <Table.Cell>
+                        <Button animated='vertical' basic color='green' onClick={(event) => props.onAddPermission(event,newPermission,newPermissionType)}>
+                            <Button.Content hidden>Add</Button.Content>
+                            <Button.Content visible>
+                                <Icon name='plus' />
+                            </Button.Content>
+                        </Button>
+                    </Table.Cell>
+                    <Table.Cell>
+                        <Input fluid placeholder='Enter the new user email' onChange={handleEmailChange} />
+                    </Table.Cell>
+                    <Table.Cell>
+                        <Dropdown fluid selection options={permissionOptions} onChange={(event,data) => handleDropDownChange(event,data.value)} />
+                    </Table.Cell>
+                </Table.Row>
                 {permissionUsers}
             </Table.Body>
         </Table>

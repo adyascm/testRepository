@@ -232,7 +232,6 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     existing_permission.permission_type = new_permission_role
     if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-
         db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner,
                         ResourcePermission.resource_id == resource_id, ResourcePermission.datasource_id == datasource_id)).\
                           update({ResourcePermission.permission_type: constants.Role.WRITER})
@@ -241,7 +240,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
                         Resource.resource_owner_id == resource_owner)).update({Resource.resource_owner_id: user_email,
                         Resource.last_modified_time: current_time,Resource.last_modifying_user_email: initiated_user})
 
-        resource_owner = action_parameters['old_owner_email']
+        
 
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
@@ -260,7 +259,9 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type):
     db_session = db_connection().get_session()
+    #By default we remove all external access i.e. PUBLIC and EXTERNAL
     permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+    #Other option is to also remove all access i.e. DOMAIN and INTERNAL also
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
         permission_type.append(constants.ResourceExposureType.DOMAIN)
         permission_type.append(constants.ResourceExposureType.INTERNAL)
@@ -270,22 +271,28 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     
     permissions_to_update = []
     response_data = {}
-    is_domain_exp_type = []
+    external_users = {}
     for resource in shared_resources:
+        has_domain_sharing = False
         permission_changes = []
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
+                #Collect all external user emails, so that once permissions are removed, if their all access is removed, we need to remove from user table
+                if permission.exposure_type == constants.ResourceExposureType.EXTERNAL and not permission.email in external_users:
+                    external_users[permission.email] = 1
                 permissions_to_update.append(permission)
 
-            if removal_type == constants.ResourceExposureType.EXTERNAL and permission.exposure_type == constants.ResourceExposureType.DOMAIN:
-                is_domain_exp_type.append(permission)
+            if permission.exposure_type == constants.ResourceExposureType.DOMAIN:
+                has_domain_sharing = True
 
 
         #updating the exposure type in resource table
+        #First case is that we are removing all permissions on a resource, so just set the exposure to PRIVATE
         if not removal_type == constants.ResourceExposureType.EXTERNAL:
             resource.exposure_type = constants.ResourceExposureType.PRIVATE
         else:
-            if len(is_domain_exp_type) > 0:
+            # If we are removing only external permissions, then if any of the permissions had domain level sharing, set resource exposure to DOMAIN, else INTERNAL
+            if has_domain_sharing:
                 resource.exposure_type = constants.ResourceExposureType.DOMAIN
             else:
                 resource.exposure_type = constants.ResourceExposureType.INTERNAL
@@ -301,12 +308,28 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                 db_session.delete(updated_permission)
 
             db_connection().commit()
+
+            #Remove all external users who do not have any permissions now
+            _remove_external_users_if_no_permissions(datasource_id, external_users, db_session)
+
             if len(updated_permissions) < len(permissions_to_update):
                 return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
             else:
                 return response_messages.ResponseMessage(200, 'Action completed successfully')
     return response_messages.ResponseMessage(400, "Bad Request - Nothing to update")
 
+def _remove_external_users_if_no_permissions(datasource_id, external_users, db_session):
+    anything_changed = False
+    for external_user in external_users:
+        permissions_count = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
+                                                                 datasource_id, ResourcePermission.email == external_user)).count()
+        if permissions_count < 1:
+            db_session.query(DomainUser).filter(and_(DomainUser.email == external_user, DomainUser.datasource_id == datasource_id,
+                                                         DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
+            anything_changed = True
+    
+    if anything_changed:
+        db_connection().commit()
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, removal_type):
     db_session = db_connection().get_session()
@@ -315,20 +338,25 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
         return response_messages.ResponseMessage(400, "Bad Request - No such file found")
 
     permissions_to_update = []
-    is_domain_exp_type = []
+    has_domain_sharing = False
+    external_users = {}
     for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
+            #Collect all external user emails, so that once permissions are removed, if their all access is removed, we need to remove from user table
+            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL and not permission.email in external_users:
+                external_users[permission.email] = 1
+
             if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
                 permissions_to_update.append(permission)
             elif permission.exposure_type == constants.ResourceExposureType.DOMAIN:
-                is_domain_exp_type.append(permission)
+                has_domain_sharing = True
 
         else:
             if permission.permission_type != 'owner':
                 permissions_to_update.append(permission)
 
     if len(permissions_to_update) > 0 and removal_type == constants.ResourceExposureType.EXTERNAL:
-        if len(is_domain_exp_type) > 0:
+        if has_domain_sharing:
             resource.exposure_type = constants.ResourceExposureType.DOMAIN
         else:
             resource.exposure_type = constants.ResourceExposureType.INTERNAL
@@ -345,6 +373,10 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
             for updated_permission in updated_permissions:
                 db_session.delete(updated_permission)
             db_connection().commit()
+
+            #Remove all external users who do not have any permissions now
+            _remove_external_users_if_no_permissions(datasource_id, external_users, db_session)
+
             if len(updated_permissions) < len(permissions_to_update):
                 return response_messages.ResponseMessage(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
             else:
@@ -358,9 +390,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
                                                                  datasource_id, ResourcePermission.email == user_email,
                                                                  ResourcePermission.permission_type != "owner")).all()
     permissions_to_update = []
-    exposure_type = ''
     for permission in resource_permissions:
-        exposure_type = permission.exposure_type
         permissions_to_update.append(permission)
         
     if len(permissions_to_update) > 0:
@@ -372,7 +402,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         else:
             for updated_permission in updated_permissions:
                 db_session.delete(updated_permission)
-            if exposure_type == constants.UserMemberType.EXTERNAL:
+            if len(updated_permissions) == len(permissions_to_update):
                 db_session.query(DomainUser).filter(and_(DomainUser.email == user_email, DomainUser.datasource_id == datasource_id,
                                                          DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
             db_connection().commit()
