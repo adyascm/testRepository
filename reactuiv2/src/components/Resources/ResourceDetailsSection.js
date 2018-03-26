@@ -6,7 +6,8 @@ import ResourceDetails from './ResourceDetails';
 import { RESOURCES_TREE_SET_ROW_DATA, RESOURCES_ACTION_LOAD } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.resources
+    ...state.resources,
+    usersTreePayload: state.users.usersTreePayload
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -47,8 +48,10 @@ class ResourceDetailsSection extends Component {
         this.props.onChangePermissionForResource('delete_permission_for_user', permission, "")
     }
 
-    onAddPermission(event, permission){
-      this.props.onAddPermissionForFile('add_permission_for_a_File', permission)
+    onAddPermission(event, permission, newValue){
+      //this.props.onAddPermissionForFile('add_permission_for_a_File', permission)
+      permission['type'] = this.props.usersTreePayload[permission['email']]['type']
+      this.props.onChangePermissionForResource('add_permission_for_a_File', permission, newValue)
     }
 
     render() {
