@@ -126,7 +126,7 @@ class Users extends Component {
 
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              {this.props.isLoading ? dimmer : null}
+              {!this.props.userPayload && this.props.isLoading ? dimmer : null}
               {!this.state.showHierarchy ? flatList : treeView}
             </Grid.Column>
             {
