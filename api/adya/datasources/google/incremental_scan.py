@@ -31,7 +31,7 @@ def handle_channel_expiration():
                 "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "token": row.datasource_id,
                 "payload": "true",
-                "params": {"ttl": 86400}
+                "params": {"ttl": 86100}
             }
 
             if is_service_account_enabled:
@@ -53,7 +53,7 @@ def handle_channel_expiration():
             print "Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                 row.domain_id, row.datasource_id, row.channel_id, response)
 
-            expire_time = access_time + timedelta(seconds=86400)
+            expire_time = access_time + timedelta(seconds=86100)
             
         except Exception as e:
             print e
@@ -110,7 +110,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
             "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
             "token": datasource.datasource_id,
             "payload": "true",
-            "params": {"ttl": 86400}
+            "params": {"ttl": 86100}
         }
 
         response = drive_service.changes().getStartPageToken().execute()
@@ -119,7 +119,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
 
         watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
         print " watch_response for a user : ", watch_response
-        expire_time = access_time + timedelta(seconds=86400)
+        expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
         resource_uri = watch_response['resourceUri']
 
@@ -284,7 +284,7 @@ def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
                 "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "token": row.datasource_id,
                 "payload": "true",
-                "params": {"ttl": 86400},
+                "params": {"ttl": 86100},
                 "resourceId": row.resource_id,
                 "resourceUri": row.resource_uri
             }
