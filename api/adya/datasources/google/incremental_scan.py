@@ -20,6 +20,10 @@ def handle_channel_expiration():
     for row in subscription_list:
         access_time = datetime.datetime.utcnow()
         expire_time = access_time
+        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=86100)):
+            #Unsubscribe and subscribe again
+            unsubscribe_for_a_user(row)
+
         try:
             is_service_account_enabled = True
             if row.channel_id == row.datasource_id:
@@ -271,34 +275,25 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
             domain_id, datasource_id, email, file_id, e)
 
 
-def unsubscribe_for_a_user(db_session, auth_token, datasource_id):
+def unsubscribe_for_a_user(subscription):
     try:
-        drive_service = gutils.get_gdrive_service(auth_token, None, db_session)
-        subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).all()
-        unsubscribe_response = None
-        for row in subscription_list:
-            print "trying to unsubscribe the channel "
-            body = {
-                "id": row.channel_id,
-                "type": "web_hook",
-                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                "token": row.datasource_id,
-                "payload": "true",
-                "params": {"ttl": 86100},
-                "resourceId": row.resource_id,
-                "resourceUri": row.resource_uri
-            }
-            print "body : ",body
-
-            unsubscribe_response = drive_service.channels().stop(body=body).execute()
-
-            print "google unsubscribe response : ", unsubscribe_response
-            print "unsubscription for datasource id: {} and channel id: {}".format(datasource_id, row.channel_id)
-
-        return unsubscribe_response
+        drive_service = gutils.get_gdrive_service(None, subscription.user_email)
+        body = {
+            "id": subscription.channel_id,
+            "type": "web_hook",
+            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "token": subscription.datasource_id,
+            "payload": "true",
+            "params": {"ttl": 86100},
+            "resourceId": subscription.resource_id,
+            "resourceUri": subscription.resource_uri
+        }
+        print "trying to unsubscribe the channel with body - {}".format(body)
+        unsubscribe_response = drive_service.channels().stop(body=body).execute()
+        print "google unsubscribe response : ", unsubscribe_response
+        return True
 
     except Exception as ex:
         print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
             datasource_id, ex)
-        error_res = {'error': ex}
-        return error_res
+        return False
