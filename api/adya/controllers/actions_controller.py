@@ -260,7 +260,9 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type):
     db_session = db_connection().get_session()
+    #By default we remove all external access i.e. PUBLIC and EXTERNAL
     permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+    #Other option is to also remove all access i.e. DOMAIN and INTERNAL also
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
         permission_type.append(constants.ResourceExposureType.DOMAIN)
         permission_type.append(constants.ResourceExposureType.INTERNAL)
@@ -270,22 +272,24 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     
     permissions_to_update = []
     response_data = {}
-    is_domain_exp_type = []
     for resource in shared_resources:
+        has_domain_sharing = False
         permission_changes = []
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
                 permissions_to_update.append(permission)
 
-            if removal_type == constants.ResourceExposureType.EXTERNAL and permission.exposure_type == constants.ResourceExposureType.DOMAIN:
-                is_domain_exp_type.append(permission)
+            if permission.exposure_type == constants.ResourceExposureType.DOMAIN:
+                has_domain_sharing = True
 
 
         #updating the exposure type in resource table
+        #First case is that we are removing all permissions on a resource, so just set the exposure to PRIVATE
         if not removal_type == constants.ResourceExposureType.EXTERNAL:
             resource.exposure_type = constants.ResourceExposureType.PRIVATE
         else:
-            if len(is_domain_exp_type) > 0:
+            # If we are removing only external permissions, then if any of the permissions had domain level sharing, set resource exposure to DOMAIN, else INTERNAL
+            if has_domain_sharing:
                 resource.exposure_type = constants.ResourceExposureType.DOMAIN
             else:
                 resource.exposure_type = constants.ResourceExposureType.INTERNAL
