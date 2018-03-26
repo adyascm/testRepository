@@ -13,21 +13,20 @@ import { connect } from 'react-redux';
 import {
     USER_ITEM_SELECTED,
     USERS_RESOURCE_ACTION_LOAD,
-    RESOURCES_FILTER_CHANGE,
+    USERS_RESOURCE_FILTER_CHANGE,
     USERS_GROUP_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.users,
-    ...state.common,
-    ...state.resources
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({ type: USER_ITEM_SELECTED, payload }),
     onUserQuickAction: (actionType) =>
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType }),
-    changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value }),
+    changeFilter: (property, value) => dispatch({ type: USERS_RESOURCE_FILTER_CHANGE, property, value }),
     userGroupAction : (actionType, groupId) =>
         dispatch({type: USERS_GROUP_ACTION_LOAD, actionType, groupId})
 })
@@ -107,7 +106,7 @@ class UsersGroupsDetailsSection extends Component {
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
-                        <UserResourceTable filterExposureType={this.props.filterExposureType} />
+                        <UserResourceTable />
                     </Grid.Row>
                 </Grid>
             </Container>
