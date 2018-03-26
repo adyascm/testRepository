@@ -358,9 +358,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
                                                                  datasource_id, ResourcePermission.email == user_email,
                                                                  ResourcePermission.permission_type != "owner")).all()
     permissions_to_update = []
-    exposure_type = ''
     for permission in resource_permissions:
-        exposure_type = permission.exposure_type
         permissions_to_update.append(permission)
         
     if len(permissions_to_update) > 0:
@@ -372,7 +370,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         else:
             for updated_permission in updated_permissions:
                 db_session.delete(updated_permission)
-            if exposure_type == constants.UserMemberType.EXTERNAL:
+            if len(updated_permissions) == len(permissions_to_update):
                 db_session.query(DomainUser).filter(and_(DomainUser.email == user_email, DomainUser.datasource_id == datasource_id,
                                                          DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
             db_connection().commit()
