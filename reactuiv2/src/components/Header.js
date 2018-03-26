@@ -36,20 +36,22 @@ const LoggedInView = props => {
                     <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
                     <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
                     <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
+                    <Menu.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
+                    <Menu.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
-                    {/* <Menu.Item icon='settings' as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} /> */}
-                    <Dropdown item icon='settings'>
+                    <Menu.Item icon='settings' as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
+                    {/* <Dropdown item icon='settings'>
                         <Dropdown.Menu>  
                             <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
                         </Dropdown.Menu>
-                    </Dropdown>
+                    </Dropdown> */}
                     <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
