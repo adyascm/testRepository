@@ -18,7 +18,9 @@ const defaultState = {
     filterResourceType: '',
     filterEmailId: '',
     filterParentFolder: '',
-    filterByDate: ''
+    filterByDate: '',
+    pageNumber: 0,
+    pageLimit: 100
 };
 
 export default (state = defaultState, action) => {
