@@ -1,9 +1,9 @@
 from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
-    ApplicationUserAssociation
+    ApplicationUserAssociation, Resource, ResourcePermission
 from adya.db.connection import db_connection
 from sqlalchemy import and_, desc
 import json
-from adya.common import utils
+from adya.common import utils, constants
 from adya.datasources.google import gutils
 from adya.controllers import common
 
@@ -25,8 +25,23 @@ def get_user_group_tree(auth_token):
         users_groups = {}
 
         if is_service_account_is_enabled and not is_admin:
-                existing_user.DomainUser.parents = []
-                users_groups[existing_user.DomainUser.email] = existing_user.DomainUser
+                extUsers = db_session.query(DomainUser).filter(and_(Resource.resource_owner_id == login_user_email,
+                               ResourcePermission.resource_id == Resource.resource_id,
+                               ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
+                               DomainUser.datasource_id == datasource_id,
+                               ResourcePermission.email == DomainUser.email,
+                               ResourcePermission.datasource_id == datasource_id,
+                              DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
+
+                for extusr in extUsers :
+                    extusr.parents = []
+                    users_groups[extusr.email] =extusr
+
+                usersData = db_session.query(DomainUser) \
+                                .filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == existing_user.email)).all()
+                usersData[0].parents = []
+                users_groups[usersData[0].email] = usersData[0]
+
                 groupsData = db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).filter(
                     LoginUser.auth_token == auth_token).filter(
                     DirectoryStructure.datasource_id == DomainGroup.datasource_id,
@@ -34,7 +49,7 @@ def get_user_group_tree(auth_token):
                     DirectoryStructure.parent_email == DomainGroup.email).all()
 
                 if len(groupsData) > 1:
-                    for groupdata in groupsData.DomainGroup:
+                    for groupdata in groupsData:
                         groupdata.parents = []
                         groupdata.children = []
                         users_groups[groupdata.email] = groupdata
