@@ -85,6 +85,21 @@ def subscribe(domain_id, datasource_id):
         db_connection().commit()
 
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
+
+        # watch on userlist
+        directory_service = gutils.get_directory_service(login_user.auth_token)
+        body = {
+            "id": datasource.datasource_id,
+            "type": "web_hook",
+            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "payload": "true",
+            "params": {"ttl": 86100}
+        }
+
+        print "subscribe userlist : body : ", body
+        watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true", body=body)
+        print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+
         if datasource.is_serviceaccount_enabled:
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
@@ -110,7 +125,6 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     resource_uri = ''
     try:
         drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
-        directory_service = gutils.get_directory_service(auth_token, email, db_session)
         body = {
             "id": channel_id,
             "type": "web_hook",
@@ -125,12 +139,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
         print 'Start token: ', start_token
 
         watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
-
-        # watch on userlist
-        # watch_response_for_userlist = directory_service.users().watch(body=body).execute()
-
         print " watch_response for a user : ", watch_response
-        # print"watch response in userlist : ", watch_response_for_userlist
 
         expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
