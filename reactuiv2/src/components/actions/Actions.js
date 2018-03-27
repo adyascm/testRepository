@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-react'
-import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL, LOGIN_SUCCESS, ADD_APP_MESSAGE } from '../../constants/actionTypes';
+import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL, LOGIN_SUCCESS, FLAG_ERROR_MESSAGE } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 import authenticate from '../../utils/oauth';
@@ -22,7 +22,7 @@ const mapDispatchToProps = dispatch => ({
     onIncrementalAuthComplete: (data) =>
         dispatch({ type: LOGIN_SUCCESS, ...data }),
     onActionNotAllowed: (errorMessage) =>
-        dispatch({ type: ADD_APP_MESSAGE, error: errorMessage }),
+        dispatch({ type: FLAG_ERROR_MESSAGE, error: errorMessage }),
 });
 
 class Actions extends Component {

@@ -12,7 +12,9 @@ import {
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
   RUN_SCHEDULED_REPORT,
-  DELETE_OLD_SCHEDULED_REPORT
+  REPORTS_PAGE_LOADING,
+  DELETE_OLD_SCHEDULED_REPORT,
+  FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -32,8 +34,11 @@ const mapStateToProps = state => ({
     },
     deleteOldRunReportData: () => {
       dispatch({type:DELETE_OLD_SCHEDULED_REPORT })
-    }
-
+    },
+    loadingReports: () => 
+      dispatch({ type: REPORTS_PAGE_LOADING }),
+    flagReportsError: (error, info) => 
+      dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
   });
 
 class Reports extends Component {
@@ -50,17 +55,17 @@ class Reports extends Component {
       processreport: false,
       formType: '',
       reportDataForReportId: {},
-      reportType: ''
+      reportType: '',
+      reportsError: false
     }
   }
 
   componentWillMount(){
+    this.props.loadingReports()
     this.props.setreports(agent.Scheduled_Report.getReports())
     this.setState({
         reportsData: this.props.reports
     })
-
-    //
   }
 
 
@@ -116,10 +121,25 @@ class Reports extends Component {
       this.props.deleteOldRunReportData()
       nextProps.setreports(agent.Scheduled_Report.getReports())
     }
+    if ((nextProps.errorMessage !== this.props.errorMessage) && !this.state.reportsError) {
+      this.props.flagReportsError(nextProps.errorMessage, undefined)
+      this.setState({
+        reportsError: true
+      })
+    }
   }
 
 
   render() {
+
+    if (this.props.isLoading) 
+      return (
+        <div style={{ height: '200px' }}>
+            <Dimmer active inverted>
+                <Loader inverted content='Loading' />
+            </Dimmer>
+        </div>
+      )
 
     if (this.props.currentUser){
       return(

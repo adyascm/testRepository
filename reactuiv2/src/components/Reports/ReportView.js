@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Card, Header} from 'semantic-ui-react';
 import cronstrue from 'cronstrue';
 import cronQuartz from 'cron-to-quartz'
-import {IntlProvider,FormattedDate} from 'react-intl'
+import { IntlProvider, FormattedDate } from 'react-intl'
 
 
 const ReportView = props => {
@@ -11,7 +11,8 @@ const ReportView = props => {
 
     if (reports != undefined && !props.getReportError) {
       var keys = Object.keys(reports)
-       var reportCard = []
+      var reportCard = []
+      
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         var interval ='';

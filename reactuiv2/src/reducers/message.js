@@ -1,6 +1,6 @@
 import {
     ASYNC_END,
-    ADD_APP_MESSAGE,
+    FLAG_ERROR_MESSAGE,
     CLEAR_MESSAGE,
     SCAN_INCREMENTAL_UPDATE_RECEIVED,
     LOGOUT
@@ -25,7 +25,7 @@ export default (state = defaultState, action) => {
             }
             break
 
-        case ADD_APP_MESSAGE:
+        case FLAG_ERROR_MESSAGE:
             if (action.error) {
                 if (!state.errorCount ||
                     state.errorMessage.indexOf(action.error) < 0) {
