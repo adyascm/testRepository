@@ -178,6 +178,27 @@ def get_widget_data(auth_token, widget_id):
 
         data["totalCount"] = totalcount
 
+    elif widget_id == "internalUserList":
+        data = {}
+        internal_user_list = db_session.query(DomainUser.email, func.count(Resource.resource_id)).filter(
+                         and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.member_type == constants.UserMemberType.INTERNAL,
+                              ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email == DomainUser.email,
+                              Resource.resource_id == ResourcePermission.resource_id, Resource.datasource_id ==  ResourcePermission.datasource_id,
+                                Resource.exposure_type.in_([constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
+                              )).filter(LoginUser.auth_token == auth_token).group_by(DomainUser.email).order_by(func.count(Resource.resource_id).desc())
+
+        internal_user_total_count = db_session.query(DomainUser.email).filter(
+            and_(DomainUser.datasource_id.in_(domain_datasource_ids),
+                 DomainUser.member_type == constants.UserMemberType.INTERNAL)).filter(
+            LoginUser.auth_token == auth_token)
+
+        if is_service_account_is_enabled and not is_admin:
+            internal_user_list = internal_user_list.filter(Resource.resource_owner_id == login_user_email)
+            internal_user_total_count = internal_user_total_count.filter(Resource.resource_owner_id == login_user_email)
+
+        data["rows"] = internal_user_list.limit(5).all()
+        data["totalCount"] = internal_user_total_count.count()
+
     return data
 
 

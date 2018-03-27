@@ -87,21 +87,21 @@ def subscribe(domain_id, datasource_id):
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
 
         # watch on userlist
-        directory_service = gutils.get_directory_service(login_user.auth_token)
-        body = {
-            "id": datasource.datasource_id,
-            "type": "web_hook",
-            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-            "payload": "true",
-            "params": {"ttl": 1800}
-        }
-
-        print "subscribe userlist : body : ", body
-
-        watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
-                                                                  event="add", body=body)
-
-        print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+        # directory_service = gutils.get_directory_service(login_user.auth_token)
+        # body = {
+        #     "id": datasource.datasource_id,
+        #     "type": "web_hook",
+        #     "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        #     "payload": "true",
+        #     "params": {"ttl": 1800}
+        # }
+        #
+        # print "subscribe userlist : body : ", body
+        #
+        # watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
+        #                                                           event="add", body=body)
+        #
+        # print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
         if datasource.is_serviceaccount_enabled:
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
