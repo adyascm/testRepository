@@ -14,6 +14,7 @@ import {
   RUN_SCHEDULED_REPORT,
   REPORTS_PAGE_LOADING,
   DELETE_OLD_SCHEDULED_REPORT,
+  FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -35,7 +36,9 @@ const mapStateToProps = state => ({
       dispatch({type:DELETE_OLD_SCHEDULED_REPORT })
     },
     loadingReports: () => 
-      dispatch({ type: REPORTS_PAGE_LOADING })
+      dispatch({ type: REPORTS_PAGE_LOADING }),
+    flagReportsError: (error, info) => 
+      dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
   });
 
 class Reports extends Component {
@@ -52,7 +55,8 @@ class Reports extends Component {
       processreport: false,
       formType: '',
       reportDataForReportId: {},
-      reportType: ''
+      reportType: '',
+      reportsError: false
     }
   }
 
@@ -62,8 +66,6 @@ class Reports extends Component {
     this.setState({
         reportsData: this.props.reports
     })
-
-    //
   }
 
 
@@ -118,6 +120,12 @@ class Reports extends Component {
     if(nextProps.scheduledReport !== undefined ){
       this.props.deleteOldRunReportData()
       nextProps.setreports(agent.Scheduled_Report.getReports())
+    }
+    if ((nextProps.errorMessage !== this.props.errorMessage) && !this.state.reportsError) {
+      this.props.flagReportsError(nextProps.errorMessage, undefined)
+      this.setState({
+        reportsError: true
+      })
     }
   }
 

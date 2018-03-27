@@ -39,7 +39,8 @@ export default (state = {}, action) => {
                 ...state,
                 reports: action.payload,
                 isLoading: false,
-                getreportError: error
+                getreportError: error,
+                errorMessage: action.error
               }
         case DELETE_SCHEDULED_REPORT:
               return{
