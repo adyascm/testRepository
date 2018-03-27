@@ -7,11 +7,8 @@ from adya.controllers import domain_controller
 
 
 def get_activities_for_user(auth_token, user_email, start_time=None):
-    db_session = db_connection().get_session()
-    data_source = domain_controller.get_datasource(auth_token, None)
-    domain_id = data_source[0].domain_id
-    datasource_id = data_source[0].datasource_id
-    reports_service = gutils.get_gdrive_reports_service(auth_token)
+
+    reports_service = gutils.get_gdrive_reports_service(auth_token, user_email)
     if not start_time:
         start_time = datetime.today() - timedelta(days=7)
 
@@ -19,11 +16,11 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
 
     results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=100,
                                                 startTime=start_time_string).execute()
-    payload = process_user_activity(domain_id, data_source[0].display_name, user_email, results)
+    payload = process_user_activity(user_email, results)
     return payload
 
 
-def process_user_activity(domain_id, datasource_name, user_email, activities):
+def process_user_activity(user_email, activities):
     print "got activities: ", activities
     processed_activities = []
     if 'items' in activities:
@@ -60,7 +57,7 @@ def process_user_activity(domain_id, datasource_name, user_email, activities):
 
                         if resource_name is not None and resource_type is not None:
                             processed_activities.append(
-                                [activity_timestamp, event_name, datasource_name, resource_name, resource_type,
+                                [activity_timestamp, event_name, resource_name, resource_type,
                                     ip_address])
 
     return processed_activities

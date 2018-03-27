@@ -80,12 +80,6 @@ class ReportsGrid extends Component {
           width: 200
       },
       {
-          headerName: 'Datasource',
-          field: 'datasource',
-          cellRenderer: "agGroupCellRenderer",
-          width: 200
-      },
-      {
           headerName: 'Resource',
           field: 'resource',
           cellRenderer: "agGroupCellRenderer",

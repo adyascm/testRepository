@@ -9,10 +9,9 @@ const ReportView = props => {
     const reports = props.report;
     const locale =  'en';
 
-    var keys = Object.keys(reports)
-    var reportCard = []
-
-    if (keys.length > 0 && !props.getReportError) {
+    if (reports != undefined && !props.getReportError) {
+      var keys = Object.keys(reports)
+       var reportCard = []
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         var interval ='';
@@ -89,11 +88,11 @@ const ReportView = props => {
       }
     }
 
-    if (reportCard.length > 0) {
+
 
       return (
         <Card.Group>
-            {reportCard}
+            {reportCard != undefined? reportCard : null }
             <Card>
               <Card.Content>
                 <Card.Description>
@@ -108,32 +107,6 @@ const ReportView = props => {
             </Card>
         </Card.Group>
       )
-
-    }
-    else {
-        return (
-          <div>
-            {  props.getReportError? <Header>
-              There's something not right , we'll be back shortly..
-            </Header> : null }
-              <Card.Group>
-                <Card>
-                  <Card.Content>
-                    <Card.Description>
-                      Click on Add Report to create new report
-                          </Card.Description>
-                  </Card.Content>
-                  <Card.Content extra>
-                    <div className='ui buttons'>
-                      <Button basic color='green' onClick={props.reportForm}>Add Report</Button>
-                    </div>
-                  </Card.Content>
-                </Card>
-              </Card.Group>
-            </div>
-        );
-}
-
 }
 
 export default ReportView;

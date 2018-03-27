@@ -49,12 +49,6 @@ class UserActivity extends Component {
                     }
                 },
                 {
-                    headerName: "Datasource",
-                    valueGetter: params => {
-                        return params.data[2];
-                    }
-                },
-                {
                     headerName: "Resource",
                     valueGetter: params => {
                         return params.data[3];

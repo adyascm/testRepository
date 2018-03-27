@@ -30,7 +30,6 @@ class UserActivityTable extends Component {
             columnHeaders: [
                 "Date",
                 "Operation",
-                "Datasource",
                 "Resource",
                 "Type",
                 "IP Address"
@@ -52,7 +51,7 @@ class UserActivityTable extends Component {
         }
     }
 
-    
+
 
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
@@ -62,7 +61,7 @@ class UserActivityTable extends Component {
         })
 
         let tableRowData = null
-        
+
         if (this.props.selectedUserItem.activities)
             tableRowData = this.props.selectedUserItem.activities.map(rowData => {
                 return (
@@ -76,7 +75,7 @@ class UserActivityTable extends Component {
                     </Table.Row>
                 )
             })
-        
+
         if (this.props.isActivitiesLoading)
             return (
                 <div style={{ height: '200px' }}>
@@ -103,13 +102,13 @@ class UserActivityTable extends Component {
                         </div>
                     </div>
                 )
-            else 
+            else
                 return (
                     <div style={{ marginLeft: '30%' }}>
-                        No Activities to display for user 
+                        No Activities to display for user
                     </div>
                 )
-        }        
+        }
     }
 }
 
