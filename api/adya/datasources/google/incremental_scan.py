@@ -58,6 +58,8 @@ def handle_channel_expiration():
                 row.domain_id, row.datasource_id, row.channel_id, response)
 
             expire_time = access_time + timedelta(seconds=86100)
+            row.resource_id = response['resourceId']
+            row.resource_uri = response['resourceUri']
             
         except Exception as e:
             print e
@@ -295,5 +297,6 @@ def unsubscribe_for_a_user(subscription):
 
     except Exception as ex:
         print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
-            datasource_id, ex)
+            subscription.datasource_id, ex)
+        print ex
         return False
