@@ -275,10 +275,8 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
 
         print "Deleting the existing permissions and resource, and add again"
-        db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id))
-        .delete(synchronize_session=False)
-        db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id))
-        .delete(synchronize_session=False)
+        db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id)).delete(synchronize_session=False)
+        db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(synchronize_session=False)
         db_connection().commit()
 
         resourcedata = {}

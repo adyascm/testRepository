@@ -5,10 +5,10 @@ from sqlalchemy import and_, or_
 from adya.common import constants, messaging
 from adya.controllers import domain_controller, common
 from adya.db.connection import db_connection
-from adya.db.models import Policy, LoginUser, PolicyTrigger, PolicyCondition
+from adya.db.models import Policy, LoginUser, PolicyCondition
 
 def get_policies(auth_token):
-    db_session = db_connection().get_session()=
+    db_session = db_connection().get_session()
     existing_user = common.get_user_session(auth_token, db_session=db_session)
     #TODO: add the logged in user's datasources filter
     return db_session.query(Policy).all()
@@ -62,8 +62,8 @@ def validate(auth_token, datasource_id, resource_id, payload):
     resource = payload["resource"]
     new_permissions = resource["permissions"]
     for new_permission in new_permissions:
-        if (not new_permission.email in old_permissions_map) or 
-            (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type):
+        if ((not new_permission.email in old_permissions_map)
+            or (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type)):
             print "Permissions changed for this document, validate other policy conditions now..."
             policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, 
                 Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
