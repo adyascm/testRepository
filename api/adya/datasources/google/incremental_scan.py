@@ -93,12 +93,13 @@ def subscribe(domain_id, datasource_id):
             "type": "web_hook",
             "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
             "payload": "true",
-            "params": {"ttl": 86100}
+            "params": {"ttl": 1800}
         }
 
         print "subscribe userlist : body : ", body
 
-        watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true", body=body)
+        watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
+                                                                  event="add", body=body)
 
         print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
@@ -185,6 +186,7 @@ def process_notifications(datasource_id, channel_id):
             if not subscription:
                 print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
                     datasource.datasource_id, channel_id)
+                return
 
             if subscription.in_progress == 1:
                 if subscription.stale == 0:
