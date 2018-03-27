@@ -110,6 +110,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     resource_uri = ''
     try:
         drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
+        directory_service = gutils.get_directory_service(auth_token, email, db_session)
         body = {
             "id": channel_id,
             "type": "web_hook",
@@ -124,7 +125,13 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
         print 'Start token: ', start_token
 
         watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
+
+        # watch on userlist
+        # watch_response_for_userlist = directory_service.users().watch(body=body).execute()
+
         print " watch_response for a user : ", watch_response
+        # print"watch response in userlist : ", watch_response_for_userlist
+
         expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
         resource_uri = watch_response['resourceUri']
@@ -296,7 +303,5 @@ def unsubscribe_for_a_user(subscription):
         return True
 
     except Exception as ex:
-        print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
-            subscription.datasource_id, ex)
-        print ex
+        print "Exception occurred while unsubscribing for push notifications for - {}".format(ex)
         return False
