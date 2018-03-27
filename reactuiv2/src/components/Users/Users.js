@@ -9,7 +9,7 @@ import Actions from '../actions/Actions'
 
 import {
   USERS_PAGE_UNLOADED,
-  ADD_APP_MESSAGE
+  FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
 import UsersTree from './UsersTree';
@@ -28,7 +28,7 @@ const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   flagUsersError: (error, info) =>
-    dispatch({ type: ADD_APP_MESSAGE, error, info })
+    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
 });
 
 class Users extends Component {

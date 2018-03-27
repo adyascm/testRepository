@@ -12,7 +12,7 @@ import {
   APPS_PAGE_LOADED,
   APPS_PAGE_UNLOADED,
   APPS_PAGE_LOAD_START,
-  ADD_APP_MESSAGE
+  FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
 
@@ -31,7 +31,7 @@ const mapDispatchToProps = dispatch => ({
   onLoadStart: () =>
     dispatch({ type: APPS_PAGE_LOAD_START }),
   flagAppsError: (error, info) => 
-    dispatch({ type: ADD_APP_MESSAGE, error, info })
+    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
 });
 
 // Here scopeExposure is 0 for all, 1 for readonly, 2 for fullyscope
