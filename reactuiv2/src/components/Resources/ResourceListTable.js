@@ -6,8 +6,6 @@ import { Loader, Dimmer, Button, Table, Dropdown, Input } from 'semantic-ui-reac
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
 import DatePicker from 'react-datepicker'
-import moment from 'moment'
-import Moment from 'react-moment'
 import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 
@@ -58,6 +56,10 @@ class ResourcesListTable extends Component {
                 value: 'EXT'
             },
             {
+                text: 'Publicly Shared',
+                value: 'PUBLIC'
+            },
+            {
                 text: 'Domain Shared',
                 value: 'DOMAIN'
             },
@@ -68,10 +70,6 @@ class ResourcesListTable extends Component {
             {
                 text: 'All Files',
                 value: 'ALL'
-            },
-            {
-                text: 'Publicly Shared',
-                value: 'PUBLIC'
             }
         ]
     }
@@ -132,9 +130,9 @@ class ResourcesListTable extends Component {
     }
 
     handleDateChange = (date) => {
-        let selectedDate = date.format('YYYY-MM-DD HH:MM:SS')
+        let selectedDate = date?date.format('YYYY-MM-DD HH:MM:SS'):''
         this.setState({
-            currentDate: date
+            currentDate: date?date:''
         })
         this.props.changeFilter("filterByDate", selectedDate)
     }

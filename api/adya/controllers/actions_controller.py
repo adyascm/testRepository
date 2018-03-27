@@ -194,7 +194,7 @@ def create_watch_report(auth_token, datasource_id, action_payload):
     form_input['selected_entity_name'] = user_email
     form_input['is_active'] = 0
     form_input['datasource_id'] = datasource_id
-    messaging.trigger_post_event(constants.GET_SCHEDULED_RESOURCE_PATH, auth_token, None, form_input)
+    messaging.trigger_post_event(constants.GET_SCHEDULED_REPORT_PATH, auth_token, None, form_input)
     return ResponseMessage(201, "Watch report created for {}".format(user_email))
 
 def add_resource_permission(auth_token, datasource_id, action_payload):

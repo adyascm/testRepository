@@ -26,43 +26,35 @@ NEXT_CALL_FROM_FILE_ID = 4 * 60
 
 SCAN_START = "/scan/start"
 SCAN_RESOURCES = "/scan/resources"
-
 SCAN_PERMISSIONS = "/scan/permisssions"
-
 SCAN_PARENTS = "/scan/parents"
-
 SCAN_DOMAIN_USERS = "/scan/domainusers"
-
 SCAN_DOMAIN_GROUPS = "/scan/domaingroups"
-
 SCAN_GROUP_MEMBERS = "/scan/groupmembers"
-
 SCAN_USERS_APP = '/scan/usersapp'
-
-GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
-
-GET_APPS = "/getappsdata"
-
-GET_RESOURCE_TREE_PATH = "/getresourcetree"
-
-GET_DATASOURCE_PATH = '/datasources'
-
-ASYNC_DELETE_DATASOURCE_PATH = '/asyncdatasourcedelete'
-
-GET_SCHEDULED_RESOURCE_PATH = '/scheduledreport'
-
-GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
 HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/scan/handlechannelexpiration'
 
+GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
+GET_APPS = "/getappsdata"
+GET_RESOURCE_TREE_PATH = "/getresourcetree"
+GET_DATASOURCE_PATH = '/datasources'
+
+ASYNC_DELETE_DATASOURCE_PATH = '/asyncdatasourcedelete'
+
+GET_SCHEDULED_REPORT_PATH = '/scheduledreport'
 RUN_SCHEDULED_REPORT = '/scheduledreport/runreport'
+
+GET_ACTIVITIES_FOR_USER_PATH = '/getactivitiesforuser'
 
 GET_ALL_ACTIONS_PATH = '/getallactions'
 INITIATE_ACTION_PATH = '/initiateaction'
 
 GET_AUDITLOG_PATH = '/getauditlog'
+
+POLICIES_PATH = '/policies'
 
 
 
