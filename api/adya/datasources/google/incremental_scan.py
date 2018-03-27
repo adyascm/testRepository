@@ -97,7 +97,9 @@ def subscribe(domain_id, datasource_id):
         }
 
         print "subscribe userlist : body : ", body
+
         watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true", body=body)
+
         print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
         if datasource.is_serviceaccount_enabled:
