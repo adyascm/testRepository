@@ -50,8 +50,8 @@ class ResourceDetailsSection extends Component {
 
     onAddPermission(event, permission, newValue){
       //this.props.onAddPermissionForFile('add_permission_for_a_File', permission)
-      permission['type'] = this.props.usersTreePayload[permission['email']]['name']?this.props.usersTreePayload[permission['email']]['type']||'group':
-        this.props.usersTreePayload[permission['email']]['type']||'user'
+      permission['type'] = this.props.usersTreePayload[permission['email']]?this.props.usersTreePayload[permission['email']]['name']?this.props.usersTreePayload[permission['email']]['type']||'group':
+        this.props.usersTreePayload[permission['email']]['type']||'user':''
       this.props.onChangePermissionForResource('add_permission_for_a_File', permission, newValue)
     }
 
