@@ -9,10 +9,14 @@ const ReportView = props => {
     const reports = props.report;
     const locale =  'en';
 
-    var keys = Object.keys(reports)
-    var reportCard = []
+    // if(){
+    //   var keys = Object.keys(reports)
+    //   var reportCard = []
+    // }
 
-    if (keys.length > 0 && !props.getReportError) {
+    if (reports != undefined && !props.getReportError) {
+      var keys = Object.keys(reports)
+       var reportCard = []
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         var interval ='';
@@ -89,7 +93,7 @@ const ReportView = props => {
       }
     }
 
-    if (reportCard.length > 0) {
+    if (reportCard != undefined && reportCard.length > 0) {
 
       return (
         <Card.Group>
