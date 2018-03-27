@@ -6,6 +6,7 @@ import {
     RUN_SCHEDULED_REPORT,
     DELETE_OLD_SCHEDULED_REPORT,
     UPDATE_SCHEDULED_REPORT,
+    REPORTS_PAGE_LOADING,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -21,6 +22,11 @@ export default (state = {}, action) => {
                ...state,
                scheduledReport: action.payload
              }
+        case REPORTS_PAGE_LOADING:
+             return {
+               ...state,
+               isLoading: true
+             }
         case SET_SCHEDULED_REPORTS:
               var error;
               if(action.error === undefined){
@@ -32,6 +38,7 @@ export default (state = {}, action) => {
               return{
                 ...state,
                 reports: action.payload,
+                isLoading: false,
                 getreportError: error
               }
         case DELETE_SCHEDULED_REPORT:

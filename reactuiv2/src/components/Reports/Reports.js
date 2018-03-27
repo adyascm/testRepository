@@ -12,7 +12,8 @@ import {
   SET_SCHEDULED_REPORTS,
   CREATE_SCHEDULED_REPORT,
   RUN_SCHEDULED_REPORT,
-  DELETE_OLD_SCHEDULED_REPORT
+  REPORTS_PAGE_LOADING,
+  DELETE_OLD_SCHEDULED_REPORT,
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -32,8 +33,9 @@ const mapStateToProps = state => ({
     },
     deleteOldRunReportData: () => {
       dispatch({type:DELETE_OLD_SCHEDULED_REPORT })
-    }
-
+    },
+    loadingReports: () => 
+      dispatch({ type: REPORTS_PAGE_LOADING })
   });
 
 class Reports extends Component {
@@ -55,6 +57,7 @@ class Reports extends Component {
   }
 
   componentWillMount(){
+    this.props.loadingReports()
     this.props.setreports(agent.Scheduled_Report.getReports())
     this.setState({
         reportsData: this.props.reports
@@ -120,6 +123,15 @@ class Reports extends Component {
 
 
   render() {
+
+    if (this.props.isLoading) 
+      return (
+        <div style={{ height: '200px' }}>
+            <Dimmer active inverted>
+                <Loader inverted content='Loading' />
+            </Dimmer>
+        </div>
+      )
 
     if (this.props.currentUser){
       return(
