@@ -38,7 +38,7 @@ class UserOwnedResources extends Component {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.ownedResources) {
             // this.props.setPaginationData(0,100)
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["key"] }))    
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["key"] }))    
         }
     }
 

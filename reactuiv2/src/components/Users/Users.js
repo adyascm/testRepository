@@ -8,9 +8,7 @@ import Actions from '../actions/Actions'
 
 
 import {
-  USERS_PAGE_LOADED,
   USERS_PAGE_UNLOADED,
-  USERS_PAGE_LOAD_START,
   ADD_APP_MESSAGE
 } from '../../constants/actionTypes';
 
@@ -27,12 +25,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLoad: (payload) =>
-    dispatch({ type: USERS_PAGE_LOADED, payload }),
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
-  onLoadStart: () =>
-    dispatch({ type: USERS_PAGE_LOAD_START }),
   flagUsersError: (error, info) =>
     dispatch({ type: ADD_APP_MESSAGE, error, info })
 });
@@ -74,9 +68,6 @@ class Users extends Component {
         showHierarchy: true,
         showOnlyExternal: false
       })
-
-    this.props.onLoadStart();
-    this.props.onLoad(agent.Users.getUsersTree());
   }
 
   componentWillReceiveProps(nextProps) {
@@ -135,7 +126,7 @@ class Users extends Component {
 
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
-              {this.props.isLoading ? dimmer : null}
+              {!this.props.userPayload && this.props.isLoading ? dimmer : null}
               {!this.state.showHierarchy ? flatList : treeView}
             </Grid.Column>
             {

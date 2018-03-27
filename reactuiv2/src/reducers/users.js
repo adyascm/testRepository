@@ -14,11 +14,19 @@ import {
     USERS_GROUP_ACTION_LOAD,
     USERS_OWNED_RESOURCES_LOAD_START,
     USERS_OWNED_RESOURCES_LOADED,
+    USERS_RESOURCE_PAGINATION_DATA,
+    USERS_RESOURCE_FILTER_CHANGE,
     LOGOUT
 } from '../constants/actionTypes';
 
+const defaultState = {
+    pageNumber: 0,
+    pageLimit: 100,
+    filterExposureType: 'EXT'
+}
 
-export default (state = {}, action) => {
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case USERS_PAGE_LOAD_START:
             return {
@@ -138,6 +146,17 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 exposureType: action.payload
+            }
+        case USERS_RESOURCE_PAGINATION_DATA:
+            return {
+                ...state,
+                pageNumber: action.pageNumber,
+                pageLimit: action.pageLimit
+            }
+        case USERS_RESOURCE_FILTER_CHANGE:
+            state[action.property] = action.value
+            return {
+                ...state
             }
         case LOGOUT:
             return {
