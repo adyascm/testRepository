@@ -282,23 +282,34 @@ def get_table(tablename):
 class Policy(Base):
     __tablename__ = 'policy'
     policy_id = Column(String(255), primary_key=True)
-    doamin_id = Column(String(255))
-    datasource_id = Column(String(255))
+    datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
     name = Column(String(255))
-
-
-class PolicyTrigger(Base):
-    __tablename__ = 'policy_trigger'
-    policy_id = Column(String(255), primary_key=True)
-    action_name = Column(String(200), primary_key=True)
-    config = Column(Text)
-
+    description = Column(String(255))
+    trigger_type = Column(String(200), index=True)
+    conditions = relationship(
+        "PolicyCondition", backref="policy")
+    actions = relationship(
+        "PolicyAction", backref="policy")
 
 class PolicyCondition(Base):
     __tablename__ = 'policy_condition'
-    policy_id = Column(String(255), primary_key=True)
-    affected_entity_type = Column(String(255))
+    policy_id = Column(String(255))
+    datasource_id = Column(String(255))
+    match_type = Column(String(255))
     match_condition = Column(String(255))
-    affected_entity_id = Column(String(255), primary_key=True)
-    actor_id = Column(String(255), primary_key=True)
-    actor_match_condition = Column(String(255))
+    match_value = Column(String(255))
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'policy_id'], [
+                         'policy.datasource_id', 'policy.policy_id']),
+    )
+
+class PolicyAction(Base):
+    __tablename__ = 'policy_action'
+    policy_id = Column(String(255))
+    datasource_id = Column(String(255))
+    action_type = Column(String(255))
+    config = Column(Text)
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'policy_id'], [
+                         'policy.datasource_id', 'policy.policy_id']),
+    )
