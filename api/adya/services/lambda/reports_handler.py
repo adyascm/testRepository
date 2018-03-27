@@ -140,12 +140,8 @@ def run_scheduled_report(event, context):
         return req_error
 
     auth_token = req_session.get_auth_token()
-    data_source = domain_controller.get_datasource(auth_token, None)
 
-    domain_id = data_source[0].domain_id
-    datasource_id = data_source[0].datasource_id
-
-    run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(domain_id, datasource_id, req_session.get_auth_token(),
+    run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(auth_token,
                                                                 req_session.get_req_param('reportId'))
     return req_session.generate_sqlalchemy_response(200, run_report_data)
 
