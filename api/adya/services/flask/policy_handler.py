@@ -5,6 +5,13 @@ from adya.controllers import policy_controller
 
 
 class Policy(Resource):
+    def get(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request()
+        if req_error:
+            return req_error
+        policies = policy_controller.get_policies(req_session.get_auth_token())
+        return req_session.generate_sqlalchemy_response(200, policies)
 
     def post(self):
         req_session = RequestSession(request)
