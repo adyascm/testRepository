@@ -293,6 +293,7 @@ class Policy(Base):
 
 class PolicyCondition(Base):
     __tablename__ = 'policy_condition'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     policy_id = Column(String(255))
     datasource_id = Column(String(255))
     match_type = Column(String(255))
@@ -305,6 +306,7 @@ class PolicyCondition(Base):
 
 class PolicyAction(Base):
     __tablename__ = 'policy_action'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     policy_id = Column(String(255))
     datasource_id = Column(String(255))
     action_type = Column(String(255))
