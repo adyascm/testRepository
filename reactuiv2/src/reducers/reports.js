@@ -20,7 +20,8 @@ export default (state = {}, action) => {
         case CREATE_SCHEDULED_REPORT:
              return{
                ...state,
-               scheduledReport: action.payload
+               scheduledReport: action.payload,
+               errorMessage: action.error
              }
         case REPORTS_PAGE_LOADING:
              return {
@@ -49,7 +50,8 @@ export default (state = {}, action) => {
         case RUN_SCHEDULED_REPORT:
              return{
                ...state,
-               runReportData: action.payload
+               runReportData: action.payload,
+               errorMessage: action.error
              }
         case DELETE_OLD_SCHEDULED_REPORT:
              return{
