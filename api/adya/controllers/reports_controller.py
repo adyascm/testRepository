@@ -265,13 +265,11 @@ def delete_report(auth_token, report_id):
     return existing_report
 
 
-def run_report(domain_id, datasource_id, auth_token, report_id):
+def run_report(auth_token, report_id):
     db_session = db_connection().get_session()
 
     get_report_info = db_session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description,
-                                       Report.name).filter(
-        and_(Report.domain_id == LoginUser.domain_id,
-             Report.report_id == report_id)).one()
+                                       Report.name).filter(Report.report_id == report_id).one()
 
     config_data = json.loads(get_report_info[0])
     emails = str(get_report_info[1])
@@ -284,12 +282,7 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
     selected_entity = config_data.get('selected_entity')
     selected_entity_type = config_data.get('selected_entity_type')
 
-    if not datasource_id:
-        datasource_id = config_data.get('datasource_id')
-    if not domain_id:
-        domain = db_session.query(DataSource.domain_id).filter(DataSource.datasource_id == datasource_id).one()
-        domain_id = domain[0]
-
+    datasource_id = config_data.get('datasource_id')
     response_data = []
     if report_type == "Permission":
         if selected_entity_type == "user":
@@ -297,10 +290,8 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
         elif selected_entity_type == "resource":
             query_string = ResourcePermission.resource_id == selected_entity
 
-        get_perms_report = db_session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.domain_id ==
-                                                                                      LoginUser.domain_id, query_string,
-                                                                                      Resource.resource_id
-                                                                                      == ResourcePermission.resource_id)).all()
+        get_perms_report = db_session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.datasource_id == datasource_id,
+                                                        query_string, Resource.resource_id == ResourcePermission.resource_id)).all()
 
         for perm_Report in get_perms_report:
             data_map = {
@@ -326,10 +317,9 @@ def run_report(domain_id, datasource_id, auth_token, report_id):
                 data_map = {
                     "date": datalist[0],
                     "operation": datalist[1],
-                    "datasource": datalist[2],
-                    "resource": datalist[3],
-                    "type": datalist[4],
-                    "ip_address": datalist[5]
+                    "resource": datalist[2],
+                    "type": datalist[3],
+                    "ip_address": datalist[4]
 
                 }
 
@@ -371,7 +361,7 @@ def update_report(auth_token, payload):
 def generate_csv_report(report_id):
     print "generate_csv_report :  start"
 
-    report_data, email_list, report_type, report_desc, report_name = run_report(None, None, None, report_id)
+    report_data, email_list, report_type, report_desc, report_name = run_report(None, report_id)
     print "generate_csv_report : report data : ", report_data
     csv_records = ""
     print "report type : ", report_type

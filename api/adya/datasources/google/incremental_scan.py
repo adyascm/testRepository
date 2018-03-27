@@ -85,6 +85,24 @@ def subscribe(domain_id, datasource_id):
         db_connection().commit()
 
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
+
+        # watch on userlist
+        directory_service = gutils.get_directory_service(login_user.auth_token)
+        body = {
+            "id": datasource.datasource_id,
+            "type": "web_hook",
+            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "payload": "true",
+            "params": {"ttl": 1800}
+        }
+
+        print "subscribe userlist : body : ", body
+
+        watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
+                                                                  event="add", body=body)
+
+        print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+
         if datasource.is_serviceaccount_enabled:
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
@@ -125,6 +143,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
 
         watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
         print " watch_response for a user : ", watch_response
+
         expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
         resource_uri = watch_response['resourceUri']
@@ -167,6 +186,7 @@ def process_notifications(datasource_id, channel_id):
             if not subscription:
                 print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
                     datasource.datasource_id, channel_id)
+                return
 
             if subscription.in_progress == 1:
                 if subscription.stale == 0:
@@ -296,7 +316,5 @@ def unsubscribe_for_a_user(subscription):
         return True
 
     except Exception as ex:
-        print "Exception occurred while unsubscribing for push notifications for datasource_id: {} - {}".format(
-            subscription.datasource_id, ex)
-        print ex
+        print "Exception occurred while unsubscribing for push notifications for - {}".format(ex)
         return False
