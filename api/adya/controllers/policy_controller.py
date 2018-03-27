@@ -53,6 +53,33 @@ def create_policy(auth_token, payload):
 
     return None
 
+def validate(auth_token, datasource_id, resource_id, payload):
+    old_permissions = payload["old_permissions"]
+    old_permissions_map = {}
+    for permission in old_permissions:
+        old_permissions_map[permission.email] = permission
+
+    resource = payload["resource"]
+    new_permissions = resource["permissions"]
+    for new_permission in new_permissions:
+        if (not new_permission.email in old_permissions_map) or 
+            (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type):
+            print "Permissions changed for this document, validate other policy conditions now..."
+            policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, 
+                Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
+            if not policies or len(policies) < 1:
+                print "No policies found for permission change trigger, ignoring..."
+                return
+
+            for policy in policies:
+                validate_resource_permission_change_policy(policy, resource)
+            return
+    return
+
+def validate_resource_permission_change_policy(policy, resource):
+    policy_conditions = policy.conditions
+    
+
 # def policy_check_for_specific_user(actor_id, actor_name, affected_entity_id, affected_entity_name,  action_type, db_session):
 
 #     try:

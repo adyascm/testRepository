@@ -55,6 +55,7 @@ INITIATE_ACTION_PATH = '/initiateaction'
 GET_AUDITLOG_PATH = '/getauditlog'
 
 POLICIES_PATH = '/policies'
+POLICIES_VALIDATE_PATH = 'policies/validate'
 
 
 
@@ -123,3 +124,6 @@ class DocType(Enum):
     PUBLIC_COUNT = 'Shared public links'
     EXTERNAL_COUNT = 'Shared with users outside company'
     DOMAIN_COUNT = 'Shared across company'
+
+class PolicyTriggerType(Enum):
+    PERMISSION_CHANGE = 'PERMISSION_CHANGE'

@@ -2,7 +2,7 @@ from adya.datasources.google import gutils
 from adya.db.connection import db_connection
 
 from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
-    LoginUser, DataSource
+    LoginUser, DataSource, alchemy_encoder
 
 from sqlalchemy import and_
 from adya.common import constants, response_messages
@@ -264,27 +264,37 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                  "owners,size,createdTime, modifiedTime").execute()
         print("results : ", results)
-        print ("last modified time : ", results['modifiedTime'])
+        last_modified_time = results['modifiedTime']
+        resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id,
+                                                                                   Resource.last_modified_time < last_modified_time)).first()
 
-        last_modified_time_based_response = db_session.query(Resource).filter(and_(Resource.resource_id == file_id ,
-                                                                                   Resource.last_modified_time < results['modifiedTime'])).all()
-        print ("last_modified_time_based_response : ", last_modified_time_based_response)
-        if last_modified_time_based_response:
-            db_session.query(ResourcePermission).filter(
-                ResourcePermission.resource_id == file_id).delete(synchronize_session=False)
-            db_session.query(Resource).filter(Resource.resource_id ==
-                                              file_id).delete(synchronize_session=False)
-            db_connection().commit()
+        if not resource:
+            print ("Resource not found which is modified prior to: ", last_modified_time)
+            return
+        
+        existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
 
-            resourcedata = {}
-            resourcedata["resources"] = [results]
+        print "Deleting the existing permissions and resource, and add again"
+        db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id))
+        .delete(synchronize_session=False)
+        db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id))
+        .delete(synchronize_session=False)
+        db_connection().commit()
 
-            query_params = {'domainId': domain_id,'dataSourceId': datasource_id,'ownerEmail':email, 'userEmail': email}
-            messaging.trigger_post_event(
-                constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-            messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
+        resourcedata = {}
+        resourcedata["resources"] = [results]
 
+        query_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 'userEmail': email}
+        messaging.trigger_post_event(
+            constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
+        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
 
+        payload = {}
+        payload["old_permissions"] = existing_permissions
+        payload["resource"] = results
+        policy_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'resourceId': file_id}
+        messaging.trigger_post_event(
+            constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
         #filedata = results['files']
         #TODO: policy check for the above action .
         # payload = {"affected_entity_type": 'file', "affected_entity_id": filedata['id'], "actor_id": filedata['permissions']['id'],
