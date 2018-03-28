@@ -104,8 +104,10 @@ class UserResourceTable extends Component {
             tableRowData = this.props.selectedUserItem.resources.map(rowData => {
                 return (
                     <Table.Row>
-                        <Table.Cell width='4'>{rowData["resource_name"]}</Table.Cell>
-                        <Table.Cell width='5'>{rowData["resource_owner_id"]}</Table.Cell>
+                        <div style={{'word-break': 'break-word'}}>
+                            <Table.Cell width='5'>{rowData["resource_name"]}</Table.Cell>
+                        </div>
+                        <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
                             {/* {rowData["myPermission"]} */}
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event,data) => this.onPermissionChange(event,rowData,data.value)} />
@@ -128,7 +130,7 @@ class UserResourceTable extends Component {
         else {
             if (this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length)
                 return (
-                    <div style={{'maxWidth': '100%'}}>
+                    <div>
                         <div>
                             <Table celled selectable striped compact="very">
                                 <Table.Header>
