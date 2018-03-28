@@ -89,10 +89,10 @@ class UserOwnedResources extends Component {
                     return (
                         <Table.Row>
                             <div style={{'word-break': 'break-word'}}>
-                                <Table.Cell width='6'>{rowData["resource_name"]}</Table.Cell>
+                                <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                             </div>
-                            <Table.Cell width='4'>{rowData["exposure_type"]}</Table.Cell>
-                            <Table.Cell textAlign='center' width='2'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
+                            <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
+                            <Table.Cell textAlign='center'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
                         </Table.Row>
                     )
                 return null
@@ -111,7 +111,7 @@ class UserOwnedResources extends Component {
             return (
                 <div>
                     <div>
-                        <Table celled selectable striped compact="very">
+                        <Table celled fixed selectable striped>
                             <Table.Header>
                                 <Table.Row>
                                     {tableHeaders}
