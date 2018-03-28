@@ -128,7 +128,7 @@ class UserResourceTable extends Component {
         else {
             if (this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length)
                 return (
-                    <div>
+                    <div style={{'maxWidth': '100%'}}>
                         <div>
                             <Table celled selectable striped compact="very">
                                 <Table.Header>
