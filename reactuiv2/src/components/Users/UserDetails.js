@@ -15,15 +15,15 @@ const UserDetails = props => {
             value: 'transfer_ownership'
         },
         {
-            text: 'Disable external access to all files owned by ' + props.selectedUserItem['name'],
+            text: 'Remove external access to all files owned by ' + props.selectedUserItem['name'],
             value: 'remove_external_access'
         },
         {
-          text: 'Disable access by ' + props.selectedUserItem['name'] + ' to any files owned by others',
+          text: 'Remove access for ' + props.selectedUserItem['name'] + ' to any files owned by others',
           value: 'remove_all_access'
         },
         {
-            text: 'Disable sharing of all files owned by ' + props.selectedUserItem['name'],
+            text: 'Remove sharing of all files owned by ' + props.selectedUserItem['name'],
             value: 'make_all_files_private'
         },
         {
@@ -37,7 +37,7 @@ const UserDetails = props => {
           value: ''
       },
       {
-        text: 'Disable access by ' + props.selectedUserItem['name'] + ' to any files owned by others',
+        text: 'Remove access for ' + props.selectedUserItem['name'] + ' to any files owned by others',
         value: 'remove_all_access'
       },
       {
