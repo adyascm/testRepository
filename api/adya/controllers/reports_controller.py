@@ -30,15 +30,13 @@ def get_widget_data(auth_token, widget_id):
     data = None
     if widget_id == 'usersCount':
         user_count_query = db_session.query(DomainUser).filter(
-            DomainUser.datasource_id.in_(domain_datasource_ids)).filter(
-            LoginUser.auth_token == auth_token)
+            DomainUser.datasource_id.in_(domain_datasource_ids))
         if is_service_account_is_enabled and not is_admin:
             user_count_query = user_count_query.filter(DomainUser.email == login_user_email)
         data = user_count_query.count()
     elif widget_id == 'groupsCount':
         group_count_query = db_session.query(DomainGroup).filter(
-            DomainGroup.datasource_id.in_(domain_datasource_ids)).filter(
-            LoginUser.auth_token == auth_token)
+            DomainGroup.datasource_id.in_(domain_datasource_ids))
 
         if is_service_account_is_enabled and not is_admin:
             group_count_query = group_count_query.filter(DirectoryStructure.datasource_id == DomainGroup.datasource_id,
@@ -48,16 +46,14 @@ def get_widget_data(auth_token, widget_id):
         data = group_count_query.count()
     elif widget_id == 'filesCount':
         file_count_query = db_session.query(Resource).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type != 'folder')).filter(
-            LoginUser.auth_token == auth_token)
+            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type != 'folder'))
         if is_service_account_is_enabled and not is_admin:
             file_count_query = file_count_query.filter(Resource.resource_owner_id == login_user_email)
 
         data = file_count_query.count()
     elif widget_id == 'foldersCount':
         folder_count_query = db_session.query(Resource).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type == 'folder')).filter(
-            LoginUser.auth_token == auth_token)
+            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_type == 'folder'))
         if is_service_account_is_enabled and not is_admin:
             folder_count_query = folder_count_query.filter(Resource.resource_owner_id == login_user_email)
 
@@ -69,8 +65,7 @@ def get_widget_data(auth_token, widget_id):
         shared_docsByType_query = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
             and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
                  Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).filter(
-            LoginUser.auth_token == auth_token).group_by(Resource.exposure_type)
+                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.exposure_type)
 
         if is_service_account_is_enabled and not is_admin:
             shared_docsByType_query = shared_docsByType_query.filter(Resource.resource_owner_id == login_user_email)
@@ -95,14 +90,12 @@ def get_widget_data(auth_token, widget_id):
         shared_docs_list_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
-            LoginUser.auth_token == auth_token)
+                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
 
         shared_docs_totalcount_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC))).filter(
-            LoginUser.auth_token == auth_token)
+                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
 
         if is_service_account_is_enabled and not is_admin:
             shared_docs_list_query = shared_docs_list_query.filter(Resource.resource_owner_id == login_user_email)
@@ -113,31 +106,18 @@ def get_widget_data(auth_token, widget_id):
         data["totalCount"] = shared_docs_totalcount_query.count()
     elif widget_id == 'externalUsersList':
         data = {}
-        external_user_list = db_session.query(DomainUser.email, func.count(ResourcePermission.email)).filter(
-            and_(DomainUser.datasource_id.in_(domain_datasource_ids),
-                 DomainUser.member_type == constants.UserMemberType.EXTERNAL,
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids),
-                 ResourcePermission.email == DomainUser.email)).filter(
-            LoginUser.auth_token == auth_token).group_by(DomainUser.email).order_by(
+        external_user_list = db_session.query(ResourcePermission.email, func.count(ResourcePermission.email)).filter(
+            and_(ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
+                 ResourcePermission.datasource_id.in_(domain_datasource_ids),)).group_by(ResourcePermission.email).order_by(
             func.count(ResourcePermission.email).desc())
-
-        external_user_total_count = db_session.query(DomainUser.email).filter(
-            and_(DomainUser.datasource_id.in_(domain_datasource_ids),
-                 DomainUser.member_type == constants.UserMemberType.EXTERNAL)).filter(
-            LoginUser.auth_token == auth_token)
 
         if is_service_account_is_enabled and not is_admin:
             external_user_list = external_user_list.filter(and_(Resource.resource_owner_id == login_user_email,
-                                                    ResourcePermission.resource_id == Resource.resource_id,
-                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL))
-            external_user_total_count = external_user_total_count.filter(and_(Resource.resource_owner_id == login_user_email,
-                                                    ResourcePermission.resource_id == Resource.resource_id,
-                                                    ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
-                                                    DomainUser.email == ResourcePermission.email))
+                                                    ResourcePermission.resource_id == Resource.resource_id))
 
 
         data["rows"] = external_user_list.limit(5).all()
-        data["totalCount"] = external_user_total_count.count()
+        data["totalCount"] = external_user_list.count()
     elif widget_id == 'userAppAccess':
         data = {}
         querydata = {}
@@ -163,9 +143,7 @@ def get_widget_data(auth_token, widget_id):
         file_type_query = db_session.query(Resource.resource_type, func.count(Resource.resource_type)).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE,
-                 LoginUser.auth_token == auth_token)). \
-            group_by(Resource.resource_type)
+                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.resource_type)
 
         if is_service_account_is_enabled and not is_admin:
             file_type_query = file_type_query.filter(Resource.resource_owner_id == login_user_email)
@@ -180,24 +158,16 @@ def get_widget_data(auth_token, widget_id):
 
     elif widget_id == "internalUserList":
         data = {}
-        internal_user_list = db_session.query(DomainUser.email, func.count(Resource.resource_id)).filter(
-                         and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.member_type == constants.UserMemberType.INTERNAL,
-                              ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email == DomainUser.email,
-                              Resource.resource_id == ResourcePermission.resource_id, Resource.datasource_id ==  ResourcePermission.datasource_id,
-                                Resource.exposure_type.in_([constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
-                              )).filter(LoginUser.auth_token == auth_token).group_by(DomainUser.email).order_by(func.count(Resource.resource_id).desc())
-
-        internal_user_total_count = db_session.query(DomainUser.email).filter(
-            and_(DomainUser.datasource_id.in_(domain_datasource_ids),
-                 DomainUser.member_type == constants.UserMemberType.INTERNAL)).filter(
-            LoginUser.auth_token == auth_token)
+        internal_user_list = db_session.query(Resource.resource_owner_id, func.count(Resource.resource_id)).filter(
+                         and_(Resource.datasource_id.in_(domain_datasource_ids),
+                              Resource.exposure_type.in_([constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
+                              )).group_by(Resource.resource_owner_id).order_by(func.count(Resource.resource_id).desc())
 
         if is_service_account_is_enabled and not is_admin:
             internal_user_list = internal_user_list.filter(Resource.resource_owner_id == login_user_email)
-            internal_user_total_count = internal_user_total_count.filter(Resource.resource_owner_id == login_user_email)
 
         data["rows"] = internal_user_list.limit(5).all()
-        data["totalCount"] = internal_user_total_count.count()
+        data["totalCount"] = internal_user_list.count()
 
     return data
 
