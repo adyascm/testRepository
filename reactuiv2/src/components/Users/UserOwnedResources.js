@@ -64,7 +64,7 @@ class UserOwnedResources extends Component {
                 if (this.props.selectedUserItem["key"] === rowData["resource_owner_id"])
                     return (
                         <Table.Row>
-                            <Table.Cell>{rowData["resource_name"]}</Table.Cell>
+                            <Table.Cell width='8'>{rowData["resource_name"]}</Table.Cell>
                             <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
                             <Table.Cell textAlign='center'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
                         </Table.Row>
@@ -83,7 +83,7 @@ class UserOwnedResources extends Component {
         
         if (this.props.selectedUserItem.ownedResources && this.props.selectedUserItem.ownedResources.length)
             return (
-                <div>
+                <div style={{'maxWidth': '100%'}}>
                     <div>
                         <Table celled selectable striped compact="very">
                             <Table.Header>

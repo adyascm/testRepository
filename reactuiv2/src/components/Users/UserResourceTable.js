@@ -105,7 +105,7 @@ class UserResourceTable extends Component {
                 return (
                     <Table.Row>
                         <Table.Cell width='4'>{rowData["resource_name"]}</Table.Cell>
-                        <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
+                        <Table.Cell width='5'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
                             {/* {rowData["myPermission"]} */}
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event,data) => this.onPermissionChange(event,rowData,data.value)} />
