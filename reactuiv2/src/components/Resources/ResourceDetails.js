@@ -17,15 +17,15 @@ const ResourceDetails = props => {
             value: ''
         },
         {
-            text: 'Transfer ownership',
+            text: 'Transfer ownership of ' + props.rowData['resource_name'],
             value: 'change_owner'
         },
         {
-            text: 'Remove external access',
+            text: 'Disable access to ' + props.rowData['resource_name'] + ' from outside the company',
             value: 'remove_external_access_to_resource'
         },
         {
-            text: 'Make this private',
+            text: 'Allow only the owner to access ' + props.rowData['resource_name'],
             value: 'make_resource_private'
         }];
 
