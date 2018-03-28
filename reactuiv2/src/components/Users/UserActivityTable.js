@@ -71,7 +71,6 @@ class UserActivityTable extends Component {
                         <Table.Cell>{rowData[2]}</Table.Cell>
                         <Table.Cell>{rowData[3]}</Table.Cell>
                         <Table.Cell>{rowData[4]}</Table.Cell>
-                        <Table.Cell>{rowData[5]}</Table.Cell>
                     </Table.Row>
                 )
             })

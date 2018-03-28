@@ -112,11 +112,19 @@ class UsersGroupsDetailsSection extends Component {
             </Container>
         )
 
+        var ownedResourceLayout = (
+            <Container stretched="true">
+                <Grid stretched style={{'marginTop': '5px', 'marginBottom': '5px'}}>
+                    <UserOwnedResources />
+                </Grid>
+            </Container>
+        )
+
         if (!this.props.selectedUserItem)
             return null;
         else {
             let panes = [
-                { menuItem: 'Has Ownership', render: () => <Tab.Pane attached={false}><UserOwnedResources /></Tab.Pane> }
+                { menuItem: 'Has Ownership', render: () => <Tab.Pane attached={false}>{ownedResourceLayout}</Tab.Pane> }
             ]
             let extraPanes = [
                 { menuItem: 'Has Access', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
