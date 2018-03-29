@@ -111,14 +111,10 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                         expiration_time = permission.get('expirationTime')
                         is_deleted = permission.get('deleted')
                         permission_exposure = constants.ResourceExposureType.INTERNAL
+                        resource_exposure_type = get_resource_exposure_type(db_session, domain_id, email_address, display_name,
+                                                                            resource_exposure_type)
                         if email_address:
-                            if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
-                                and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
-                                and resource_exposure_type != constants.ResourceExposureType.DOMAIN :
-                                    resource_exposure_type = constants.ResourceExposureType.INTERNAL
                             if gutils.check_if_external_user(db_session, domain_id,email_address):
-                                if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-                                    resource_exposure_type = constants.ResourceExposureType.EXTERNAL
 
                                 permission_exposure = constants.ResourceExposureType.EXTERNAL
                                 ## insert non domain user as External user in db, Domain users will be
@@ -139,14 +135,10 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
                                     external_user_map[email_address]= externaluser
                         #Shared with everyone in domain
                         elif display_name:
-                            if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
-                                resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-                                resource_exposure_type = constants.ResourceExposureType.DOMAIN
                             email_address = "__ANYONE__@"+ domain_id
                             permission_exposure = constants.ResourceExposureType.DOMAIN
                         #Shared with everyone in public
                         else:
-                            resource_exposure_type = constants.ResourceExposureType.PUBLIC
                             email_address = constants.ResourceExposureType.PUBLIC
                             permission_exposure = constants.ResourceExposureType.PUBLIC
                         resource_permission = {}
@@ -186,6 +178,25 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
         print ex
 
+
+def get_resource_exposure_type(db_session, domain_id, email_address, display_name, resource_exposure_type):
+    if email_address:
+        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
+                and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
+                and resource_exposure_type != constants.ResourceExposureType.DOMAIN:
+            resource_exposure_type = constants.ResourceExposureType.INTERNAL
+        if gutils.check_if_external_user(db_session, domain_id, email_address):
+            if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+                resource_exposure_type = constants.ResourceExposureType.EXTERNAL
+
+    elif display_name:
+        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
+                        resource_exposure_type != constants.ResourceExposureType.PUBLIC:
+            resource_exposure_type = constants.ResourceExposureType.DOMAIN
+    else:
+        resource_exposure_type = constants.ResourceExposureType.PUBLIC
+
+    return resource_exposure_type
 
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
