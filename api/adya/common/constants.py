@@ -127,3 +127,12 @@ class DocType(Enum):
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
+
+class PolicyMatchType(Enum):
+    DOCUMENT_NAME = 'DOCUMENT_NAME'
+    DOCUMENT_OWNER = 'DOCUMENT_OWNER'
+    DOCUMENT_EXPOSURE = 'DOCUMENT_EXPOSURE'
+    PERMISSION_EMAIL = "PERMISSION_EMAIL"
+
+class policyActionType(Enum):
+    SEND_EMAIL = "SEND_EMAIL"
