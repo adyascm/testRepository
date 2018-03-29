@@ -98,6 +98,13 @@ class PolicyItemDetail extends Component {
             return row
         })
 
+        let emailFieldInput = (
+            <Form.Group widths='equal'>
+                <Form.Field control={Input} label='To' placeholder='Enter email...' />
+                <Form.Field control={Input} label='CC' placeholder='Enter email...' />
+            </Form.Group>
+        )
+
         if (this.props.isLoading) {
             return (
                 <Container style={containerStyle}>
@@ -138,12 +145,7 @@ class PolicyItemDetail extends Component {
                             <Segment>
                                 <Header as='h4' color='red'>THEN</Header>
                                 <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} />
-                                <div style={{'visibility': this.state.disableEmailField?'hidden':''}}>
-                                <Form.Group widths='equal'>
-                                    <Form.Field control={Input} label='To' placeholder='Enter email...' />
-                                    <Form.Field control={Input} label='CC' placeholder='Enter email...' />
-                                </Form.Group>
-                                </div>
+                                {this.state.disableEmailField?null:emailFieldInput}
                                 <div style={{'textAlign': 'right'}}>
                                     <Button basic color='red'>Cancel</Button>
                                     <Button basic color='green'>Submit</Button>
