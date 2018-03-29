@@ -107,30 +107,6 @@ def subscribe(domain_id, datasource_id):
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
-                try:
-                    print "user email ", user.email
-                    print "get directory service "
-                    directory_service = gutils.get_directory_service(None, user.email)
-
-                    body = {
-                        "id": datasource.datasource_id,
-                        "type": "web_hook",
-                        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                        "payload": "true",
-                        "params": {"ttl": 1800}
-                    }
-
-                    print "subscribe userlist : body : ", body
-
-                    watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
-                                                                              event="add", body=body).execute()
-
-                    print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
-
-                except Exception as e:
-                    print e
-
-
                 print "Subscribing for push notification for user {}".format(user.email)
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email, user.user_id)
         else:
