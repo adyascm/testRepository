@@ -10,7 +10,7 @@ from adya.common import utils, messaging, aws_utils
 import requests
 import uuid
 #import datetime, timedelta
-import datetime
+import datetime, dateutil.parser
 from datetime import timedelta
 import json
 
@@ -169,19 +169,23 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     db_session.add(push_notifications_subscription)
 
 
-def process_notifications(datasource_id, channel_id):
-    print "Processing Subscription notification for datasource_id: {} and channel_id: {}.".format(
+def process_notifications(notification_type, datasource_id, channel_id):
+    print "Processing Subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(notification_type,
                     datasource_id, channel_id)
+    
+    if notification_type == "sync":
+        print "Sync notification received, ignore..."
+        return
+    
     db_session = db_connection().get_session()
     try:
 
-        is_user_exist = db_session.query(DomainUser).filter(and_(DomainUser.user_id == channel_id, DomainUser.member_type == 'INT')).first()
-        if is_user_exist:
-            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == is_user_exist.datasource_id).first()
-            user_email = is_user_exist.email
+        subscribed_user = db_session.query(DomainUser).filter(and_(DomainUser.user_id == channel_id, DomainUser.member_type == 'INT')).first()
+        if subscribed_user:
+            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == subscribed_user.datasource_id).first()
+            user_email = subscribed_user.email
 
-            drive_service = gutils.get_gdrive_service(
-                None, user_email, db_session)
+            drive_service = gutils.get_gdrive_service(None, user_email, db_session)
             subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id)).first()
             if not subscription:
                 print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
@@ -207,22 +211,19 @@ def process_notifications(datasource_id, channel_id):
             while True:
                 response = drive_service.changes().list(pageToken=page_token,
                                                         spaces='drive').execute()
+                print "Changes for this notification found are - {}".format(response)
                 #Mark Inprogress
                 if should_mark_in_progress:
-                    print "should_mark_in_progress "
+                    print "Marking the subscription to be in progress "
                     db_session.refresh(subscription)
                     subscription.in_progress = 1
-                    subscription.last_accessed = datetime.datetime.utcnow().isoformat()
+                    subscription.last_accessed = datetime.datetime.utcnow()
                     db_connection().commit()
                     should_mark_in_progress = False
 
-                print response
+                
                 for change in response.get('changes'):
                     # Process change
-                    fileId = change.get('fileId')
-                    print 'Change found for file: %s' % fileId
-                    print change
-
                     handle_change(drive_service, datasource.domain_id,
                                   datasource.datasource_id, user_email, fileId)
 
@@ -234,7 +235,7 @@ def process_notifications(datasource_id, channel_id):
             db_session.refresh(subscription)
             if page_token != subscription.page_token:
                 subscription.page_token = page_token
-            subscription.last_accessed = datetime.datetime.utcnow().isoformat()
+            subscription.last_accessed = datetime.datetime.utcnow()
             subscription.in_progress = 0
             db_connection().commit()
 
@@ -244,10 +245,10 @@ def process_notifications(datasource_id, channel_id):
                 db_connection().commit()
                 response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                          headers={"X-Goog-Channel-Token": datasource_id,
-                                                  "X-Goog-Channel-ID": channel_id})
+                                                  "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State':notification_type})
 
         else:
-            print "the subscribed user does not exist "
+            print "Subscribed user does not exist, hence ignoring the notification"
             return
 
     except Exception as e:
@@ -256,6 +257,7 @@ def process_notifications(datasource_id, channel_id):
     
 
 def handle_change(drive_service, domain_id, datasource_id, email, file_id):
+    print 'Handling the change for file: %s' % file_id
     db_session = db_connection().get_session()
     try:
         results = drive_service.files() \
@@ -263,13 +265,13 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
                  "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                  "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                  "owners,size,createdTime, modifiedTime").execute()
-        print("results : ", results)
-        last_modified_time = results['modifiedTime']
+        print "Updated resource for change notification is - {}".format(results)
+        last_modified_time = dateutil.parser.parse(results['modifiedTime'])
         resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id,
                                                                                    Resource.last_modified_time < last_modified_time)).first()
 
         if not resource:
-            print ("Resource not found which is modified prior to: ", last_modified_time)
+            print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
             return
         
         existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
@@ -283,22 +285,14 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
         resourcedata["resources"] = [results]
 
         query_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 'userEmail': email}
-        messaging.trigger_post_event(
-            constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
+        messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
         messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
 
         payload = {}
         payload["old_permissions"] = existing_permissions
         payload["resource"] = results
         policy_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'resourceId': file_id}
-        messaging.trigger_post_event(
-            constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
-        #filedata = results['files']
-        #TODO: policy check for the above action .
-        # payload = {"affected_entity_type": 'file', "affected_entity_id": filedata['id'], "actor_id": filedata['permissions']['id'],
-        #            "action_type": filedata['permissions']['role']}
-
-        # policy_respone = policy_controller.policy_checker(auth_token, payload, db_session)
+        #messaging.trigger_post_event(constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
     except Exception as e:
         print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(

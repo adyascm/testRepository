@@ -20,7 +20,7 @@ def get_user(email, db_session=None):
 
 def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled,scope_name):
     db_session = db_connection().get_session()
-    creation_time = datetime.datetime.utcnow().isoformat()
+    creation_time = datetime.datetime.utcnow()
     auth_token = str(uuid.uuid4())
 
     login_user = LoginUser()

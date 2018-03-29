@@ -187,14 +187,14 @@ def subscribe_gdrive_notifications(event, context):
 
 def process_gdrive_notifications(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
+    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID', 'X-Goog-Resource-State'])
     if req_error:
         return req_error
 
     datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-    print "Processing notifications for ", datasource_id, " on channel: ", channel_id
-    incremental_scan.process_notifications(datasource_id, channel_id)
+    notification_type = req_session.get_req_header('X-Goog-Resource-State')
+    incremental_scan.process_notifications(notification_type, datasource_id, channel_id)
     return req_session.generate_response(202, "Finished processing notifications. ")
 
 
