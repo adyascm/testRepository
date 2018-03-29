@@ -231,6 +231,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
             
             for change in response.get('changes'):
                 # Process change
+                fileId = change.get('fileId')
                 handle_change(drive_service, datasource_id, user_email, fileId)
 
             if 'newStartPageToken' in response:
