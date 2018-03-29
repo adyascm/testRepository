@@ -52,7 +52,7 @@ def handle_channel_expiration():
             print "Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                 row.domain_id, row.datasource_id, row.channel_id)
 
-            response = drive_service.changes().watch(pageToken=row.page_token, body=body).execute()
+            response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true', body=body).execute()
 
             print "Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                 row.domain_id, row.datasource_id, row.channel_id, response)
@@ -142,7 +142,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         start_token = response.get('startPageToken')
         print 'Start token: ', start_token
 
-        watch_response = drive_service.changes().watch(pageToken=start_token, body=body).execute()
+        watch_response = drive_service.changes().watch(pageToken=start_token, restrictToMyDrive='true', body=body).execute()
         print " watch_response for a user : ", watch_response
 
         expire_time = access_time + timedelta(seconds=86100)
