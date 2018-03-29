@@ -1,7 +1,7 @@
 from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission
 from adya.db.connection import db_connection
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, asc
 import json
 from adya.common import utils, constants
 from adya.datasources.google import gutils
@@ -77,7 +77,7 @@ def get_user_group_tree(auth_token):
 
 def getUsersData(users_groups, db_session, domain_id, datasource_id):
     usersData = db_session.query(DomainUser) \
-        .filter(and_(DomainUser.datasource_id == datasource_id)).all()
+        .filter(and_(DomainUser.datasource_id == datasource_id)).order_by(asc(DomainUser.first_name)).all()
     for userdata in usersData:
         userdata.parents = []
         users_groups[userdata.email] = userdata
