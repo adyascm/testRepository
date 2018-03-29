@@ -7,15 +7,17 @@ import agent from '../../utils/agent';
 import DateComponent from '../DateComponent'
 
 import {
-    AUDIT_LOG_LOAD_START,
-    AUDIT_LOG_LOADED
+    SET_POLICY_ROW_FILTERS
 } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
+    ...state.policy
 });
 
 const mapDispatchToProps = dispatch => ({
+    setPolicyRowFilters: (payload) => 
+        dispatch({ type: SET_POLICY_ROW_FILTERS, payload })
 });
 
 class PolicyItemDetail extends Component {
@@ -43,9 +45,15 @@ class PolicyItemDetail extends Component {
                 { text: 'Equals', value: 'perm_change1' },
                 { text: 'Not Equals', value: 'perm_change2' },
                 { text: 'Contains', value: 'perm_change3' },
-                { text: 'Does not contain', value: 'perm_change4' }]
+                { text: 'Does not contain', value: 'perm_change4' }],
+            filterRow: this.props.policyFilters?this.props.policyFilters:[]
         })
     }
+
+    // componentWillUnmount() {
+    //     console.log("state filter : ", this.state.filterRow)
+    //     this.props.setPolicyRowFilters(this.state.filterRow)
+    // }
 
     AddFilter = () => {
         let key = this.state.filterRow.length
@@ -63,12 +71,14 @@ class PolicyItemDetail extends Component {
         )
         let filterRow = this.state.filterRow
         filterRow.push(newFilter)
+        this.props.setPolicyRowFilters(this.state.filterRow)
         this.setState({ filterRow })
     }
 
-    RemoveFilter = (key) => {
+    RemoveFilter = () => {
         let filterRow = this.state.filterRow
         filterRow.pop()
+        this.props.setPolicyRowFilters(this.state.filterRow)
         this.setState({ filterRow })
     }
 
