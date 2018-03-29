@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
-import DateComponent from '../DateComponent'
 
 import {
     SET_POLICY_ROW_FILTERS
@@ -46,7 +45,8 @@ class PolicyItemDetail extends Component {
                 { text: 'Not Equals', value: 'perm_change2' },
                 { text: 'Contains', value: 'perm_change3' },
                 { text: 'Does not contain', value: 'perm_change4' }],
-            filterRow: this.props.policyFilters?this.props.policyFilters:[]
+            filterRow: this.props.policyFilters?this.props.policyFilters:[],
+            disableEmailField: true
         })
     }
 
@@ -55,7 +55,7 @@ class PolicyItemDetail extends Component {
     //     this.props.setPolicyRowFilters(this.state.filterRow)
     // }
 
-    AddFilter = () => {
+    addFilter = () => {
         let key = this.state.filterRow.length
         let newFilter = (
             <Form.Group key={key} widths='equal'>
@@ -63,7 +63,7 @@ class PolicyItemDetail extends Component {
                 <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' />
                 <Form.Field control={Input} label='Value' placeholder='Specify a value' />
                 <div style={{'height': '20px', 'paddingTop': '25px'}}>
-                    <Button basic color='red' onClick={this.RemoveFilter}>
+                    <Button basic color='red' onClick={this.removeFilter}>
                         <Icon name='close' />
                     </Button>
                 </div>
@@ -75,11 +75,17 @@ class PolicyItemDetail extends Component {
         this.setState({ filterRow })
     }
 
-    RemoveFilter = () => {
+    removeFilter = () => {
         let filterRow = this.state.filterRow
         filterRow.pop()
         this.props.setPolicyRowFilters(this.state.filterRow)
         this.setState({ filterRow })
+    }
+
+    sendEmailChange = () => {
+        this.setState({
+            disableEmailField: !this.state.disableEmailField
+        })
     }
 
     render() {
@@ -118,20 +124,30 @@ class PolicyItemDetail extends Component {
                                     <Form.Field control={Select} label='Type' options={this.state.filterOptions} placeholder='Select a filter...' />
                                     <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' />
                                     <Form.Field control={Input} label='Value' placeholder='Specify a value' />
-                                    {/* <div style={{'height': '20px', 'paddingTop': '25px'}}>
-                                        <Button basic color='red' onClick={this.RemoveFilter}>
+                                    <div style={{'height': '20px', 'paddingTop': '25px', 'visibility': 'hidden'}}>
+                                        <Button basic color='red'>
                                             <Icon name='close' />
                                         </Button>
-                                    </div> */}
+                                    </div>
                                 </Form.Group>
                                 {filterRow}
                                 <div style={{'textAlign': 'center'}}>
-                                    <Button basic color='green' onClick={this.AddFilter}>Add Filter</Button>
+                                    <Button basic color='green' onClick={this.addFilter}>Add Filter</Button>
                                 </div>
                             </Segment>
                             <Segment>
                                 <Header as='h4' color='red'>THEN</Header>
-                                <Form.Field control={Checkbox} label='Send Email' />
+                                <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} />
+                                <div style={{'visibility': this.state.disableEmailField?'hidden':''}}>
+                                <Form.Group widths='equal'>
+                                    <Form.Field control={Input} label='To' placeholder='Enter email...' />
+                                    <Form.Field control={Input} label='CC' placeholder='Enter email...' />
+                                </Form.Group>
+                                </div>
+                                <div style={{'textAlign': 'right'}}>
+                                    <Button basic color='red'>Cancel</Button>
+                                    <Button basic color='green'>Submit</Button>
+                                </div>
                             </Segment>
                         </Segment.Group>
                     </Form>
