@@ -182,7 +182,7 @@ def subscribe_gdrive_notifications(event, context):
         return req_error
 
     incremental_scan.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
-    return req_session.generate_response(202, "Subscription successful")
+    return req_session.generate_response(202)
 
 
 def process_gdrive_notifications(event, context):
@@ -195,7 +195,7 @@ def process_gdrive_notifications(event, context):
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
     notification_type = req_session.get_req_header('X-Goog-Resource-State')
     incremental_scan.process_notifications(notification_type, datasource_id, channel_id)
-    return req_session.generate_response(202, "Finished processing notifications. ")
+    return req_session.generate_response(202)
 
 
 def handle_channel_expiration(event, context):
@@ -205,7 +205,7 @@ def handle_channel_expiration(event, context):
         return req_error
 
     response = incremental_scan.handle_channel_expiration()
-    return req_session.generate_response(202, response)
+    return req_session.generate_response(202)
 
 
 

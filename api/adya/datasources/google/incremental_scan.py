@@ -271,13 +271,13 @@ def handle_change(drive_service, datasource_id, email, file_id):
                  "owners,size,createdTime, modifiedTime").execute()
         print "Updated resource for change notification is - {}".format(results)
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
+
         resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id,
                                                                                    Resource.last_modified_time < last_modified_time)).first()
-
         if not resource:
             print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
             return
-        
+        print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time, resource.last_modified_time)
         existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
 
         print "Deleting the existing permissions and resource, and add again"
