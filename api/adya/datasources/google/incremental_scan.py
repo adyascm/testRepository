@@ -25,9 +25,9 @@ def handle_channel_expiration():
             unsubscribe_for_a_user(row)
 
         try:
-            is_service_account_enabled = True
-            if row.channel_id == row.datasource_id:
-                is_service_account_enabled = False
+            is_service_account_enabled = False
+            if row.drive_root_id == "SVC":
+                is_service_account_enabled = True
 
             body = {
                 "id": row.channel_id,
@@ -108,10 +108,10 @@ def subscribe(domain_id, datasource_id):
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
                 print "Subscribing for push notification for user {}".format(user.email)
-                _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email, user.user_id)
+                _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
-            _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email, datasource.datasource_id)
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
 
         datasource.is_push_notifications_enabled = True
         db_connection().commit()
@@ -120,7 +120,8 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
     
 
-def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
+def _subscribe_for_user(db_session, auth_token, datasource, email):
+    channel_id = str(uuid.uuid4())
     access_time = datetime.datetime.utcnow()
     expire_time = access_time
     start_token = ''
@@ -157,7 +158,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email, channel_id):
     push_notifications_subscription.domain_id = datasource.domain_id
     push_notifications_subscription.datasource_id = datasource.datasource_id
     push_notifications_subscription.channel_id = channel_id
-    push_notifications_subscription.drive_root_id = ''
+    push_notifications_subscription.drive_root_id = "SVC" if datasource.is_serviceaccount_enabled else ""
     push_notifications_subscription.page_token = start_token
     push_notifications_subscription.in_progress = 0
     push_notifications_subscription.stale = 0
@@ -178,85 +179,87 @@ def process_notifications(notification_type, datasource_id, channel_id):
         return
     
     db_session = db_connection().get_session()
+
+    subscription = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.channel_id == channel_id).first()
+    if not subscription:
+        print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
+            datasource_id, channel_id)
+        return
+    user_email = subscription.user_email
     try:
-
-        subscribed_user = db_session.query(DomainUser).filter(and_(DomainUser.user_id == channel_id, DomainUser.member_type == 'INT')).first()
-        if subscribed_user:
-            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == subscribed_user.datasource_id).first()
-            user_email = subscribed_user.email
-
-            drive_service = gutils.get_gdrive_service(None, user_email, db_session)
-            subscription = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.channel_id == channel_id)).first()
-            if not subscription:
-                print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-                    datasource.datasource_id, channel_id)
-                return
-
-            if subscription.in_progress == 1:
-                if subscription.stale == 0:
-                    subscription.stale = 1
-                    db_connection().commit()
-                    print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
-                        datasource.datasource_id, channel_id)
-                else:
-                    print "Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(
-                        datasource.datasource_id, channel_id)
-
-                return
-
-            should_mark_in_progress = True
-
-            page_token = subscription.page_token
-            print "process_notifications : page_token ", page_token
-            while True:
-                response = drive_service.changes().list(pageToken=page_token,
-                                                        spaces='drive').execute()
-                print "Changes for this notification found are - {}".format(response)
-                #Mark Inprogress
-                if should_mark_in_progress:
-                    print "Marking the subscription to be in progress "
-                    db_session.refresh(subscription)
-                    subscription.in_progress = 1
-                    subscription.last_accessed = datetime.datetime.utcnow()
-                    db_connection().commit()
-                    should_mark_in_progress = False
-
-                
-                for change in response.get('changes'):
-                    # Process change
-                    handle_change(drive_service, datasource.domain_id,
-                                  datasource.datasource_id, user_email, fileId)
-
-                if 'newStartPageToken' in response:
-                    # Last page, save this token for the next polling interval
-                    page_token = response.get('newStartPageToken')
-                    break
-
-            db_session.refresh(subscription)
-            if page_token != subscription.page_token:
-                subscription.page_token = page_token
-            subscription.last_accessed = datetime.datetime.utcnow()
-            subscription.in_progress = 0
-            db_connection().commit()
-
-            db_session.refresh(subscription)
-            if subscription.stale == 1:
-                subscription.stale = 0
-                db_connection().commit()
-                response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                         headers={"X-Goog-Channel-Token": datasource_id,
-                                                  "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State':notification_type})
-
-        else:
+        subscribed_user = db_session.query(DomainUser).filter(and_(DomainUser.email == subscription.user_email, DomainUser.member_type == 'INT')).first()
+        if not subscribed_user:
             print "Subscribed user does not exist, hence ignoring the notification"
             return
+
+        drive_service = None
+        if not subscription.drive_root_id == "SVC":
+            login_user = db_session.query(LoginUser).filter(LoginUser.email == subscription.user_email).first()
+            drive_service = gutils.get_gdrive_service(login_user.auth_token, user_email, db_session)
+        else:
+            drive_service = gutils.get_gdrive_service(None, user_email, db_session)
+
+        if subscription.in_progress == 1:
+            if subscription.stale == 0:
+                subscription.stale = 1
+                db_connection().commit()
+                print "Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
+                    datasource_id, channel_id)
+            else:
+                print "Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(
+                    datasource_id, channel_id)
+
+            return
+
+        should_mark_in_progress = True
+
+        page_token = subscription.page_token
+        print "process_notifications : page_token ", page_token
+        while True:
+            response = drive_service.changes().list(pageToken=page_token,
+                                                    spaces='drive').execute()
+            print "Changes for this notification found are - {}".format(response)
+            #Mark Inprogress
+            if should_mark_in_progress:
+                print "Marking the subscription to be in progress "
+                db_session.refresh(subscription)
+                subscription.in_progress = 1
+                subscription.last_accessed = datetime.datetime.utcnow()
+                db_connection().commit()
+                should_mark_in_progress = False
+
+            
+            for change in response.get('changes'):
+                # Process change
+                handle_change(drive_service, datasource_id, user_email, fileId)
+
+            if 'newStartPageToken' in response:
+                # Last page, save this token for the next polling interval
+                page_token = response.get('newStartPageToken')
+                break
+
+        db_session.refresh(subscription)
+        if page_token != subscription.page_token:
+            subscription.page_token = page_token
+        subscription.last_accessed = datetime.datetime.utcnow()
+        subscription.in_progress = 0
+        db_connection().commit()
+
+        db_session.refresh(subscription)
+        if subscription.stale == 1:
+            subscription.stale = 0
+            db_connection().commit()
+            response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                                        headers={"X-Goog-Channel-Token": datasource_id,
+                                                "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State':notification_type})
+
 
     except Exception as e:
         print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(
             datasource_id, channel_id, e)
     
 
-def handle_change(drive_service, domain_id, datasource_id, email, file_id):
+def handle_change(drive_service, datasource_id, email, file_id):
     print 'Handling the change for file: %s' % file_id
     db_session = db_connection().get_session()
     try:
@@ -283,24 +286,28 @@ def handle_change(drive_service, domain_id, datasource_id, email, file_id):
 
         resourcedata = {}
         resourcedata["resources"] = [results]
-
-        query_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 'userEmail': email}
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        query_params = {'domainId': datasource.domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 'userEmail': email}
         messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "domain_id": domain_id, "datasource_id": datasource_id, "email": email, "resource": results}))
+        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": email, "resource": results}))
 
         payload = {}
         payload["old_permissions"] = existing_permissions
         payload["resource"] = results
-        policy_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'resourceId': file_id}
+        policy_params = {'dataSourceId': datasource_id, 'resourceId': file_id}
         #messaging.trigger_post_event(constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
     except Exception as e:
-        print "Exception occurred while processing the change notification for domain_id: {} datasource_id: {} email: {} file_id: {} - {}".format(
-            domain_id, datasource_id, email, file_id, e)
+        print "Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+            datasource_id, email, file_id, e)
 
 
 def unsubscribe_for_a_user(subscription):
     try:
+        if not subscription.resource_id:
+            print "Subscription resource id is missing, hence ignoring unsubscription request..."
+            return
+
         drive_service = gutils.get_gdrive_service(None, subscription.user_email)
         body = {
             "id": subscription.channel_id,
