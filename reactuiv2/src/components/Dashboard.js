@@ -38,10 +38,11 @@ class Dashboard extends Component {
     this.chartWidgetConfigs = [
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources" },
       { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps?header='Apps'" },
-      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources" },
-      { id: "externalUsersList", header: "External users", renderType: "ListWidget", link: "/users" },
-      {id: "internalUserList", header: "Internal users", renderType: "ListWidget", link: "/users"}
-    
+      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources" }
+    ];
+    this.gridWidgetConfigs = [
+      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users" },
+      {id: "internalUserList", header: "Domain users with most exposed documents", renderType: "ListWidget", link: "/users"}
     ];
   }
 
@@ -54,44 +55,31 @@ class Dashboard extends Component {
   }
 
   render() {
-    var itemsPerRow = 2
-
-    if (this.props.dashboard["userAppAccess"] && this.props.dashboard["userAppAccess"]["data"] && this.props.dashboard["userAppAccess"]["data"]["totalCount"] === 0) {
-      itemsPerRow = 3
-    }
-
     return (
       <Container fluid>
-        <Card.Group itemsPerRow='4'>
+        <Card.Group itemsPerRow='3'>
           {
-            this.simpleWidgetConfigs.map(config => {
-              var widget = null;
-              if (config.renderType === "SimpleNumberWidget")
-                widget = <SimpleNumberWidget key={config["id"]} config={config} />
-              else if (config.renderType === "ChartWidget")
-                widget = <ChartWidget key={config["id"]} config={config} />
-              else
-                widget = <ListWidget key={config["id"]} config={config} />
-
+            this.chartWidgetConfigs.map(config => {
               return (
-                widget
+                <ChartWidget key={config["id"]} config={config} />
               )
             })
           }
         </Card.Group>
-        <Card.Group itemsPerRow={itemsPerRow}>
+        <Card.Group itemsPerRow='2'>
           {
-            this.chartWidgetConfigs.map(config => {
-              var widget = null;
-              if (config.renderType === "SimpleNumberWidget")
-                widget = <SimpleNumberWidget key={config["id"]} config={config} />
-              else if (config.renderType === "ChartWidget")
-                widget = <ChartWidget key={config["id"]} config={config} />
-              else
-                widget = <ListWidget key={config["id"]} config={config} />
-
+            this.gridWidgetConfigs.map(config => {
               return (
-                widget
+                <ListWidget key={config["id"]} config={config} />
+              )
+            })
+          }
+        </Card.Group>
+        <Card.Group itemsPerRow='4'>
+          {
+            this.simpleWidgetConfigs.map(config => {
+              return (
+                <SimpleNumberWidget key={config["id"]} config={config} />
               )
             })
           }
