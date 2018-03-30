@@ -56,10 +56,8 @@ class ListWidget extends Component {
                                                 <Table.Row key={row[Object.keys(row)[0]]}>
                                                     {/* <Table.Cell collapsing>{row[Object.keys(row)[0]] && row[Object.keys(row)[0]].length > 26 ? row[Object.keys(row)[0]].substring(0, 25) + '...' : row[Object.keys(row)[0]]}</Table.Cell>
                                                     <Table.Cell collapsing textAlign='right'>{row[Object.keys(row)[1]] && row[Object.keys(row)[1]].length > 10 ? row[Object.keys(row)[1]].substring(0, 7) + '...' : row[Object.keys(row)[1]]}</Table.Cell> */}
-                                                    <div style={{'word-break': 'break-word'}}>
-                                                        <Table.Cell width='4'>{row[Object.keys(row)[0]]}</Table.Cell>
-                                                    </div>
-                                                    <Table.Cell textAlign='right' width='4'>{row[Object.keys(row)[1]]}</Table.Cell>
+                                                    <Table.Cell width='8' style={{'wordBreak': 'break-word'}}>{row[Object.keys(row)[0]]}</Table.Cell>
+                                                    <Table.Cell textAlign='right' width='3' style={{'wordBreak': 'break-word'}}>{row[Object.keys(row)[1]]}</Table.Cell>
                                                 </Table.Row>
                                             )
                                         }
