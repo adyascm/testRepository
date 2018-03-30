@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { SET_DATASOURCES, GET_ALL_ACTIONS, USERS_PAGE_LOADED } from '../constants/actionTypes';
+import { SET_DATASOURCES, GET_ALL_ACTIONS, USERS_PAGE_LOADED, USERS_PAGE_LOAD_START } from '../constants/actionTypes';
 import agent from '../utils/agent';
 
 const mapStateToProps = state => ({
@@ -14,7 +14,11 @@ const mapDispatchToProps = dispatch => ({
     loadActions: (payload) =>
         dispatch({ type: GET_ALL_ACTIONS, payload }),
     loadUsersTreeData: (payload) =>
-        dispatch({ type: USERS_PAGE_LOADED, payload })
+    {
+        dispatch({ type: USERS_PAGE_LOAD_START });
+        dispatch({ type: USERS_PAGE_LOADED, payload });
+    }
+    
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -26,8 +30,10 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.all_actions_list) {
                 this.props.loadActions(agent.Actions.getAllActions())
             }
-            if (!this.props.users.usersTreePayload)
+            if (!this.props.users.isLoading && !this.props.users.usersTreePayload)
+            {
                 this.props.loadUsersTreeData(agent.Users.getUsersTree());
+            }
         }
         render() {
             if (!this.props.common.datasources) {

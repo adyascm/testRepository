@@ -15,6 +15,7 @@ import {
 import UsersTree from './UsersTree';
 import UserList from './UserList'
 import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
+import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const mapStateToProps = state => ({
   appName: state.common.appName,
@@ -36,44 +37,47 @@ class Users extends Component {
     super(props);
     this.state = {
       showHierarchy: false,
-      showOnlyExternal: true,
-      usersEmpty: false
+      usersEmpty: false,
+      usersFilter: [
+        {
+          text: 'External Users',
+          value: 'EXT'
+        },
+        {
+          text: 'Internal Users',
+          value: 'DOMAIN'
+        },
+        {
+          text: 'All Users',
+          value: 'ALL'
+        }
+      ],
+      showMemberType: 'EXT'
     }
   }
   toggleHierarchyView = () => {
-    var showOnlyExternal = this.state.showOnlyExternal;
-    if (!this.state.showHierarchy)
-      showOnlyExternal = false;
     this.setState({
       ...this.state,
-      showHierarchy: !this.state.showHierarchy,
-      showOnlyExternal: showOnlyExternal
-    });
-  }
-
-  toggleExternalUserView = () => {
-    this.setState({
-      ...this.state,
-      showOnlyExternal: !this.state.showOnlyExternal
+      showHierarchy: !this.state.showHierarchy
     });
   }
 
   componentWillMount() {
     if (this.props.location.search.includes("Users"))
       this.setState({
-        showOnlyExternal: false
+        showMemberType: 'ALL'
       })
     else if (this.props.location.search.includes("Groups"))
       this.setState({
         showHierarchy: true,
-        showOnlyExternal: false
+        showMemberType: 'ALL'
       })
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT') && this.state.showOnlyExternal)
+    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT')  && this.state.showMemberType === 'EXT')
       this.setState({
-        showOnlyExternal: false
+        showMemberType: 'ALL'
       })
 
     if (nextProps.userPayload && nextProps.userPayload.length === 0 && !this.state.usersEmpty) {
@@ -88,8 +92,23 @@ class Users extends Component {
     contextRef
   })
 
+  handleUserFilterChange = (event, data) => {
+    console.log("event value : ", data.value)
+    if (data.value === 'EXT')
+      this.setState({
+        showMemberType: 'EXT'
+      })
+    else if (data.value === 'ALL')
+      this.setState({
+        showMemberType: 'ALL'
+      })
+    else if (data.value === 'DOMAIN')
+      this.setState({
+        showMemberType: 'DOMAIN'
+      })
+  }
+
   render() {
-    //const { contextRef } = this.state
     let containerStyle = {
       height: "100%",
       textAlign: "left"
@@ -101,21 +120,22 @@ class Users extends Component {
       gridWidth = 4;
     }
     let dimmer = (<Dimmer active inverted><Loader inverted content='Loading' /></Dimmer>)
-    var flatList = (<UserList showOnlyExternal={this.state.showOnlyExternal} />)
-    var treeView = (<UsersTree showOnlyExternal={this.state.showOnlyExternal} />)
+    var flatList = (<UserList showMemberType={this.state.showMemberType} />)
+    var treeView = (<UsersTree showMemberType={this.state.showMemberType} />)
     return (
       <Container style={containerStyle}>
         
         <Grid divided='vertically' stretched>
           <Grid.Row >
             <Grid.Column stretched width="5">
-              <Checkbox toggle
-                label='Show only external users'
-                onChange={this.toggleExternalUserView}
-                checked={this.state.showOnlyExternal}
+              <Dropdown
+                options={this.state.usersFilter}
+                selection
+                defaultValue='EXT'
+                onChange={this.handleUserFilterChange}
               />
             </Grid.Column>
-            <Grid.Column stretched width="5">
+            <Grid.Column stretched floated='right' width="5">
               <Checkbox toggle
                 label='Show groups tree'
                 onChange={this.toggleHierarchyView}

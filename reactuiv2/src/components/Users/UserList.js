@@ -49,9 +49,13 @@ class UserList extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if (this.state.showOnlyExternal || this.props.showOnlyExternal) {
+                if (this.state.showMemberType === 'EXT' || this.props.showMemberType === 'EXT') {
                     if (rowItem.member_type !== 'EXT')
-                        continue;
+                        continue
+                }
+                else if (this.state.showMemberType === 'DOMAIN' || this.props.showMemberType === 'DOMAIN') {
+                    if (rowItem.member_type !== 'INT')
+                        continue
                 }
                 if (rowItem.type === "group") {
                     continue;
@@ -64,8 +68,8 @@ class UserList extends Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        if (nextProps.groupSearchPayload && (!this.state.displaySearchData || 
-            (nextProps.showOnlyExternal !== this.state.showOnlyExternal))) {
+        if (nextProps.groupSearchPayload && (!this.state.displaySearchData ||  
+            (nextProps.showMemberType !== this.state.showMemberType))) {
             let rows = []
             let keys = Object.keys(nextProps.groupSearchPayload)
 
@@ -83,9 +87,13 @@ class UserList extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if (nextProps.showOnlyExternal) {
+                if (nextProps.showMemberType === 'EXT') {
                     if (rowItem.member_type !== 'EXT')
-                        continue;
+                        continue
+                }
+                else if (nextProps.showMemberType === 'DOMAIN') {
+                    if (rowItem.member_type !== 'INT')
+                        continue
                 }
                 if (rowItem.type === "group") {
                     continue;
@@ -95,15 +103,15 @@ class UserList extends Component {
             this.setState({
                 rows: rows,
                 displaySearchData: true,
-                showOnlyExternal: nextProps.showOnlyExternal
+                showMemberType: nextProps.showMemberType
             })
         }
 
         if (!nextProps.groupSearchPayload) {
             this.setState({
                 rows: undefined,
-                showOnlyExternal: nextProps.showOnlyExternal,
-                displaySearchData: false
+                displaySearchData: false,
+                showMemberType: nextProps.showMemberType
             })
         }
     }

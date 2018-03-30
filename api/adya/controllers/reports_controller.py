@@ -181,7 +181,7 @@ def create_report(auth_token, payload):
         report = Report()
         report.domain_id = existing_user.domain_id
         report.report_id = report_id
-        creation_time = datetime.datetime.utcnow().isoformat()
+        creation_time = datetime.datetime.utcnow()
         if payload:
             report.name = payload["name"]
             if 'description' in payload:

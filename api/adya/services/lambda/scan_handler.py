@@ -34,12 +34,15 @@ def process_drive_resources(event, context):
     print "Processing Data"
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId'],['userEmail'])
+        True, ['dataSourceId', 'domainId'],['userEmail', 'is_new_resource', 'notify_app'])
     if req_error:
         return req_error
 
+    is_new_resource = req_session.get_req_param('is_new_resource') or 1
+    notify_app = req_session.get_req_param('notify_app') or 0
     scan.process_resource_data(req_session.get_req_param(
-        'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
+        'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(),
+        is_new_resource, notify_app)
     return req_session.generate_response(202)
 
 
@@ -182,20 +185,20 @@ def subscribe_gdrive_notifications(event, context):
         return req_error
 
     incremental_scan.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
-    return req_session.generate_response(202, "Subscription successful")
+    return req_session.generate_response(202)
 
 
 def process_gdrive_notifications(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
+    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID', 'X-Goog-Resource-State'])
     if req_error:
         return req_error
 
     datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-    print "Processing notifications for ", datasource_id, " on channel: ", channel_id
-    incremental_scan.process_notifications(datasource_id, channel_id)
-    return req_session.generate_response(202, "Finished processing notifications. ")
+    notification_type = req_session.get_req_header('X-Goog-Resource-State')
+    incremental_scan.process_notifications(notification_type, datasource_id, channel_id)
+    return req_session.generate_response(202)
 
 
 def handle_channel_expiration(event, context):
@@ -205,7 +208,7 @@ def handle_channel_expiration(event, context):
         return req_error
 
     response = incremental_scan.handle_channel_expiration()
-    return req_session.generate_response(202, response)
+    return req_session.generate_response(202)
 
 
 
