@@ -135,7 +135,7 @@ class Users extends Component {
                 onChange={this.handleUserFilterChange}
               />
             </Grid.Column>
-            <Grid.Column stretched width="5">
+            <Grid.Column stretched floated='right' width="5">
               <Checkbox toggle
                 label='Show groups tree'
                 onChange={this.toggleHierarchyView}
