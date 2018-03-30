@@ -111,7 +111,7 @@ def subscribe(domain_id, datasource_id):
             print "subscribe userlist : body : ", body
 
             watch_userlist_response = directory_service.users().watch(body=body, domain=domain_id,
-                                                                      projection="full", showDeleted="true").execute()
+                                                                      projection="full").execute()
 
             print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
