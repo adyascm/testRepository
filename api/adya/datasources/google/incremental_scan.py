@@ -86,29 +86,36 @@ def subscribe(domain_id, datasource_id):
 
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
 
-        # watch on userlist
-        # directory_service = gutils.get_directory_service(login_user.auth_token)
-        # body = {
-        #     "id": datasource.datasource_id,
-        #     "type": "web_hook",
-        #     "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-        #     "payload": "true",
-        #     "params": {"ttl": 1800}
-        # }
-        #
-        # print "subscribe userlist : body : ", body
-        #
-        # watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
-        #                                                           event="add", body=body)
-        #
-        # print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
-
         if datasource.is_serviceaccount_enabled:
             domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
+            admin_user = None
             print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
             for user in domain_users:
+                print "user ", user
+                if user.is_admin:
+                    admin_user = user.email
                 print "Subscribing for push notification for user {}".format(user.email)
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
+
+            # watch on userlist
+            print "subscribing for watch on userlist "
+            print "admin user ", admin_user
+            directory_service = gutils.get_directory_service(None, admin_user)
+            body = {
+                "id": datasource.datasource_id,
+                "type": "web_hook",
+                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                "payload": "true",
+                "params": {"ttl": 1800}
+            }
+
+            print "subscribe userlist : body : ", body
+
+            watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
+                                                                      event="add", body=body)
+
+            print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
             _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
