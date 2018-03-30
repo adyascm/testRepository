@@ -1,4 +1,4 @@
-from collections import namedtuple
+import traceback
 
 from adya.common import constants, action_constants, messaging, response_messages
 from adya.common.constants import ResponseType
@@ -179,6 +179,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
     except Exception as e:
         print e
+        print traceback.print_exc()
         print "Exception occurred while initiating action using payload ", action_payload, " on domain: ", domain_id, " and datasource: ", datasource_id
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
