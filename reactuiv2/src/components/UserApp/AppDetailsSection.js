@@ -37,9 +37,9 @@ class AppDetailsSection extends Component {
         this.props.closingDetailsSection(undefined)
     }
 
-    handleAppAccessRevokeClick(event,domainId,datasourceId, clientId,userEmail) {
-        agent.Apps.revokeAppAccess(domainId,datasourceId, clientId,userEmail).then(resp =>{
-            console.log(resp)
+    handleAppAccessRevokeClick(event,app,userEmail) {
+        agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
+            app = undefined;
         })
     }
 
@@ -82,7 +82,7 @@ class AppDetailsSection extends Component {
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
                             <Button animated='vertical' basic color='red' onClick={(event) => 
-                                                                        this.handleAppAccessRevokeClick(event,app.domain_id,app.datasource_id,app.client_id,user.email)}>
+                                                                        this.handleAppAccessRevokeClick(event,app,user.email)}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />

@@ -32,19 +32,19 @@ class PolicyItemDetail extends Component {
         this.setState({
             actionOptions: [
                 { text: '', value: '' },
-                { text: 'Permission Change', value: 'perm_change1' }],
+                { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
             filterOptions: [
                 { text: '', value: '' },
-                { text: 'Document.Name', value: 'perm_change1' },
-                { text: 'Document.Owner', value: 'perm_change2' },
-                { text: 'Document.Exposure', value: 'perm_change3' },
-                { text: 'Permission.Email', value: 'perm_change4' }],
+                { text: 'Document.Name', value: 'DOCUMENT_NAME' },
+                { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
+                { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
+                { text: 'Permission.Email', value: 'PERMISSION_EMAIL' }],
             filterConditionOptions: [
                 { text: '', value: '' },
-                { text: 'Equals', value: 'perm_change1' },
-                { text: 'Not Equals', value: 'perm_change2' },
-                { text: 'Contains', value: 'perm_change3' },
-                { text: 'Does not contain', value: 'perm_change4' }],
+                { text: 'Equals', value: 'equal' },
+                { text: 'Not Equals', value: 'notequal' },
+                { text: 'Contains', value: 'contain' },
+                { text: 'Does not contain', value: 'notcontain' }],
             filterRow: this.props.policyFilters?this.props.policyFilters:[],
             disableEmailField: true
         })
