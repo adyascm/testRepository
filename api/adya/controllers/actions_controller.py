@@ -227,6 +227,18 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
         domainUser.datasource_id = datasource_id
         domainUser.email = action_parameters['user_email']
         domainUser.member_type = constants.UserMemberType.EXTERNAL
+        display_name = response['displayName']
+        # check for display name
+        try:
+            name = display_name.split(' ')
+            first_name = name[0]
+            domainUser.first_name = first_name
+            last_name = name[1]
+            domainUser.last_name = last_name
+        except Exception as e:
+            print e
+
+
         db_session.add(domainUser)
 
     db_connection().commit()
