@@ -27,7 +27,7 @@ class UsersTree extends Component {
 
         this.state = {
             rows: undefined,
-            showOnlyExternal: props.showOnlyExternal,
+            showMemberType: props.showMemberType,
             displaySearchData: false,
             columnDefs: [{
                 headerName: "Type",
@@ -106,8 +106,8 @@ class UsersTree extends Component {
         //     })
         // }
 
-        if (nextProps.groupSearchPayload && (!this.state.displaySearchData || 
-            (nextProps.showOnlyExternal !== this.state.showOnlyExternal))) {
+        if (nextProps.groupSearchPayload && (!this.state.displaySearchData ||  
+            (nextProps.showMemberType !== this.state.showMemberType))) {
             let rows = []
             let keys = Object.keys(nextProps.groupSearchPayload)
 
@@ -125,11 +125,14 @@ class UsersTree extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if(nextProps.showOnlyExternal)
-                {
-                    if(rowItem.member_type !== 'EXT')
-                        continue;
-                } 
+                if (nextProps.showMemberType === 'EXT') {
+                    if (rowItem.member_type !== 'EXT')
+                        continue
+                }
+                else if (nextProps.showMemberType === 'DOMAIN') {
+                    if (rowItem.member_type !== 'INT')
+                        continue
+                }
                 else if(rowItem.type === "user") {
                     continue;
                 }
@@ -138,14 +141,14 @@ class UsersTree extends Component {
             this.setState({
                 rows: rows,
                 displaySearchData: true,
-                showOnlyExternal: nextProps.showOnlyExternal
+                showMemberType: nextProps.showMemberType
             })
         }
 
         if (!nextProps.groupSearchPayload) {
             this.setState({
                 rows: undefined,
-                showOnlyExternal: nextProps.showOnlyExternal
+                showMemberType: nextProps.showMemberType
             })
         }  
     }
@@ -171,11 +174,14 @@ class UsersTree extends Component {
                 }
                 else
                     rowItem.type = rowItem.type || "group";
-                if(this.state.showOnlyExternal)
-                {
-                    if(rowItem.member_type !== 'EXT')
-                        continue;
-                } 
+                if (this.state.showMemberType === 'EXT') {
+                    if (rowItem.member_type !== 'EXT')
+                        continue
+                }
+                else if (this.state.showMemberType === 'DOMAIN') {
+                    if (rowItem.member_type !== 'INT')
+                        continue
+                }
                 else if(rowItem.type === "user") {
                     continue;
                 }
