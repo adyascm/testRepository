@@ -216,7 +216,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
         page_token = subscription.page_token
         print "process_notifications : page_token ", page_token
         while True:
-            response = drive_service.changes().list(pageToken=page_token,
+            response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                     spaces='drive').execute()
             print "Changes for this notification found are - {}".format(response)
             #Mark Inprogress
@@ -272,26 +272,35 @@ def handle_change(drive_service, datasource_id, email, file_id):
         print "Updated resource for change notification is - {}".format(results)
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
-        resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id,
-                                                                                   Resource.last_modified_time < last_modified_time)).first()
-        if not resource:
+        resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
+        
+        if resource and resource.last_modified_time < last_modified_time:
             print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
             return
-        print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time, resource.last_modified_time)
-        existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
 
-        print "Deleting the existing permissions and resource, and add again"
-        db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id)).delete(synchronize_session=False)
-        db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(synchronize_session=False)
-        db_connection().commit()
+        perms = []
+
+        is_new_resource = 0
+        if resource:
+            perms = resource.permissions
+            print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time, resource.last_modified_time)
+            print "Deleting the existing permissions and resource, and add again"
+            db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id)).delete(synchronize_session=False)
+            db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(synchronize_session=False)
+            db_connection().commit()
+        else:
+            is_new_resource = 1
+            print "Resource does not exist in DB, so would add it now"
+
+        existing_permissions = json.dumps(perms, cls=alchemy_encoder())
 
         resourcedata = {}
         resourcedata["resources"] = [results]
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        query_params = {'domainId': datasource.domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 'userEmail': email}
+        query_params = {'domainId': datasource.domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 
+        'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
         messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-        messaging.send_push_notification("adya-"+datasource_id, json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": email, "resource": results}))
-
+        
         payload = {}
         payload["old_permissions"] = existing_permissions
         payload["resource"] = results

@@ -69,7 +69,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
 
 
 ## processing resource data for fileIds
-def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
+def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is_new_resource=1, notify_app=0):
     try:
         print "Initiating processing of drive resources for files using email: {}".format(user_email)
         resources = resourcedata["resources"]
@@ -170,7 +170,13 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata):
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()
-        update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
+
+        if is_new_resource == 1:
+            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
+
+        if notify_app == 1:
+            messaging.send_push_notification("adya-"+datasource_id, 
+                json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
 
         print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
     except Exception as ex:

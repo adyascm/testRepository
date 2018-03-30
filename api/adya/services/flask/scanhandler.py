@@ -36,12 +36,15 @@ class DriveResources(Resource):
         print "Processing Data"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'],['userEmail'])
+            True, ['dataSourceId', 'domainId'],['userEmail', 'is_new_resource', 'notify_app'])
         if req_error:
             return req_error
 
+        is_new_resource = req_session.get_req_param('is_new_resource') or 1
+        notify_app = req_session.get_req_param('notify_app') or 0
         scan.process_resource_data(req_session.get_req_param(
-            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body())
+            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(),
+            is_new_resource, notify_app)
         return req_session.generate_response(202)
 
 
