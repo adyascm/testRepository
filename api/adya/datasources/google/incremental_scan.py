@@ -105,14 +105,13 @@ def subscribe(domain_id, datasource_id):
                 "id": datasource.datasource_id,
                 "type": "web_hook",
                 "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                "payload": "true",
-                "params": {"ttl": 1800}
+                "params": {"ttl": "1800"}
             }
 
             print "subscribe userlist : body : ", body
 
-            watch_userlist_response = directory_service.users().watch(projection="full", showDeleted="true",
-                                                                      body=body).execute()
+            watch_userlist_response = directory_service.users().watch(body=body, domain=domain_id,
+                                                                      projection="full", showDeleted="true").execute()
 
             print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
