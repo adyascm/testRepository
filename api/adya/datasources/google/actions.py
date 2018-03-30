@@ -140,7 +140,8 @@ class AddOrUpdatePermisssionForResource():
 
             }
             request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
-                                                    transferOwnership=True if role=='owner' else False)
+                                                    transferOwnership=True if role=='owner' else False,
+                                                              fields='id, emailAddress, type, kind, displayName')
             self.change_requests.append(request)
         return self.execute()
 
