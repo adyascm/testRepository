@@ -57,7 +57,7 @@ def create_datasource(auth_token, payload):
             datasource.display_name = "Unnamed datasource"
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
-        datasource.creation_time = datetime.datetime.utcnow().isoformat()
+        datasource.creation_time = datetime.datetime.utcnow()
         if datasource.is_dummy_datasource:
             datasource.is_serviceaccount_enabled = False
         else:
@@ -149,7 +149,7 @@ def delete_datasource(auth_token, datasource_id):
 
 
 def create_domain(db_session, domain_id, domain_name):
-    creation_time = datetime.datetime.utcnow().isoformat()
+    creation_time = datetime.datetime.utcnow()
 
     domain = {}
     domain["domain_id"] = domain_id

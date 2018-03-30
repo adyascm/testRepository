@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from adya.common import constants, action_constants, messaging, response_messages
 from adya.common.constants import ResponseType
 from adya.datasources.google import actions, gutils
@@ -204,13 +206,32 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
     resource_id = action_parameters['resource_id']
     resource_owner = action_parameters['resource_owner_id']
 
-    permission = {}
+    permission = ResourcePermission()
     permission.datasource_id = datasource_id
     permission.resource_id = resource_id
     permission.email = action_parameters['user_email']
     permission.permission_type = new_permission_role
-    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
-    return gsuite_action.add_permissions()
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [permission], resource_owner)
+    updated_permission, response = gsuite_action.add_permissions()
+
+    if len(updated_permission) < 1:
+        return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
+
+    db_session = db_connection().get_session()
+
+    permission.permission_id = response['id']
+    db_session.add(permission)
+
+    if not action_parameters['user_type']:
+        domainUser = DomainUser()
+        domainUser.datasource_id = datasource_id
+        domainUser.email = action_parameters['user_email']
+        domainUser.member_type = constants.UserMemberType.EXTERNAL
+        db_session.add(domainUser)
+
+    db_connection().commit()
+    return response_messages.ResponseMessage(200, 'Action completed successfully')
+
 
 def update_or_delete_resource_permission(auth_token, datasource_id, action_payload):
     action_parameters = action_payload['parameters']

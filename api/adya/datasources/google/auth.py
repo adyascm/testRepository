@@ -64,7 +64,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     login_email = profile_info['email'].lower()
     domain_id = login_email
     db_session = db_connection().get_session()
-    creation_time = datetime.datetime.utcnow().isoformat()
+    creation_time = datetime.datetime.utcnow()
     login_user = auth_controller.get_user(login_email, db_session)
     is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(login_email)
     if is_serviceaccount_enabled:
@@ -82,7 +82,7 @@ def oauth_callback(oauth_code, scopes,state, error):
             login_user.authorize_scope_name = scope_name
 
         #Update the last login time always
-        login_user.last_login_time = datetime.datetime.utcnow().isoformat()
+        login_user.last_login_time = datetime.datetime.utcnow()
         db_connection().commit()
     else:
         existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()

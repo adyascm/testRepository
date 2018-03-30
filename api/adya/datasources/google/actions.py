@@ -95,7 +95,7 @@ class AddOrUpdatePermisssionForResource():
             try:
                 response = self.change_requests[0].execute()
                 self.updated_permissions.append(self.permissions[0])
-                return self.updated_permissions
+                return self.updated_permissions, response
                 #return response_messages.ResponseMessage(200, "Action completed successfully")
             except Exception as ex:
                 content = json.loads(ex.content)
