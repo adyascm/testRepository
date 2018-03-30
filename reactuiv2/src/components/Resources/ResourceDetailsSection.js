@@ -14,8 +14,6 @@ const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
     onChangePermissionForResource: (actionType, permission, newValue) =>
         dispatch({ type: RESOURCES_ACTION_LOAD, actionType, permission, newValue }),
-    onResourceQuickAction: (actionType) =>
-        dispatch({ type: RESOURCES_ACTION_LOAD, actionType }),
     onAddPermissionForFile: (actionType, permission) =>
         dispatch({ type: RESOURCES_ACTION_LOAD, actionType, permission})
 })

@@ -94,7 +94,8 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                resourceTree: !action.error ? action.payload : []
+                resourceTree: !action.error ? action.payload : [],
+                rowData: undefined
             }
         case RESOURCES_PAGINATION_DATA:
             return {

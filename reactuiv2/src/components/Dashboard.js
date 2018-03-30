@@ -42,7 +42,7 @@ class Dashboard extends Component {
     ];
     this.gridWidgetConfigs = [
       { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users" },
-      {id: "internalUserList", header: "Domain users with most exposed documents", renderType: "ListWidget", link: "/users"}
+      {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users"}
     ];
   }
 
@@ -57,6 +57,15 @@ class Dashboard extends Component {
   render() {
     return (
       <Container fluid>
+      <Card.Group itemsPerRow='4'>
+          {
+            this.simpleWidgetConfigs.map(config => {
+              return (
+                <SimpleNumberWidget key={config["id"]} config={config} />
+              )
+            })
+          }
+        </Card.Group>
         <Card.Group itemsPerRow='3'>
           {
             this.chartWidgetConfigs.map(config => {
@@ -71,15 +80,6 @@ class Dashboard extends Component {
             this.gridWidgetConfigs.map(config => {
               return (
                 <ListWidget key={config["id"]} config={config} />
-              )
-            })
-          }
-        </Card.Group>
-        <Card.Group itemsPerRow='4'>
-          {
-            this.simpleWidgetConfigs.map(config => {
-              return (
-                <SimpleNumberWidget key={config["id"]} config={config} />
               )
             })
           }
