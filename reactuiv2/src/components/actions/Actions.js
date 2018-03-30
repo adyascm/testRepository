@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-react'
-import { RESOURCES_ACTION_CANCEL, USERS_RESOURCE_ACTION_CANCEL, LOGIN_SUCCESS, FLAG_ERROR_MESSAGE } from '../../constants/actionTypes';
+import { RESOURCES_ACTION_CANCEL, RESOURCES_PAGE_LOAD_START, RESOURCES_PAGE_LOADED,
+     USERS_RESOURCE_ACTION_CANCEL, USERS_PAGE_LOAD_START, USERS_PAGE_LOADED, USERS_OWNED_RESOURCES_LOAD_START, USERS_OWNED_RESOURCES_LOADED,
+     USERS_RESOURCE_LOAD_START, USERS_RESOURCE_LOADED,
+     LOGIN_SUCCESS, FLAG_ERROR_MESSAGE } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 import authenticate from '../../utils/oauth';
@@ -18,6 +21,24 @@ const mapDispatchToProps = dispatch => ({
     onCancelAction: () => {
         dispatch({ type: RESOURCES_ACTION_CANCEL })
         dispatch({ type: USERS_RESOURCE_ACTION_CANCEL })
+    },
+    onCloseAction: (usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload) => {
+        dispatch({ type: RESOURCES_ACTION_CANCEL })
+        dispatch({ type: USERS_RESOURCE_ACTION_CANCEL })
+        dispatch({ type: USERS_PAGE_LOAD_START });
+        dispatch({ type: USERS_PAGE_LOADED, payload: usersPayload });
+        if(userOwnedResources)
+        {
+            dispatch({ type: USERS_OWNED_RESOURCES_LOAD_START });
+            dispatch({ type: USERS_OWNED_RESOURCES_LOADED, payload: userOwnedResources });
+        }
+        if(userAccessibleResources)
+        {
+            dispatch({ type: USERS_RESOURCE_LOAD_START });
+            dispatch({ type: USERS_RESOURCE_LOADED, payload: userAccessibleResources });
+        }
+        dispatch({ type: RESOURCES_PAGE_LOAD_START });
+        dispatch({ type: RESOURCES_PAGE_LOADED, payload: resourcesPayload });
     },
     onIncrementalAuthComplete: (data) =>
         dispatch({ type: LOGIN_SUCCESS, ...data }),
@@ -40,6 +61,7 @@ class Actions extends Component {
         this.takeAction = this.takeAction.bind(this);
         this.executeAction = this.executeAction.bind(this);
         this.onUpdateParameters = this.onUpdateParameters.bind(this);
+        this.onCloseAction = this.onCloseAction.bind(this);
     }
 
     build_action_payload = () => {
@@ -128,6 +150,27 @@ class Actions extends Component {
         });
     }
 
+    onCloseAction = () => {
+        var usersPayload = agent.Users.getUsersTree();
+        var userOwnedResources = undefined;
+        var userAccessibleResources = undefined;
+        if(this.props.selectedUser)
+        {
+            if(this.props.selectedUser.ownedResources)
+            {
+                userOwnedResources = agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUser["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUser["key"] });
+            
+            }if(this.props.selectedUser.resources)
+            {
+                userAccessibleResources = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUser["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});    
+            }
+        }
+        
+        var resourcesPayload = agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
+
+        this.props.onCloseAction(usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload);
+    }
+
     componentWillReceiveProps(nextProps) {
         this.setState({
             ...nextProps.action,
@@ -164,7 +207,7 @@ class Actions extends Component {
                 success
                 content={this.state.successMessage}
             />)
-            submitAction = this.props.onCancelAction;
+            submitAction = this.onCloseAction;
             cancelButton = (<div></div>)
             submitButton = (<Button positive content='Close' />);
         }
@@ -173,7 +216,7 @@ class Actions extends Component {
                 error
                 content={this.state.errorMessage}
             />)
-            submitAction = this.props.onCancelAction;
+            submitAction = this.onCloseAction;
             cancelButton = (<div></div>)
             submitButton = (<Button positive content='Close' />);
         }

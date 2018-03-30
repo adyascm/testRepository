@@ -82,9 +82,9 @@ class UsersGroupsDetailsSection extends Component {
       }
     }
 
-    handleAppAccessRevokeClick(event,datasourceId, clientId,userEmail) {
-        agent.Apps.revokeAppAccess(datasourceId, clientId,userEmail).then(resp =>{
-            console.log(resp)
+    handleAppAccessRevokeClick(event,app,userEmail) {
+        agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
+            app=undefined;
         })
     }
 

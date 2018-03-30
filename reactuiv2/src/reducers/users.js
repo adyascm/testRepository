@@ -31,7 +31,8 @@ export default (state = defaultState, action) => {
         case USERS_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoading: true,
+                usersTreePayload: undefined
             }
         case USERS_PAGE_LOADED:
             //let usersTreePayload = !action.error?action.payload:[]
@@ -69,6 +70,7 @@ export default (state = defaultState, action) => {
                 isActivitiesLoading: false,
             }
         case USERS_OWNED_RESOURCES_LOAD_START:
+            state.selectedUserItem.ownedResources = undefined;
             return {
                 ...state,
                 isLoading: true
@@ -80,6 +82,7 @@ export default (state = defaultState, action) => {
                 isLoading: false
             }
         case USERS_RESOURCE_LOAD_START:
+            state.selectedUserItem.resources = undefined;
             return {
                 ...state,
                 isResourcesLoading: true
