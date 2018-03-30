@@ -105,5 +105,12 @@ const AuditLog = {
         requests.get('/getauditlog')
 }
 
+const Policy = {
+    createPolicy: (policyInfo) =>
+        requests.post('/policies', policyInfo),
+    getPolicy: () => 
+        requests.get('/policies')
+}
 
-export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions,Apps, setToken: _token => { token = _token; } };
+
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, setToken: _token => { token = _token; } };
