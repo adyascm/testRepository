@@ -30,7 +30,7 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.all_actions_list) {
                 this.props.loadActions(agent.Actions.getAllActions())
             }
-            if (!this.props.users.isLoading && !this.props.users.usersTreePayload)
+            if (this.props.common.datasources && (!this.props.users.isLoading && !this.props.users.usersTreePayload))
             {
                 this.props.loadUsersTreeData(agent.Users.getUsersTree());
             }
