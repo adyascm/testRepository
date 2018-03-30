@@ -6,7 +6,10 @@ import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkb
 import agent from '../../utils/agent';
 
 import {
-    SET_POLICY_ROW_FILTERS
+    SET_POLICY_ROW_FILTERS,
+    SET_POLICY_FILTER,
+    CREATE_POLICY_LOAD_START,
+    CREATE_POLICY_LOADED
 } from '../../constants/actionTypes';
 
 
@@ -16,7 +19,13 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     setPolicyRowFilters: (payload) => 
-        dispatch({ type: SET_POLICY_ROW_FILTERS, payload })
+        dispatch({ type: SET_POLICY_ROW_FILTERS, payload }),
+    setPolicyFilter: (policyFilterType, policyFilterValue) => 
+        dispatch({ type: SET_POLICY_FILTER, policyFilterType, policyFilterValue }),
+    policyLoadStart: () =>
+        dispatch({ type: CREATE_POLICY_LOAD_START }),
+    createPolicy: (payload) =>
+        dispatch({ type: CREATE_POLICY_LOADED, payload })
 });
 
 class PolicyItemDetail extends Component {
@@ -33,7 +42,7 @@ class PolicyItemDetail extends Component {
             actionOptions: [
                 { text: '', value: '' },
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
-            filterOptions: [
+            filterTypeOptions: [
                 { text: '', value: '' },
                 { text: 'Document.Name', value: 'DOCUMENT_NAME' },
                 { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
@@ -46,7 +55,8 @@ class PolicyItemDetail extends Component {
                 { text: 'Contains', value: 'contain' },
                 { text: 'Does not contain', value: 'notcontain' }],
             filterRow: this.props.policyFilters?this.props.policyFilters:[],
-            disableEmailField: true
+            disableEmailField: true,
+            filterValue: ''
         })
     }
 
@@ -59,9 +69,9 @@ class PolicyItemDetail extends Component {
         let key = this.state.filterRow.length
         let newFilter = (
             <Form.Group key={key} widths='equal'>
-                <Form.Field control={Select} label='Type' options={this.state.filterOptions} placeholder='Select a filter...' />
-                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' />
-                <Form.Field control={Input} label='Value' placeholder='Specify a value' />
+                <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
+                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
+                <Form.Field control={Input} label='Value' placeholder='Specify a value' onChange={this.handleFilterValueChange} onKeyPress={this.handleKeyPress} />
                 <div style={{'height': '20px', 'paddingTop': '25px'}}>
                     <Button basic color='red' onClick={this.removeFilter}>
                         <Icon name='close' />
@@ -87,6 +97,40 @@ class PolicyItemDetail extends Component {
             disableEmailField: !this.state.disableEmailField
         })
     }
+
+    handleFilterTypeChange = (event,data) => {
+        this.props.setPolicyFilter('filterType', data.value)
+    }
+
+    handleFilterConditionChange = (event,data) => {
+        this.props.setPolicyFilter('filterCondition', data.value)
+    }
+
+    handleFilterValueChange = (event,data) => {
+        this.setState({
+            filterValue: data.value
+        })
+    }
+
+    handleKeyPress = (event) => {
+        if (event.key === 'Enter')
+            this.props.setPolicyFilter('filterValue', this.state.filterValue)
+    }
+
+    handleActionChange = (event,data) => {
+        this.props.setPolicyFilter('actionType', data.value)
+    }
+
+    // handleSubmit = () => {
+    //     let policyInfo = {
+    //         "match_type": this.props.filterType,
+    //         "match_condition": this.props.filterCondition,
+    //         "match_value": this.props.filterValue,
+    //         "trigger_type": this.props.actionType
+    //     }
+    //     this.props.policyLoadStart()
+    //     this.props.createPolicy(agent.Policy.createPolicy(policyInfo))
+    // }
 
     render() {
         let containerStyle = {
@@ -123,14 +167,14 @@ class PolicyItemDetail extends Component {
                         <Segment.Group>
                             <Segment>
                                 <Header as='h4' color='green'>WHEN</Header>
-                                <Form.Field control={Select} label='Action' options={this.state.actionOptions} placeholder='Select an action...' />
+                                <Form.Field control={Select} label='Action' options={this.state.actionOptions} placeholder='Select an action...' onChange={this.handleActionChange} />
                             </Segment>
                             <Segment>
                                 <Header as='h4' color='yellow'>IF</Header>
                                 <Form.Group key={this.state.filterRow.length} widths='equal'>
-                                    <Form.Field control={Select} label='Type' options={this.state.filterOptions} placeholder='Select a filter...' />
-                                    <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' />
-                                    <Form.Field control={Input} label='Value' placeholder='Specify a value' />
+                                    <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
+                                    <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
+                                    <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.filterValue} onChange={this.handleFilterValueChange} onKeyPress={this.handleKeyPress} />
                                     <div style={{'height': '20px', 'paddingTop': '25px', 'visibility': 'hidden'}}>
                                         <Button basic color='red'>
                                             <Icon name='close' />
@@ -148,7 +192,7 @@ class PolicyItemDetail extends Component {
                                 {this.state.disableEmailField?null:emailFieldInput}
                                 <div style={{'textAlign': 'right'}}>
                                     <Button basic color='red'>Cancel</Button>
-                                    <Button basic color='green'>Submit</Button>
+                                    <Button basic color='green' onClick={this.handleSubmit}>Submit</Button>
                                 </div>
                             </Segment>
                         </Segment.Group>
