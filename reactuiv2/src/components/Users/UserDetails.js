@@ -11,23 +11,23 @@ const UserDetails = props => {
             value: ''
         },
         {
-            text: 'Transfer ownership of all files owned by ' + props.selectedUserItem['name'],
+            text: 'Transfer ownership of all documents owned by \"' + props.selectedUserItem['name'] + '\"',
             value: 'transfer_ownership'
         },
         {
-            text: 'Remove external access to all files owned by ' + props.selectedUserItem['name'],
+            text: 'Remove access from outside the company for all documents owned by \"' + props.selectedUserItem['name'] + '\"',
             value: 'remove_external_access'
         },
         {
-          text: 'Remove access for ' + props.selectedUserItem['name'] + ' to any files owned by others',
-          value: 'remove_all_access'
-        },
-        {
-            text: 'Remove sharing of all files owned by ' + props.selectedUserItem['name'],
+            text: 'Remove access to everyone for all documents owned by \"' + props.selectedUserItem['name'] + '\"',
             value: 'make_all_files_private'
         },
         {
-            text: 'Watch all actions of ' + props.selectedUserItem['name'],
+          text: 'Remove access to \"' + props.selectedUserItem['name'] + '\" for any documents owned by others',
+          value: 'remove_all_access'
+        },
+        {
+            text: 'Get weekly report of all activities for \"' + props.selectedUserItem['name'] + '\"',
             value: 'watch_all_action_for_user'
         }];
 
@@ -37,12 +37,8 @@ const UserDetails = props => {
           value: ''
       },
       {
-        text: 'Remove access for ' + props.selectedUserItem['name'] + ' to any files owned by others',
+        text: 'Remove all access to \"' + props.selectedUserItem['name'] + '\"',
         value: 'remove_all_access'
-      },
-      {
-          text: 'Watch all actions of ' + props.selectedUserItem['name'],
-          value: 'watch_all_action_for_user'
       }
 
     ]
