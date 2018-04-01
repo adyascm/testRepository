@@ -63,11 +63,14 @@ def get_gdrive_scan_completed_parameters(datasource):
             return "Invalid datasource! Aborting..."
 
         session = db_connection().get_session()
-        users_query = session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id)
+        users_query = session.query(LoginUser).filter(and_(LoginUser.domain_id == datasource.domain_id, LoginUser.is_enabled == True))
         #if datasource.is_serviceaccount_enabled:
         #    users_query = users_query.filter(LoginUser.is_admin_user)
         all_users = users_query.all()
         
+        if len(all_users) < 1:
+            print "No user to send an email to, so aborting..."
+            return
         emails = ",".join(user.email for user in all_users)
         countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")['rows']
 
