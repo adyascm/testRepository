@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT, SET_CURRENT_URL } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
@@ -11,7 +11,7 @@ const LoggedOutView = props => {
     if (!props.currentUser) {
         return (
             <Container fluid>
-                <Menu.Item as={Link} to="/" header>
+                <Menu.Item header onClick={() => props.handleClick("/")} >
                     <Image size='tiny' src={AdyaLogo} />
                 </Menu.Item>
             </Container>
@@ -27,27 +27,27 @@ const LoggedInView = props => {
         // var disableResourceItem = (props["filesCount"] && props["filesCount"]["data"]>0)?false:true
         return (
             <Container fluid>
-                <Menu.Item as={Link} to="/" header>
+                <Menu.Item header>
                     <Image size='tiny' src={AdyaLogo} onClick={() => props.handleClick("/")} />
                 </Menu.Item>
 
                 <Menu.Menu position='left' >
-                    <Menu.Item as={Link} to="/" onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
-                    <Menu.Item as={Link} to="/users" onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
-                    <Menu.Item as={Link} to="/resources" onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
-                    <Menu.Item as={Link} to="/apps" onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/")} active={props.currLocation === '/'} >Dashboard</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
                     {/* <Menu.Item as={Link} to="/policies" onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item> */}
-                    <Menu.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
-                    <Menu.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item>
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
-                    <Menu.Item icon='settings' as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
+                    <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
                     {/* <Dropdown item icon='settings'>
-                        <Dropdown.Menu>  
+                        <Dropdown.Menu>
                             <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
@@ -69,7 +69,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onClickLogout: () => dispatch({ type: LOGOUT }),
-    onMenuItemClick: (url) => 
+    onMenuItemClick: (url) =>
         dispatch({ type: SET_CURRENT_URL, url })
 });
 
@@ -82,6 +82,8 @@ class Header extends React.Component {
 
     handleClick(menuItem) {
         this.props.onMenuItemClick(menuItem)
+        this.props.history.push(menuItem)
+
     }
 
     componentWillMount() {
@@ -91,11 +93,11 @@ class Header extends React.Component {
     render() {
         return (
             <Menu fixed='top' inverted>
-                <LoggedOutView currentUser={this.props.currentUser} />
+                <LoggedOutView currentUser={this.props.currentUser} handleClick={this.handleClick} />
                 <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} {...this.props} />
             </Menu>
         )
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Header));
