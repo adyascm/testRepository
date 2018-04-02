@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { PieChart } from 'react-chartkick';
 import { Card, Loader, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_CURRENT_URL } from '../../constants/actionTypes';
@@ -27,6 +27,7 @@ class ChartWidget extends Component {
 
     widgetClick = () => {
         this.props.onWidgetClick(this.props.config.link)
+        this.props.history.push(this.props.config.link)
     }
 
     render() {
@@ -44,7 +45,7 @@ class ChartWidget extends Component {
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={color} />
                 }
                 return (
-                    <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
+                    <Card onClick={this.widgetClick} >
                         <Card.Content>
                             {chart}
                         </Card.Content>
@@ -74,4 +75,4 @@ class ChartWidget extends Component {
         return null;
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(ChartWidget);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChartWidget));

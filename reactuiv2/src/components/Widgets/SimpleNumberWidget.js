@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 
 import { Statistic, Card, Loader, Dimmer } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_CURRENT_URL } from '../../constants/actionTypes';
@@ -29,13 +29,15 @@ class SimpleNumberWidget extends Component {
     
     widgetClick = () => {
         this.props.onWidgetClick(this.props.config.link)
+        this.props.history.push(this.props.config.link)
     }
 
     render() {
+        
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
                 return (
-                    <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
+                    <Card onClick={this.widgetClick} >
                         <Card.Content>
                             <Statistic label={this.props.config.header} value={this.props[this.props.config.id].data} />
                         </Card.Content>
@@ -61,4 +63,4 @@ class SimpleNumberWidget extends Component {
         return null;
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(SimpleNumberWidget);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SimpleNumberWidget));
