@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Dropdown, Input } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
@@ -75,9 +75,6 @@ class ResourcesListTable extends Component {
     }
 
     componentWillMount() {
-        // if (!this.props.pageNumber)
-        //     this.props.setPaginationData(0, 100)
-
         this.props.onLoadStart()
         this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit }))
     }
@@ -130,6 +127,7 @@ class ResourcesListTable extends Component {
     }
 
     handleDateChange = (date) => {
+        console.log("type date : ", typeof(date))
         let selectedDate = date?date.format('YYYY-MM-DD HH:MM:SS'):''
         this.setState({
             currentDate: date?date:''
@@ -151,11 +149,28 @@ class ResourcesListTable extends Component {
         this.props.setPaginationData(this.props.pageNumber - 1, this.props.pageLimit)
     }
 
+    clearFilterData = (stateKey) => {
+        if (stateKey === 'filterResourceType')
+            this.setState({
+                filterResourceType: ''
+            })
+        else if (stateKey === 'filterEmailId')
+            this.setState({
+                filterEmailId: ''
+            })
+        else if (stateKey === 'filterParentFolder')
+            this.setState({
+                filterParentFolder: ''
+            })
+        if (this.props[stateKey] !== '')
+            this.props.changeFilter(stateKey,'')
+    }
+
     render() {
 
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={headerName}>{headerName}</Table.HeaderCell>
             )
         })
 
@@ -169,9 +184,8 @@ class ResourcesListTable extends Component {
 
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
-                //console.log("lastmodifiedtime : ", rowData["last_modified_time"])
                 return (
-                    <Table.Row onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
+                    <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
@@ -205,10 +219,10 @@ class ResourcesListTable extends Component {
                                         <ResourceSearch filterMetadata={filterMetadata} />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by type...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
+                                        <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : ''} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by email...' value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
+                                        <Input fluid  placeholder='Filter by email...' icon={this.state.filterEmailId.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEmailId')} /> : ''} value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Dropdown
@@ -220,7 +234,7 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Input fluid placeholder='Filter by folder...' value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
+                                        <Input fluid placeholder='Filter by folder...' icon={this.state.filterParentFolder.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterParentFolder')} /> : ''} value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
                                     </Table.Cell>
                                     <Table.Cell>
                                         {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
@@ -234,8 +248,8 @@ class ResourcesListTable extends Component {
                                 </Table.Row>
                                 {tableRowData}
                             </Table.Body>
-                            {this.props.isLoading ? dimmer : null}
                         </Table>
+                        {this.props.isLoading ? dimmer : null}
                     </div>
                     <div style={{ marginTop: '5px' }} >
                         {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
