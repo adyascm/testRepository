@@ -121,6 +121,7 @@ def async_delete_datasource(auth_token, datasource_id):
                                                                datasource_id).delete(synchronize_session=False)
         db_session.query(DomainUser).filter(
             DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
         print "Datasource deleted successfully"
