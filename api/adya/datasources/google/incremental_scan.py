@@ -2,7 +2,7 @@ from adya.datasources.google import gutils
 from adya.db.connection import db_connection
 
 from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
-    LoginUser, DataSource, alchemy_encoder
+    LoginUser, DataSource, alchemy_encoder, PushNotificationsSubscriptionForUserlist
 
 from sqlalchemy import and_
 from adya.common import constants, response_messages
@@ -40,6 +40,7 @@ def handle_channel_expiration():
 
             if is_service_account_enabled:
                 drive_service = gutils.get_gdrive_service(None, row.user_email, db_session)
+                directory_service = gutils.get_directory_service(None, row.user_email, db_session)
             else:
                 user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
                 drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
@@ -70,7 +71,55 @@ def handle_channel_expiration():
         row.expire_at = expire_time
     db_connection().commit()
 
+    # handling for userlist watch
+    handle_channel_expiration_For_userlist_watch(db_session)
+
     return "Subscription renewal completed"
+
+
+def handle_channel_expiration_For_userlist_watch(db_session):
+    print "handle_channel_expiration_For_userlist_watch "
+    userlist_subscriptions = db_session.query(PushNotificationsSubscriptionForUserlist).all()
+    for subscription in userlist_subscriptions:
+        access_time = datetime.datetime.utcnow()
+        expire_time = access_time
+        if subscription.expire_at > access_time and subscription.expire_at < (access_time + timedelta(seconds=86100)):
+            print "unsubscribe"
+            # Unsubscribe and subscribe again
+            # TODO: ADD LOGIC TO UNSUBSCRIBE
+
+        try:
+            body = {
+                "id": subscription.channel_id,
+                "type": "web_hook",
+                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                "params": {"ttl": "1800"}
+            }
+            directory_service = gutils.get_directory_service(None, subscription.user_email)
+            print "subscribe userlist : body : ", body
+
+            # get domain id from datasource id
+            datasource = db_session.query(DataSource).filter()
+            watch_userlist_response = directory_service.users().watch(body=body, domain=subscription.directory_domain,
+                                                                      projection="full").execute()
+
+            print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+
+            expire_time = access_time + timedelta(seconds=86100)
+            subscription.resource_id = watch_userlist_response['resourceId']
+            subscription.resource_uri = watch_userlist_response['resourceUri']
+
+        except Exception as e:
+            print e
+            print "Exception occurred while trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+                subscription.directory_domain, subscription.datasource_id, subscription.channel_id)
+
+        subscription.last_accessed = access_time
+        subscription.expire_at = expire_time
+
+    db_connection().commit()
+    print "handle_channel_expiration_For_userlist_watch completed"
+
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
@@ -98,22 +147,8 @@ def subscribe(domain_id, datasource_id):
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
 
             # watch on userlist
-            print "subscribing for watch on userlist "
-            print "admin user ", admin_user
-            directory_service = gutils.get_directory_service(None, admin_user)
-            body = {
-                "id": datasource.datasource_id,
-                "type": "web_hook",
-                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                "params": {"ttl": "1800"}
-            }
+            subscribe_for_userlist_watch(datasource.datasource_id, admin_user)
 
-            print "subscribe userlist : body : ", body
-
-            watch_userlist_response = directory_service.users().watch(body=body, domain=domain_id,
-                                                                      projection="full").execute()
-
-            print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
@@ -124,6 +159,44 @@ def subscribe(domain_id, datasource_id):
     except Exception as e:
         print "Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
             domain_id, datasource_id, e)
+
+
+def subscribe_for_userlist_watch(datasource_id, admin_user):
+    access_time = datetime.datetime.utcnow()
+
+    print "subscribing for watch on userlist "
+    print "admin user ", admin_user
+    directory_service = gutils.get_directory_service(None, admin_user)
+
+    # TODO: GET DOMAIN
+    directory_domain = directory_service.domains().list()
+    channel_id = str(uuid.uuid4())
+    body = {
+        "id": channel_id,
+        "type": "web_hook",
+        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        "params": {"ttl": "1800"}
+    }
+
+    print "subscribe userlist : body : ", body
+
+    watch_userlist_response = directory_service.users().watch(body=body, domain=domain_id,
+                                                              projection="full").execute()
+
+    print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
+
+    expire_time = access_time + timedelta(seconds=86100)
+
+    # db entry for userlist watch
+    push_notification_subscription_for_userlist = PushNotificationsSubscriptionForUserlist()
+    push_notification_subscription_for_userlist.datasource_id = datasource_id
+    push_notification_subscription_for_userlist.channel_id = channel_id
+    push_notification_subscription_for_userlist.resource_id = watch_userlist_response['resourceId']
+    push_notification_subscription_for_userlist.resource_uri = watch_userlist_response['resourceUri']
+    push_notification_subscription_for_userlist.user_email = admin_user
+    push_notification_subscription_for_userlist.last_accessed = access_time
+    push_notification_subscription_for_userlist.expire_at = expire_time
+    push_notification_subscription_for_userlist.directory_domain = domain_id
     
 
 def _subscribe_for_user(db_session, auth_token, datasource, email):
@@ -174,6 +247,24 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
     push_notifications_subscription.resource_id = resource_id
     push_notifications_subscription.resource_uri = resource_uri
     db_session.add(push_notifications_subscription)
+
+
+def process_userlist_notification(notification_type, datasource_id, channel_id):
+    print "process subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(notification_type,
+                    datasource_id, channel_id)
+    if notification_type == "sync":
+        print "Sync notification received, ignore..."
+        return
+
+    db_session = db_connection().get_session()
+
+    exisiting_subscription = db_session.query(PushNotificationsSubscriptionForUserlist).filter(PushNotificationsSubscriptionForUserlist.channel_id
+                                                                                               == channel_id).first()
+    if not exisiting_subscription:
+        print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
+            datasource_id, channel_id)
+        return
+
 
 
 def process_notifications(notification_type, datasource_id, channel_id):
