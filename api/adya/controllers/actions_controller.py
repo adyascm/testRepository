@@ -1,4 +1,4 @@
-from collections import namedtuple
+import traceback
 
 from adya.common import constants, action_constants, messaging, response_messages
 from adya.common.constants import ResponseType
@@ -24,14 +24,14 @@ def get_actions():
     #   raise Exception("No actions defined for datasource_type: " + datasource_type)
     transferOwnershipAction = instantiate_action("GSUITE", action_constants.ActionNames.TRANSFER_OWNERSHIP,
                                                  "Transfer Ownership",
-                                                 "Transfers all documents owned by one user to another user",
+                                                 "Transfer ownership of all documents owned by selected user",
                                                  [{"key": "old_owner_email", "label": "Old User", "editable": 0},
                                                      {"key": "new_owner_email", "label": "New User", "editable": 1}],
                                                  True)
 
     changeOwnerOfFileAction = instantiate_action("GSUITE", action_constants.ActionNames.CHANGE_OWNER_OF_FILE,
-                                                 "Change Owner",
-                                                 "Change owner of the selected document",
+                                                 "Transfer Ownership",
+                                                 "Transfer ownership of the selected document",
                                                  [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
                                                 {"key": "resource_name", "label": "Selected document", "editable": 0},
                                                 {"key": "old_owner_email", "label": "Old User", "editable": 0},
@@ -40,26 +40,26 @@ def get_actions():
 
     removeExternalAccessAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS,
                                                     "Remove external sharing",
-                                                    "Remove external sharing for all documents owned by this user",
+                                                    "Remove access from outside the company for all documents owned by selected user",
                                                     [{"key": "user_email", "label": "For user", "editable": 0}],
                                                     False)
 
     removeExternalAccessToResourceAction = instantiate_action("GSUITE",
                                                               action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE,
                                                               "Remove external sharing",
-                                                              "Remove external sharing for the selected document",
+                                                              "Remove access from outside the company for selected document",
                                                               [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
                                                                {"key": "resource_name", "label": "Selected document", "editable": 0}], False)
 
     makeAllFilesPrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE,
                                                    "Remove all sharing",
-                                                   "Remove all sharing for documents owned by selected user",
+                                                   "Remove access to everyone for all documents owned by selected user",
                                                    [{"key": "user_email", "label": "For user", "editable": 0}],
                                                    False)
 
     makeResourcePrivateAction = instantiate_action("GSUITE", action_constants.ActionNames.MAKE_RESOURCE_PRIVATE,
                                                    "Remove all sharing",
-                                                   "Remove all sharing for selected document",
+                                                   "Remove access to everyone (except owner) for selected document",
                                                    [{"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
                                                     {"key": "resource_name", "label": "Selected document", "editable": 0}], False)
 
@@ -79,7 +79,7 @@ def get_actions():
     updatePermissionForUserAction = instantiate_action("GSUITE",
                                                        action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER,
                                                        "Change permission",
-                                                       "Change permission for selected document for user",
+                                                       "Change permission for selected document with user",
                                                        [{"key": "resource_id", "label": "Selected document",
                                                          "editable": 0, "hidden": 1},
                                                         {"key": "resource_name", "label": "Selected document",
@@ -93,12 +93,12 @@ def get_actions():
 
     watchActionForUser = instantiate_action("GSUITE", action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER,
                                             "Watch activity",
-                                            "Watch all activities for selected user",
+                                            "Get weekly report of all activities for selected user",
                                             [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
     removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, 
                                         "Remove sharing",
-                                         "Remove all sharing with selected user", [
+                                         "Remove access to selected user for any documents owned by others", [
                                              {"key": "user_email", "label": "For user", "editable": 0}],
                                          False)
 
@@ -179,6 +179,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
     except Exception as e:
         print e
+        print traceback.print_exc()
         print "Exception occurred while initiating action using payload ", action_payload, " on domain: ", domain_id, " and datasource: ", datasource_id
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
@@ -212,35 +213,13 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
     permission.email = action_parameters['user_email']
     permission.permission_type = new_permission_role
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [permission], resource_owner)
-    updated_permission, response = gsuite_action.add_permissions()
+    updated_permissions = gsuite_action.add_permissions()
 
-    if len(updated_permission) < 1:
+    if len(updated_permissions) < 1:
         return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
 
     db_session = db_connection().get_session()
-
-    permission.permission_id = response['id']
-    db_session.add(permission)
-
-    if not action_parameters['user_type']:
-        domainUser = DomainUser()
-        domainUser.datasource_id = datasource_id
-        domainUser.email = action_parameters['user_email']
-        domainUser.member_type = constants.UserMemberType.EXTERNAL
-        display_name = response['displayName']
-        # check for display name
-        try:
-            name = display_name.split(' ')
-            first_name = name[0]
-            domainUser.first_name = first_name
-            last_name = name[1]
-            domainUser.last_name = last_name
-        except Exception as e:
-            print e
-
-
-        db_session.add(domainUser)
-
+    db_session.add(updated_permissions[0])
     db_connection().commit()
     return response_messages.ResponseMessage(200, 'Action completed successfully')
 
@@ -281,7 +260,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     else:
         updated_permissions = gsuite_action.update_permissions()
 
-    if len(updated_permissions) < 1:
+    if (not updated_permissions) or len(updated_permissions) < 1:
         return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
 
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
@@ -338,7 +317,10 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
         else:
             for updated_permission in updated_permissions:
-                db_session.delete(updated_permission)
+                db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == updated_permission.datasource_id,
+                    ResourcePermission.resource_id == updated_permission.resource_id, 
+                    ResourcePermission.permission_id == updated_permission.permission_id)).delete()
+                #db_session.delete(updated_permission)
 
             db_connection().commit()
 
@@ -404,7 +386,10 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
         else:
             for updated_permission in updated_permissions:
-                db_session.delete(updated_permission)
+                db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == updated_permission.datasource_id,
+                    ResourcePermission.resource_id == updated_permission.resource_id, 
+                    ResourcePermission.permission_id == updated_permission.permission_id)).delete()
+                #db_session.delete(updated_permission)
             db_connection().commit()
 
             #Remove all external users who do not have any permissions now

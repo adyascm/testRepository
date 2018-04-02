@@ -75,7 +75,6 @@ def get_widget_data(auth_token, widget_id):
         external_count = 0
         domain_count = 0
         for share_type in shared_docs_by_type:
-            print share_type
             if share_type[0] == constants.ResourceExposureType.EXTERNAL:
                 external_count = share_type[1]
             elif share_type[0] == constants.ResourceExposureType.PUBLIC:
@@ -143,17 +142,25 @@ def get_widget_data(auth_token, widget_id):
         file_type_query = db_session.query(Resource.resource_type, func.count(Resource.resource_type)).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.resource_type)
+                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.resource_type).order_by(
+            func.count(Resource.resource_type).desc())
 
         if is_service_account_is_enabled and not is_admin:
             file_type_query = file_type_query.filter(Resource.resource_owner_id == login_user_email)
 
-        data["rows"] = file_type_query.all()
+        all_file_types = file_type_query.all()
+        first_five = all_file_types[0:5]
+        others = all_file_types[5:]
         totalcount = 0
-        if data["rows"] > 0:
-            for count in data["rows"]:
-                totalcount += count[1]
-
+        for count in first_five:
+            totalcount += count[1]
+        others_count = 0
+        for count in others:
+            others_count += count[1]
+        if others_count > 0:
+            first_five.append(('Others', others_count))
+            totalcount += others_count
+        data["rows"] = first_five
         data["totalCount"] = totalcount
 
     elif widget_id == "internalUserList":

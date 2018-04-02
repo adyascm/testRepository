@@ -18,11 +18,9 @@ def get_user_group_tree(auth_token):
     datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(
         DataSource.domain_id == user_domain_id).all()
 
-    # userGrouptrees ={}
-
+    users_groups = {}
     for datasource in datasource_id_list_data:
         datasource_id = datasource.datasource_id
-        users_groups = {}
 
         if is_service_account_is_enabled and not is_admin:
                 extUsers = db_session.query(DomainUser).filter(and_(Resource.resource_owner_id == login_user_email,

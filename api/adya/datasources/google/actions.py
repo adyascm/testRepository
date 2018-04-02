@@ -95,7 +95,7 @@ class AddOrUpdatePermisssionForResource():
             try:
                 response = self.change_requests[0].execute()
                 self.updated_permissions.append(self.permissions[0])
-                return self.updated_permissions, response
+                return self.updated_permissions
                 #return response_messages.ResponseMessage(200, "Action completed successfully")
             except Exception as ex:
                 content = json.loads(ex.content)
@@ -142,8 +142,35 @@ class AddOrUpdatePermisssionForResource():
             request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
                                                     transferOwnership=True if role=='owner' else False,
                                                               fields='id, emailAddress, type, kind, displayName')
-            self.change_requests.append(request)
-        return self.execute()
+            try:
+                response = request.execute()
+                permission.permission_id = response['id']
+
+                #If the user does not exist in DomainUser table add now
+                db_session = db_connection().get_session()
+                existing_user = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == permission.datasource_id,
+                    DomainUser.email == permission.email)).first()
+                if not existing_user:
+                    domainUser = DomainUser()
+                    domainUser.datasource_id = permission.datasource_id
+                    domainUser.email = permission.email
+                    domainUser.member_type = constants.UserMemberType.EXTERNAL
+                    display_name = response['displayName']
+                    name = display_name.split(' ')
+                    if len(name) > 1:
+                        last_name = name[1]
+                        domainUser.last_name = last_name
+                    elif len(name) > 0:
+                        first_name = name[0]
+                        domainUser.first_name = first_name
+                    db_session.add(domainUser)
+                    db_connection().commit()
+
+                self.updated_permissions.append(permission)
+            except Exception as ex:
+                content = json.loads(ex.content)
+                self.exception_message = content['error']['message']
+        return self.updated_permissions
 
     def update_permissions(self):
         for permission in self.permissions:
