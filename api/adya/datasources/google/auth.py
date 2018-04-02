@@ -42,15 +42,19 @@ def oauth_callback(oauth_code, scopes,state, error):
     if error or not oauth_code:
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format(error)
         return redirect_url
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        gutils.CLIENT_SECRETS_FILE, scopes=scopes)
-    flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
     # in state we are passing the login scope name
     scope_name = state
+    scope = LOGIN_SCOPE
+    if scope_name in SCOPE_DICT:
+        scope = SCOPE_DICT[scope_name]
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        gutils.CLIENT_SECRETS_FILE, scopes=scope)
+    flow.redirect_uri = constants.GOOGLE_OAUTH_CALLBACK_URL
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
     flow.fetch_token(code=oauth_code)
 
     credentials = flow.credentials
+    
     if not credentials:
         redirect_url = constants.OAUTH_STATUS_URL + "/error?error={}".format("Credentials not found.")
         return redirect_url
@@ -62,6 +66,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
+    print "Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes)
     domain_id = login_email
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow()
