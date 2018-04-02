@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import '../App.css';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom'
 import agent from '../utils/agent';
 import authenticate from '../utils/oauth';
 import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
@@ -100,6 +101,7 @@ class ManageDataSources extends Component {
 
   handleClick() {
     this.props.goToDashboard("/")
+    this.props.history.push("/")
   }
 
   render() {
@@ -153,4 +155,4 @@ class ManageDataSources extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ManageDataSources);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ManageDataSources));

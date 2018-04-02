@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { Table, Card, Loader, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_CURRENT_URL } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
@@ -26,6 +26,7 @@ class ListWidget extends Component {
 
     widgetClick = () => {
         this.props.onWidgetClick(this.props.config.link)
+        this.props.history.push(this.props.config.link)
     }
 
     render() {
@@ -41,7 +42,7 @@ class ListWidget extends Component {
                     return null
                 
                 return (
-                    <Card as={Link} to={this.props.config.link} onClick={this.widgetClick} >
+                    <Card onClick={this.widgetClick} >
                         <Card.Content>
                             <Table celled singleline='false'>
                                 <Table.Header>
@@ -92,4 +93,4 @@ class ListWidget extends Component {
         return null;
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(ListWidget);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ListWidget));
