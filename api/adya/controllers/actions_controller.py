@@ -3,8 +3,9 @@ import traceback
 from adya.common import constants, action_constants, messaging, response_messages
 from adya.common.constants import ResponseType
 from adya.datasources.google import actions, gutils
+from adya.datasources.google.scan import get_resource_exposure_type
 from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource, \
-    DirectoryStructure, DomainUser
+    DirectoryStructure, DomainUser, DataSource
 from adya.db.connection import db_connection
 from adya.common.response_messages import ResponseMessage
 from sqlalchemy import and_, or_
@@ -206,6 +207,7 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
     user_type = action_parameters['user_type'] if 'user_type' in action_parameters else 'user'
     resource_id = action_parameters['resource_id']
     resource_owner = action_parameters['resource_owner_id']
+    current_time = datetime.utcnow()
 
     permission = ResourcePermission()
     permission.datasource_id = datasource_id
@@ -218,8 +220,16 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
     if len(updated_permissions) < 1:
         return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
 
+
     db_session = db_connection().get_session()
+
     db_session.add(updated_permissions[0])
+
+    existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
+                                                               Resource.datasource_id == datasource_id)).first()
+    existing_resource = update_exposure_type_of_resource(db_session, updated_permissions[0], existing_resource, None)
+    existing_resource.last_modifying_user_email = action_payload['initiated_by']
+    existing_resource.last_modified_time = current_time
     db_connection().commit()
     return response_messages.ResponseMessage(200, 'Action completed successfully')
 
@@ -255,19 +265,57 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
         
 
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
+
+    existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
+                                                               Resource.datasource_id == existing_permission.datasource_id)).first()
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         updated_permissions = gsuite_action.delete_permissions()
+        existing_resource = update_exposure_type_of_resource(db_session, existing_permission, existing_resource, action_payload['key'])
+        existing_resource.last_modifying_user_email = initiated_user
+        existing_resource.last_modified_time = current_time
     else:
         updated_permissions = gsuite_action.update_permissions()
+        existing_resource.last_modifying_user_email = initiated_user
+        existing_resource.last_modified_time = current_time
 
     if (not updated_permissions) or len(updated_permissions) < 1:
         return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
 
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         db_session.delete(existing_permission)
+
+
     db_connection().commit()
     return response_messages.ResponseMessage(200, 'Action completed successfully')
-    
+
+
+def update_exposure_type_of_resource(db_session, existing_permission, existing_resource, action_type):
+
+    if action_type == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+        for perm in existing_resource.permissions:
+            if perm.exposure_type == constants.ResourceExposureType.PUBLIC and perm.email != existing_permission.email:
+                existing_resource.exposure_type == constants.ResourceExposureType.PUBLIC
+            elif perm.exposure_type == constants.ResourceExposureType.EXTERNAL and perm.email != existing_permission.email:
+                existing_resource.exposure_type == constants.ResourceExposureType.EXTERNAL
+            elif perm.exposure_type == constants.ResourceExposureType.DOMAIN and perm.email != existing_permission.email:
+                existing_resource.exposure_type == constants.ResourceExposureType.DOMAIN
+            elif perm.exposure_type == constants.ResourceExposureType.INTERNAL and perm.email != existing_permission.email:
+                existing_resource.exposure_type == constants.ResourceExposureType.INTERNAL
+            else:
+                existing_resource.exposure_type == constants.ResourceExposureType.PRIVATE
+
+    else:
+        # need to get domain id
+        datasource = db_session.query(DataSource).filter(
+            DataSource.datasource_id == existing_permission.datasource_id).first()
+
+        resource_exposure_type = get_resource_exposure_type(db_session, datasource.domain_id, existing_permission.email, existing_permission.display_name,
+                                   existing_resource.exposure_type)
+        existing_resource.exposure_type = resource_exposure_type
+
+    return existing_resource
+
+
 
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type):
     db_session = db_connection().get_session()
