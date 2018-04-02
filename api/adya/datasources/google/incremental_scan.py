@@ -280,7 +280,10 @@ def handle_change(drive_service, datasource_id, email, file_id):
 
         resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
         
-        if resource and resource.last_modified_time < last_modified_time:
+        saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
+        difference = abs(saved_last_modified_time - last_modified_time)
+        if resource and (difference.seconds <= 5000):
+            print "The difference in time is - {}".format(difference.seconds)
             print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
             return
 
