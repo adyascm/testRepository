@@ -20,7 +20,9 @@ const mapStateToProps = state => ({
   appName: state.common.appName,
   currentApp: state.common.currentApp,
   appsSearchPayload: state.apps.appsSearchPayload,
-  appsPayload: state.apps.appPayLoad
+  appsPayload: state.apps.appPayLoad,
+  redirectTo: state.dashboard.redirectTo,
+  redirectFilter: state.dashboard.filterType
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -46,7 +48,7 @@ class Apps extends Component {
   }
 
   componentWillMount(){
-    if (this.props.location.search.includes("Apps"))
+    if (this.props.redirectTo && this.props.redirectTo.includes("apps"))
       this.setState({
         scopeExposure: 0
       })

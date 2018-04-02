@@ -3,7 +3,12 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 
 import { Statistic, Card, Loader, Dimmer } from 'semantic-ui-react'
-import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_CURRENT_URL } from '../../constants/actionTypes';
+import { 
+    DASHBOARD_WIDGET_LOADED, 
+    DASHBOARD_WIDGET_LOAD_START,
+    DASHBOARD_REDIRECT_TO_PARAM,
+    SET_CURRENT_URL 
+} from '../../constants/actionTypes';
 
 import agent from '../../utils/agent';
 
@@ -17,7 +22,9 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
     onWidgetClick: (url) => 
-        dispatch({ type: SET_CURRENT_URL, url })
+        dispatch({ type: SET_CURRENT_URL, url }),
+    setRedirectParam: (redirectTo, filterType) => 
+        dispatch({ type: DASHBOARD_REDIRECT_TO_PARAM, redirectTo, filterType })
 });
 
 class SimpleNumberWidget extends Component {
@@ -29,6 +36,7 @@ class SimpleNumberWidget extends Component {
     
     widgetClick = () => {
         this.props.onWidgetClick(this.props.config.link)
+        this.props.setRedirectParam(this.props.config.link,this.props.config.header)
         this.props.history.push(this.props.config.link)
     }
 

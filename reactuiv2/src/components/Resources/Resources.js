@@ -14,7 +14,9 @@ import {  RESOURCES_FILTER_CHANGE,
       } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-    ...state.resources
+  ...state.resources,
+  redirectTo: state.dashboard.redirectTo,
+  redirectFilter: state.dashboard.filterType
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -65,17 +67,18 @@ class Resources extends Component {
   //   }
   // }
   componentWillMount(){
-    if (this.props.location.search.includes("Files")){
-      this.props.changeFilter("filterResourceType", '')
-      this.props.changeFilter("filterExposureType",'')  
-    } 
 
-    else if (this.props.location.search.includes("Folders")) {
-      this.props.changeFilter("filterExposureType",'')
-      this.props.changeFilter("filterResourceType", 'folder')
-      // this.setState({
-      //   filterResourceType: 'folder'
-      // });
+    if (this.props.redirectTo && this.props.redirectTo.includes("resources")) {
+      if (this.props.redirectFilter) {
+        if (this.props.redirectFilter.includes("Files")) {
+          this.props.changeFilter("filterResourceType", '')
+          this.props.changeFilter("filterExposureType",'')  
+        }
+        else if (this.props.redirectFilter.includes("Folders")) {
+          this.props.changeFilter("filterExposureType",'')
+          this.props.changeFilter("filterResourceType", 'folder')
+        }
+      }
     }
 
     // this.setState({

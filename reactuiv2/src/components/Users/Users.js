@@ -9,6 +9,7 @@ import Actions from '../actions/Actions'
 
 import {
   USERS_PAGE_UNLOADED,
+  USER_ITEM_SELECTED,
   FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
@@ -22,14 +23,18 @@ const mapStateToProps = state => ({
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
   isLoading: state.users.isLoading,
-  userPayload: state.users.usersTreePayload
+  userPayload: state.users.usersTreePayload,
+  redirectTo: state.dashboard.redirectTo,
+  redirectFilter: state.dashboard.filterType
 });
 
 const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   flagUsersError: (error, info) =>
-    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
+    dispatch({ type: FLAG_ERROR_MESSAGE, error, info }),
+  selectUserItem: (payload) =>
+    dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
 class Users extends Component {
@@ -63,15 +68,19 @@ class Users extends Component {
   }
 
   componentWillMount() {
-    if (this.props.location.search.includes("Users"))
-      this.setState({
-        showMemberType: 'ALL'
-      })
-    else if (this.props.location.search.includes("Groups"))
-      this.setState({
-        showHierarchy: true,
-        showMemberType: 'ALL'
-      })
+    if (this.props.redirectTo && this.props.redirectTo.includes("users")) {
+      if (this.props.redirectFilter) {
+        if (this.props.redirectFilter.includes("Users"))
+          this.setState({
+            showMemberType: 'ALL'
+          })
+        else if (this.props.redirectFilter.includes("Groups"))
+          this.setState({
+            showHierarchy: true,
+            showMemberType: 'ALL'
+          })
+      }
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -93,7 +102,6 @@ class Users extends Component {
   })
 
   handleUserFilterChange = (event, data) => {
-    console.log("event value : ", data.value)
     if (data.value === 'EXT')
       this.setState({
         showMemberType: 'EXT'
@@ -106,6 +114,7 @@ class Users extends Component {
       this.setState({
         showMemberType: 'DOMAIN'
       })
+    this.props.selectUserItem('')
   }
 
   render() {
