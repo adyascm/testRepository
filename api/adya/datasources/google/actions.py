@@ -1,3 +1,5 @@
+import datetime
+
 from adya.datasources.google import gutils
 from adya.common import utils, response_messages
 from adya.common import constants
@@ -5,6 +7,8 @@ from sqlalchemy import and_
 from requests_futures.sessions import FuturesSession
 from adya.db.connection import db_connection
 import json
+
+from adya.db.models import DomainUser, Resource
 
 
 def delete_user_from_group(auth_token, group_email, user_email):
@@ -145,12 +149,15 @@ class AddOrUpdatePermisssionForResource():
             try:
                 response = request.execute()
                 permission.permission_id = response['id']
+                permission.exposure_type = constants.ResourceExposureType.INTERNAL
 
                 #If the user does not exist in DomainUser table add now
                 db_session = db_connection().get_session()
+
                 existing_user = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == permission.datasource_id,
                     DomainUser.email == permission.email)).first()
                 if not existing_user:
+                    permission.exposure_type = constants.ResourceExposureType.EXTERNAL
                     domainUser = DomainUser()
                     domainUser.datasource_id = permission.datasource_id
                     domainUser.email = permission.email
@@ -165,7 +172,6 @@ class AddOrUpdatePermisssionForResource():
                         domainUser.first_name = first_name
                     db_session.add(domainUser)
                     db_connection().commit()
-
                 self.updated_permissions.append(permission)
             except Exception as ex:
                 content = json.loads(ex.content)

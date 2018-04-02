@@ -47,7 +47,7 @@ const LoggedInView = props => {
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
                     {/* <Dropdown item icon='settings'>
-                        <Dropdown.Menu>  
+                        <Dropdown.Menu>
                             <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
                             <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
@@ -69,7 +69,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onClickLogout: () => dispatch({ type: LOGOUT }),
-    onMenuItemClick: (url) => 
+    onMenuItemClick: (url) =>
         dispatch({ type: SET_CURRENT_URL, url })
 });
 
