@@ -180,5 +180,8 @@ class GetUserApp(Resource):
         datasource_id = req_session.get_req_param('dataSourceId')
         user_email = req_session.get_req_param('userEmail')
         client_id = req_session.get_req_param('clientId')
-        actions_controller.revoke_user_app_access(req_session.get_auth_token(), datasource_id,user_email,client_id)
-        return req_session.generate_response(204)
+        response = actions_controller.revoke_user_app_access(req_session.get_auth_token(), datasource_id,user_email,client_id)
+        if response:
+            return req_session.generate_response(202, "Action submitted successfully")
+        else:
+            return req_session.generate_response(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
