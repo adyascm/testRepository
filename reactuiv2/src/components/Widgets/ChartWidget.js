@@ -15,8 +15,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: DASHBOARD_WIDGET_LOAD_START, widgetId }),
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
-    onWidgetClick: (url) =>
-        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
+    onWidgetClick: (url, states) =>
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url, reducerStates: states })
 });
 
 class ChartWidget extends Component {
@@ -26,7 +26,7 @@ class ChartWidget extends Component {
     }
 
     widgetClick = () => {
-        this.props.onWidgetClick(this.props.config.link)
+        this.props.onWidgetClick(this.props.config.link, this.props.config.states)
         this.props.history.push(this.props.config.link)
     }
 

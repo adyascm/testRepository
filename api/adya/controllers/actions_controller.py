@@ -97,27 +97,27 @@ def get_actions():
                                             "Get weekly report of all activities for selected user",
                                             [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
-    removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER, 
+    removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER,
                                         "Remove sharing",
                                          "Remove access to selected user for any documents owned by others", [
                                              {"key": "user_email", "label": "For user", "editable": 0}],
                                          False)
 
-    removeUserFromGroup = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_GROUP, 
+    removeUserFromGroup = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_GROUP,
                                             "Change groups",
-                                             "Remove user from a group", 
+                                             "Remove user from a group",
                                              [{"key": "user_email", "label": "For user", "editable": 0},
                                                 {"key": "group_email", "label": "For Group", "editable": 0}], False)
 
-    addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP, 
+    addUserToGroup = instantiate_action("GSUITE", action_constants.ActionNames.ADD_USER_TO_GROUP,
                                             "Change groups",
-                                            "Add user to a group", 
+                                            "Add user to a group",
                                             [{"key": "user_email", "label": "For user", "editable": 0},
                                             {"key": "group_email", "label": "For Group", "editable": 1}], False)
 
-    addPermissionForFile = instantiate_action("GSUITE", action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE, 
+    addPermissionForFile = instantiate_action("GSUITE", action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE,
                                             "Add sharing",
-                                              "Share the selected resource with user", 
+                                              "Share the selected resource with user",
                                               [{"key": "user_email", "label": "For user", "editable": 1},
                                                 {"key": "resource_id", "label": "Selected document", "editable": 0, "hidden": 1},
                                                 {"key": "resource_name", "label": "Selected document", "editable": 0},
@@ -248,11 +248,26 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
                         and_(ResourcePermission.resource_id == resource_id,
                             ResourcePermission.datasource_id == datasource_id,
                             ResourcePermission.email == user_email)).first()
-    if not existing_permission:
+
+    if not existing_permission and action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+        print "add a new permission "
+        action_payload["new_permission_role"]= constants.Role.WRITER
+        response = add_resource_permission(auth_token, datasource_id, action_payload)
+        if response.response_code == constants.SUCCESS_STATUS_CODE:
+            existing_permission = db_session.query(ResourcePermission).filter(
+                and_(ResourcePermission.resource_id == resource_id,
+                     ResourcePermission.datasource_id == datasource_id,
+                     ResourcePermission.email == user_email)).first()
+        else:
+            print "Permission does not exist in db, so cannot update - Bad Request"
+            return ResponseMessage(400, "Bad Request - Permission not found in records")
+
+    elif not existing_permission:
         print "Permission does not exist in db, so cannot update - Bad Request"
         return ResponseMessage(400, "Bad Request - Permission not found in records")
 
     existing_permission.permission_type = new_permission_role
+
     if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner,
                         ResourcePermission.resource_id == resource_id, ResourcePermission.datasource_id == datasource_id)).\
@@ -262,7 +277,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
                         Resource.resource_owner_id == resource_owner)).update({Resource.resource_owner_id: user_email,
                         Resource.last_modified_time: current_time,Resource.last_modifying_user_email: initiated_user})
 
-        
+
 
     gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, [existing_permission], resource_owner)
 
@@ -328,7 +343,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
 
     shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                             Resource.resource_owner_id == user_email, Resource.exposure_type.in_(permission_type))).all()
-    
+
     permissions_to_update = []
     response_data = {}
     external_users = {}
@@ -360,13 +375,13 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
         updated_permissions = gsuite_action.delete_permissions()
-        
+
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
         else:
             for updated_permission in updated_permissions:
                 db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == updated_permission.datasource_id,
-                    ResourcePermission.resource_id == updated_permission.resource_id, 
+                    ResourcePermission.resource_id == updated_permission.resource_id,
                     ResourcePermission.permission_id == updated_permission.permission_id)).delete()
                 #db_session.delete(updated_permission)
 
@@ -390,7 +405,7 @@ def _remove_external_users_if_no_permissions(datasource_id, external_users, db_s
             db_session.query(DomainUser).filter(and_(DomainUser.email == external_user, DomainUser.datasource_id == datasource_id,
                                                          DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
             anything_changed = True
-    
+
     if anything_changed:
         db_connection().commit()
 
@@ -425,17 +440,17 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, resource_id
             resource.exposure_type = constants.ResourceExposureType.INTERNAL
     else:
         resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        
+
     if len(permissions_to_update) > 0:
         gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, resource.resource_owner_id)
         updated_permissions = gsuite_action.delete_permissions()
-        
+
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
         else:
             for updated_permission in updated_permissions:
                 db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == updated_permission.datasource_id,
-                    ResourcePermission.resource_id == updated_permission.resource_id, 
+                    ResourcePermission.resource_id == updated_permission.resource_id,
                     ResourcePermission.permission_id == updated_permission.permission_id)).delete()
                 #db_session.delete(updated_permission)
             db_connection().commit()
@@ -458,11 +473,11 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     permissions_to_update = []
     for permission in resource_permissions:
         permissions_to_update.append(permission)
-        
+
     if len(permissions_to_update) > 0:
         resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
         updated_permissions = resource_actions_handler.delete_permissions()
-        
+
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
         else:
@@ -504,7 +519,7 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
 
     db_connection().commit()
     return response_messages.ResponseMessage(200, "Action completed successfully")
-        
+
 
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload):
     action_parameters = action_payload['parameters']
@@ -545,8 +560,8 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
         resource_id = action_parameters['resource_id']
         return update_access_for_resource(auth_token, domain_id, datasource_id, resource_id, constants.ResourceExposureType.EXTERNAL)
-        
-    
+
+
     #Single Resource permission change actions
     elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
         return update_or_delete_resource_permission(auth_token, datasource_id, action_payload)
@@ -638,7 +653,19 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
         db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
                                                                  ApplicationUserAssociation.user_email == user_email,
                                                                  ApplicationUserAssociation.client_id == client_id)).delete()
+
+        # check if app is associated with any user
+        app_user_association = db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
+                                                                 ApplicationUserAssociation.client_id == client_id)).count()
+
+        # if no user is associated with app, than remove the app also
+        if app_user_association < 1:
+            db_session.query(Application).filter(and_(Application.datasource_id == datasource_id, Application.client_id == client_id)).delete()
+
         db_connection().commit()
+        return True
     except Exception as ex:
         print ex
         print "Exception occurred while deleting app for datasource_id: ", datasource_id, " and user_email: ", user_email
+        return False
+

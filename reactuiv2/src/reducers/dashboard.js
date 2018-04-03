@@ -2,6 +2,7 @@ import {
     DASHBOARD_PAGE_LOADED,
     DASHBOARD_WIDGET_LOADED,
     DASHBOARD_WIDGET_LOAD_START,
+    DASHBOARD_REDIRECT_TO_PARAM,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -26,6 +27,12 @@ export default (state = defaultState, action) => {
             state[action.widgetId] = {isLoaded: true, data: !action.error?action.payload:errorPayload};
             return {
                 ...state
+            }
+        case DASHBOARD_REDIRECT_TO_PARAM: 
+            return {
+                ...state,
+                redirectTo: action.redirectTo,
+                filterType: action.filterType
             }
         case LOGOUT:
             return {

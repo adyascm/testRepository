@@ -9,6 +9,7 @@ import Actions from '../actions/Actions'
 
 import {
   USERS_PAGE_UNLOADED,
+  USER_ITEM_SELECTED,
   FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
@@ -31,7 +32,9 @@ const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   flagUsersError: (error, info) =>
-    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
+    dispatch({ type: FLAG_ERROR_MESSAGE, error, info }),
+  selectUserItem: (payload) =>
+    dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
 class Users extends Component {
@@ -83,7 +86,6 @@ class Users extends Component {
   })
 
   handleUserFilterChange = (event, data) => {
-    console.log("event value : ", data.value)
     if (data.value === 'EXT')
       this.setState({
         showMemberType: 'EXT'
@@ -96,6 +98,7 @@ class Users extends Component {
       this.setState({
         showMemberType: 'DOMAIN'
       })
+    this.props.selectUserItem('')
   }
 
   render() {
