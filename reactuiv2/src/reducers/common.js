@@ -21,8 +21,15 @@ import {
 const defaultState = {
   appName: 'Adya',
   viewChangeCounter: 0,
-  currentView: "",
-  currentUrl: ""
+  currentView: '/login',
+  currentUrl: '/login',
+  token: undefined,
+  currentUser: undefined,
+  appLoaded: false,
+  redirectTo: '/login',
+  datasources: undefined,
+  all_actions_list: undefined,
+  datasourceLoading: false,
 };
 
 export default (state = defaultState, action) => {
@@ -39,12 +46,7 @@ export default (state = defaultState, action) => {
       return { ...state, redirectTo: null };
     case LOGOUT:
       return {
-        ...state,
-        redirectTo: '/login',
-        token: null,
-        currentUser: null,
-        currentView: "/login",
-        datasources: undefined
+        ...defaultState
       };
     case LOGIN_SUCCESS:
       return {
@@ -79,7 +81,6 @@ export default (state = defaultState, action) => {
         var newDS = JSON.parse(action.payload);
         var oldDS = state.datasources[0];
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
-          console.log(newDS);
           if (newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
             || newDS.processed_file_count > oldDS.processed_file_count
             || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status ||

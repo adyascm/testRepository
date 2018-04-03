@@ -11,8 +11,16 @@ import {
     LOGOUT
 } from '../constants/actionTypes';
 
-
-export default (state = {}, action) => {
+const defaultState = {
+    appPayLoad: undefined,
+    appsSearchPayload: undefined,
+    appUsers: undefined,
+    isLoading: false,
+    appDetailsViewActive: false,
+    selectedAppItem: undefined
+  };
+  
+export default (state = defaultState, action) => {
     switch (action.type) {
         case APPS_PAGE_LOAD_START:
             return {
@@ -76,8 +84,7 @@ export default (state = {}, action) => {
             }
         case LOGOUT:
             return {
-                ...state,
-                appPayLoad: undefined
+                ...defaultState,
             }
         default:
             return state;

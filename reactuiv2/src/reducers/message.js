@@ -44,15 +44,9 @@ export default (state = defaultState, action) => {
 
         case LOGOUT:
         case CLEAR_MESSAGE:
-            if (state.errorCount > 0) {
-                state.errorCount = 0
-                state.errorMessage = []
+            return {
+                ...defaultState
             }
-            else if (state.warningCount > 0) {
-                state.warningCount = 0
-                state.infoMessage = []
-            }
-            break
 
         case SCAN_INCREMENTAL_UPDATE_RECEIVED:
             //var updateMessage = JSON.parse(action.payload);

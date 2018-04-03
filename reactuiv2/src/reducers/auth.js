@@ -8,7 +8,12 @@ import {
     LOGIN_START
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+    inProgress: false,
+    errors: undefined
+};
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case APP_LOAD:
             return {
