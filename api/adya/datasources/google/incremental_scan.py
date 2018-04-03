@@ -160,6 +160,7 @@ def subscribe(domain_id, datasource_id):
 
             subscribe_for_userlist_watch(datasource.datasource_id, admin_user, admin_customer_id)
 
+
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
             _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
