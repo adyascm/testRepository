@@ -109,6 +109,7 @@ class DomainUser(Base):
     photo_url = Column(Text)
     aliases = Column(Text)
     member_type = Column(String(6))
+    customer_id = Column(String(255))
 
 
 class Resource(Base):
