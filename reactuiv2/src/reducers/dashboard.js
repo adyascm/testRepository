@@ -5,7 +5,10 @@ import {
     LOGOUT
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+  };
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case DASHBOARD_PAGE_LOADED:
             return state;
@@ -25,9 +28,8 @@ export default (state = {}, action) => {
                 ...state
             }
         case LOGOUT:
-            state = {}
             return {
-                ...state
+                ...defaultState
             }
         default:
             return state;

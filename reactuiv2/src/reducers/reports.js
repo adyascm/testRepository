@@ -10,7 +10,17 @@ import {
     LOGOUT
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+  cronExp: undefined,
+  scheduledReport: undefined,
+  errorMessage: false,
+  reports: undefined,
+  getreportError: undefined,
+  isLoading: false,
+  runReportData: undefined
+}
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case REPORTS_CRON_EXP:
             return {
@@ -65,8 +75,7 @@ export default (state = {}, action) => {
             }
         case LOGOUT:
             return {
-              ...state,
-              reports: undefined
+              ...defaultState
             }
         default:
             return state;

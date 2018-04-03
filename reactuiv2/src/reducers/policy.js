@@ -2,14 +2,14 @@ import {
     SET_POLICY_ROW_FILTERS,
     SET_POLICY_FILTER,
     CREATE_POLICY_LOAD_START,
-    CREATE_POLICY_LOADED
+    CREATE_POLICY_LOADED,
+    LOGOUT
 } from '../constants/actionTypes'
 
 const defaultState = {
-    filterType: [],
-    filterCondition: [],
-    filterValue: [],
-    actionType: ''
+    policyFilters: undefined,
+    policyData: undefined,
+    isLoading: false
 }
 
 export default (state=defaultState, action) => {
@@ -39,6 +39,10 @@ export default (state=defaultState, action) => {
                 ...state,
                 policyData: !action.error?action.payload:[],
                 isLoading: false
+            }
+        case LOGOUT:
+            return {
+                ...defaultState
             }
         default:
             return {

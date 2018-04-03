@@ -4,8 +4,13 @@ import {
     LOGOUT
 } from '../constants/actionTypes';
 
-export default (state={}, action) => {
-    switch(action.type) {
+const defaultState = {
+    isLoading: false,
+    log: undefined
+};
+
+export default (state = defaultState, action) => {
+    switch (action.type) {
         case AUDIT_LOG_LOAD_START:
             return {
                 ...state,
@@ -19,8 +24,7 @@ export default (state={}, action) => {
             };
         case LOGOUT:
             return {
-                ...state,
-                log: undefined
+                ...defaultState
             }
         default:
             return state

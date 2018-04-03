@@ -23,7 +23,16 @@ import {
 const defaultState = {
     pageNumber: 0,
     pageLimit: 100,
-    filterExposureType: 'EXT'
+    exposureType: 'EXT',
+    isLoading: false,
+    usersTreePayload: undefined,
+    groupSearchPayload: undefined,
+    selectedUserItem: undefined,
+    userDetailsViewActive: false,
+    isActivitiesLoading: false,
+    selectedUserItem: undefined,
+    action: undefined,
+
 }
 
 
@@ -164,9 +173,7 @@ export default (state = defaultState, action) => {
             }
         case LOGOUT:
             return {
-                ...state,
-                usersTreePayload: undefined,
-                groupSearchPayload: undefined
+                ...defaultState
             }
         case SET_REDIRECT_PROPS:
             var states = {};
