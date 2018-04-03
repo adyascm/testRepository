@@ -638,7 +638,19 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
         db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
                                                                  ApplicationUserAssociation.user_email == user_email,
                                                                  ApplicationUserAssociation.client_id == client_id)).delete()
+
+        # check if app is associated with any user
+        app_user_association = db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.datasource_id == datasource_id,
+                                                                 ApplicationUserAssociation.client_id == client_id)).count()
+
+        # if no user is associated with app, than remove the app also
+        if app_user_association < 1:
+            db_session.query(Application).filter(and_(Application.datasource_id == datasource_id, Application.client_id == client_id)).delete()
+
         db_connection().commit()
+        return True
     except Exception as ex:
         print ex
         print "Exception occurred while deleting app for datasource_id: ", datasource_id, " and user_email: ", user_email
+        return False
+
