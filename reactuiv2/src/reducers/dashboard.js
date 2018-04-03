@@ -2,10 +2,14 @@ import {
     DASHBOARD_PAGE_LOADED,
     DASHBOARD_WIDGET_LOADED,
     DASHBOARD_WIDGET_LOAD_START,
+    DASHBOARD_REDIRECT_TO_PARAM,
     LOGOUT
 } from '../constants/actionTypes';
 
-export default (state = {}, action) => {
+const defaultState = {
+  };
+
+export default (state = defaultState, action) => {
     switch (action.type) {
         case DASHBOARD_PAGE_LOADED:
             return state;
@@ -24,10 +28,15 @@ export default (state = {}, action) => {
             return {
                 ...state
             }
-        case LOGOUT:
-            state = {}
+        case DASHBOARD_REDIRECT_TO_PARAM: 
             return {
-                ...state
+                ...state,
+                redirectTo: action.redirectTo,
+                filterType: action.filterType
+            }
+        case LOGOUT:
+            return {
+                ...defaultState
             }
         default:
             return state;

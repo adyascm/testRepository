@@ -1,3 +1,4 @@
+import traceback
 from adya.datasources.google import gutils
 from adya.db.connection import db_connection
 
@@ -147,8 +148,8 @@ def subscribe(domain_id, datasource_id):
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
 
             # watch on userlist
-            subscribe_for_userlist_watch(datasource.datasource_id, admin_user)
 
+            subscribe_for_userlist_watch(datasource.datasource_id, admin_user)
 
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
@@ -370,19 +371,19 @@ def handle_change(drive_service, datasource_id, email, file_id):
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
         resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
-        
-        saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
-        difference = abs(saved_last_modified_time - last_modified_time)
-        if resource and (difference.seconds <= 5000):
-            print "The difference in time is - {}".format(difference.seconds)
-            print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
-            return
+        if resource:
+            saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
+            difference = abs(saved_last_modified_time - last_modified_time)
+            if (difference.seconds <= 5000):
+                print "The difference in time is - {}".format(difference.seconds)
+                print "Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time)
+                return
 
-        perms = []
+        existing_permissions = []
 
         is_new_resource = 0
         if resource:
-            perms = resource.permissions
+            existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
             print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time, resource.last_modified_time)
             print "Deleting the existing permissions and resource, and add again"
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id)).delete(synchronize_session=False)
@@ -392,8 +393,6 @@ def handle_change(drive_service, datasource_id, email, file_id):
             is_new_resource = 1
             print "Resource does not exist in DB, so would add it now"
 
-        existing_permissions = json.dumps(perms, cls=alchemy_encoder())
-
         resourcedata = {}
         resourcedata["resources"] = [results]
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
@@ -401,13 +400,15 @@ def handle_change(drive_service, datasource_id, email, file_id):
         'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
         messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
         
-        payload = {}
-        payload["old_permissions"] = existing_permissions
-        payload["resource"] = results
-        policy_params = {'dataSourceId': datasource_id, 'resourceId': file_id}
-        #messaging.trigger_post_event(constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
+        # payload = {}
+        # payload["old_permissions"] = existing_permissions
+        # payload["resource"] = results
+        # policy_params = {'dataSourceId': datasource_id, 'resourceId': file_id}
+        # messaging.trigger_post_event(constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
     except Exception as e:
+        print e
+        print traceback.print_exc()
         print "Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
             datasource_id, email, file_id, e)
 

@@ -9,6 +9,7 @@ import Actions from '../actions/Actions'
 
 import {
   USERS_PAGE_UNLOADED,
+  USER_ITEM_SELECTED,
   FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
@@ -22,21 +23,25 @@ const mapStateToProps = state => ({
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
   isLoading: state.users.isLoading,
-  userPayload: state.users.usersTreePayload
+  userPayload: state.users.usersTreePayload,
+  userFilterType: state.users.userFilterType,
+  userShowHierarchy: state.users.userShowHierarchy
 });
 
 const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
   flagUsersError: (error, info) =>
-    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
+    dispatch({ type: FLAG_ERROR_MESSAGE, error, info }),
+  selectUserItem: (payload) =>
+    dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
 class Users extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showHierarchy: false,
+      showHierarchy: this.props.userShowHierarchy,
       usersEmpty: false,
       usersFilter: [
         {
@@ -52,7 +57,7 @@ class Users extends Component {
           value: 'ALL'
         }
       ],
-      showMemberType: 'EXT'
+      showMemberType: this.props.userFilterType
     }
   }
   toggleHierarchyView = () => {
@@ -60,18 +65,6 @@ class Users extends Component {
       ...this.state,
       showHierarchy: !this.state.showHierarchy
     });
-  }
-
-  componentWillMount() {
-    if (this.props.location.search.includes("Users"))
-      this.setState({
-        showMemberType: 'ALL'
-      })
-    else if (this.props.location.search.includes("Groups"))
-      this.setState({
-        showHierarchy: true,
-        showMemberType: 'ALL'
-      })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -93,7 +86,6 @@ class Users extends Component {
   })
 
   handleUserFilterChange = (event, data) => {
-    console.log("event value : ", data.value)
     if (data.value === 'EXT')
       this.setState({
         showMemberType: 'EXT'
@@ -106,6 +98,7 @@ class Users extends Component {
       this.setState({
         showMemberType: 'DOMAIN'
       })
+    this.props.selectUserItem('')
   }
 
   render() {

@@ -15,13 +15,21 @@ import {
   APPS_PAGE_LOADED,
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
-  SET_CURRENT_URL
+  SET_REDIRECT_PROPS
 } from '../constants/actionTypes';
 
 const defaultState = {
   appName: 'Adya',
   viewChangeCounter: 0,
-  currentView: ""
+  currentView: '/login',
+  currentUrl: '/login',
+  token: undefined,
+  currentUser: undefined,
+  appLoaded: false,
+  redirectTo: '/login',
+  datasources: undefined,
+  all_actions_list: undefined,
+  datasourceLoading: false,
 };
 
 export default (state = defaultState, action) => {
@@ -38,12 +46,7 @@ export default (state = defaultState, action) => {
       return { ...state, redirectTo: null };
     case LOGOUT:
       return {
-        ...state,
-        redirectTo: '/login',
-        token: null,
-        currentUser: null,
-        currentView: "/login",
-        datasources: undefined
+        ...defaultState
       };
     case LOGIN_SUCCESS:
       return {
@@ -55,7 +58,7 @@ export default (state = defaultState, action) => {
     case GET_ALL_ACTIONS:
       var actions = action.payload;
       var actionsMap = {}
-      for(var index in actions){
+      for (var index in actions) {
         var quickAction = actions[index];
         actionsMap[quickAction.key] = quickAction;
       }
@@ -71,20 +74,18 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: false,
         datasources: action.error ? null : action.payload,
-        currentUrl: !action.payload.length?"/datasources":window.location.pathname
+        currentUrl: !action.payload.length ? "/datasources" : window.location.pathname
       };
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
         var newDS = JSON.parse(action.payload);
         var oldDS = state.datasources[0];
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
-          console.log(newDS);
-          if(newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
+          if (newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
             || newDS.processed_file_count > oldDS.processed_file_count
             || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status ||
             newDS.total_group_count > oldDS.total_group_count || newDS.processed_group_count > oldDS.processed_group_count ||
-            newDS.total_user_count > oldDS.total_user_count || newDS.processed_user_count > oldDS.processed_user_count)
-          {
+            newDS.total_user_count > oldDS.total_user_count || newDS.processed_user_count > oldDS.processed_user_count) {
             state.datasources[0] = newDS;
           }
         }
@@ -133,10 +134,19 @@ export default (state = defaultState, action) => {
         ...state,
         currentView: "/apps"
       };
-    case SET_CURRENT_URL:
+    case SET_REDIRECT_PROPS:
+      var states = {};
+      if (action.reducerStates) {
+        var reducers = Object.keys(action.reducerStates)
+        for (var index in reducers) {
+          if (reducers[index] == "common")
+            states = action.reducerStates[reducers[index]];
+        }
+      }
       return {
         ...state,
-        currentUrl: action.url
+        currentUrl: action.redirectUrl,
+        ...states
       }
     default:
       return state;

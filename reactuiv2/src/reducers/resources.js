@@ -8,10 +8,16 @@ import {
     RESOURCES_SEARCH_PAYLOAD,
     RESOURCES_SEARCH_EMPTY,
     RESOURCES_PAGINATION_DATA,
+    SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
 
 const defaultState = {
+    isLoading: false,
+    resourceTree: undefined,
+    rowData: undefined,
+    resourceSearchPayload: undefined,
+    action: undefined,
     isLoading: false,
     filterExposureType: 'EXT',
     filterResourceName: '',
@@ -31,66 +37,6 @@ export default (state = defaultState, action) => {
                 isLoading: true
             }
         case RESOURCES_PAGE_LOADED:
-            // if (action.parent) {
-            //     var keys = Object.keys(action.payload)
-            //     if (keys.length > 0) {
-            //         var children = [];
-            //         for (let index = 0; index < keys.length; index++) {
-            //             let child = action.payload[keys[index]]
-            //             child.isExpanded = false;
-            //             child.key = keys[index];
-            //             child.depth = action.parent.depth + 1;
-            //             if (!child.name)
-            //                 child.name = child.resourceName
-            //             children.push(child)
-            //         }
-            //         action.parent['isExpanded'] = true;
-            //         action.parent['children'] = children;
-            //     }
-            //     else {
-            //         action.parent['isExpanded'] = false
-            //         action.parent['children'] = []
-            //     }
-            // }
-            // else {
-            //     var rows = [];
-            //     if (action.payload) {
-            //         var keys = Object.keys(action.payload)
-
-            //         for (let index = 0; index < keys.length; index++) {
-            //             let row = action.payload[keys[index]]
-            //             row.isExpanded = row.isExpanded || false;
-            //             row.key = keys[index];
-            //             row.depth = 0;
-            //             if (!row.name)
-            //                 row.name = row.resourceName
-            //             rows.push(row)
-            //         }
-            //     }
-            //     state.resourceTree = rows;
-            // }
-            // return {
-            //     ...state,
-            //     isLoading: false,
-            //     cellExpanded: false,
-            //     rowData: {}
-            // }
-
-            // console.log("resources payload : ", action.payload)
-            // let keys = Object.keys(action.payload)
-            // let rows = []
-
-            // for (let index=0; index<keys.length; index++) {
-            //     var row = action.payload[keys[index]];
-            //     var parent = ""
-            //     if(row.parents)
-            //     {
-            //         parent = row.parents.parentName;
-            //     }
-
-            //     row.parent = parent;
-            //     rows.push(row)
-            // }
             return {
                 ...state,
                 isLoading: false,
@@ -145,9 +91,7 @@ export default (state = defaultState, action) => {
             }
         case LOGOUT:
             return {
-                ...state,
-                resourceTree: undefined,
-                resourceSearchPayload: undefined
+                ...defaultState
             }
 
         // case RESOURCES_TREE_CELL_EXPANDED:
@@ -155,6 +99,19 @@ export default (state = defaultState, action) => {
         //         ...state,
         //         cellExpanded: action.payload
         //     }
+        case SET_REDIRECT_PROPS:
+            var states = {};
+            if (action.reducerStates) {
+                var reducers = Object.keys(action.reducerStates)
+                for (var index in reducers) {
+                    if (reducers[index] == "resources")
+                      states = action.reducerStates[reducers[index]];
+                  }
+            }
+            return {
+                ...state,
+                ...states
+            }
         default:
             return state;
     }

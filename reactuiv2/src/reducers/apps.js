@@ -7,11 +7,20 @@ import {
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
+    SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
 
-
-export default (state = {}, action) => {
+const defaultState = {
+    appPayLoad: undefined,
+    appsSearchPayload: undefined,
+    appUsers: undefined,
+    isLoading: false,
+    appDetailsViewActive: false,
+    selectedAppItem: undefined
+  };
+  
+export default (state = defaultState, action) => {
     switch (action.type) {
         case APPS_PAGE_LOAD_START:
             return {
@@ -59,10 +68,23 @@ export default (state = {}, action) => {
                 ...state,
                 appsSearchPayload: action.payload
             }
+        case SET_REDIRECT_PROPS:
+            var states = {};
+            if (action.reducerStates) {
+              var reducers = Object.keys(action.reducerStates)
+              for (var index in reducers) {
+                if (reducers[index] == "apps")
+                  states = action.reducerStates[reducers[index]];
+              }
+            }
+            return {
+              ...state,
+              currentUrl: action.redirectUrl,
+              ...states
+            }
         case LOGOUT:
             return {
-                ...state,
-                appPayLoad: undefined
+                ...defaultState,
             }
         default:
             return state;
