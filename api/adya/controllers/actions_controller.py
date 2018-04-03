@@ -644,7 +644,7 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
                                                                  ApplicationUserAssociation.client_id == client_id)).count()
 
         # if no user is associated with app, than remove the app also
-        if not app_user_association > 0:
+        if app_user_association < 1:
             db_session.query(Application).filter(and_(Application.datasource_id == datasource_id, Application.client_id == client_id)).delete()
 
         db_connection().commit()
