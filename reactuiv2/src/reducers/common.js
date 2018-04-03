@@ -25,7 +25,7 @@ const defaultState = {
   currentUrl: '/login',
   token: undefined,
   currentUser: undefined,
-  appLoaded: false,
+  appLoaded: true,
   redirectTo: '/login',
   datasources: undefined,
   all_actions_list: undefined,
