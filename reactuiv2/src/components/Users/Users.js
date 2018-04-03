@@ -22,7 +22,9 @@ const mapStateToProps = state => ({
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
   isLoading: state.users.isLoading,
-  userPayload: state.users.usersTreePayload
+  userPayload: state.users.usersTreePayload,
+  userFilterType: state.users.userFilterType,
+  userShowHierarchy: state.users.userShowHierarchy
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -36,7 +38,7 @@ class Users extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showHierarchy: false,
+      showHierarchy: this.props.userShowHierarchy,
       usersEmpty: false,
       usersFilter: [
         {
@@ -52,7 +54,7 @@ class Users extends Component {
           value: 'ALL'
         }
       ],
-      showMemberType: 'EXT'
+      showMemberType: this.props.userFilterType
     }
   }
   toggleHierarchyView = () => {
@@ -60,18 +62,6 @@ class Users extends Component {
       ...this.state,
       showHierarchy: !this.state.showHierarchy
     });
-  }
-
-  componentWillMount() {
-    if (this.props.location.search.includes("Users"))
-      this.setState({
-        showMemberType: 'ALL'
-      })
-    else if (this.props.location.search.includes("Groups"))
-      this.setState({
-        showHierarchy: true,
-        showMemberType: 'ALL'
-      })
   }
 
   componentWillReceiveProps(nextProps) {

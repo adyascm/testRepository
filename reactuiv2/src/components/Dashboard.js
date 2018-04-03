@@ -30,10 +30,10 @@ class Dashboard extends Component {
   constructor() {
     super();
     this.simpleWidgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users?header='Users'" },
-      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users?header='Groups'" },
-      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources?header='Files'" },
-      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources?header='Folders'" },
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'ALL'}} },
+      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" , states: {users: {userShowHierarchy: true, userFilterType: 'ALL'}} },
+      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" , states: {resources: {filterExposureType: '', filterResourceType: ''}} },
+      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: 'folder'}}},
     ];
     this.chartWidgetConfigs = [
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources" },

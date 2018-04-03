@@ -16,7 +16,7 @@ import {
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
   ASYNC_END,
-  SET_CURRENT_URL
+  SET_REDIRECT_PROPS
 } from '../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
@@ -53,7 +53,7 @@ const mapDispatchToProps = dispatch => ({
   displayErrorMessage: (error) =>
     dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] }),
   goToDashboard: (url) =>
-    dispatch({ type: SET_CURRENT_URL, url })
+    dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
 });
 
 class ManageDataSources extends Component {

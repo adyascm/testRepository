@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 import { Table, Card, Loader, Dimmer, Label } from 'semantic-ui-react'
-import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_CURRENT_URL } from '../../constants/actionTypes';
+import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_REDIRECT_PROPS } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
 const mapStateToProps = state => ({
@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
     onWidgetClick: (url) => 
-        dispatch({ type: SET_CURRENT_URL, url })
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
 });
 
 class ListWidget extends Component {

@@ -16,6 +16,7 @@ import {
     USERS_OWNED_RESOURCES_LOADED,
     USERS_RESOURCE_PAGINATION_DATA,
     USERS_RESOURCE_FILTER_CHANGE,
+    SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -166,6 +167,19 @@ export default (state = defaultState, action) => {
                 ...state,
                 usersTreePayload: undefined,
                 groupSearchPayload: undefined
+            }
+        case SET_REDIRECT_PROPS:
+            var states = {};
+            if (action.reducerStates) {
+              var reducers = Object.keys(action.reducerStates)
+              for (var index in reducers) {
+                if (reducers[index] == "users")
+                  states = action.reducerStates[reducers[index]];
+              }
+            }
+            return {
+              ...state,
+              ...states
             }
         default:
             return state;

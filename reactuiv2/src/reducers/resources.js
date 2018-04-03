@@ -8,6 +8,7 @@ import {
     RESOURCES_SEARCH_PAYLOAD,
     RESOURCES_SEARCH_EMPTY,
     RESOURCES_PAGINATION_DATA,
+    SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -155,6 +156,19 @@ export default (state = defaultState, action) => {
         //         ...state,
         //         cellExpanded: action.payload
         //     }
+        case SET_REDIRECT_PROPS:
+            var states = {};
+            if (action.reducerStates) {
+                var reducers = Object.keys(action.reducerStates)
+                for (var index in reducers) {
+                    if (reducers[index] == "resources")
+                      states = action.reducerStates[reducers[index]];
+                  }
+            }
+            return {
+                ...state,
+                ...states
+            }
         default:
             return state;
     }
