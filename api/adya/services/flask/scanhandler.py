@@ -184,4 +184,4 @@ class GetUserApp(Resource):
         if response:
             return req_session.generate_response(202, "Action submitted successfully")
         else:
-            return req_session.generate_response(400, 'Action executed partially - ' + gsuite_action.get_exception_message())
+            return req_session.generate_response(400, 'Action Failed - ' + gsuite_action.get_exception_message())
