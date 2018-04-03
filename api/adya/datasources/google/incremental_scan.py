@@ -10,10 +10,11 @@ from adya.common import constants, response_messages
 from adya.common import utils, messaging, aws_utils
 import requests
 import uuid
-#import datetime, timedelta
+# import datetime, timedelta
 import datetime, dateutil.parser
 from datetime import timedelta
 import json
+
 
 def handle_channel_expiration():
     db_session = db_connection().get_session()
@@ -22,7 +23,7 @@ def handle_channel_expiration():
         access_time = datetime.datetime.utcnow()
         expire_time = access_time
         if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=86100)):
-            #Unsubscribe and subscribe again
+            # Unsubscribe and subscribe again
             unsubscribe_for_a_user(row)
 
         try:
@@ -43,7 +44,8 @@ def handle_channel_expiration():
                 drive_service = gutils.get_gdrive_service(None, row.user_email, db_session)
                 directory_service = gutils.get_directory_service(None, row.user_email, db_session)
             else:
-                user = db_session.query(LoginUser).filter(and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
+                user = db_session.query(LoginUser).filter(
+                    and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
                 drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
 
             if row.page_token == '':
@@ -54,7 +56,8 @@ def handle_channel_expiration():
             print "Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                 row.domain_id, row.datasource_id, row.channel_id)
 
-            response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true', body=body).execute()
+            response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true',
+                                                     body=body).execute()
 
             print "Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                 row.domain_id, row.datasource_id, row.channel_id, response)
@@ -62,7 +65,7 @@ def handle_channel_expiration():
             expire_time = access_time + timedelta(seconds=86100)
             row.resource_id = response['resourceId']
             row.resource_uri = response['resourceUri']
-            
+
         except Exception as e:
             print e
             print "Exception occurred while trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
@@ -126,7 +129,9 @@ def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
     try:
         # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)", aws_utils.get_lambda_name("get", constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
+        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
+                                          aws_utils.get_lambda_name("get",
+                                                                    constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH))
 
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
@@ -137,19 +142,23 @@ def subscribe(domain_id, datasource_id):
         login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
 
         if datasource.is_serviceaccount_enabled:
-            domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
+            domain_users = db_session.query(DomainUser).filter(
+                and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
             admin_user = None
-            print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users), datasource.datasource_id)
+            admin_customer_id = None
+            print "Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users),
+                                                                                                  datasource.datasource_id)
             for user in domain_users:
                 print "user ", user
                 if user.is_admin:
                     admin_user = user.email
+                    admin_customer_id = user.customer_id
                 print "Subscribing for push notification for user {}".format(user.email)
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
 
             # watch on userlist
 
-            subscribe_for_userlist_watch(datasource.datasource_id, admin_user)
+            subscribe_for_userlist_watch(datasource.datasource_id, admin_user, admin_customer_id)
 
         else:
             print "Service account is not enabled, subscribing for push notification using logged in user's creds"
@@ -162,27 +171,30 @@ def subscribe(domain_id, datasource_id):
             domain_id, datasource_id, e)
 
 
-def subscribe_for_userlist_watch(datasource_id, admin_user):
+def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
     access_time = datetime.datetime.utcnow()
 
     print "subscribing for watch on userlist "
     print "admin user ", admin_user
     directory_service = gutils.get_directory_service(None, admin_user)
+    domain_name = None
+    # get domain
+    directory_domain = directory_service.domains().list(customer=admin_customer_id).execute()
+    if directory_domain['isPrimary']:
+        domain_name = directory_domain['domains'][0]['domainName']
 
-    # TODO: GET DOMAIN
-    directory_domain = directory_service.domains().list()
     channel_id = str(uuid.uuid4())
     body = {
         "id": channel_id,
         "type": "web_hook",
-        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
         "params": {"ttl": "1800"}
     }
 
     print "subscribe userlist : body : ", body
 
-    watch_userlist_response = directory_service.users().watch(body=body, domain=domain_id,
-                                                              projection="full").execute()
+    watch_userlist_response = directory_service.users().watch(body=body, domain=domain_name,
+                                                              projection="full", event="add").execute()
 
     print "subbscribe userlist : watch_userlist_response : ", watch_userlist_response
 
@@ -197,8 +209,8 @@ def subscribe_for_userlist_watch(datasource_id, admin_user):
     push_notification_subscription_for_userlist.user_email = admin_user
     push_notification_subscription_for_userlist.last_accessed = access_time
     push_notification_subscription_for_userlist.expire_at = expire_time
-    push_notification_subscription_for_userlist.directory_domain = domain_id
-    
+    push_notification_subscription_for_userlist.directory_domain = domain_name
+
 
 def _subscribe_for_user(db_session, auth_token, datasource, email):
     channel_id = str(uuid.uuid4())
@@ -222,14 +234,15 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         start_token = response.get('startPageToken')
         print 'Start token: ', start_token
 
-        watch_response = drive_service.changes().watch(pageToken=start_token, restrictToMyDrive='true', body=body).execute()
+        watch_response = drive_service.changes().watch(pageToken=start_token, restrictToMyDrive='true',
+                                                       body=body).execute()
         print " watch_response for a user : ", watch_response
 
         expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
         resource_uri = watch_response['resourceUri']
 
-    
+
     except Exception as ex:
         print "Exception occurred while subscribing for push notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
             datasource.domain_id, datasource.datasource_id, channel_id, ex)
@@ -250,42 +263,46 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
     db_session.add(push_notifications_subscription)
 
 
-def process_userlist_notification(notification_type, datasource_id, channel_id):
-    print "process subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(notification_type,
-                    datasource_id, channel_id)
+def process_userlist_notification(notification_type, datasource_id, channel_id, body):
+    print "process subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(
+        notification_type,
+        datasource_id, channel_id)
+    print "body ", body
     if notification_type == "sync":
         print "Sync notification received, ignore..."
         return
 
     db_session = db_connection().get_session()
 
-    exisiting_subscription = db_session.query(PushNotificationsSubscriptionForUserlist).filter(PushNotificationsSubscriptionForUserlist.channel_id
-                                                                                               == channel_id).first()
+    exisiting_subscription = db_session.query(PushNotificationsSubscriptionForUserlist).filter(
+        PushNotificationsSubscriptionForUserlist.channel_id == channel_id).first()
     if not exisiting_subscription:
         print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
             datasource_id, channel_id)
         return
 
 
-
 def process_notifications(notification_type, datasource_id, channel_id):
-    print "Processing Subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(notification_type,
-                    datasource_id, channel_id)
-    
+    print "Processing Subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(
+        notification_type,
+        datasource_id, channel_id)
+
     if notification_type == "sync":
         print "Sync notification received, ignore..."
         return
-    
+
     db_session = db_connection().get_session()
 
-    subscription = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.channel_id == channel_id).first()
+    subscription = db_session.query(PushNotificationsSubscription).filter(
+        PushNotificationsSubscription.channel_id == channel_id).first()
     if not subscription:
         print "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
             datasource_id, channel_id)
         return
     user_email = subscription.user_email
     try:
-        subscribed_user = db_session.query(DomainUser).filter(and_(DomainUser.email == subscription.user_email, DomainUser.member_type == 'INT')).first()
+        subscribed_user = db_session.query(DomainUser).filter(
+            and_(DomainUser.email == subscription.user_email, DomainUser.member_type == 'INT')).first()
         if not subscribed_user:
             print "Subscribed user does not exist, hence ignoring the notification"
             return
@@ -317,7 +334,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
             response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                     spaces='drive').execute()
             print "Changes for this notification found are - {}".format(response)
-            #Mark Inprogress
+            # Mark Inprogress
             if should_mark_in_progress:
                 print "Marking the subscription to be in progress "
                 db_session.refresh(subscription)
@@ -326,7 +343,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
                 db_connection().commit()
                 should_mark_in_progress = False
 
-            
             for change in response.get('changes'):
                 # Process change
                 fileId = change.get('fileId')
@@ -349,14 +365,15 @@ def process_notifications(notification_type, datasource_id, channel_id):
             subscription.stale = 0
             db_connection().commit()
             response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                        headers={"X-Goog-Channel-Token": datasource_id,
-                                                "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State':notification_type})
+                                     headers={"X-Goog-Channel-Token": datasource_id,
+                                              "X-Goog-Channel-ID": channel_id,
+                                              'X-Goog-Resource-State': notification_type})
 
 
     except Exception as e:
         print "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(
             datasource_id, channel_id, e)
-    
+
 
 def handle_change(drive_service, datasource_id, email, file_id):
     print 'Handling the change for file: %s' % file_id
@@ -364,13 +381,14 @@ def handle_change(drive_service, datasource_id, email, file_id):
     try:
         results = drive_service.files() \
             .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
-                 "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
-                 "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
-                 "owners,size,createdTime, modifiedTime").execute()
+                                        "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
+                                        "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
+                                        "owners,size,createdTime, modifiedTime").execute()
         print "Updated resource for change notification is - {}".format(results)
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
-        resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
+        resource = db_session.query(Resource).filter(
+            and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
         if resource:
             saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
             difference = abs(saved_last_modified_time - last_modified_time)
@@ -384,10 +402,15 @@ def handle_change(drive_service, datasource_id, email, file_id):
         is_new_resource = 0
         if resource:
             existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
-            print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time, resource.last_modified_time)
+            print "Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time,
+                                                                                                    resource.last_modified_time)
             print "Deleting the existing permissions and resource, and add again"
-            db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id, ResourcePermission.datasource_id == datasource_id)).delete(synchronize_session=False)
-            db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(synchronize_session=False)
+            db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
+                                                             ResourcePermission.datasource_id == datasource_id)).delete(
+                synchronize_session=False)
+            db_session.query(Resource).filter(
+                and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
+                synchronize_session=False)
             db_connection().commit()
         else:
             is_new_resource = 1
@@ -396,10 +419,10 @@ def handle_change(drive_service, datasource_id, email, file_id):
         resourcedata = {}
         resourcedata["resources"] = [results]
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        query_params = {'domainId': datasource.domain_id,'dataSourceId': datasource_id, 'ownerEmail': email, 
-        'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
+        query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
+                        'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
         messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata)
-        
+
         # payload = {}
         # payload["old_permissions"] = existing_permissions
         # payload["resource"] = results
