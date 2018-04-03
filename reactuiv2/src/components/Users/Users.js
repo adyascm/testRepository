@@ -57,7 +57,7 @@ class Users extends Component {
           value: 'ALL'
         }
       ],
-      showMemberType: this.props.userFilterType
+      showMemberType: this.props.userFilterType?this.props.userFilterType:'EXT'
     }
   }
   toggleHierarchyView = () => {
@@ -124,7 +124,7 @@ class Users extends Component {
               <Dropdown
                 options={this.state.usersFilter}
                 selection
-                defaultValue='EXT'
+                defaultValue={this.state.showMemberType}
                 onChange={this.handleUserFilterChange}
               />
             </Grid.Column>
