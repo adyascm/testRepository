@@ -30,19 +30,19 @@ class Dashboard extends Component {
   constructor() {
     super();
     this.simpleWidgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
-      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" },
-      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
-      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources" },
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'ALL'}} },
+      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" , states: {users: {userShowHierarchy: true, userFilterType: 'ALL'}} },
+      { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" , states: {resources: {filterExposureType: '', filterResourceType: ''}} },
+      { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: 'folder'}}},
     ];
     this.chartWidgetConfigs = [
-      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources" },
-      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps" },
-      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources" }
+      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: ''}}},
+      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {scopeExposure: 0}}},
+      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: ''}}}
     ];
     this.gridWidgetConfigs = [
-      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users" },
-      {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users"}
+      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'EXT'}}},
+      {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'DOMAIN'}}}
     ];
   }
 

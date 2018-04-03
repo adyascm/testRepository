@@ -2,11 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 import { Table, Card, Loader, Dimmer, Label } from 'semantic-ui-react'
-import { 
-    DASHBOARD_WIDGET_LOADED, 
-    DASHBOARD_WIDGET_LOAD_START,
-    DASHBOARD_REDIRECT_TO_PARAM,
-    SET_CURRENT_URL } from '../../constants/actionTypes';
+import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_REDIRECT_PROPS } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
 
 const mapStateToProps = state => ({
@@ -18,10 +14,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: DASHBOARD_WIDGET_LOAD_START, widgetId }),
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
-    onWidgetClick: (url) => 
-        dispatch({ type: SET_CURRENT_URL, url }),
-    setRedirectParam: (redirectTo, filterType) => 
-        dispatch({ type: DASHBOARD_REDIRECT_TO_PARAM, redirectTo, filterType })
+    onWidgetClick: (url, states) => 
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url, reducerStates: states })
 });
 
 class ListWidget extends Component {
@@ -31,8 +25,7 @@ class ListWidget extends Component {
     }
 
     widgetClick = () => {
-        this.props.onWidgetClick(this.props.config.link)
-        this.props.setRedirectParam(this.props.config.link,this.props.config.header)
+        this.props.onWidgetClick(this.props.config.link, this.props.config.states)
         this.props.history.push(this.props.config.link)
     }
 

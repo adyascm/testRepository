@@ -41,17 +41,17 @@ class Apps extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        scopeExposure: 0,
+        scopeExposure: this.props.scopeExposure,
         appsEmpty: false
     }
     this.onCheckBoxChecked = this.onCheckBoxChecked.bind(this)
   }
 
   componentWillMount(){
-    if (this.props.redirectTo && this.props.redirectTo.includes("apps"))
-      this.setState({
-        scopeExposure: 0
-      })
+    // if (this.props.redirectTo && this.props.redirectTo.includes("apps"))
+    //   this.setState({
+    //     scopeExposure: 0
+    //   })
     
     this.props.onLoadStart();
     this.props.onLoad(agent.Apps.getapps());

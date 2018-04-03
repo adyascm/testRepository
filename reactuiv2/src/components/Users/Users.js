@@ -24,8 +24,8 @@ const mapStateToProps = state => ({
   selectedUser: state.users.selectedUserItem,
   isLoading: state.users.isLoading,
   userPayload: state.users.usersTreePayload,
-  redirectTo: state.dashboard.redirectTo,
-  redirectFilter: state.dashboard.filterType
+  userFilterType: state.users.userFilterType,
+  userShowHierarchy: state.users.userShowHierarchy
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -41,7 +41,7 @@ class Users extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showHierarchy: false,
+      showHierarchy: this.props.userShowHierarchy,
       usersEmpty: false,
       usersFilter: [
         {
@@ -57,7 +57,7 @@ class Users extends Component {
           value: 'ALL'
         }
       ],
-      showMemberType: 'EXT'
+      showMemberType: this.props.userFilterType
     }
   }
   toggleHierarchyView = () => {
@@ -65,22 +65,6 @@ class Users extends Component {
       ...this.state,
       showHierarchy: !this.state.showHierarchy
     });
-  }
-
-  componentWillMount() {
-    if (this.props.redirectTo && this.props.redirectTo.includes("users")) {
-      if (this.props.redirectFilter) {
-        if (this.props.redirectFilter.includes("Users"))
-          this.setState({
-            showMemberType: 'ALL'
-          })
-        else if (this.props.redirectFilter.includes("Groups"))
-          this.setState({
-            showHierarchy: true,
-            showMemberType: 'ALL'
-          })
-      }
-    }
   }
 
   componentWillReceiveProps(nextProps) {

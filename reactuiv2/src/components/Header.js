@@ -1,7 +1,7 @@
 import React from 'react'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux';
-import { LOGOUT, SET_CURRENT_URL } from '../constants/actionTypes';
+import { LOGOUT, SET_REDIRECT_PROPS } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon } from 'semantic-ui-react'
@@ -70,7 +70,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onClickLogout: () => dispatch({ type: LOGOUT }),
     onMenuItemClick: (url) =>
-        dispatch({ type: SET_CURRENT_URL, url })
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
 });
 
 class Header extends React.Component {

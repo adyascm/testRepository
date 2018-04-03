@@ -7,6 +7,7 @@ import {
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
+    SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -58,6 +59,20 @@ export default (state = {}, action) => {
             return {
                 ...state,
                 appsSearchPayload: action.payload
+            }
+        case SET_REDIRECT_PROPS:
+            var states = {};
+            if (action.reducerStates) {
+              var reducers = Object.keys(action.reducerStates)
+              for (var index in reducers) {
+                if (reducers[index] == "apps")
+                  states = action.reducerStates[reducers[index]];
+              }
+            }
+            return {
+              ...state,
+              currentUrl: action.redirectUrl,
+              ...states
             }
         case LOGOUT:
             return {

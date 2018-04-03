@@ -309,7 +309,7 @@ def update_exposure_type_of_resource(db_session, existing_permission, existing_r
         datasource = db_session.query(DataSource).filter(
             DataSource.datasource_id == existing_permission.datasource_id).first()
 
-        resource_exposure_type = get_resource_exposure_type(db_session, datasource.domain_id, existing_permission.email, existing_permission.display_name,
+        resource_exposure_type = get_resource_exposure_type(db_session, datasource.domain_id, existing_permission.email, None,
                                    existing_resource.exposure_type)
         existing_resource.exposure_type = resource_exposure_type
 

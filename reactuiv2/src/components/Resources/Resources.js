@@ -66,25 +66,6 @@ class Resources extends Component {
   //     this.props.changeFilter("filterResourceType", this.state.filterResourceType);
   //   }
   // }
-  componentWillMount(){
-
-    if (this.props.redirectTo && this.props.redirectTo.includes("resources")) {
-      if (this.props.redirectFilter) {
-        if (this.props.redirectFilter.includes("Files")) {
-          this.props.changeFilter("filterResourceType", '')
-          this.props.changeFilter("filterExposureType",'')  
-        }
-        else if (this.props.redirectFilter.includes("Folders")) {
-          this.props.changeFilter("filterExposureType",'')
-          this.props.changeFilter("filterResourceType", 'folder')
-        }
-      }
-    }
-
-    // this.setState({
-    //   filterResourceType: this.props.filterResourceType
-    // });
-  }
 
   componentWillUnmount() {
     this.props.clearSearchData()
