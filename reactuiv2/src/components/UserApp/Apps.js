@@ -41,7 +41,7 @@ class Apps extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        scopeExposure: this.props.scopeExposure,
+        scopeExposure: this.props.scopeExposure?this.state.scopeExposure:0,
         appsEmpty: false
     }
     this.onCheckBoxChecked = this.onCheckBoxChecked.bind(this)
