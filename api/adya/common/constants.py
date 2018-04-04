@@ -15,27 +15,27 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
-GOOGLE_OAUTHCALLBACK_PATH = "/googleoauthcallback"
-GOOGLE_OAUTH_LOGIN = '/googleoauthlogin'
+GOOGLE_OAUTHCALLBACK_PATH = "/google/oauthcallback"
+GOOGLE_OAUTH_LOGIN = '/google/oauthlogin'
 GOOGLE_OAUTH_CALLBACK_URL = API_HOST + GOOGLE_OAUTHCALLBACK_PATH
 OAUTH_STATUS_PATH = "/oauthstatus"
 OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 
-SCAN_START = "/scan/start"
-SCAN_RESOURCES = "/scan/resources"
-SCAN_PERMISSIONS = "/scan/permisssions"
-SCAN_PARENTS = "/scan/parents"
-SCAN_DOMAIN_USERS = "/scan/domainusers"
-SCAN_DOMAIN_GROUPS = "/scan/domaingroups"
-SCAN_GROUP_MEMBERS = "/scan/groupmembers"
-SCAN_USERS_APP = '/scan/usersapp'
+SCAN_START = "/google/scan/start"
+SCAN_RESOURCES = "/google/scan/resources"
+SCAN_PERMISSIONS = "/google/scan/permisssions"
+SCAN_PARENTS = "/google/scan/parents"
+SCAN_DOMAIN_USERS = "//googlescan/domainusers"
+SCAN_DOMAIN_GROUPS = "/google/scan/domaingroups"
+SCAN_GROUP_MEMBERS = "/google/scan/groupmembers"
+SCAN_USERS_APP = '/google/scan/usersapp'
 
-SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
-PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
-HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/scan/handlechannelexpiration'
-PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/scan/directoryprocessnotifications'
+SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/subscribenotifications'
+PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/processnotifications'
+HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/google/scan/handlechannelexpiration'
+PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 
 GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
 GET_APPS = "/getappsdata"
