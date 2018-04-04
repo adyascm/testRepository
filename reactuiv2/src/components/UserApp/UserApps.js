@@ -62,8 +62,11 @@ class UserApps extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical' basic color='red' onClick={(event) =>
-                                    this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}>
+                                <Button animated='vertical' 
+                                    basic color='red' 
+                                    onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}
+                                    disabled={this.props.loading}
+                                    loading={this.props.loading}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />

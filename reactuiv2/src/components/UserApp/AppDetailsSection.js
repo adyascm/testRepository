@@ -27,7 +27,7 @@ class AppDetailsSection extends Component {
         super(props);
 
         this.state = {
-            
+            isLoading: false
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
@@ -38,8 +38,14 @@ class AppDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,app,userEmail) {
+        this.setState({
+            isLoading: true
+        })
         agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
             app = undefined;
+            this.setState({
+                isLoading: false
+            })
         })
     }
 
@@ -81,8 +87,11 @@ class AppDetailsSection extends Component {
                 return (
                     <Grid.Row key={index}>
                         <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red' onClick={(event) => 
-                                                                        this.handleAppAccessRevokeClick(event,app,user.email)}>
+                            <Button animated='vertical' 
+                                    basic color='red' 
+                                    onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}
+                                    disabled={this.state.isLoading?true:false} 
+                                    loading={this.state.isLoading?true:false}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
