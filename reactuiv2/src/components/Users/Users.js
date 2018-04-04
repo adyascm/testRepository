@@ -25,7 +25,8 @@ const mapStateToProps = state => ({
   isLoading: state.users.isLoading,
   userPayload: state.users.usersTreePayload,
   userFilterType: state.users.userFilterType,
-  userShowHierarchy: state.users.userShowHierarchy
+  userShowHierarchy: state.users.userShowHierarchy,
+  hasGroups: state.users.hasGroups
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -103,6 +104,15 @@ class Users extends Component {
     if (this.props.users.selectedUserItem) {
       gridWidth = 4;
     }
+
+    let toggleCheckbox = (
+      <Checkbox toggle
+        label='Show groups tree'
+        onChange={this.toggleHierarchyView}
+        checked={this.state.showHierarchy}
+      />
+    )
+
     let dimmer = (<Dimmer active inverted><Loader inverted content='Loading' /></Dimmer>)
     var flatList = (<UserList showMemberType={this.state.showMemberType} />)
     var treeView = (<UsersTree showMemberType={this.state.showMemberType} />)
@@ -120,11 +130,7 @@ class Users extends Component {
               />
             </Grid.Column>
             <Grid.Column stretched floated='right' width="5">
-              <Checkbox toggle
-                label='Show groups tree'
-                onChange={this.toggleHierarchyView}
-                checked={this.state.showHierarchy}
-              />
+              {this.props.hasGroups ? toggleCheckbox : null}
             </Grid.Column>
           </Grid.Row>
 
