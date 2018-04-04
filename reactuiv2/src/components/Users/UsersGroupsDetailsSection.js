@@ -36,7 +36,8 @@ class UsersGroupsDetailsSection extends Component {
         super(props);
 
         this.state = {
-            isLoading: false
+            isLoading: false,
+            deleteApp: undefined
         }
 
         this.exposureFilterOptions = [
@@ -88,12 +89,14 @@ class UsersGroupsDetailsSection extends Component {
 
     handleAppAccessRevokeClick(event,app,userEmail) {
         this.setState({
-            isLoading: true
+            isLoading: true,
+            deleteApp: app["display_text"]
         })
         agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
             app=undefined;
             this.setState({
-                isLoading: false
+                isLoading: false,
+                deleteApp: undefined
             })
         })
     }
@@ -139,7 +142,7 @@ class UsersGroupsDetailsSection extends Component {
             let extraPanes = [
                 { menuItem: 'Has Access', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
                 { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> },
-                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} /></Tab.Pane> }
+                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> }
             ]
 
             if (this.props.selectedUserItem["member_type"] !== 'EXT')

@@ -27,7 +27,8 @@ class AppDetailsSection extends Component {
         super(props);
 
         this.state = {
-            isLoading: false
+            isLoading: false,
+            deleteUser: undefined
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
@@ -39,12 +40,14 @@ class AppDetailsSection extends Component {
 
     handleAppAccessRevokeClick(event,app,userEmail) {
         this.setState({
-            isLoading: true
+            isLoading: true,
+            deleteUser: userEmail
         })
         agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
             app = undefined;
             this.setState({
-                isLoading: false
+                isLoading: false,
+                deleteUser: undefined
             })
         })
     }
@@ -84,25 +87,25 @@ class AppDetailsSection extends Component {
             if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app =this.props.selectedAppItem
                 appUsers = this.props.appUsers.map((user,index) => {
-                return (
-                    <Grid.Row key={index}>
-                        <Grid.Column width={2}>
-                            <Button animated='vertical' 
-                                    basic color='red' 
-                                    onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}
-                                    disabled={this.state.isLoading?true:false} 
-                                    loading={this.state.isLoading?true:false}>
-                                <Button.Content hidden>Remove</Button.Content>
-                                <Button.Content visible>
-                                    <Icon name='remove' />
-                                </Button.Content>
-                            </Button>
-                        </Grid.Column>
-                        <Grid.Column width={10}>
-                            {user.email}
-                        </Grid.Column>
-                    </Grid.Row>
-                )
+                    return (
+                        <Grid.Row key={index}>
+                            <Grid.Column width={2}>
+                                <Button animated='vertical' 
+                                        basic color='red' 
+                                        onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}
+                                        disabled={this.state.isLoading && (this.state.deleteUser === user.email)?true:false} 
+                                        loading={this.state.isLoading && (this.state.deleteUser === user.email)?true:false}>
+                                    <Button.Content hidden>Remove</Button.Content>
+                                    <Button.Content visible>
+                                        <Icon name='remove' />
+                                    </Button.Content>
+                                </Button>
+                            </Grid.Column>
+                            <Grid.Column width={10}>
+                                {user.email}
+                            </Grid.Column>
+                        </Grid.Row>
+                    )
             })
             }
 
