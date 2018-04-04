@@ -8,8 +8,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    redirectToLoginPage: () =>
-        dispatch({ type: LOGOUT })
 });
 
 const SecuredView = ChildComponent => {

@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
 import { Link } from 'react-router-dom'
+import common from '../utils/common'
 
 
 
@@ -11,29 +12,27 @@ const DataSourceItem = props => {
         ev.preventDefault();
         props.onDelete(datasource);
     };
-    
-    const getScanStatus = (datasource) => {
+
+    if (datasource) {
         var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
         if (datasource.total_file_count === 0)
             percent = 0;
+        var statusText = "Scan is in progress. Please wait for it to complete."
+        var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+        var status = common.DataSourceUtils.getScanStatus(datasource);
+        var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
+        if (status == 'error')
+        {
+            statusText = "Scan has failed. Please delete and try again."
+            progressBar = (<Progress size='small' precision='0' percent={percent} error />);
+        }
+        else if (status == 'success')
+        {
+            statusText = "Scan is complete."
+            progressBar = (<Progress size='small' precision='0' percent={percent} success />);
+        }
+            
 
-        if (datasource.file_scan_status > 10000 || datasource.user_scan_status > 1 || datasource.group_scan_status > 1)
-            return <Progress size='small' precision='0' percent={percent} error />; //Failed
-
-        var file_status = 1
-        if (datasource.is_serviceaccount_enabled)
-            file_status = datasource.total_user_count
-        if ((datasource.file_scan_status >= file_status && datasource.total_file_count === datasource.processed_file_count) && (datasource.user_scan_status === 1 && datasource.total_user_count === datasource.processed_user_count) && (datasource.group_scan_status === 1 && datasource.total_group_count === datasource.processed_group_count))
-            return <Progress size='small' precision={0} percent={percent} success />; //Complete
-        return <Progress size='small' precision='0' percent={percent} active />; //In Progress
-    }
-
-    if (datasource) {
-        var statusText = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
-        var status = getScanStatus(datasource);
-        // var syncStatus = <Label style={{ marginLeft: "5px" }} circular color='red' key='red'>Sync Disabled</Label>;
-        // if (datasource.is_push_notifications_enabled)
-        //     syncStatus = <Label style={{ marginLeft: "5px" }} circular color='green' key='green'>Syncing</Label>;
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         if (datasource.is_dummy_datasource)
             datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
@@ -64,15 +63,16 @@ const DataSourceItem = props => {
                         </strong>
                     </Card.Meta>
                     <Card.Description>
+                        {statusCount}
+                        {progressBar}
                         {statusText}
-                        {status}
                     </Card.Description>
                 </Card.Content>
                 <Card.Content extra>
                     <div className='ui buttons'>
                         {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
                         <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
-                        {status["props"]["success"]?(<Button basic color='green' style={{marginLeft: '5px'}} onClick={() => props.handleClick()} >Go To Dashboard</Button>):null}
+                        {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={() => props.handleClick()} >Go To Dashboard</Button>) : null}
                     </div>
                 </Card.Content>
             </Card>

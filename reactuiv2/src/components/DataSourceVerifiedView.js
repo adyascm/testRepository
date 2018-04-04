@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { SET_DATASOURCES, GET_ALL_ACTIONS, USERS_PAGE_LOADED, USERS_PAGE_LOAD_START } from '../constants/actionTypes';
 import agent from '../utils/agent';
+import common from '../utils/common'
 
 const mapStateToProps = state => ({
     ...state
@@ -40,7 +41,7 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.datasources) {
                 return null;
             }
-            else if (this.props.common.datasources.length < 1) {
+            else if (this.props.common.datasources.length < 1 || common.DataSourceUtils.getScanStatus(this.props.common.datasources[0]) != 'success') {
                 return (
                     <Redirect to="/datasources" />
                 );

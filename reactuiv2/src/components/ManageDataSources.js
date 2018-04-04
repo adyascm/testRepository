@@ -106,23 +106,38 @@ class ManageDataSources extends Component {
 
   render() {
     if (!this.props.common.datasources || !this.props.common.datasources.length) {
+      var header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
+      var detail = (<Container>
+        We recommend you <a target='_blank' href='https://gsuite.google.com/marketplace/app/adya/109437140823'>install Adya from GSuite marketplace</a> to get visiblity into all documents.<br />
+        Before connecting your GSuite account, you can use a
+        <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
+        to get familiar with the features. <br /> Learn more about Adya <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
+        </Container>)
+        var buttonText = "Connect your GSuite";
+        if(this.props.currentUser.is_serviceaccount_enabled)
+        {
+          header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
+          detail = (<Container>
+            Thank you for installing Adya at your organisation. <br /> 
+            We need to do a one-time setup by scanning your GSuite account to collect necessary metadata.
+            </Container>);
+          buttonText = "Start Scan";
+        }
+        
       return (
         <Container>
           <Card.Group>
             <Card fluid>
               <Card.Content>
                 <Card.Description>
-                  <Header>Welcome  {this.props.currentUser.first_name}! Get started by connecting your GSuite account. </Header>
+                  {header}
                   <Divider />
-                  We only require read-only permission at this stage and will ask for incremental permissions when you take actions from the app.<br />
-                  Before connecting your GSuite account, you can use a
-                <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
-                  to get familiar with the features.
+                  {detail}
                 </Card.Description>
               </Card.Content>
               <Card.Content extra>
                 <div className='ui buttons'>
-                  <Button basic color='green' disabled={this.newDataSourceName !== "" ? true : false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>Connect your GSuite</Button>
+                  <Button basic color='green' disabled={this.newDataSourceName !== "" ? true : false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>{buttonText}</Button>
                 </div>
               </Card.Content>
             </Card>
