@@ -1,4 +1,4 @@
-service: adya
+service: adya-google
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -35,9 +35,6 @@ provider:
       Resource:
         "*"
 
-plugins:
-  - serverless-domain-manager
-
 custom:
   defaultStage: dev
   stages:
@@ -55,13 +52,6 @@ custom:
       httpProtocol: "https://"
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
-
-  customDomain:
-    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-    basePath: ''
-    stage: ${self:provider.stage}
-    createRoute53Record: true
-    endpointType: regional
 
 functions:
   get-googleoauthlogin:

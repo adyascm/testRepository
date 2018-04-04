@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: adya
+service: adya-common
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -48,9 +48,6 @@ provider:
       Resource:
         "*"
 
-plugins:
-  - serverless-domain-manager
-
 custom:
   defaultStage: dev
   stages:
@@ -69,12 +66,12 @@ custom:
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
 
-  customDomain:
-    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-    basePath: ''
-    stage: ${self:provider.stage}
-    createRoute53Record: true
-    endpointType: regional
+  # customDomain:
+  #   domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
+  #   basePath: ''
+  #   stage: ${self:provider.stage}
+  #   createRoute53Record: true
+  #   endpointType: regional
 
 
 # you can add packaging information here

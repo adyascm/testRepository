@@ -1,7 +1,6 @@
 import os
 from enum import Enum
 
-SERVERLESS_SERVICE_NAME = 'adya'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')

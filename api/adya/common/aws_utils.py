@@ -176,8 +176,8 @@ def invoke_lambda(function_name, auth_token, body):
         print ex
 
 
-def get_lambda_name(httpmethod, endpoint):
-    lambda_name = constants.SERVERLESS_SERVICE_NAME + "-" + \
+def get_lambda_name(httpmethod, endpoint, service_name="adya-common"):
+    lambda_name = service_name + "-" + \
         constants.DEPLOYMENT_ENV + '-' + \
         str(httpmethod) + '-' + slugify(endpoint)
     return lambda_name

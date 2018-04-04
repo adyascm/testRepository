@@ -14,7 +14,7 @@ def send_push_notification(queue_name, string_payload):
 
     session.post(url=constants.REAL_TIME_URL, json=push_message)
 
-def trigger_get_event(endpoint, auth_token, query_params):
+def trigger_get_event(endpoint, auth_token, query_params, service_name="adya-common"):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
@@ -22,11 +22,11 @@ def trigger_get_event(endpoint, auth_token, query_params):
         utils.get_call_with_authorization_header(session, endpoint, auth_token)
     else:
         body = _add_query_params_to_body({}, query_params)
-        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-get-"+ slugify(endpoint)
+        endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-get-"+ slugify(endpoint)
         print "Making a GET lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
-def trigger_post_event(endpoint, auth_token, query_params, body):
+def trigger_post_event(endpoint, auth_token, query_params, body, service_name="adya-common"):
     print "trigger_post_event "
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -36,11 +36,11 @@ def trigger_post_event(endpoint, auth_token, query_params, body):
     else:
         print "trigger_post_event : lambda "
         body = _add_query_params_to_body(body, query_params)
-        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
+        endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
         print "Making a POST lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
-def trigger_delete_event(endpoint, auth_token, query_params):
+def trigger_delete_event(endpoint, auth_token, query_params, service_name="adya-common"):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
@@ -48,7 +48,7 @@ def trigger_delete_event(endpoint, auth_token, query_params):
         utils.delete_call_with_authorization_header(session, endpoint, auth_token)
     else:
         body = _add_query_params_to_body({},query_params)
-        endpoint = constants.SERVERLESS_SERVICE_NAME + "-" + constants.DEPLOYMENT_ENV + "-delete-"+ slugify(endpoint)
+        endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-delete-"+ slugify(endpoint)
         print "Making a DELETE lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
