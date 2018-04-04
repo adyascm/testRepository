@@ -56,13 +56,6 @@ custom:
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
 
-  customDomain:
-    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-    basePath: ''
-    stage: ${self:provider.stage}
-    createRoute53Record: true
-    endpointType: regional
-
 functions:
   get-googleoauthlogin:
     handler: adya.services.lambda.auth_handler.google_oauth_request
