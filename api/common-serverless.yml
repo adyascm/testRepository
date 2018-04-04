@@ -66,12 +66,12 @@ custom:
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
 
-  customDomain:
-    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-    basePath: ''
-    stage: ${self:provider.stage}
-    createRoute53Record: true
-    endpointType: regional
+  # customDomain:
+  #   domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
+  #   basePath: ''
+  #   stage: ${self:provider.stage}
+  #   createRoute53Record: true
+  #   endpointType: regional
 
 
 # you can add packaging information here
