@@ -158,7 +158,7 @@ functions:
           method: delete
           cors: true
 
-  get-google-scan-groupmembers:
+  post-google-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.get_group_members
     events:
       - http:
