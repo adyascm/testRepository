@@ -48,9 +48,6 @@ provider:
       Resource:
         "*"
 
-plugins:
-  - serverless-domain-manager
-
 custom:
   defaultStage: dev
   stages:
