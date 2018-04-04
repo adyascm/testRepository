@@ -323,6 +323,8 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["user_id"] = user_data["id"]
         user["photo_url"] = user_data.get("thumbnailPhotoUrl")
         aliases = user_data.get("aliases")
+        user["customer_id"] = user_data.get("customerId")
+
         if aliases:
             user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.UserMemberType.INTERNAL

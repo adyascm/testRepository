@@ -36,6 +36,7 @@ SCAN_USERS_APP = '/scan/usersapp'
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/scan/processnotifications'
 HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/scan/handlechannelexpiration'
+PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/scan/directoryprocessnotifications'
 
 GET_USER_GROUP_TREE_PATH = "/getusergrouptree"
 GET_APPS = "/getappsdata"

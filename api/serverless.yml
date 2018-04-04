@@ -362,3 +362,10 @@ functions:
           method: post
           cors: true
 
+  post-scan-processdirectorynotifications:
+    handler: adya.services.lambda.scan_handler.process_directory_notification
+    events:
+      - http:
+          path: scan/directoryprocessnotifications
+          method: post
+          cors: true

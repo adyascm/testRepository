@@ -109,6 +109,7 @@ class DomainUser(Base):
     photo_url = Column(Text)
     aliases = Column(Text)
     member_type = Column(String(6))
+    customer_id = Column(String(255))
 
 
 class Resource(Base):
@@ -211,6 +212,18 @@ class PushNotificationsSubscription(Base):
     page_token = Column(String(225))
     in_progress = Column(Boolean)
     stale = Column(Boolean)
+    last_accessed = Column(DateTime)
+    expire_at = Column(DateTime)
+    resource_id = Column(String(255))
+    resource_uri = Column(String(255))
+
+
+class PushNotificationsSubscriptionForUserlist(Base):
+    __tablename__ = 'push_notifications_subscription_for_userlist'
+    directory_domain = Column(String(255))
+    datasource_id = Column(String(36), primary_key=True)
+    channel_id = Column(String(100), primary_key=True)
+    user_email = Column(String(255))
     last_accessed = Column(DateTime)
     expire_at = Column(DateTime)
     resource_id = Column(String(255))
