@@ -36,10 +36,12 @@ class SimpleNumberWidget extends Component {
         
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoaded) {
+                let data = this.props[this.props.config.id].data
+
                 return (
-                    <Card onClick={this.widgetClick} >
+                    <Card onClick={data > 0 ? this.widgetClick : null} >
                         <Card.Content>
-                            <Statistic label={this.props.config.header} value={this.props[this.props.config.id].data} />
+                            <Statistic label={this.props.config.header} value={data} />
                         </Card.Content>
                         <Card.Content extra>
                         </Card.Content>
