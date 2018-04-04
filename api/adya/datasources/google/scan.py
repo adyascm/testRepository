@@ -260,8 +260,6 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
     directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
-    session = FuturesSession()
-    last_future = None
     while True:
         try:
             results = directory_service.users().list(customer='my_customer', maxResults=500, pageToken=next_page_token,
@@ -272,16 +270,14 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             print "Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token)
             # no need to send user count to ui , so passing send_message flag as false
             update_and_get_count(datasource_id, DataSource.total_user_count, user_count, False)
-            url = constants.SCAN_DOMAIN_USERS + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id
-            last_future = utils.post_call_with_authorization_header(session,url,auth_token,data)
+            query_params = {"domainId": domain_id, "dataSourceId": datasource_id }
+            messaging.trigger_post_event(constants.SCAN_DOMAIN_USERS, auth_token, query_params, data, "adya-google")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    url = constants.SCAN_RESOURCES + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token).result()
+                    query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
+                    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -292,8 +288,6 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             print "Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
-    if last_future:
-        last_future.result()
 
 
 def processUsers(auth_token,users_data, datasource_id, domain_id):
@@ -366,8 +360,6 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
     print "Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
     directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
-    session = FuturesSession()
-    last_future = None
     while True:
         try:
             results = directory_service.groups().list(customer='my_customer', maxResults=500,
@@ -379,19 +371,14 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             update_and_get_count(datasource_id, DataSource.total_group_count, group_count, True)
             data = {"groupsResponseData": results["groups"]}
 
-            url = constants.SCAN_DOMAIN_GROUPS + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id
-            last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
+            query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
+            messaging.trigger_post_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, data, "adya-google")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-                    data = {"dataSourceId": datasource_id,
-                            "domainId": domain_id,
-                            "nextPageToken": next_page_token}
-                    url = constants.SCAN_DOMAIN_GROUPS + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&nextPageToken=" + next_page_token
-                    utils.get_call_with_authorization_header(session, url, auth_token).result()
+                    query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
+                    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -402,8 +389,6 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             print "Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
             print ex
             break
-    if last_future:
-        last_future.result()
 
 
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
@@ -433,10 +418,8 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_session.bulk_insert_mappings(models.DomainGroup, groups_db_insert_data_dic)
         db_connection().commit()
         
-        session = FuturesSession()
-        url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-                    domain_id + "&dataSourceId=" + datasource_id
-        utils.post_call_with_authorization_header(session,url,auth_token,json ={"groupKeys":group_key_array}).result()
+        query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
+        messaging.trigger_post_event(constants.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "adya-google")
         print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
