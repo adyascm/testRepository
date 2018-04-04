@@ -46,8 +46,8 @@ export default (state = defaultState, action) => {
                 usersTreePayload: undefined
             }
         case USERS_PAGE_LOADED:
-            //let usersTreePayload = !action.error?action.payload:[]
-            let keys = Object.keys(action.payload)
+            let usersTreePayload = !action.error?action.payload:[]
+            let keys = Object.keys(usersTreePayload)
             for (let index = 0; index < keys.length; index++) {
                 if (action.payload[keys[index]].name) {
                     state.hasGroups = true
@@ -57,7 +57,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                usersTreePayload: !action.error?action.payload:[],
+                usersTreePayload: usersTreePayload,
                 groupSearchPayload: undefined
             }
         case GROUP_SEARCH_PAYLOAD:
