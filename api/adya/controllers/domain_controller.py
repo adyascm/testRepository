@@ -90,8 +90,7 @@ def create_datasource(auth_token, payload):
             print "Starting the scan"
             query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
-            messaging.trigger_post_event(
-                constants.SCAN_START, auth_token, query_params, {})
+            messaging.trigger_post_event(constants.SCAN_START, auth_token, query_params, {})
             print "Received the response of start scan api"
         return datasource
     else:
@@ -173,13 +172,13 @@ def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_accoun
 
     if is_service_account_enabled == 'True' or is_admin == 'True':
         messaging.trigger_get_event(
-            constants.SCAN_DOMAIN_USERS, auth_token, query_params)
+            constants.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
         messaging.trigger_get_event(
-            constants.SCAN_DOMAIN_GROUPS, auth_token, query_params)
+            constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
     else:
         query_params["ownerEmail"] = existing_user.email
         messaging.trigger_get_event(
-            constants.SCAN_RESOURCES, auth_token, query_params)
+            constants.SCAN_RESOURCES, auth_token, query_params, "adya-google")
 
 
 def create_dummy_datasource(db_session, domain_id, datasource_id):
