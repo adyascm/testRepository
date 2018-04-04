@@ -21,8 +21,8 @@ cp -r lib/lib/python2.7/site-packages/* target/dist/adyaapp/common
 cp -r adya target/dist/adyaapp/google
 cp -r lib/lib/python2.7/site-packages/* target/dist/adyaapp/google
 
-cp common-serverless.yml target/dist/adyaapp/common/
-cp google-serverless.yml target/dist/adyaapp/google/
+cp common-serverless.yml target/dist/adyaapp/common/serverless.yml
+cp google-serverless.yml target/dist/adyaapp/google/serverless.yml
 
 cd target/dist/adyaapp/common
 
