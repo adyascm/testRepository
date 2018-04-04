@@ -35,8 +35,8 @@ provider:
       Resource:
         "*"
 
-# plugins:
-#   - serverless-domain-manager
+plugins:
+  - serverless-domain-manager
 
 custom:
   defaultStage: dev
@@ -56,12 +56,12 @@ custom:
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
 
-  # customDomain:
-  #   domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-  #   basePath: "google"
-  #   stage: ${self:provider.stage}
-  #   createRoute53Record: true
-  #   endpointType: regional
+  customDomain:
+    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
+    basePath: "google"
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    endpointType: regional
 
 functions:
   get-google-oauthlogin:

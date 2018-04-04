@@ -31,85 +31,85 @@ const requests = {
 
 const Auth = {
   current  : () =>
-        requests.get('/user'),
+        requests.get('/common/user'),
     save: user =>
-        requests.put('/user', { user })
+        requests.put('/common/user', { user })
 };
 
 const Setting = {
     getDataSources: () =>
-        requests.get('/datasources'),
+        requests.get('/common/datasources'),
     createDataSource: (dataSource) =>
-        requests.post('/datasources', dataSource),
+        requests.post('/common/datasources', dataSource),
     deleteDataSource: (dataSource) =>
-        requests.del('/datasources?datasourceId=' + dataSource.datasource_id),
+        requests.del('/common/datasources?datasourceId=' + dataSource.datasource_id),
     processNotifications: () =>
-        requests.get('/scan/processnotifications')
+        requests.get('/google/scan/processnotifications')
 };
 
 const Actions = {
   getAllActions: () =>
-    requests.get('/getallactions'),
+    requests.get('/common/getallactions'),
   initiateAction: (action_payload) =>
-    requests.post('/initiateaction', action_payload)
+    requests.post('/common/initiateaction', action_payload)
 
 }
 
 const Activity = {
     getActivitiesForUser: (user_email) =>
-        requests.get('/getactivitiesforuser?user_email=' + user_email)
+        requests.get('/common/getactivitiesforuser?user_email=' + user_email)
 }
 
 const Dashboard = {
     getWidgetData: (widgetId) =>
-        requests.get('/widgets?widgetId=' + widgetId)
+        requests.get('/common/widgets?widgetId=' + widgetId)
 }
 
 const Users = {
     getUsersTree: () =>
-        requests.get('/getusergrouptree')
+        requests.get('/common/getusergrouptree')
 }
 
 const Apps = {
-    getapps: () => requests.get('/getappsdata'),
+    getapps: () => requests.get('/common/getappsdata'),
     revokeAppAccess: (datasourceId, clientId,userEmail) =>
-        requests.del('/scan/usersapp?dataSourceId=' +datasourceId+
+        requests.del('/google/scan/usersapp?dataSourceId=' +datasourceId+
                 "&userEmail="+ userEmail + "&clientId="+clientId ),
-    getuserapps: (userEmail) => requests.get('/getappsdata?userEmail=' + userEmail),
-    getappusers: (clientId) => requests.get('/getappsdata?clientId=' + clientId),
+    getuserapps: (userEmail) => requests.get('/common/getappsdata?userEmail=' + userEmail),
+    getappusers: (clientId) => requests.get('/common/getappsdata?clientId=' + clientId),
 }
 
 const Resources = {
     getResourcesTree: (parentId) =>
-        requests.post('/getresourcetree',parentId),
+        requests.post('/common/getresourcetree',parentId),
     searchResources: (prefix) =>
-        requests.get('/getresourcetree?prefix=' + prefix)
+        requests.get('/common/getresourcetree?prefix=' + prefix)
 }
 
 const Scheduled_Report = {
    createReport: (report) =>
-     requests.post('/scheduledreport', report),
+     requests.post('/common/scheduledreport', report),
    getReports: () =>
-     requests.get('/scheduledreport'),
+     requests.get('/common/scheduledreport'),
    deleteReport: (report_id) =>
-     requests.del('/scheduledreport?reportId=' + report_id),
+     requests.del('/common/scheduledreport?reportId=' + report_id),
    getRunReportData: (report_id) =>
-     requests.get('/scheduledreport/runreport?reportId=' + report_id),
+     requests.get('/common/scheduledreport/runreport?reportId=' + report_id),
    updateReport: (report) =>
-     requests.put('/scheduledreport', report)
+     requests.put('/common/scheduledreport', report)
 
 }
 
 const AuditLog = {
     getAuditLogList: () =>
-        requests.get('/getauditlog')
+        requests.get('/common/getauditlog')
 }
 
 const Policy = {
     createPolicy: (policyInfo) =>
-        requests.post('/policies', policyInfo),
+        requests.post('/common/policies', policyInfo),
     getPolicy: () => 
-        requests.get('/policies')
+        requests.get('/common/policies')
 }
 
 
