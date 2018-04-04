@@ -40,7 +40,7 @@ function listenForCredentials (popup, resolve, reject) {
   }
 
   export default function authenticate(scope) {
-    var url = API_ROOT + "/googleoauthlogin?scope=" + scope;
+    var url = API_ROOT + "/google/oauthlogin?scope=" + scope;
     let popup = openPopup(url, "_blank");
     return listenForCredentials(popup);
   }
