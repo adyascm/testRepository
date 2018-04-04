@@ -32,7 +32,7 @@ const defaultState = {
     isActivitiesLoading: false,
     selectedUserItem: undefined,
     action: undefined,
-
+    userFilterType: 'EXT'
 }
 
 

@@ -86,18 +86,9 @@ class Users extends Component {
   })
 
   handleUserFilterChange = (event, data) => {
-    if (data.value === 'EXT')
-      this.setState({
-        showMemberType: 'EXT'
-      })
-    else if (data.value === 'ALL')
-      this.setState({
-        showMemberType: 'ALL'
-      })
-    else if (data.value === 'DOMAIN')
-      this.setState({
-        showMemberType: 'DOMAIN'
-      })
+    this.setState({
+      showMemberType: data.value
+    })
     this.props.selectUserItem('')
   }
 
@@ -124,7 +115,7 @@ class Users extends Component {
               <Dropdown
                 options={this.state.usersFilter}
                 selection
-                defaultValue='EXT'
+                defaultValue={this.state.showMemberType}
                 onChange={this.handleUserFilterChange}
               />
             </Grid.Column>
