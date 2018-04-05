@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Dropdown, Form, Input, Label } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Form, Input, Label, Icon } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
 import {
     USERS_OWNED_RESOURCES_LOAD_START,
     USERS_OWNED_RESOURCES_LOADED,
-    USERS_RESOURCE_PAGINATION_DATA
+    USERS_RESOURCE_PAGINATION_DATA,
+    USERS_RESOURCE_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 
@@ -23,7 +24,9 @@ const mapDispatchToProps = dispatch => ({
     setPaginationData: (pageNumber, pageLimit) => 
         dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit }),
     resetPaginationData: (pageNumber, pageLimit) => 
-        dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit })
+        dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit }),
+    onChangePermission: (actionType, resource, newValue) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
 });
 
 class UserOwnedResources extends Component {
@@ -33,6 +36,7 @@ class UserOwnedResources extends Component {
         this.state = {
             columnHeaders: [
                 "Resource",
+                "Email",
                 "Exposure",
                 ""
             ]
@@ -66,6 +70,10 @@ class UserOwnedResources extends Component {
         this.props.setPaginationData(this.props.pageNumber-1,this.props.pageLimit)
     }
 
+    handleEmailChange = (rowData) => {
+        this.props.onChangePermission('change_owner', rowData, undefined)
+    }
+
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             return (
@@ -91,6 +99,10 @@ class UserOwnedResources extends Component {
                             <div style={{'word-break': 'break-word'}}>
                                 <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                             </div>
+                            <Table.Cell>
+                                {rowData["resource_owner_id"]}
+                                <Icon name='pencil' onClick={() => this.handleEmailChange(rowData)} />
+                            </Table.Cell>
                             <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
                             <Table.Cell textAlign='center'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
                         </Table.Row>
