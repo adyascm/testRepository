@@ -235,3 +235,36 @@ functions:
           path: initiateaction
           method: post
           cors: true
+
+  post-common-policy:
+    handler: adya.services.lambda.policy_handler.post_policy
+      events:
+        - http:
+            path: post_policy
+            method: post
+            cors: true
+
+  get-common-policies:
+    handler: adya.services.lambda.policy_handler.get_policies
+      events:
+        - http:
+            path: getpolicies
+            method: get
+            cors: true
+
+  put-common-policy:
+    handler: adya.services.lambda.policy_handler.update_policy
+    events:
+      - http:
+          path: updatepolicy
+          method: put
+          cors: true
+
+  delete-common-policy:
+    handler: adya.services.lambda.policy_handler.delete_policy
+    events:
+      - http:
+          path: deletepolicy
+          method: delete
+          cors: true
+
