@@ -388,6 +388,11 @@ def handle_change(drive_service, datasource_id, email, file_id):
                                         "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                                         "owners,size,createdTime, modifiedTime").execute()
         print "Updated resource for change notification is - {}".format(results)
+
+        if not results['owners'] == email:
+            print "not owner of a file"
+            return
+
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
         resource = db_session.query(Resource).filter(
