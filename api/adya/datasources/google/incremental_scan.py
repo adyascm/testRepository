@@ -190,7 +190,8 @@ def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
         "id": channel_id,
         "type": "web_hook",
         "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
-        "params": {"ttl": "1800"}
+        "params": {"ttl": "1800"},
+        "token": datasource_id
     }
 
     print "subscribe userlist : body : ", body
