@@ -25,7 +25,7 @@ const defaultState = {
   currentUrl: '/login',
   token: undefined,
   currentUser: undefined,
-  appLoaded: true,
+  appLoaded: false,
   redirectTo: '/login',
   datasources: undefined,
   all_actions_list: undefined,
@@ -46,7 +46,8 @@ export default (state = defaultState, action) => {
       return { ...state, redirectTo: null };
     case LOGOUT:
       return {
-        ...defaultState
+        ...defaultState,
+        appLoaded: true,
       };
     case LOGIN_SUCCESS:
       return {
