@@ -31,8 +31,8 @@ api = Api(app)
 api.add_resource(google_oauth_request, constants.GOOGLE_OAUTH_LOGIN)
 api.add_resource(google_oauth_callback, constants.GOOGLE_OAUTHCALLBACK_PATH)
 
-api.add_resource(get_user_session, '/user')
-api.add_resource(reports_handler.DashboardWidget, '/widgets')
+api.add_resource(get_user_session, '/common/user')
+api.add_resource(reports_handler.DashboardWidget, '/common/widgets')
 ## routes for scan user data for getting file meta data for each user and get user and group
 ## meta data for a domain
 api.add_resource(scanhandler.DriveScan, constants.SCAN_START)

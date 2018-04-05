@@ -58,27 +58,27 @@ custom:
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
-    basePath: ''
+    basePath: "google"
     stage: ${self:provider.stage}
     createRoute53Record: true
     endpointType: regional
 
 functions:
-  get-googleoauthlogin:
+  get-google-oauthlogin:
     handler: adya.services.lambda.auth_handler.google_oauth_request
     events:
       - http:
-          path: googleoauthlogin
+          path: oauthlogin
           method: get
 
-  get-googleoauthcallback:
+  get-google-oauthcallback:
     handler: adya.services.lambda.auth_handler.google_oauth_callback
     events:
       - http:
-          path: googleoauthcallback
+          path: oauthcallback
           method: get
 
-  post-scan-start:
+  post-google-scan-start:
     handler: adya.services.lambda.scan_handler.start_scan
     events:
       - http:
@@ -86,7 +86,7 @@ functions:
           method: post
           cors: true
 
-  get-scan-resources:
+  get-google-scan-resources:
     handler: adya.services.lambda.scan_handler.get_drive_resources
     events:
       - http:
@@ -94,7 +94,7 @@ functions:
           method: get
           cors: true
 
-  post-scan-resources:
+  post-google-scan-resources:
     handler: adya.services.lambda.scan_handler.process_drive_resources
     events:
       - http:
@@ -102,7 +102,7 @@ functions:
           method: post
           cors: true
 
-  post-scan-permisssions:
+  post-google-scan-permisssions:
     handler: adya.services.lambda.scan_handler.process_resource_permissions
     events:
       - http:
@@ -110,7 +110,7 @@ functions:
           method: post
           cors: true
 
-  get-scan-domainusers:
+  get-google-scan-domainusers:
     handler: adya.services.lambda.scan_handler.get_domain_users
     events:
       - http:
@@ -118,7 +118,7 @@ functions:
           method: get
           cors: true
 
-  post-scan-domainusers:
+  post-google-scan-domainusers:
     handler: adya.services.lambda.scan_handler.process_domain_users
     events:
       - http:
@@ -126,7 +126,7 @@ functions:
           method: post
           cors: true
 
-  get-scan-domaingroups:
+  get-google-scan-domaingroups:
     handler: adya.services.lambda.scan_handler.get_domain_groups
     events:
       - http:
@@ -134,7 +134,7 @@ functions:
           method: get
           cors: true
 
-  post-scan-domaingroups:
+  post-google-scan-domaingroups:
     handler: adya.services.lambda.scan_handler.process_domain_groups
     events:
       - http:
@@ -142,7 +142,7 @@ functions:
           method: post
           cors: true
 
-  post-scan-usersapp:
+  post-google-scan-usersapp:
     handler: adya.services.lambda.scan_handler.get_user_app
     events:
       - http:
@@ -150,7 +150,7 @@ functions:
           method: post
           cors: true
 
-  delete-scan-usersapp:
+  delete-google-scan-usersapp:
     handler: adya.services.lambda.scan_handler.revoke_user_app_access
     events:
       - http:
@@ -158,7 +158,7 @@ functions:
           method: delete
           cors: true
 
-  get-scan-groupmembers:
+  post-google-scan-groupmembers:
     handler: adya.services.lambda.scan_handler.get_group_members
     events:
       - http:
@@ -166,7 +166,7 @@ functions:
           method: post
           cors: true
 
-  get-scan-handlechannelexpiration:
+  get-google-scan-handlechannelexpiration:
     handler: adya.services.lambda.scan_handler.handle_channel_expiration
     events:
       - http:
@@ -174,7 +174,7 @@ functions:
           method: get
           cors: true
 
-  post-scan-processnotifications:
+  post-google-scan-processnotifications:
     handler: adya.services.lambda.scan_handler.process_gdrive_notifications
     events:
       - http:
@@ -182,7 +182,7 @@ functions:
           method: post
           cors: true
 
-  post-scan-subscribenotifications:
+  post-google-scan-subscribenotifications:
     handler: adya.services.lambda.scan_handler.subscribe_gdrive_notifications
     events:
       - http:
@@ -190,7 +190,7 @@ functions:
           method: post
           cors: true
 
-  post-scan-processdirectorynotifications:
+  post-google-scan-processdirectorynotifications:
     handler: adya.services.lambda.scan_handler.process_directory_notification
     events:
       - http:
