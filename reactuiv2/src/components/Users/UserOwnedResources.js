@@ -101,7 +101,7 @@ class UserOwnedResources extends Component {
                             </div>
                             <Table.Cell>
                                 {rowData["resource_owner_id"]}
-                                <Icon name='pencil' onClick={() => this.handleEmailChange(rowData)} />
+                                <Icon name='pencil' style={{'cursor': 'pointer'}} onClick={() => this.handleEmailChange(rowData)} />
                             </Table.Cell>
                             <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
                             <Table.Cell textAlign='center'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
