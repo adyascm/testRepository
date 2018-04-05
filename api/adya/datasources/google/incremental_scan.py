@@ -389,7 +389,7 @@ def handle_change(drive_service, datasource_id, email, file_id):
                                         "owners,size,createdTime, modifiedTime").execute()
         print "Updated resource for change notification is - {}".format(results)
 
-        if not results['owners'] == email:
+        if not results['owners'][0]['emailAddress'] == email:
             print "not owner of a file"
             return
 
