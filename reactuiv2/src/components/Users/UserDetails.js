@@ -49,7 +49,7 @@ const UserDetails = props => {
         let parentKey = props.selectedUserItem.parents[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>
-                {props.usersTreePayload[parentKey] && props.usersTreePayload[parentKey].name}
+                {props.usersTreePayload && props.usersTreePayload[parentKey] && props.usersTreePayload[parentKey].name}
                 <Icon name='close' onClick= {() => props.onUserGroupAction('remove_user_from_group', parentKey)}/>
             </Label>
         ))

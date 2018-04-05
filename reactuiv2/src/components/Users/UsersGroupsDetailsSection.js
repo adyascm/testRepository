@@ -35,6 +35,11 @@ class UsersGroupsDetailsSection extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            isLoading: false,
+            deleteApp: undefined
+        }
+
         this.exposureFilterOptions = [
             {
                 text: 'Externally Shared',
@@ -83,8 +88,16 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,app,userEmail) {
+        this.setState({
+            isLoading: true,
+            deleteApp: app["display_text"]
+        })
         agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
             app=undefined;
+            this.setState({
+                isLoading: false,
+                deleteApp: undefined
+            })
         })
     }
 
@@ -123,13 +136,14 @@ class UsersGroupsDetailsSection extends Component {
         if (!this.props.selectedUserItem)
             return null;
         else {
+            let userName = this.props.selectedUserItem['first_name']
             let panes = [
-                { menuItem: 'Has Ownership', render: () => <Tab.Pane attached={false}>{ownedResourceLayout}</Tab.Pane> }
+                { menuItem: userName + '\'s documents', render: () => <Tab.Pane attached={false}>{ownedResourceLayout}</Tab.Pane> }
             ]
             let extraPanes = [
-                { menuItem: 'Has Access', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
+                { menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
                 { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> },
-                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} /></Tab.Pane> }
+                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> }
             ]
 
             if (this.props.selectedUserItem["member_type"] !== 'EXT')
