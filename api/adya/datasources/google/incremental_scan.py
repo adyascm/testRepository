@@ -181,7 +181,8 @@ def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
     domain_name = None
     # get domain
     directory_domain = directory_service.domains().list(customer=admin_customer_id).execute()
-    if directory_domain['isPrimary']:
+    print "directory_domain ", directory_domain
+    if directory_domain['domains'][0]['isPrimary']:
         domain_name = directory_domain['domains'][0]['domainName']
 
     channel_id = str(uuid.uuid4())
