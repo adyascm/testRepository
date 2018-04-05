@@ -7,14 +7,23 @@ from adya.common import constants, messaging
 from adya.controllers import domain_controller, common
 from adya.datasources.google import scan
 from adya.db.connection import db_connection
-from adya.db.models import Policy, LoginUser, PolicyCondition, PolicyAction
+from adya.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
 
 
 def get_policies(auth_token):
     db_session = db_connection().get_session()
     existing_user = common.get_user_session(auth_token, db_session=db_session)
-    # TODO: add the logged in user's datasources filter
-    return db_session.query(Policy).all()
+    user_domain_id = existing_user.domain_id
+    is_admin = existing_user.is_admin
+    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+
+    if is_service_account_is_enabled and is_admin:
+        # get all policies for particular datasource
+        policies = db_session.query(Policy).filter(and_(DataSource.domain_id == user_domain_id,
+                                                        Policy.datasource_id == DataSource.datasource_id)).all()
+        return policies
+
+    return None
 
 
 def create_policy(auth_token, payload):
