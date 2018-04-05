@@ -29,6 +29,22 @@ def get_policies(auth_token):
     return policies
 
 
+def delete_policy(policy_id):
+    db_session = db_connection().get_session()
+    existing_policy = db_session.query(Policy).filter(Policy.policy_id == policy_id).first()
+    if existing_policy:
+        db_session.query(PolicyAction).filter(PolicyAction.policy_id == policy_id).delete()
+        db_session.query(PolicyCondition).filter(PolicyCondition.policy_id == policy_id).delete()
+
+        db_session.delete(existing_policy)
+    try:
+        db_connection().commit()
+    except:
+        print "Exception occured while deleting a policy"
+
+    return existing_policy
+
+
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
     if payload:
@@ -155,7 +171,6 @@ def validate_permission_change_for_resource_exposure(db_session, domain_id, data
     return response
 
 
-
 def validate_permission_change_for_permission_email(match_condition, match_value, resource_permissions):
     print "match type is permission email"
     perm_list = []
@@ -183,3 +198,4 @@ def match_condition_with_match_value(match_condition, match_value, param):
         return True
     else:
         return False
+
