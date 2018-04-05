@@ -61,6 +61,7 @@ class Reports extends Component {
   }
 
   componentWillMount(){
+    window.scrollTo(0, 0)
     this.props.loadingReports()
     this.props.setreports(agent.Scheduled_Report.getReports())
     this.setState({

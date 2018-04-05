@@ -36,6 +36,7 @@ class AuditLogTable extends Component {
     }
 
     componentWillMount() {
+        window.scrollTo(0, 0)
         this.props.onLoadStart()
         this.props.onLoad(agent.AuditLog.getAuditLogList())
     }    

@@ -68,6 +68,10 @@ class Users extends Component {
     });
   }
 
+  componentWillMount() {
+    window.scrollTo(0, 0)
+  }
+
   componentWillReceiveProps(nextProps) {
     if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT')  && this.state.showMemberType === 'EXT')
       this.setState({
@@ -92,6 +96,7 @@ class Users extends Component {
     })
     this.props.selectUserItem('')
   }
+
 
   render() {
     let containerStyle = {

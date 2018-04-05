@@ -47,7 +47,8 @@ class Apps extends Component {
     }
   }
 
-  componentWillMount(){    
+  componentWillMount(){
+    window.scrollTo(0, 0)
     this.props.onLoadStart();
     this.props.onLoad(agent.Apps.getapps());
   }
