@@ -29,6 +29,15 @@ class Policy(Resource):
         policy_obj = policy_controller.delete_policy(req_session.get_req_param('policyId'))
         return req_session.generate_sqlalchemy_response(201, policy_obj)
 
+    def put(self):
+         req_session = RequestSession(request)
+         req_error = req_session.validate_authorized_request(True, ['policyId'])
+         if req_error:
+             return req_error
+         policy_obj = policy_controller.update_policy(req_session.get_auth_token(), req_session.get_req_param('policyId'),
+                                                      req_session.get_body())
+         return req_session.generate_sqlalchemy_response(201, policy_obj)
+
 
 class PolicyValidator(Resource):
     def post(self):

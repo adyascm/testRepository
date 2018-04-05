@@ -44,7 +44,6 @@ def delete_policy(policy_id):
 
     return existing_policy
 
-
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
     if payload:
@@ -85,6 +84,15 @@ def create_policy(auth_token, payload):
 
     return None
 
+
+def update_policy(auth_token, policy_id, payload):
+    delete_response = delete_policy(policy_id)
+    if delete_response:
+        policy = create_policy(auth_token, payload)
+        return policy
+    else:
+        return None
+    
 
 def validate(auth_token, datasource_id, resource_id, domain_id, payload):
     db_session = db_connection().get_session()
