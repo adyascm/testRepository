@@ -6,7 +6,8 @@ import { connect } from 'react-redux';
 import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APP_USERS_LOADED,
+    UPDATE_APPS_DELETE_FLAG
 } from '../../constants/actionTypes';
 import { Loader, Dimmer } from 'semantic-ui-react'
 
@@ -19,7 +20,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({type:APPS_ITEM_SELECTED,payload}),
     appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
-    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
+    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload}),
+    setAppsDeleteFlag: (payload) => dispatch({ type: UPDATE_APPS_DELETE_FLAG, payload })
 })
 
 class AppDetailsSection extends Component {
@@ -49,6 +51,7 @@ class AppDetailsSection extends Component {
                 isLoading: false,
                 deleteUser: undefined
             })
+            this.props.setAppsDeleteFlag(true)
         })
     }
 
@@ -59,17 +62,14 @@ class AppDetailsSection extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.appDeleted !== this.props.appDeleted) {
+            nextProps.appUsersLoadStart()
+            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+        }
+    }
+
     render() {
-        // var appLayout = (
-        //     <Container stretched>
-        //         <Grid stretched>
-        //             <Grid.Row stretched style={{marginLeft: '5px'}}>
-
-        //             </Grid.Row>
-        //         </Grid>
-        //     </Container>
-        // )
-
         if (!this.props.selectedAppItem)
             return null;
         else {
@@ -117,7 +117,7 @@ class AppDetailsSection extends Component {
             return (
                 <Segment>
                         <Icon name='close' onClick={this.closeDetailsSection} />
-                        <AppDetails selectedAppItem={this.props.selectedAppItem} appUsers={this.props.appUsers} handleChange={this.handleChange} />
+                        <AppDetails selectedAppItem={this.props.selectedAppItem} appUsers={this.props.appUsers} />
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 </Segment>
             )

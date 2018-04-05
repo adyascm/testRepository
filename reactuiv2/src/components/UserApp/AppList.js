@@ -36,13 +36,6 @@ class AppList extends Component {
         this.props.appUsersLoadStart()
         this.props.appUsersLoaded(agent.Apps.getappusers(param.app.client_id))
     }
-    
-    componentWillReceiveProps(nextProps) {
-        this.setState({
-            apps: undefined,
-            scopeExposure: nextProps.scopeExposure
-        })
-    }
 
     render() {
         var appCards =[]
@@ -54,26 +47,9 @@ class AppList extends Component {
             else 
                 searchData = this.props.appPayLoad
 
-            let allapps = []
-            if (this.state.scopeExposure === 0)
+            for(let appkey in searchData)
             {
-                //allapps =this.props.appPayLoad
-                allapps = searchData
-            }
-            else
-            {
-                for(let appkey in searchData)
-                {
-                    let app = searchData[appkey]
-                    if (this.state.scopeExposure === 2 && !app.is_readonly_scope)
-                        allapps.push(app)
-                    else if (this.state.scopeExposure === 1 && app.is_readonly_scope)
-                        allapps.push(app)
-                }
-            }
-            for(let appkey in allapps)
-            {
-                var app = allapps[appkey]
+                var app = searchData[appkey]
                 var appName = app.display_text;
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 var color = app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow')

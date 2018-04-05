@@ -8,6 +8,7 @@ import {
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
     SET_REDIRECT_PROPS,
+    UPDATE_APPS_DELETE_FLAG,
     LOGOUT
 } from '../constants/actionTypes';
 
@@ -17,7 +18,8 @@ const defaultState = {
     appUsers: undefined,
     isLoading: false,
     appDetailsViewActive: false,
-    selectedAppItem: undefined
+    selectedAppItem: undefined,
+    appDeleted: false
   };
   
 export default (state = defaultState, action) => {
@@ -28,18 +30,25 @@ export default (state = defaultState, action) => {
                 isLoading: true
             }
         case APPS_PAGE_LOADED:
-            //let appPayLoad = !action.error?action.payload:[]
+            let appPayLoad = !action.error?action.payload:[]
             return {
                 ...state,
                 isLoading: false,
-                appPayLoad: !action.error?action.payload:[],
-                appsSearchPayload: undefined
+                appPayLoad: appPayLoad,
+                appsSearchPayload: undefined,
+                appDeleted: false
             }
         case APPS_ITEM_SELECTED:
+            console.log("selected app : ", action.payload)
             return {
                 ...state,
                 selectedAppItem: action.payload,
                 appDetailsViewActive: true
+            }
+        case UPDATE_APPS_DELETE_FLAG:
+            return {
+                ...state,
+                appDeleted: action.payload
             }
         case USER_APPS_LOAD_START:
         return {
@@ -58,6 +67,8 @@ export default (state = defaultState, action) => {
             isLoading: true,
         }
         case APP_USERS_LOADED:
+            if (action.payload.length === 0)
+                state.selectedAppItem = undefined
             return {
                 ...state,
                 isLoading:false,
