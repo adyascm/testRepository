@@ -18,12 +18,15 @@ def get_policies(auth_token):
     is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
 
     if is_service_account_is_enabled and is_admin:
-        # get all policies for particular datasource
         policies = db_session.query(Policy).filter(and_(DataSource.domain_id == user_domain_id,
                                                         Policy.datasource_id == DataSource.datasource_id)).all()
-        return policies
 
-    return None
+    else:
+        policies = db_session.query(Policy).filter(and_(DataSource.domain_id == user_domain_id,
+                                                        Policy.datasource_id == DataSource.datasource_id,
+                                                        Policy.created_by == existing_user.email)).all()
+
+    return policies
 
 
 def create_policy(auth_token, payload):
@@ -37,6 +40,7 @@ def create_policy(auth_token, payload):
         policy.name = payload["name"]
         policy.description = payload["description"]
         policy.trigger_type = payload["trigger_type"]
+        policy.created_by = payload["created_by"]
         db_session.add(policy)
 
         # inserting data into policy conditions table
