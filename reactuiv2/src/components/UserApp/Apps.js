@@ -22,7 +22,10 @@ const mapStateToProps = state => ({
   appsSearchPayload: state.apps.appsSearchPayload,
   appsPayload: state.apps.appPayLoad,
   redirectTo: state.dashboard.redirectTo,
-  redirectFilter: state.dashboard.filterType
+  redirectFilter: state.dashboard.filterType,
+  appDeleted: state.apps.appDeleted,
+  isLoading: state.apps.isLoading,
+  selectedAppItem: state.apps.selectedAppItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -36,23 +39,15 @@ const mapDispatchToProps = dispatch => ({
     dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
 });
 
-// Here scopeExposure is 0 for all, 1 for readonly, 2 for fullyscope
 class Apps extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        scopeExposure: this.props.scopeExposure?this.state.scopeExposure:0,
         appsEmpty: false
     }
-    this.onCheckBoxChecked = this.onCheckBoxChecked.bind(this)
   }
 
-  componentWillMount(){
-    // if (this.props.redirectTo && this.props.redirectTo.includes("apps"))
-    //   this.setState({
-    //     scopeExposure: 0
-    //   })
-    
+  componentWillMount(){    
     this.props.onLoadStart();
     this.props.onLoad(agent.Apps.getapps());
   }
@@ -64,10 +59,11 @@ class Apps extends Component {
         appsEmpty: true
       })
     }
+    if (nextProps.appDeleted !== this.props.appDeleted) {
+      nextProps.onLoadStart()
+      nextProps.onLoad(agent.Apps.getapps())
+    }
   }
-  
-
-  onCheckBoxChecked = (e, { value }) => this.setState({ scopeExposure:value })
   
   render() {
     //const { contextRef } = this.state
@@ -82,7 +78,7 @@ class Apps extends Component {
       gridWidth = 4;
     }
 
-    if (this.props.isLoading) {
+    if (this.props.isLoading && !this.props.selectedAppItem) {
       return (
         <Container style={containerStyle}>
           <Dimmer active inverted>
@@ -92,9 +88,9 @@ class Apps extends Component {
       )
     }
     else {
-      var appList = (<AppList scopeExposure={this.state.scopeExposure} />)
+      var appList = (<AppList />)
       var appDetails = this.props.apps.selectedAppItem ? (<Grid.Column width={16 - gridWidth}>
-                                                              <AppDetailsSection  applications ={[]} />
+                                                              <AppDetailsSection />
                                                           </Grid.Column>) : ""
       return (
         <Container style={containerStyle}>
