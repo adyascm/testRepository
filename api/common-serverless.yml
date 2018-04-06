@@ -248,19 +248,19 @@ functions:
 
   post-common-policy:
     handler: adya.services.lambda.policy_handler.post_policy
-      events:
-        - http:
-            path: policies
-            method: post
-            cors: true
+    events:
+      - http:
+          path: policies
+          method: post
+          cors: true
 
   get-common-policies:
     handler: adya.services.lambda.policy_handler.get_policies
-      events:
-        - http:
-            path: policies
-            method: get
-            cors: true
+    events:
+      - http:
+          path: policies
+          method: get
+          cors: true
 
   put-common-policy:
     handler: adya.services.lambda.policy_handler.update_policy
