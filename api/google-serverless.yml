@@ -32,8 +32,17 @@ provider:
         - "events:*"
         - "iam:PassRole"
         - "ses:SendRawEmail"
+        - "ec2:CreateNetworkInterface"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DeleteNetworkInterface"
       Resource:
         "*"
+  vpc: 
+    securityGroupIds:
+      - sg-5d5eae14
+    subnetIds:
+      - subnet-9ec7c9c3
+      - subnet-0041265d       
 
 plugins:
   - serverless-domain-manager

@@ -18,7 +18,7 @@ def get_user(email, db_session=None):
     user = db_session.query(LoginUser).filter(LoginUser.email == email).first()
     return user
 
-def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled,scope_name):
+def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled,scope_name, token):
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow()
     auth_token = str(uuid.uuid4())
@@ -34,6 +34,7 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_servi
     login_user.creation_time = creation_time
     login_user.last_login_time = creation_time
     login_user.authorize_scope_name = scope_name
+    login_user.token = token
     db_session.add(login_user)
     db_connection().commit()
 

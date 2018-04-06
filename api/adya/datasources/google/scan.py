@@ -1,4 +1,6 @@
 from __future__ import division  # necessary
+
+from adya.common.response_messages import Logger
 from adya.controllers.domain_controller import update_datasource, get_datasource
 from adya.datasources.google import gutils, incremental_scan
 from adya.common import constants
@@ -12,17 +14,15 @@ from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,Doma
 from adya.common import utils, messaging
 #from adya.realtimeframework.ortc_conn import RealtimeConnection
 from adya.email_templates import adya_emails
-import logging
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_token=None,user_email=None):
     # here nextPageToken as none means it is first call for resource
     # useremail None means servie account is not verified and we are scaning data for loggedin user only
-    print "Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
+    Logger().info("Initiating fetching data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token))
     try:
         drive_service = gutils.get_gdrive_service(auth_token, user_email)
         starttime = time.time()
@@ -32,8 +32,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
         quotaUser = owner_email[0:41]
         queryString = "'"+ owner_email +"' in owners and trashed=false"
 
-        logger.info('got quertyString{}'.format(queryString))
-        print queryString
+        Logger().info('got quertyString{}'.format(queryString))
         while True:
             results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
                             "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
@@ -42,8 +41,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                             "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
             file_count = len(results['files'])
             
-            print "Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token)
-            logger.info("Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token))
+            Logger().info("Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token))
 
             update_and_get_count(datasource_id, DataSource.total_file_count, file_count, True)
 
@@ -69,17 +67,14 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                 break
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
-        print "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".format(user_email, next_page_token)
-        print ex
-        logger.exception("Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
+        Logger().exception("Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
                          format(user_email, next_page_token))
 
 
 ## processing resource data for fileIds
 def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is_new_resource=1, notify_app=0):
     try:
-        print "Initiating processing of drive resources for files using email: {}".format(user_email)
-        logger.info( "Initiating processing of drive resources for files using email: {}".format(user_email))
+        Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
         resources = resourcedata["resources"]
         resourceList = []
         session = FuturesSession()
@@ -186,13 +181,10 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
             messaging.send_push_notification("adya-"+datasource_id, 
                 json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
 
-        print "Processed drive resources for {} files using email: {}".format(resource_count, user_email)
-        logger.info("Processed drive resources for {} files using email: {}".format(resource_count, user_email))
+        Logger().info("Processed drive resources for {} files using email: {}".format(resource_count, user_email))
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
-        print "Exception occurred while processing data for drive resources using email: {}".format(user_email)
-        print ex
-        logger.exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
+        Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
 
 
 def get_resource_exposure_type(db_session, domain_id, email_address, display_name, resource_exposure_type):
@@ -227,8 +219,7 @@ def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list,
 
 
 def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
-    print ("Started getting parents data", user_email)
-    logger.info("Started getting parents data", user_email)
+    Logger().info("Started getting parents data", user_email)
     db_session = db_connection().get_session()
     useremail_resources_map = {}
     if user_email:
@@ -268,8 +259,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         last_result.result()
 
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
-    print "Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-    logger.info("Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
+    Logger().info("Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
     directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
     while True:
@@ -279,8 +269,7 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
 
             data = {"usersResponseData": results["users"]}
             user_count = len(results["users"])
-            print "Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token)
-            logger.info("Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token))
+            Logger().info("Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token))
             # no need to send user count to ui , so passing send_message flag as false
             update_and_get_count(datasource_id, DataSource.total_user_count, user_count, False)
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id }
@@ -298,15 +287,12 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
                 break
         except Exception as ex:
             update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
-            print "Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-            print ex
-            logger.exception("Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
+            Logger().exception("Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
             break
 
 
 def processUsers(auth_token,users_data, datasource_id, domain_id):
-    print "Initiating processing of google directory users for domain_id: {}".format(domain_id)
-    logger.info("Initiating processing of google directory users for domain_id: {}".format(domain_id))
+    Logger().info("Initiating processing of google directory users for domain_id: {}".format(domain_id))
 
     user_db_insert_data_dic = []
     db_session = db_connection().get_session()
@@ -344,14 +330,11 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         db_connection().commit()
         update_and_get_count(datasource_id, DataSource.processed_user_count, user_count, True)
 
-        print "Processed {} google directory users for domain_id: {}".format(user_count, domain_id)
-        logger.info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
+        Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
 
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
-        print "Exception occurred while processing google directory users for domain_id: {}".format(domain_id)
-        print ex
-        logger.exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
+        Logger().exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
 
     lastresult =None
 
@@ -359,16 +342,14 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     if not datasource.is_serviceaccount_enabled:
         resource_usersList = [logged_in_user.email]
 
-    print "Google service account is enabled, starting to fetch files for each processed user"
-    logger.info("Google service account is enabled, starting to fetch files for each processed user")
+    Logger().info("Google service account is enabled, starting to fetch files for each processed user")
     for user_email in resource_usersList:
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
         messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params, "adya-google")
 
     #Scan apps only for service account
     if datasource.is_serviceaccount_enabled:
-        print "Getting all users app and its scope"
-        logger.info("Getting all users app and its scope")
+        Logger().info("Getting all users app and its scope")
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
         userEmailList = {}
         userEmailList["userEmailList"] = user_email_list
@@ -376,8 +357,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
-    print "Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-    logger.info("Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
+    Logger().info("Initiating fetching of google directory groups using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
     directory_service = gutils.get_directory_service(auth_token)
     starttime = time.time()
     while True:
@@ -386,8 +366,7 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                                                       pageToken=next_page_token).execute()
 
             group_count = len(results["groups"])
-            print "Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token)
-            logger.info("Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token))
+            Logger().info("Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token))
             
             update_and_get_count(datasource_id, DataSource.total_group_count, group_count, True)
             data = {"groupsResponseData": results["groups"]}
@@ -407,14 +386,12 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                 break
         except Exception as ex:
             update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
-            print "Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token)
-            print ex
-            logger.exception("Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
+            Logger().exception("Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
             break
 
 
 def processGroups(groups_data, datasource_id, domain_id, auth_token):
-    print "Initiating processing of google directory groups for domain_id: {}".format(domain_id)
+    Logger().info("Initiating processing of google directory groups for domain_id: {}".format(domain_id))
     groups_db_insert_data_dic = []
 
     group_count = 0
@@ -442,13 +419,10 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         
         query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
         messaging.trigger_post_event(constants.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "adya-google")
-        print "Processed {} google directory groups for domain_id: {}".format(group_count, domain_id)
-        logger.info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
+        Logger().info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
-        print "Exception occurred while processing google directory groups for domain_id: {}".format(domain_id)
-        print ex
-        logger.exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
+        Logger().exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
 
 
 # def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token):
@@ -513,9 +487,7 @@ class GroupData():
         
         if exception :
             update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
-            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key)
-            print exception
-            logger.exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
+            Logger().exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
             return
         
         try:
@@ -551,9 +523,7 @@ class GroupData():
                 
         except Exception as ex:
             update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
-            print "Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key)
-            print ex
-            logger.exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
+            Logger().exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
             return
 
     def get_group_members(self):
@@ -571,9 +541,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
     try:
         rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
     except Exception as ex:
-        print "Exception occurred while updating the scan status for the datasource."
-        print ex
-        logger.exception("Exception occurred while updating the scan status for the datasource.")
+        Logger().exception("Exception occurred while updating the scan status for the datasource.")
     if rows_updated == 1:
         datasource = get_datasource(None, datasource_id,db_session)
         if send_message:
@@ -585,8 +553,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
 
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
-                print "Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id)
-                logger.info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
+                Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
                 messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
                                              query_params, {}, "adya-google")
 
@@ -613,8 +580,7 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
                                             models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
         db_connection().commit()
     except Exception as ex:
-        print ex
-        logger.exception(ex)
+        Logger().exception(ex)
 
 def get_all_user_app(auth_token,domain_id,datasource_id,user_email_list):
 

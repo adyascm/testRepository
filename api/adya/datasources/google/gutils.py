@@ -39,18 +39,20 @@ def get_credentials(auth_token, user_email=None, db_session = None):
     is_serviceaccount_enabled = True if auth_token is None else False
     email = user_email
     refresh_token = None
+    token = None
 
     if auth_token:
         user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
         is_serviceaccount_enabled = user.is_serviceaccount_enabled
         refresh_token = user.refresh_token
+        token = user.token
         email = user_email if user_email else user.email
 
     credentials = None
     if is_serviceaccount_enabled:
         credentials = get_delegated_credentials(email)
     else:
-        credentials = Credentials(None, refresh_token=refresh_token,
+        credentials = Credentials(token, refresh_token=refresh_token,
                                   token_uri=GOOGLE_TOKEN_URI,
                                   client_id=CLIENT_ID,
                                   client_secret=CLIENT_SECRET)

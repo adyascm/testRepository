@@ -60,7 +60,7 @@ def oauth_callback(oauth_code, scopes,state, error):
         return redirect_url
 
     refresh_token = credentials.refresh_token
-
+    token = credentials.token
 
     service = get_oauth_service(credentials)
     profile_info = service.userinfo().get().execute()
@@ -81,10 +81,11 @@ def oauth_callback(oauth_code, scopes,state, error):
             domain = domain_controller.create_domain(db_session, domain_id, domain_id)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
-                                                     is_serviceaccount_enabled,scope_name)
+                                                     is_serviceaccount_enabled,scope_name, token)
         elif refresh_token:
             login_user.refresh_token = refresh_token
             login_user.authorize_scope_name = scope_name
+            login_user.token = token
 
         #Update the last login time always
         login_user.last_login_time = datetime.datetime.utcnow()
@@ -95,13 +96,13 @@ def oauth_callback(oauth_code, scopes,state, error):
             data_source = domain_controller.get_datasource(None, existing_domain_user.datasource_id, db_session)
             login_user = auth_controller.create_user(login_email, existing_domain_user.first_name,
                                                      existing_domain_user.last_name, domain_id,
-                                                     refresh_token, data_source.is_serviceaccount_enabled,scope_name)
+                                                     refresh_token, data_source.is_serviceaccount_enabled,scope_name, token)
         else:
 
             domain = domain_controller.create_domain(db_session, domain_id, domain_id)
             login_user = auth_controller.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
-                                                     is_serviceaccount_enabled,scope_name)
+                                                     is_serviceaccount_enabled,scope_name, token)
 
     redirect_url = constants.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
     return redirect_url

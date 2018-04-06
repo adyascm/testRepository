@@ -45,8 +45,17 @@ provider:
         - "events:*"
         - "iam:PassRole"
         - "ses:SendRawEmail"
+        - "ec2:CreateNetworkInterface"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DeleteNetworkInterface"
       Resource:
         "*"
+  vpc: 
+    securityGroupIds:
+      - sg-5d5eae14
+    subnetIds:
+      - subnet-9ec7c9c3
+      - subnet-0041265d    
 
 plugins:
   - serverless-domain-manager
@@ -238,19 +247,19 @@ functions:
 
   post-common-policy:
     handler: adya.services.lambda.policy_handler.post_policy
-      events:
-        - http:
-            path: policies
-            method: post
-            cors: true
+    events:
+      - http:
+          path: policies
+          method: post
+          cors: true
 
   get-common-policies:
     handler: adya.services.lambda.policy_handler.get_policies
-      events:
-        - http:
-            path: policies
-            method: get
-            cors: true
+    events:
+      - http:
+          path: policies
+          method: get
+          cors: true
 
   put-common-policy:
     handler: adya.services.lambda.policy_handler.update_policy
