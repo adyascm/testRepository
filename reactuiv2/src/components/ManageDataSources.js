@@ -93,6 +93,7 @@ class ManageDataSources extends Component {
   }
 
   componentWillMount() {
+    window.scrollTo(0, 0)
     if (!this.props.common.datasources)
       this.props.setDataSources(agent.Setting.getDataSources());
     this.newDataSourceName = "";
