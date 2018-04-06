@@ -7,6 +7,7 @@ import time
 import os
 
 from adya.common import constants, utils
+from adya.common.response_messages import Logger
 from adya.db.connection import db_connection
 from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup,\
     DomainUser, ResourcePermission, Resource, get_table,\
@@ -145,7 +146,9 @@ def delete_datasource(auth_token, datasource_id):
             gutils.revoke_appaccess(
                 auth_token, user_email=None, db_session=db_session)
         except Exception as ex:
-            print "Exception occurred while revoking the app access - " + ex.message
+            Logger().exception("Exception occurred while revoking the app access - {} ".format(ex.message))
+
+
 
 
 def create_domain(db_session, domain_id, domain_name):
