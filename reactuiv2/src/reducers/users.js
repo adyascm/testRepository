@@ -33,7 +33,8 @@ const defaultState = {
     selectedUserItem: undefined,
     action: undefined,
     userFilterType: 'EXT',
-    hasGroups: false
+    hasGroups: false,
+    filterExposureType: 'EXT'
 }
 
 

@@ -97,14 +97,14 @@ class UserOwnedResources extends Component {
                     return (
                         <Table.Row>
                             <div style={{'word-break': 'break-word'}}>
-                                <Table.Cell>{rowData["resource_name"]}</Table.Cell>
+                                <Table.Cell width="6">{rowData["resource_name"]}</Table.Cell>
                             </div>
-                            <Table.Cell>
+                            <Table.Cell width="6">
                                 {rowData["resource_owner_id"]}
                                 <Icon name='pencil' style={{'cursor': 'pointer'}} onClick={() => this.handleEmailChange(rowData)} />
                             </Table.Cell>
-                            <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
-                            <Table.Cell textAlign='center'><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
+                            <Table.Cell width="2">{rowData["exposure_type"]}</Table.Cell>
+                            <Table.Cell textAlign='center' width="2"><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
                         </Table.Row>
                     )
                 return null
@@ -123,7 +123,7 @@ class UserOwnedResources extends Component {
             return (
                 <div>
                     <div>
-                        <Table celled fixed selectable striped>
+                        <Table celled selectable striped>
                             <Table.Header>
                                 <Table.Row>
                                     {tableHeaders}

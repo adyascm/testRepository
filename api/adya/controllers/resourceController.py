@@ -90,18 +90,22 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in domain_datasource_ids]
     resources = []
+    selectedUser = None
     resource_alias = aliased(Resource)
     parent_alias = aliased(Resource)
     resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
     if user_emails:
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
+        selectedUser = user_emails[0]
     if selected_date:
         resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
     if parent_folder:
         resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
     if owner_email_id:
         resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
+    elif selectedUser:
+        resources_query = resources_query.filter(resource_alias.resource_owner_id != selectedUser)
     if resource_type:
         resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
     if exposure_type:
