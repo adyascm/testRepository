@@ -181,7 +181,8 @@ def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
     domain_name = None
     # get domain
     directory_domain = directory_service.domains().list(customer=admin_customer_id).execute()
-    if directory_domain['isPrimary']:
+    print "directory_domain ", directory_domain
+    if directory_domain['domains'][0]['isPrimary']:
         domain_name = directory_domain['domains'][0]['domainName']
 
     channel_id = str(uuid.uuid4())
@@ -189,7 +190,8 @@ def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
         "id": channel_id,
         "type": "web_hook",
         "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
-        "params": {"ttl": "1800"}
+        "params": {"ttl": "1800"},
+        "token": datasource_id
     }
 
     print "subscribe userlist : body : ", body
@@ -386,6 +388,12 @@ def handle_change(drive_service, datasource_id, email, file_id):
                                         "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                                         "owners,size,createdTime, modifiedTime").execute()
         print "Updated resource for change notification is - {}".format(results)
+
+        if results and results['owners'][0]['emailAddress'] != email:
+            print "owner of the file is not same as subscribed user. Owner email : {} and subscribed user email : {}".\
+                format(results['owners'][0]['emailAddress'], email)
+            return
+
         last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
         resource = db_session.query(Resource).filter(

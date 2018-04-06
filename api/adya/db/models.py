@@ -300,6 +300,7 @@ class Policy(Base):
     name = Column(String(255))
     description = Column(String(255))
     trigger_type = Column(String(200), index=True)
+    created_by = Column(String(255))
     conditions = relationship(
         "PolicyCondition", backref="policy")
     actions = relationship(
