@@ -1,39 +1,68 @@
+import json
 import uuid
 
 from sqlalchemy import and_, or_
 
 from adya.common import constants, messaging
+from adya.common.response_messages import ResponseMessage
 from adya.controllers import domain_controller, common
 from adya.datasources.google import scan
 from adya.db.connection import db_connection
-from adya.db.models import Policy, LoginUser, PolicyCondition, PolicyAction
+from adya.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
 
 
 def get_policies(auth_token):
     db_session = db_connection().get_session()
     existing_user = common.get_user_session(auth_token, db_session=db_session)
-    # TODO: add the logged in user's datasources filter
-    return db_session.query(Policy).all()
+    user_domain_id = existing_user.domain_id
+    is_admin = existing_user.is_admin
+    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+
+    if is_service_account_is_enabled and is_admin:
+        policies = db_session.query(Policy).filter(and_(DataSource.domain_id == user_domain_id,
+                                                        Policy.datasource_id == DataSource.datasource_id)).all()
+
+    else:
+        policies = db_session.query(Policy).filter(and_(DataSource.domain_id == user_domain_id,
+                                                        Policy.datasource_id == DataSource.datasource_id,
+                                                        Policy.created_by == existing_user.email)).all()
+
+    return policies
+
+
+def delete_policy(policy_id):
+    db_session = db_connection().get_session()
+    existing_policy = db_session.query(Policy).filter(Policy.policy_id == policy_id).first()
+    if existing_policy:
+        db_session.query(PolicyAction).filter(PolicyAction.policy_id == policy_id).delete()
+        db_session.query(PolicyCondition).filter(PolicyCondition.policy_id == policy_id).delete()
+
+        db_session.delete(existing_policy)
+        db_connection().commit()
+
+        return existing_policy
+    else:
+        return ResponseMessage(400, "Bad Request - Policy not found")
 
 
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
-    existing_user = common.get_user_session(auth_token, db_session=db_session)
     if payload:
         policy_id = str(uuid.uuid4())
         # inserting data into policy table
-        policy = Policy
+        policy = Policy()
         policy.policy_id = policy_id
         policy.datasource_id = payload["datasource_id"]
         policy.name = payload["name"]
         policy.description = payload["description"]
         policy.trigger_type = payload["trigger_type"]
+        policy.created_by = payload["created_by"]
         db_session.add(policy)
 
         # inserting data into policy conditions table
         conditions = payload["conditions"]
         for condition in conditions:
-            policy_condition = PolicyCondition
+            policy_condition = PolicyCondition()
             policy_condition.policy_id = policy_id
             policy_condition.datasource_id = payload["datasource_id"]
             policy_condition.match_type = condition["match_type"]
@@ -44,18 +73,27 @@ def create_policy(auth_token, payload):
         # inserting data into policy actions table
         actions = payload["actions"]
         for action in actions:
-            policy_action = PolicyAction
+            policy_action = PolicyAction()
             policy_action.policy_id = policy_id
             policy_action.datasource_id = payload["datasource_id"]
             policy_action.action_type = action["action_type"]
-            policy_action.config = action["config"]
+            policy_action.config = json.dumps(action["config"])
             db_session.add(policy_action)
 
         db_connection().commit()
         return policy
 
-    return None
+    return ResponseMessage(400, "Bad Request - Improper payload")
 
+
+def update_policy(auth_token, policy_id, payload):
+    delete_response = delete_policy(policy_id)
+    if delete_response:
+        policy = create_policy(auth_token, payload)
+        return policy
+    else:
+        return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
+    
 
 def validate(auth_token, datasource_id, resource_id, domain_id, payload):
     db_session = db_connection().get_session()
@@ -142,7 +180,6 @@ def validate_permission_change_for_resource_exposure(db_session, domain_id, data
     return response
 
 
-
 def validate_permission_change_for_permission_email(match_condition, match_value, resource_permissions):
     print "match type is permission email"
     perm_list = []
@@ -170,3 +207,4 @@ def match_condition_with_match_value(match_condition, match_value, param):
         return True
     else:
         return False
+
