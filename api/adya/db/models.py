@@ -64,6 +64,7 @@ class LoginUser(Base):
     creation_time = Column(DateTime)
     last_login_time = Column(DateTime)
     authorize_scope_name = Column(String(50))
+    token = Column(String(255))
     is_enabled = Column(Boolean, default=True)
 
 
