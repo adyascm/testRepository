@@ -45,8 +45,12 @@ provider:
         - "events:*"
         - "iam:PassRole"
         - "ses:SendRawEmail"
+        - "ec2:CreateNetworkInterface"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DeleteNetworkInterface"
       Resource:
         "*"
+    
 
 plugins:
   - serverless-domain-manager
@@ -174,6 +178,12 @@ functions:
           path: scheduledreport
           method: get
           cors: true
+    vpc: 
+      securityGroupIds:
+        - sg-5d5eae14
+      subnetIds:
+        - subnet-9ec7c9c3
+        - subnet-0041265d  
 
   post-common-scheduledreport:
     handler: adya.services.lambda.reports_handler.post_scheduled_report
