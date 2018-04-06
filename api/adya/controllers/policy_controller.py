@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy import and_, or_
 
 from adya.common import constants, messaging
+from adya.common.response_messages import ResponseMessage
 from adya.controllers import domain_controller, common
 from adya.datasources.google import scan
 from adya.db.connection import db_connection
@@ -37,12 +38,12 @@ def delete_policy(policy_id):
         db_session.query(PolicyCondition).filter(PolicyCondition.policy_id == policy_id).delete()
 
         db_session.delete(existing_policy)
-    try:
         db_connection().commit()
-    except:
-        print "Exception occured while deleting a policy"
 
-    return existing_policy
+        return existing_policy
+    else:
+        return ResponseMessage(400, "Bad Request - Policy not found")
+
 
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
@@ -82,7 +83,7 @@ def create_policy(auth_token, payload):
         db_connection().commit()
         return policy
 
-    return None
+    return ResponseMessage(400, "Bad Request - Improper payload")
 
 
 def update_policy(auth_token, policy_id, payload):
@@ -91,7 +92,7 @@ def update_policy(auth_token, policy_id, payload):
         policy = create_policy(auth_token, payload)
         return policy
     else:
-        return None
+        return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
     
 
 def validate(auth_token, datasource_id, resource_id, domain_id, payload):

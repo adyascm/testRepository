@@ -240,7 +240,7 @@ functions:
     handler: adya.services.lambda.policy_handler.post_policy
       events:
         - http:
-            path: post_policy
+            path: policies
             method: post
             cors: true
 
@@ -248,7 +248,7 @@ functions:
     handler: adya.services.lambda.policy_handler.get_policies
       events:
         - http:
-            path: getpolicies
+            path: policies
             method: get
             cors: true
 
@@ -256,7 +256,7 @@ functions:
     handler: adya.services.lambda.policy_handler.update_policy
     events:
       - http:
-          path: updatepolicy
+          path: policies
           method: put
           cors: true
 
@@ -264,7 +264,7 @@ functions:
     handler: adya.services.lambda.policy_handler.delete_policy
     events:
       - http:
-          path: deletepolicy
+          path: policies
           method: delete
           cors: true
 
