@@ -15,6 +15,7 @@ from adya.email_templates import adya_emails
 import logging
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
