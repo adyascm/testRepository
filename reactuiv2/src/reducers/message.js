@@ -44,6 +44,7 @@ export default (state = defaultState, action) => {
 
         case LOGOUT:
         case CLEAR_MESSAGE:
+            defaultState.errorMessage = defaultState.infoMessage = []
             return {
                 ...defaultState
             }
