@@ -67,6 +67,10 @@ class Resources extends Component {
   //   }
   // }
 
+  componentWillMount() {
+    window.scrollTo(0, 0)
+  }
+
   componentWillUnmount() {
     this.props.clearSearchData()
   }

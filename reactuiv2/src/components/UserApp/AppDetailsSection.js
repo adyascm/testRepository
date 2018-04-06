@@ -6,7 +6,8 @@ import { connect } from 'react-redux';
 import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APP_USERS_LOADED,
+    UPDATE_APPS_DELETE_FLAG
 } from '../../constants/actionTypes';
 import { Loader, Dimmer } from 'semantic-ui-react'
 
@@ -19,7 +20,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({type:APPS_ITEM_SELECTED,payload}),
     appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
-    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
+    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload}),
+    setAppsDeleteFlag: (payload) => dispatch({ type: UPDATE_APPS_DELETE_FLAG, payload })
 })
 
 class AppDetailsSection extends Component {
@@ -27,7 +29,8 @@ class AppDetailsSection extends Component {
         super(props);
 
         this.state = {
-            
+            isLoading: false,
+            deleteUser: undefined
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
@@ -38,8 +41,17 @@ class AppDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,app,userEmail) {
+        this.setState({
+            isLoading: true,
+            deleteUser: userEmail
+        })
         agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
             app = undefined;
+            this.setState({
+                isLoading: false,
+                deleteUser: undefined
+            })
+            this.props.setAppsDeleteFlag(true)
         })
     }
 
@@ -50,17 +62,14 @@ class AppDetailsSection extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.appDeleted !== this.props.appDeleted) {
+            nextProps.appUsersLoadStart()
+            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+        }
+    }
+
     render() {
-        // var appLayout = (
-        //     <Container stretched>
-        //         <Grid stretched>
-        //             <Grid.Row stretched style={{marginLeft: '5px'}}>
-
-        //             </Grid.Row>
-        //         </Grid>
-        //     </Container>
-        // )
-
         if (!this.props.selectedAppItem)
             return null;
         else {
@@ -78,22 +87,25 @@ class AppDetailsSection extends Component {
             if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app =this.props.selectedAppItem
                 appUsers = this.props.appUsers.map((user,index) => {
-                return (
-                    <Grid.Row key={index}>
-                        <Grid.Column width={2}>
-                            <Button animated='vertical' basic color='red' onClick={(event) => 
-                                                                        this.handleAppAccessRevokeClick(event,app,user.email)}>
-                                <Button.Content hidden>Remove</Button.Content>
-                                <Button.Content visible>
-                                    <Icon name='remove' />
-                                </Button.Content>
-                            </Button>
-                        </Grid.Column>
-                        <Grid.Column width={10}>
-                            {user.email}
-                        </Grid.Column>
-                    </Grid.Row>
-                )
+                    return (
+                        <Grid.Row key={index}>
+                            <Grid.Column width={2}>
+                                <Button animated='vertical' 
+                                        basic color='red' 
+                                        onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}
+                                        disabled={this.state.isLoading && (this.state.deleteUser === user.email)?true:false} 
+                                        loading={this.state.isLoading && (this.state.deleteUser === user.email)?true:false}>
+                                    <Button.Content hidden>Remove</Button.Content>
+                                    <Button.Content visible>
+                                        <Icon name='remove' />
+                                    </Button.Content>
+                                </Button>
+                            </Grid.Column>
+                            <Grid.Column width={10}>
+                                {user.email}
+                            </Grid.Column>
+                        </Grid.Row>
+                    )
             })
             }
 
@@ -105,7 +117,7 @@ class AppDetailsSection extends Component {
             return (
                 <Segment>
                         <Icon name='close' onClick={this.closeDetailsSection} />
-                        <AppDetails selectedAppItem={this.props.selectedAppItem} appUsers={this.props.appUsers} handleChange={this.handleChange} />
+                        <AppDetails selectedAppItem={this.props.selectedAppItem} appUsers={this.props.appUsers} />
                         <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 </Segment>
             )

@@ -30,6 +30,13 @@ class UserApps extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if ((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) {
+            nextProps.onLoadStart()
+            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+        }
+    }
+
 
     render(){
         let selectedUser = this.props.selectedUser
@@ -62,8 +69,11 @@ class UserApps extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical' basic color='red' onClick={(event) =>
-                                    this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}>
+                                <Button animated='vertical' 
+                                    basic color='red' 
+                                    onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}
+                                    disabled={this.props.loading && (this.props.deleteApp === application['display_text']) ? true:false}
+                                    loading={this.props.loading && (this.props.deleteApp === application['display_text']) ? true:false}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />
