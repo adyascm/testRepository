@@ -113,6 +113,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                         display_name = permission.get('displayName')
                         expiration_time = permission.get('expirationTime')
                         is_deleted = permission.get('deleted')
+                        if is_deleted:
+                            continue
                         permission_exposure = constants.ResourceExposureType.INTERNAL
                         resource_exposure_type = get_resource_exposure_type(db_session, domain_id, email_address, display_name,
                                                                             resource_exposure_type)
