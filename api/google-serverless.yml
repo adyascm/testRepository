@@ -41,8 +41,8 @@ provider:
     securityGroupIds:
       - sg-5d5eae14
     subnetIds:
-      - subnet-9ec7c9c3
-      - subnet-0041265d       
+      - subnet-ccc4cae3
+      - subnet-30c5c86d       
 
 plugins:
   - serverless-domain-manager
