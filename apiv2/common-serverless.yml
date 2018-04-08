@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: adya-common
+service: core
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -97,7 +97,7 @@ custom:
 
 functions:
   get-common-currentuser:
-    handler: adya.services.lambda.auth_handler.current_user
+    handler: adya.core.services.lambda.auth_handler.current_user
     events:
       - http:
           path: user
@@ -105,7 +105,7 @@ functions:
           cors: true
 
   get-common-datasources:
-    handler: adya.services.lambda.domain_handler.get_datasource
+    handler: adya.core.services.lambda.domain_handler.get_datasource
     events:
       - http:
           path: datasources
@@ -113,7 +113,7 @@ functions:
           cors: true
 
   post-common-datasources:
-    handler: adya.services.lambda.domain_handler.post_datasource
+    handler: adya.core.services.lambda.domain_handler.post_datasource
     events:
       - http:
           path: datasources
@@ -121,7 +121,7 @@ functions:
           cors: true
 
   delete-common-datasources:
-    handler: adya.services.lambda.domain_handler.delete_datasource
+    handler: adya.core.services.lambda.domain_handler.delete_datasource
     events:
       - http:
           path: datasources
@@ -129,7 +129,7 @@ functions:
           cors: true
 
   delete-common-asyncdatasourcedelete:
-    handler: adya.services.lambda.domain_handler.async_datasource_delete
+    handler: adya.core.services.lambda.domain_handler.async_datasource_delete
     events:
       - http:
           path: asyncdatasourcedelete
@@ -137,7 +137,7 @@ functions:
           cors: true
 
   get-common-widgets:
-    handler: adya.services.lambda.reports_handler.get_widget_data
+    handler: adya.core.services.lambda.reports_handler.get_widget_data
     events:
       - http:
           path: widgets
@@ -145,7 +145,7 @@ functions:
           cors: true
 
   get-common-getusertreedata:
-    handler: adya.services.lambda.reports_handler.get_user_tree_data
+    handler: adya.core.services.lambda.reports_handler.get_user_tree_data
     events:
       - http:
           path: getusergrouptree
@@ -153,7 +153,7 @@ functions:
           cors: true
 
   get-common-getappsdata:
-    handler: adya.services.lambda.reports_handler.get_user_app
+    handler: adya.core.services.lambda.reports_handler.get_user_app
     events:
       - http:
           path: getappsdata
@@ -161,7 +161,7 @@ functions:
           cors: true
 
   get-common-getresourcetree:
-    handler: adya.services.lambda.reports_handler.get_resources
+    handler: adya.core.services.lambda.reports_handler.get_resources
     events:
       - http:
           path: getresourcetree
@@ -169,7 +169,7 @@ functions:
           cors: true
 
   post-common-getresourcetree:
-    handler: adya.services.lambda.reports_handler.get_resource_tree_data
+    handler: adya.core.services.lambda.reports_handler.get_resource_tree_data
     events:
       - http:
           path: getresourcetree
@@ -177,7 +177,7 @@ functions:
           cors: true
 
   get-common-scheduledreport:
-    handler: adya.services.lambda.reports_handler.get_scheduled_reports
+    handler: adya.core.services.lambda.reports_handler.get_scheduled_reports
     events:
       - http:
           path: scheduledreport
@@ -185,60 +185,53 @@ functions:
           cors: true
 
   post-common-scheduledreport:
-    handler: adya.services.lambda.reports_handler.post_scheduled_report
+    handler: adya.core.services.lambda.reports_handler.post_scheduled_report
     events:
       - http:
           path: scheduledreport
           method: post
           cors: true
 
-  get-common-getactivitiesforuser:
-    handler: adya.services.lambda.activities_handler.get_activities_for_user
-    events:
-      - http:
-          path: getactivitiesforuser
-          method: get
-          cors: true
   get-common-getauditlog:
-    handler: adya.services.lambda.auditlog_handler.get_audit_log
+    handler: adya.core.services.lambda.auditlog_handler.get_audit_log
     events:
       - http:
           path: getauditlog
           method: get
           cors: true
   get-common-executescheduledreport:
-     handler: adya.services.lambda.reports_handler.execute_cron_report
+     handler: adya.core.services.lambda.reports_handler.execute_cron_report
 
   delete-common-scheduledreport:
-    handler: adya.services.lambda.reports_handler.delete_scheduled_report
+    handler: adya.core.services.lambda.reports_handler.delete_scheduled_report
     events:
       - http:
           path: scheduledreport
           method: delete
           cors: true
   get-common-runscheduledreport:
-    handler: adya.services.lambda.reports_handler.run_scheduled_report
+    handler: adya.core.services.lambda.reports_handler.run_scheduled_report
     events:
       - http:
           path: scheduledreport/runreport
           method: get
           cors: true
   put-common-modifyscheduledreport:
-    handler: adya.services.lambda.reports_handler.modify_scheduled_report
+    handler: adya.core.services.lambda.reports_handler.modify_scheduled_report
     events:
       - http:
           path: scheduledreport
           method: put
           cors: true
   get-common-getallactions:
-    handler: adya.services.lambda.actions_handler.get_all_actions
+    handler: adya.core.services.lambda.actions_handler.get_all_actions
     events:
       - http:
           path: getallactions
           method: get
           cors: true
   post-common-initiateaction:
-    handler: adya.services.lambda.actions_handler.initiate_action
+    handler: adya.core.services.lambda.actions_handler.initiate_action
     events:
       - http:
           path: initiateaction
@@ -246,7 +239,7 @@ functions:
           cors: true
 
   post-common-policy:
-    handler: adya.services.lambda.policy_handler.post_policy
+    handler: adya.core.services.lambda.policy_handler.post_policy
     events:
       - http:
           path: policies
@@ -254,7 +247,7 @@ functions:
           cors: true
 
   get-common-policies:
-    handler: adya.services.lambda.policy_handler.get_policies
+    handler: adya.core.services.lambda.policy_handler.get_policies
     events:
       - http:
           path: policies
@@ -262,7 +255,7 @@ functions:
           cors: true
 
   put-common-policy:
-    handler: adya.services.lambda.policy_handler.update_policy
+    handler: adya.core.services.lambda.policy_handler.update_policy
     events:
       - http:
           path: policies
@@ -270,7 +263,7 @@ functions:
           cors: true
 
   delete-common-policy:
-    handler: adya.services.lambda.policy_handler.delete_policy
+    handler: adya.core.services.lambda.policy_handler.delete_policy
     events:
       - http:
           path: policies

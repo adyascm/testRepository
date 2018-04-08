@@ -1,10 +1,5 @@
-from adya.datasources.google import gutils
-from adya.db.models import DataSource
-from adya.db.connection import db_connection
-from sqlalchemy import and_
+import gutils
 from datetime import datetime, timedelta
-from adya.controllers import domain_controller
-
 
 def get_activities_for_user(auth_token, user_email, start_time=None):
 
@@ -47,11 +42,7 @@ def process_user_activity(user_email, activities):
 
                         for entries in activity_events_parameters:
                             if entries['name'] == 'doc_title':
-
-                                # resource_id = entries['value']
-                                resource_name = entries[
-                                    'value']  # db_session.query(Resource).filter(and_(Resource.domain_id == domain_id,
-                                # Resource.resource_id == resource_id)).first().resource_name
+                                resource_name = entries['value']
                             elif entries['name'] == 'doc_type':
                                 resource_type = entries['value']
 

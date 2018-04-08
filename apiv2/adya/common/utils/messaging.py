@@ -1,5 +1,5 @@
 import utils
-import constants
+from adya.common.constants import constants
 import aws_utils,sys
 from slugify import slugify
 from requests_futures.sessions import FuturesSession

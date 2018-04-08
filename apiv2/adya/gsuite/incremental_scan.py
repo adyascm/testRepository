@@ -1,21 +1,18 @@
-import traceback
-
-from adya.common.response_messages import Logger
-from adya.datasources.google import gutils
-from adya.db.connection import db_connection
-
-from adya.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
-    LoginUser, DataSource, alchemy_encoder, PushNotificationsSubscriptionForUserlist
-
-from sqlalchemy import and_
-from adya.common import constants, response_messages
-from adya.common import utils, messaging, aws_utils
 import requests
 import uuid
-# import datetime, timedelta
 import datetime, dateutil.parser
 from datetime import timedelta
 import json
+import gutils
+from sqlalchemy import and_
+
+from adya.common.utils.response_messages import Logger
+from adya.common.db.connection import db_connection
+from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
+    LoginUser, DataSource, alchemy_encoder, PushNotificationsSubscriptionForUserlist
+from adya.common.constants import constants, urls
+from adya.common.utils import utils, messaging, response_messages, aws_utils
+
 
 
 def handle_channel_expiration():
@@ -426,7 +423,7 @@ def handle_change(drive_service, datasource_id, email, file_id):
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
                         'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
-        messaging.trigger_post_event(constants.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "adya-google")
 
         # payload = {}
         # payload["old_permissions"] = existing_permissions

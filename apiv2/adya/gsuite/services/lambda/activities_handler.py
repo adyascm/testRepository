@@ -1,7 +1,7 @@
 from flask_restful import Resource,request
-from adya.datasources.google import activities
-from adya.controllers import domain_controller
-from adya.common.request_session import RequestSession
+from adya.gsuite import activities
+from adya.core.controllers import domain_controller
+from adya.common.utils.request_session import RequestSession
 import json
 
 def get_activities_for_user(event, context):

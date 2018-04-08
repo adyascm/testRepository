@@ -1,14 +1,14 @@
 import datetime
 
-from adya.datasources.google import gutils
-from adya.common import utils, response_messages
-from adya.common import constants
+import gutils
+from adya.common.utils import utils, response_messages
+from adya.common.constants import constants
 from sqlalchemy import and_
 from requests_futures.sessions import FuturesSession
-from adya.db.connection import db_connection
+from adya.common.db.connection import db_connection
 import json
 
-from adya.db.models import DomainUser, Resource
+from adya.common.db.models import DomainUser, Resource
 
 
 def delete_user_from_group(auth_token, group_email, user_email):

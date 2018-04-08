@@ -2,7 +2,7 @@ from adya.common.constants import constants
 from adya.common.utils import aws_utils, utils
 from adya.common.db.connection import db_connection
 from adya.common.db.models import LoginUser, DomainUser, Resource, DataSource
-from adya.controllers import reports_controller
+from adya.core.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
 import os

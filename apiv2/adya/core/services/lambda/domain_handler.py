@@ -1,5 +1,5 @@
-from adya.controllers import domain_controller
-from adya.common.request_session import RequestSession
+from adya.core.controllers import domain_controller
+from adya.common.utils.request_session import RequestSession
 
 def get_datasource(event, context):
     req_session = RequestSession(event)

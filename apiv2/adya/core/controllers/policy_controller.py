@@ -3,17 +3,19 @@ import uuid
 
 from sqlalchemy import and_, or_
 
-from adya.common import constants, messaging
-from adya.common.response_messages import ResponseMessage
-from adya.controllers import domain_controller, common
-from adya.datasources.google import scan
-from adya.db.connection import db_connection
-from adya.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
+from adya.common.constants import constants
+from adya.common.utils import messaging
+from adya.common.utils.response_messages import ResponseMessage
+from adya.core.controllers import domain_controller
+from adya.gsuite import scan
+from adya.common.db.connection import db_connection
+from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
+from adya.common.db import db_utils
 
 
 def get_policies(auth_token):
     db_session = db_connection().get_session()
-    existing_user = common.get_user_session(auth_token, db_session=db_session)
+    existing_user = db_utils.get_user_session(auth_token, db_session=db_session)
     user_domain_id = existing_user.domain_id
     is_admin = existing_user.is_admin
     is_service_account_is_enabled = existing_user.is_serviceaccount_enabled

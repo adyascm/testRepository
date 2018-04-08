@@ -1,7 +1,7 @@
 from flask_restful import Resource, request
-from adya.datasources.google import activities
+from adya.gsuite import activities
 
-from adya.common.request_session import RequestSession
+from adya.common.utils.request_session import RequestSession
 import json
 
 

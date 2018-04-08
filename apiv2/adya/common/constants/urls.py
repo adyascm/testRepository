@@ -1,8 +1,10 @@
+from adya.common.constants import constants
+
 GOOGLE_OAUTHCALLBACK_PATH = "/google/oauthcallback"
 GOOGLE_OAUTH_LOGIN = '/google/oauthlogin'
-GOOGLE_OAUTH_CALLBACK_URL = API_HOST + GOOGLE_OAUTHCALLBACK_PATH
+GOOGLE_OAUTH_CALLBACK_URL = constants.API_HOST + GOOGLE_OAUTHCALLBACK_PATH
 OAUTH_STATUS_PATH = "/oauthstatus"
-OAUTH_STATUS_URL = UI_HOST + OAUTH_STATUS_PATH
+OAUTH_STATUS_URL = constants.UI_HOST + OAUTH_STATUS_PATH
 
 SCAN_START = "/google/scan/start"
 SCAN_RESOURCES = "/google/scan/resources"

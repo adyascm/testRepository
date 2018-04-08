@@ -3,8 +3,8 @@ import uuid
 
 from flask_restful import Resource, request
 
-from adya.controllers import reports_controller, domain_controller
-from adya.common.request_session import RequestSession
+from adya.core.controllers import reports_controller, domain_controller
+from adya.common.utils.request_session import RequestSession
 
 
 class DashboardWidget(Resource):

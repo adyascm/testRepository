@@ -1,10 +1,8 @@
 from flask_restful import Resource, reqparse, request
-from adya.datasources.google import scan, permission,parent
-from adya.common import utils
-from adya.common.request_session import RequestSession
-from adya.db.models import DataSource
-from adya.controllers import domain_controller,actions_controller
-
+from adya.gsuite import scan
+from adya.common.utils import utils
+from adya.common.utils.request_session import RequestSession
+from adya.core.controllers import actions_controller, domain_controller
 
 class DriveScan(Resource):
     def post(self):
@@ -14,7 +12,7 @@ class DriveScan(Resource):
         if req_error:
             return req_error
 
-        domain_controller.start_scan(req_session.get_auth_token(), req_session.get_req_param(
+        scan.start_scan(req_session.get_auth_token(), req_session.get_req_param(
             'domainId'), req_session.get_req_param('dataSourceId'),req_session.get_req_param('isAdmin'),req_session.get_req_param('serviceAccountEnabled'))
         return req_session.generate_response(202)
 
@@ -45,27 +43,6 @@ class DriveResources(Resource):
         scan.process_resource_data(req_session.get_req_param(
             'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(),
             is_new_resource, notify_app)
-        return req_session.generate_response(202)
-
-
-class GetPermission(Resource):
-    def post(self):
-        print "Getting Permission Data"
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'],['userEmail'])
-        if req_error:
-            return req_error
-
-        requestdata = req_session.get_body()
-        fileIds = requestdata['fileIds']
-        domain_id = req_session.get_req_param('domainId')
-        datasource_id = req_session.get_req_param('dataSourceId')
-        user_email = req_session.get_req_param('userEmail')
-        ## creating the instance of scan_permission class
-        scan_permisssion_obj = permission.GetPermission(domain_id, datasource_id , fileIds)
-        ## calling get permission api
-        scan_permisssion_obj.get_permission(user_email)
         return req_session.generate_response(202)
 
 class GetDomainuser(Resource):

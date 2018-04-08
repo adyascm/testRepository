@@ -1,21 +1,19 @@
 import json
 import datetime
 import uuid
-from adya.common import utils, messaging
-from threading import Thread
-import time
 import os
-
-from adya.common import constants, utils
-from adya.common.response_messages import Logger
-from adya.db.connection import db_connection
-from adya.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup,\
-    DomainUser, ResourcePermission, Resource, get_table,\
-    Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation
-from adya.datasources.google import gutils
 from sqlalchemy import String, Boolean, and_
 import csv
 
+from adya.common.utils import utils, messaging
+from adya.common.constants import constants, urls
+from adya.common.utils import utils
+from adya.common.utils.response_messages import Logger
+from adya.common.db.connection import db_connection
+from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup,\
+    DomainUser, ResourcePermission, Resource, get_table,\
+    Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation
+from adya.gsuite import gutils
 
 def get_datasource(auth_token, datasource_id, db_session=None):
     if not db_session:
@@ -28,15 +26,6 @@ def get_datasource(auth_token, datasource_id, db_session=None):
             filter(LoginUser.auth_token == auth_token).all()
 
     return datasources
-
-
-def update_datasource(db_session, datasource_id, column_name, column_value):
-    if column_name:
-        datasources = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-            update({column_name: column_name + column_value})
-        db_connection().commit()
-
-        return datasources
 
 
 def create_datasource(auth_token, payload):
@@ -62,7 +51,6 @@ def create_datasource(auth_token, payload):
         if datasource.is_dummy_datasource:
             datasource.is_serviceaccount_enabled = False
         else:
-            # gutils.check_if_serviceaccount_enabled(existing_user.email)
             datasource.is_serviceaccount_enabled = existing_user.is_serviceaccount_enabled
 
         is_admin_user = gutils.check_if_user_isamdin(
@@ -91,7 +79,7 @@ def create_datasource(auth_token, payload):
             print "Starting the scan"
             query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
-            messaging.trigger_post_event(constants.SCAN_START, auth_token, query_params, {}, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_START, auth_token, query_params, {}, "adya-google")
             print "Received the response of start scan api"
         return datasource
     else:
@@ -140,48 +128,13 @@ def delete_datasource(auth_token, datasource_id):
         db_connection().commit()
         query_params = {"datasourceId": datasource_id}
         messaging.trigger_delete_event(
-            constants.ASYNC_DELETE_DATASOURCE_PATH, auth_token, query_params)
+            urls.ASYNC_DELETE_DATASOURCE_PATH, auth_token, query_params)
 
         try:
             gutils.revoke_appaccess(
                 auth_token, user_email=None, db_session=db_session)
         except Exception as ex:
             Logger().exception("Exception occurred while revoking the app access - {} ".format(ex.message))
-
-
-
-
-def create_domain(db_session, domain_id, domain_name):
-    creation_time = datetime.datetime.utcnow()
-
-    domain = {}
-    domain["domain_id"] = domain_id
-    domain["domain_name"] = domain_name
-    domain["creation_time"] = creation_time
-    db_session.execute(Domain.__table__.insert().prefix_with(
-        "IGNORE").values([domain_id, domain_name, creation_time]))
-    db_connection().commit()
-    return domain
-
-
-def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):
-    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
-        domain_id, datasource_id, is_admin, is_service_account_enabled)
-    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
-
-    db_session = db_connection().get_session()
-    existing_user = db_session.query(LoginUser).filter(
-        LoginUser.auth_token == auth_token).first()
-
-    if is_service_account_enabled == 'True' or is_admin == 'True':
-        messaging.trigger_get_event(
-            constants.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
-        messaging.trigger_get_event(
-            constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
-    else:
-        query_params["ownerEmail"] = existing_user.email
-        messaging.trigger_get_event(
-            constants.SCAN_RESOURCES, auth_token, query_params, "adya-google")
 
 
 def create_dummy_datasource(db_session, domain_id, datasource_id):

@@ -1,15 +1,16 @@
-from adya.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
-    ApplicationUserAssociation, Resource, ResourcePermission
-from adya.db.connection import db_connection
 from sqlalchemy import and_, desc, asc
 import json
-from adya.common import utils, constants
-from adya.datasources.google import gutils
-from adya.controllers import common
+
+from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
+    ApplicationUserAssociation, Resource, ResourcePermission
+from adya.common.db.connection import db_connection
+from adya.common.db import db_utils
+from adya.common.utils import utils
+from adya.common.constants import constants
 
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
-    existing_user = common.get_user_session(auth_token)
+    existing_user = db_utils.get_user_session(auth_token)
     user_domain_id = existing_user.domain_id
     login_user_email = existing_user.email
     is_admin = existing_user.is_admin
@@ -113,7 +114,7 @@ def get_users_for_app(auth_token, client_id):
     db_session = db_connection().get_session()
 
     # check for non-admin user
-    existing_user = common.get_user_session(auth_token)
+    existing_user = db_utils.get_user_session(auth_token)
     is_admin = existing_user.is_admin
     is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
     login_user_email = existing_user.email

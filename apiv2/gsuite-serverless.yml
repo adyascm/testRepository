@@ -1,4 +1,4 @@
-service: adya-google
+service: gsuite
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -74,21 +74,21 @@ custom:
 
 functions:
   get-google-oauthlogin:
-    handler: adya.services.lambda.auth_handler.google_oauth_request
+    handler: adya.gsuite.services.lambda.auth_handler.google_oauth_request
     events:
       - http:
           path: oauthlogin
           method: get
 
   get-google-oauthcallback:
-    handler: adya.services.lambda.auth_handler.google_oauth_callback
+    handler: adya.gsuite.services.lambda.auth_handler.google_oauth_callback
     events:
       - http:
           path: oauthcallback
           method: get
 
   post-google-scan-start:
-    handler: adya.services.lambda.scan_handler.start_scan
+    handler: adya.gsuite.services.lambda.scan_handler.start_scan
     events:
       - http:
           path: scan/start
@@ -96,7 +96,7 @@ functions:
           cors: true
 
   get-google-scan-resources:
-    handler: adya.services.lambda.scan_handler.get_drive_resources
+    handler: adya.gsuite.services.lambda.scan_handler.get_drive_resources
     events:
       - http:
           path: scan/resources
@@ -104,7 +104,7 @@ functions:
           cors: true
 
   post-google-scan-resources:
-    handler: adya.services.lambda.scan_handler.process_drive_resources
+    handler: adya.gsuite.services.lambda.scan_handler.process_drive_resources
     events:
       - http:
           path: scan/resources
@@ -112,7 +112,7 @@ functions:
           cors: true
 
   post-google-scan-permisssions:
-    handler: adya.services.lambda.scan_handler.process_resource_permissions
+    handler: adya.gsuite.services.lambda.scan_handler.process_resource_permissions
     events:
       - http:
           path: scan/permisssions
@@ -120,7 +120,7 @@ functions:
           cors: true
 
   get-google-scan-domainusers:
-    handler: adya.services.lambda.scan_handler.get_domain_users
+    handler: adya.gsuite.services.lambda.scan_handler.get_domain_users
     events:
       - http:
           path: scan/domainusers
@@ -128,7 +128,7 @@ functions:
           cors: true
 
   post-google-scan-domainusers:
-    handler: adya.services.lambda.scan_handler.process_domain_users
+    handler: adya.gsuite.services.lambda.scan_handler.process_domain_users
     events:
       - http:
           path: scan/domainusers
@@ -136,7 +136,7 @@ functions:
           cors: true
 
   get-google-scan-domaingroups:
-    handler: adya.services.lambda.scan_handler.get_domain_groups
+    handler: adya.gsuite.services.lambda.scan_handler.get_domain_groups
     events:
       - http:
           path: scan/domaingroups
@@ -144,7 +144,7 @@ functions:
           cors: true
 
   post-google-scan-domaingroups:
-    handler: adya.services.lambda.scan_handler.process_domain_groups
+    handler: adya.gsuite.services.lambda.scan_handler.process_domain_groups
     events:
       - http:
           path: scan/domaingroups
@@ -152,7 +152,7 @@ functions:
           cors: true
 
   post-google-scan-usersapp:
-    handler: adya.services.lambda.scan_handler.get_user_app
+    handler: adya.gsuite.services.lambda.scan_handler.get_user_app
     events:
       - http:
           path: scan/usersapp
@@ -160,7 +160,7 @@ functions:
           cors: true
 
   delete-google-scan-usersapp:
-    handler: adya.services.lambda.scan_handler.revoke_user_app_access
+    handler: adya.gsuite.services.lambda.scan_handler.revoke_user_app_access
     events:
       - http:
           path: scan/usersapp
@@ -168,7 +168,7 @@ functions:
           cors: true
 
   post-google-scan-groupmembers:
-    handler: adya.services.lambda.scan_handler.get_group_members
+    handler: adya.gsuite.services.lambda.scan_handler.get_group_members
     events:
       - http:
           path: scan/groupmembers
@@ -176,7 +176,7 @@ functions:
           cors: true
 
   get-google-scan-handlechannelexpiration:
-    handler: adya.services.lambda.scan_handler.handle_channel_expiration
+    handler: adya.gsuite.services.lambda.scan_handler.handle_channel_expiration
     events:
       - http:
           path: handlechannelexpiration
@@ -184,7 +184,7 @@ functions:
           cors: true
 
   post-google-scan-processnotifications:
-    handler: adya.services.lambda.scan_handler.process_gdrive_notifications
+    handler: adya.gsuite.services.lambda.scan_handler.process_gdrive_notifications
     events:
       - http:
           path: scan/processnotifications
@@ -192,7 +192,7 @@ functions:
           cors: true
 
   post-google-scan-subscribenotifications:
-    handler: adya.services.lambda.scan_handler.subscribe_gdrive_notifications
+    handler: adya.gsuite.services.lambda.scan_handler.subscribe_gdrive_notifications
     events:
       - http:
           path: scan/subscribenotifications
@@ -200,9 +200,17 @@ functions:
           cors: true
 
   post-google-scan-processdirectorynotifications:
-    handler: adya.services.lambda.scan_handler.process_directory_notification
+    handler: adya.gsuite.services.lambda.scan_handler.process_directory_notification
     events:
       - http:
           path: scan/directoryprocessnotifications
           method: post
+          cors: true
+  
+  get-common-getactivitiesforuser:
+    handler: adya.gsuite.services.lambda.activities_handler.get_activities_for_user
+    events:
+      - http:
+          path: getactivitiesforuser
+          method: get
           cors: true

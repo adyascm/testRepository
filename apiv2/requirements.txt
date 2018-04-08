@@ -6,14 +6,12 @@ google-auth-oauthlib
 google-auth-httplib2
 requests
 pymysql
-apiclient
 passlib
 enum
 flask-restful
 flask-cors
 sqlalchemy
 requests_futures
-websocket-client
 boto3
 httplib2
 pystache

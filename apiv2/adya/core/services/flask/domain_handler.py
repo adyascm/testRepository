@@ -1,6 +1,6 @@
 from flask_restful import Resource, request
-from adya.common.request_session import RequestSession
-from adya.controllers import domain_controller
+from adya.common.utils.request_session import RequestSession
+from adya.core.controllers import domain_controller
 
 
 class datasource(Resource):

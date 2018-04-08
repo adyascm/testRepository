@@ -1,8 +1,8 @@
 import urlparse
 
 from flask_restful import Resource, reqparse, request
-from adya.controllers import auditlog_controller
-from adya.common.request_session import RequestSession
+from adya.core.controllers import auditlog_controller
+from adya.common.utils.request_session import RequestSession
 
 def get_audit_log(event,context):
     req_session = RequestSession(event)

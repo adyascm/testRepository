@@ -2,13 +2,12 @@ from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
 import json
 import requests
-from adya.db.connection import db_connection
-from adya.db.models import LoginUser, Domain
+from adya.common.db.connection import db_connection
+from adya.common.db.models import LoginUser, Domain
 from oauth2client.service_account import ServiceAccountCredentials
-from adya.common.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE
+from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE
 import os
 import httplib2
-from sets import Set
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
@@ -23,7 +22,7 @@ CLIENT_SECRET = CLIENT_JSON_FILE_DATA['web']['client_secret']
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
 SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
                                                                   SERVICE_ACCOUNT_SCOPE)
-GOOGLE_API_SCOPES = json.load(open(dir_path + "/scopes/google_api_scopes.json"))
+GOOGLE_API_SCOPES = json.load(open(dir_path + "/google_api_scopes.json"))
 
 def revoke_appaccess(auth_token, user_email=None, db_session = None):
     credentials = get_credentials(auth_token, user_email, db_session)
@@ -86,7 +85,7 @@ def get_gdrive_datatransfer_service(auth_token, user_email=None, db_session = No
 
 def get_directory_service(auth_token, user_email=None, db_session = None):
     credentials = get_credentials(auth_token, user_email, db_session)
-    service = discovery.build('admin', 'directory_v1', credentials=credentials)
+    service = discovery.build('admin', 'directory_v1', credentials=credentials, cache_discovery=False)
     return service
 
 

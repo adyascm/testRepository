@@ -1,22 +1,38 @@
 from __future__ import division  # necessary
 
-from adya.common.response_messages import Logger
-from adya.controllers.domain_controller import update_datasource, get_datasource
-from adya.datasources.google import gutils, incremental_scan
-from adya.common import constants
 from requests_futures.sessions import FuturesSession
 import uuid,json,time,datetime,sys
-from adya.db.connection import db_connection
-from adya.db import models
-from adya.common.constants import UserMemberType
 from sqlalchemy import and_
-from adya.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
-from adya.common import utils, messaging
-#from adya.realtimeframework.ortc_conn import RealtimeConnection
-from adya.email_templates import adya_emails
+
+import gutils, incremental_scan
+
+from adya.common.utils.response_messages import Logger
+from adya.common.constants import constants, urls
+from adya.common.db.connection import db_connection
+from adya.common.db import models
+from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
+from adya.common.utils import utils, messaging
+from adya.common.email_templates import adya_emails
 
 
+def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):
+    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
+        domain_id, datasource_id, is_admin, is_service_account_enabled)
+    query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
 
+    db_session = db_connection().get_session()
+    existing_user = db_session.query(LoginUser).filter(
+        LoginUser.auth_token == auth_token).first()
+
+    if is_service_account_enabled == 'True' or is_admin == 'True':
+        messaging.trigger_get_event(
+            urls.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
+        messaging.trigger_get_event(
+            urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
+    else:
+        query_params["ownerEmail"] = existing_user.email
+        messaging.trigger_get_event(
+            urls.SCAN_RESOURCES, auth_token, query_params, "adya-google")
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_token=None,user_email=None):
@@ -50,7 +66,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
             while  sentfile_count < file_count:
                 resourcedata = {}
                 resourcedata["resources"] = results['files'][sentfile_count:sentfile_count+25]
-                messaging.trigger_post_event(constants.SCAN_RESOURCES, auth_token, query_params, resourcedata, "adya-google")
+                messaging.trigger_post_event(urls.SCAN_RESOURCES, auth_token, query_params, resourcedata, "adya-google")
                 sentfile_count +=25
             next_page_token = results.get('nextPageToken')
             if next_page_token:
@@ -59,7 +75,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':owner_email, 'nextPageToken': next_page_token}
                     if user_email:
                         query_params["userEmail"] = user_email
-                    messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "adya-google")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -211,7 +227,7 @@ def get_resource_exposure_type(db_session, domain_id, email_address, display_nam
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
     requestdata = {"fileIds": batch_request_file_id_list}
-    url = constants.SCAN_PERMISSIONS + "?domainId=" + \
+    url = urls.SCAN_PERMISSIONS + "?domainId=" + \
                 domain_id + "&dataSourceId=" + datasource_id
     if user_email:
         url = url +"&userEmail=" + user_email
@@ -233,7 +249,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
             useremail_resources_map[user_email].append(data.resource_id)
     else:
         alluserquery = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id==domain_id,\
-                               DomainUser.datasource_id == datasource_id, DomainUser.member_type == UserMemberType.INTERNAL)).subquery()
+                               DomainUser.datasource_id == datasource_id, DomainUser.member_type == constants.UserMemberType.INTERNAL)).subquery()
         queried_data = db_session.query(ResourcePermission.resource_id,ResourcePermission.email)\
                                .filter(and_(ResourcePermission.domain_id==domain_id,\
                                ResourcePermission.datasource_id == datasource_id,\
@@ -251,10 +267,10 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
         batch_request_file_id_list = useremail_resources_map[email]
         requestdata = {"fileIds": batch_request_file_id_list}
         if not user_email:
-            url = constants.SCAN_PARENTS + "?domainId=" + \
+            url = urls.SCAN_PARENTS + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + email
         else:
-            url = constants.SCAN_PARENTS + "?domainId=" + \
+            url = urls.SCAN_PARENTS + "?domainId=" + \
                         domain_id + "&dataSourceId=" + datasource_id
         last_result = utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
     if last_result:
@@ -275,13 +291,13 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             # no need to send user count to ui , so passing send_message flag as false
             update_and_get_count(datasource_id, DataSource.total_user_count, user_count, False)
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id }
-            messaging.trigger_post_event(constants.SCAN_DOMAIN_USERS, auth_token, query_params, data, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, data, "adya-google")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
-                    messaging.trigger_get_event(constants.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -347,7 +363,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     Logger().info("Google service account is enabled, starting to fetch files for each processed user")
     for user_email in resource_usersList:
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
-        messaging.trigger_get_event(constants.SCAN_RESOURCES,auth_token, query_params, "adya-google")
+        messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "adya-google")
 
     #Scan apps only for service account
     if datasource.is_serviceaccount_enabled:
@@ -355,7 +371,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
         userEmailList = {}
         userEmailList["userEmailList"] = user_email_list
-        messaging.trigger_post_event(constants.SCAN_USERS_APP, auth_token, query_params, userEmailList, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_USERS_APP, auth_token, query_params, userEmailList, "adya-google")
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
@@ -379,13 +395,13 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             data = {"groupsResponseData": results["groups"]}
 
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
-            messaging.trigger_post_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, data, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, data, "adya-google")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
-                    messaging.trigger_get_event(constants.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -425,48 +441,11 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_connection().commit()
         
         query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
-        messaging.trigger_post_event(constants.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "adya-google")
         Logger().info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
         Logger().exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
-
-
-# def getGroupsMember(group_key, auth_token, datasource_id, domain_id, next_page_token):
-#     print "Initiating fetching of google directory group members using for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
-#     directory_service = gutils.get_directory_service(domain_id)
-#     starttime = time.time()
-#     session = FuturesSession()
-#     last_future = None
-#     while True:
-#         try:
-#             groupmemberresponse = directory_service.members().list(groupKey=group_key).execute()
-#             groupMember = groupmemberresponse.get("members")
-#             if groupMember:
-#                 data = {"membersResponseData": groupMember}
-#                 url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-#                 domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key 
-#                 last_future = utils.post_call_with_authorization_header(session, url, auth_token, data)
-#             else:
-#                 update_and_get_count(datasource_id, DataSource.processed_group_count, 1, True)
- 
-#             next_page_token = groupmemberresponse.get('nextPageToken')
-#             if next_page_token:
-#                 timediff = time.time() - starttime
-#                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
-#                     url = constants.SCAN_GROUP_MEMBERS + "?domainId=" + \
-#                         domain_id + "&dataSourceId=" + datasource_id + "&groupKey=" + group_key + "&nextPageToken=" + next_page_token
-#                     utils.get_call_with_authorization_header(session, url, auth_token).result()
-#                     break
-#             else:
-#                 break
-#         except Exception as ex:
-#             update_and_get_count(datasource_id, DataSource.group_scan_status, 2, False)
-#             print "Exception occurred while getting google directory group members for domain_id: {} group_key: {} next_page_token: {}".format(domain_id, group_key, next_page_token)
-#             print ex
-#             break
-#     if last_future:
-#         last_future.result()
 
 def get_group_data(auth_token, domain_id,datasource_id,group_keys):
     processed_group_count =0
@@ -546,11 +525,13 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
     db_session = db_connection().get_session()
     rows_updated = 0
     try:
-        rows_updated = update_datasource(db_session,datasource_id, column_name, column_value)
+        rows_updated = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
+            update({column_name: column_name + column_value})
+        db_connection().commit()
     except Exception as ex:
         Logger().exception("Exception occurred while updating the scan status for the datasource.")
     if rows_updated == 1:
-        datasource = get_datasource(None, datasource_id,db_session)
+        datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
         if send_message:
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
         if get_scan_status(datasource) == 1:

@@ -7,7 +7,7 @@ import json
 
 from slugify import slugify
 
-from adya.common import constants
+from adya.common.constants import constants
 
 # create cloudwatch event
 

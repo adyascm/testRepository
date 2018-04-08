@@ -1,6 +1,5 @@
-from adya.db.models import AuditLog
-from adya.db.connection import db_connection
-from adya.db.models import Domain, LoginUser
+from adya.common.db.models import AuditLog, Domain, LoginUser
+from adya.common.db.connection import db_connection
 from sqlalchemy import desc
 
 def get_audit_log(auth_token):

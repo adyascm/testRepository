@@ -1,9 +1,7 @@
 import json
-
-from adya.common.aws_utils import get_lambda_name
-from adya.controllers import reports_controller, domainDataController, resourceController, domain_controller
-from adya.common import aws_utils
-from adya.common.request_session import RequestSession
+from adya.core.controllers import reports_controller, directory_controller, resource_controller, domain_controller
+from adya.common.utils import aws_utils
+from adya.common.utils.request_session import RequestSession
 
 
 def get_widget_data(event, context):
@@ -23,7 +21,7 @@ def get_user_tree_data(event, context):
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
-    user_group_tree = domainDataController.get_user_group_tree(auth_token)
+    user_group_tree = directory_controller.get_user_group_tree(auth_token)
     return req_session.generate_sqlalchemy_response(200, user_group_tree)
 
 def get_user_app(event,context):
@@ -35,11 +33,11 @@ def get_user_app(event,context):
     client_id = req_session.get_req_param('clientId')
     user_email = req_session.get_req_param('userEmail')
     if client_id:
-        data = domainDataController.get_users_for_app(auth_token,client_id)
+        data = directory_controller.get_users_for_app(auth_token,client_id)
     elif user_email:
-        data = domainDataController.get_apps_for_user(auth_token,user_email)
+        data = directory_controller.get_apps_for_user(auth_token,user_email)
     else:
-        data = domainDataController.get_all_apps(auth_token)
+        data = directory_controller.get_all_apps(auth_token)
 
     return req_session.generate_sqlalchemy_response(200, data)
 
@@ -51,7 +49,7 @@ def get_resources(event, context):
         return req_error
     auth_token = req_session.get_auth_token()
 
-    resource_list = resourceController.search_resources(auth_token, req_session.get_req_param("prefix"))
+    resource_list = resource_controller.search_resources(auth_token, req_session.get_req_param("prefix"))
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 
@@ -72,7 +70,7 @@ def get_resource_tree_data(event, context):
     parent_folder = payload.get("parentFolder")
     selected_date = payload.get("selectedDate")
     search_prefix = payload.get("prefix")
-    resource_list = resourceController.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, search_prefix, owner_email_id, parent_folder, selected_date)
+    resource_list = resource_controller.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, search_prefix, owner_email_id, parent_folder, selected_date)
     return req_session.generate_sqlalchemy_response(200, resource_list)
 
 
@@ -98,7 +96,7 @@ def post_scheduled_report(event, context):
     cron_expression = report.frequency
     report_id = report.report_id
     payload = {'report_id': report_id}
-    function_name = get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
 
     aws_utils.create_cloudwatch_event(report_id, cron_expression, function_name, payload)
 
@@ -116,7 +114,7 @@ def modify_scheduled_report(event, context):
     report_id = update_record['report_id']
     frequency = update_record['frequency']
     payload = {'report_id': report_id}
-    function_name = get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
     aws_utils.create_cloudwatch_event(report_id, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
@@ -129,7 +127,7 @@ def delete_scheduled_report(event, context):
     deleted_report = reports_controller.delete_report(req_session.get_auth_token(),
                                                       req_session.get_req_param('reportId'))
 
-    function_name = get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
     aws_utils.delete_cloudwatch_event(deleted_report.report_id, function_name)
     return req_session.generate_response(200)
 
