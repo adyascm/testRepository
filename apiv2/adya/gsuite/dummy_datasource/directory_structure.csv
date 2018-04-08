@@ -1,0 +1,8 @@
+datasource_id,parent_email,member_email,member_id,member_role,member_type
+0f3838b0-be97-46be-b3b5-82266578582e,engg@adyatest.com,engg_user_1@adyatest.com,105029994413991462055,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,engg@adyatest.com,engg_user_2@adyatest.com,107540932592455189078,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,finance@adyatest.com,finance_user_1@adyatest.com,115691018119500438593,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,mktg@adyatest.com,mktg_user_1@adyatest.com,101512209288672489677,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,mktg@adyatest.com,mktg_user_2@adyatest.com,118413360337253933466,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,sales@adyatest.com,sales_user_1@adyatest.com,114793821649119738236,MEMBER,USER
+0f3838b0-be97-46be-b3b5-82266578582e,sales@adyatest.com,sales_user_2@adyatest.com,100709279376987933060,MEMBER,USER

@@ -1,0 +1,279 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: adya-common
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: python2.7
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.stages.${self:provider.stage}.awsProfile}
+  region: ${self:custom.stages.${self:provider.stage}.region}
+  timeout: 300
+  versionFunctions: false
+  environment:
+    UI_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.uiHost}
+    API_HOST: ${self:custom.stages.${self:provider.stage}.httpProtocol}${self:custom.stages.${self:provider.stage}.apiHost}
+    DB_URL: ${opt:DB_URL, 'localhost:3306'}
+    DB_USERNAME: ${opt:DB_USERNAME, 'root'}
+    DB_PWD: ${opt:DB_PWD, 'root'}
+    DB_NAME: ${opt:DB_NAME, 'dev'}
+    DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - "ses:SendEmail"
+        - "lambda:InvokeFunction"
+        - "lambda:GetFunction"
+        - "events:PutRule"
+        - "events:PutTargets"
+        - "lambda:AddPermission"
+        - "events:*"
+        - "iam:PassRole"
+        - "ses:SendRawEmail"
+        - "ec2:CreateNetworkInterface"
+        - "ec2:DescribeNetworkInterfaces"
+        - "ec2:DeleteNetworkInterface"
+      Resource:
+        "*"
+  vpc: 
+    securityGroupIds:
+      - sg-5d5eae14
+    subnetIds:
+      - subnet-ccc4cae3
+      - subnet-30c5c86d      
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  defaultStage: dev
+  stages:
+    dev: 
+      awsProfile: devProfile
+      dbName: "dev"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "api-dev.adyatest.com"
+      uiHost: "app.adyatest.com"
+    prod: 
+      awsProfile: prodProfile
+      dbName: "prod"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "api.adya.io"
+      uiHost: "app.adya.io"
+
+  customDomain:
+    domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
+    basePath: "common"
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    endpointType: regional
+
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.py
+#    - api/datasources/**
+#  exclude:
+#    - lib/**
+#    - exclude-me-dir/**
+
+functions:
+  get-common-currentuser:
+    handler: adya.services.lambda.auth_handler.current_user
+    events:
+      - http:
+          path: user
+          method: get
+          cors: true
+
+  get-common-datasources:
+    handler: adya.services.lambda.domain_handler.get_datasource
+    events:
+      - http:
+          path: datasources
+          method: get
+          cors: true
+
+  post-common-datasources:
+    handler: adya.services.lambda.domain_handler.post_datasource
+    events:
+      - http:
+          path: datasources
+          method: post
+          cors: true
+
+  delete-common-datasources:
+    handler: adya.services.lambda.domain_handler.delete_datasource
+    events:
+      - http:
+          path: datasources
+          method: delete
+          cors: true
+
+  delete-common-asyncdatasourcedelete:
+    handler: adya.services.lambda.domain_handler.async_datasource_delete
+    events:
+      - http:
+          path: asyncdatasourcedelete
+          method: delete
+          cors: true
+
+  get-common-widgets:
+    handler: adya.services.lambda.reports_handler.get_widget_data
+    events:
+      - http:
+          path: widgets
+          method: get
+          cors: true
+
+  get-common-getusertreedata:
+    handler: adya.services.lambda.reports_handler.get_user_tree_data
+    events:
+      - http:
+          path: getusergrouptree
+          method: get
+          cors: true
+
+  get-common-getappsdata:
+    handler: adya.services.lambda.reports_handler.get_user_app
+    events:
+      - http:
+          path: getappsdata
+          method: get
+          cors: true
+
+  get-common-getresourcetree:
+    handler: adya.services.lambda.reports_handler.get_resources
+    events:
+      - http:
+          path: getresourcetree
+          method: get
+          cors: true
+
+  post-common-getresourcetree:
+    handler: adya.services.lambda.reports_handler.get_resource_tree_data
+    events:
+      - http:
+          path: getresourcetree
+          method: post
+          cors: true
+
+  get-common-scheduledreport:
+    handler: adya.services.lambda.reports_handler.get_scheduled_reports
+    events:
+      - http:
+          path: scheduledreport
+          method: get
+          cors: true
+
+  post-common-scheduledreport:
+    handler: adya.services.lambda.reports_handler.post_scheduled_report
+    events:
+      - http:
+          path: scheduledreport
+          method: post
+          cors: true
+
+  get-common-getactivitiesforuser:
+    handler: adya.services.lambda.activities_handler.get_activities_for_user
+    events:
+      - http:
+          path: getactivitiesforuser
+          method: get
+          cors: true
+  get-common-getauditlog:
+    handler: adya.services.lambda.auditlog_handler.get_audit_log
+    events:
+      - http:
+          path: getauditlog
+          method: get
+          cors: true
+  get-common-executescheduledreport:
+     handler: adya.services.lambda.reports_handler.execute_cron_report
+
+  delete-common-scheduledreport:
+    handler: adya.services.lambda.reports_handler.delete_scheduled_report
+    events:
+      - http:
+          path: scheduledreport
+          method: delete
+          cors: true
+  get-common-runscheduledreport:
+    handler: adya.services.lambda.reports_handler.run_scheduled_report
+    events:
+      - http:
+          path: scheduledreport/runreport
+          method: get
+          cors: true
+  put-common-modifyscheduledreport:
+    handler: adya.services.lambda.reports_handler.modify_scheduled_report
+    events:
+      - http:
+          path: scheduledreport
+          method: put
+          cors: true
+  get-common-getallactions:
+    handler: adya.services.lambda.actions_handler.get_all_actions
+    events:
+      - http:
+          path: getallactions
+          method: get
+          cors: true
+  post-common-initiateaction:
+    handler: adya.services.lambda.actions_handler.initiate_action
+    events:
+      - http:
+          path: initiateaction
+          method: post
+          cors: true
+
+  post-common-policy:
+    handler: adya.services.lambda.policy_handler.post_policy
+    events:
+      - http:
+          path: policies
+          method: post
+          cors: true
+
+  get-common-policies:
+    handler: adya.services.lambda.policy_handler.get_policies
+    events:
+      - http:
+          path: policies
+          method: get
+          cors: true
+
+  put-common-policy:
+    handler: adya.services.lambda.policy_handler.update_policy
+    events:
+      - http:
+          path: policies
+          method: put
+          cors: true
+
+  delete-common-policy:
+    handler: adya.services.lambda.policy_handler.delete_policy
+    events:
+      - http:
+          path: policies
+          method: delete
+          cors: true
+
