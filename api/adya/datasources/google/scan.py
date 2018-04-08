@@ -367,6 +367,11 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             results = directory_service.groups().list(customer='my_customer', maxResults=500,
                                                       pageToken=next_page_token).execute()
 
+            if not "groups" in results:
+                Logger().info("Domain groups result returned is {}".format(results))
+                Logger().warn("Groups not found, hence not processing domain groups")
+                return
+
             group_count = len(results["groups"])
             Logger().info("Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token))
             
