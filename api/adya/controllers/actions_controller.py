@@ -268,7 +268,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     existing_permission.permission_type = new_permission_role
 
-    if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+    if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE or new_permission_role == constants.Role.OWNER:
         db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner,
                         ResourcePermission.resource_id == resource_id, ResourcePermission.datasource_id == datasource_id)).\
                           update({ResourcePermission.permission_type: constants.Role.WRITER})
