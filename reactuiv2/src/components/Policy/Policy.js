@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { Card, Button, Modal, Icon } from 'semantic-ui-react'
+import { Card, Button, Modal, Icon, Container, Dimmer, Loader } from 'semantic-ui-react'
 import PolicyItemDetail from './PolicyItemDetail';
 import { connect } from 'react-redux'
 import  agent from '../../utils/agent'
 import {
-    CREATE_POLICY_LOAD_START,
-    CREATE_POLICY_LOADED
+    POLICY_LOAD_START,
+    POLICY_LOADED
 } from '../../constants/actionTypes'
 
 const mapStateToProps = state => ({
@@ -16,9 +16,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     policyLoadStart: () =>
-        dispatch({ type: CREATE_POLICY_LOAD_START }),
-    createPolicy: (payload) =>
-        dispatch({ type: CREATE_POLICY_LOADED, payload })
+        dispatch({ type: POLICY_LOAD_START }),
+    policyLoaded: (payload) =>
+        dispatch({ type: POLICY_LOADED, payload })
 })
 
 class Policy extends Component {    
@@ -26,7 +26,23 @@ class Policy extends Component {
         super(props);
 
         this.state = {
-            showPolicyForm: false
+            showPolicyForm: false,
+            fetchPolicy: false
+        }
+    }
+
+    componentWillMount() {
+        this.props.policyLoadStart()
+        this.props.policyLoaded(agent.Policy.getPolicy())
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.state.fetchPolicy) {
+            nextProps.policyLoadStart()
+            nextProps.policyLoaded(agent.Policy.getPolicy())
+            this.setState({
+                fetchPolicy: false
+            })
         }
     }
 
@@ -58,8 +74,12 @@ class Policy extends Component {
                 }
             }]
         }
+        this.setState({
+            showPolicyForm: false,
+            fetchPolicy: true
+        })
         this.props.policyLoadStart()
-        this.props.createPolicy(agent.Policy.createPolicy(policyInfo))
+        this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
     }
 
     handleInputEmailChange = (event, emailCategory) => {
@@ -74,6 +94,31 @@ class Policy extends Component {
     }
 
     render() {
+
+        let policyCards = null
+
+        if (this.props.policyData && this.props.policyData.length > 0)
+            policyCards = this.props.policyData.map(policy => {
+                return (
+                    <Card>
+                        <Card.Content>
+                            <Card.Header>
+                                {policy.name}
+                            </Card.Header>
+                            <Card.Description>
+                                {policy.description}    
+                            </Card.Description>
+                        </Card.Content>
+                        <Card.Content extra>
+                            <div className='ui three buttons'>
+                                <Button basic color='red'>Delete</Button>
+                                <Button basic color='blue'>Modify</Button>    
+                            </div>
+                        </Card.Content>
+                    </Card>
+                )
+            })
+
         if (this.state.showPolicyForm) {
             return (
                 <Modal size='large' className="scrolling" open={this.state.showPolicyForm}>
@@ -91,8 +136,19 @@ class Policy extends Component {
             ) 
         }
 
+        else if (this.props.isLoading) {
+            return (
+                <Container>
+                  <Dimmer active inverted>
+                    <Loader inverted content='Loading' />
+                  </Dimmer>
+                </Container >
+            )
+        }
+
         return (
             <Card.Group>
+                {policyCards}
                 <Card>
                   <Card.Content>
                     <Card.Description>
