@@ -1,16 +1,17 @@
 import traceback
-
-from adya.common import constants, action_constants, messaging, response_messages
-from adya.common.constants import ResponseType
-from adya.datasources.google import actions, gutils
-from adya.datasources.google.scan import get_resource_exposure_type
-from adya.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource, \
-    DirectoryStructure, DomainUser, DataSource
-from adya.db.connection import db_connection
-from adya.common.response_messages import ResponseMessage
 from sqlalchemy import and_, or_
 import json
 from datetime import datetime
+
+from adya.common.constants import constants, action_constants
+from adya.common.utils import messaging, response_messages
+from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, Resource, \
+    DirectoryStructure, DomainUser, DataSource
+from adya.common.db.connection import db_connection
+from adya.common.utils.response_messages import ResponseMessage
+
+from adya.gsuite import actions, gutils
+from adya.gsuite.scan import get_resource_exposure_type
 
 
 def get_actions():
@@ -475,8 +476,8 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         permissions_to_update.append(permission)
 
     if len(permissions_to_update) > 0:
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
-        updated_permissions = gsuite_action.delete_permissions()
+        resource_actions_handler = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        updated_permissions = resource_actions_handler.delete_permissions()
 
         if len(updated_permissions) < 1:
             return response_messages.ResponseMessage(400, 'Action failed with error - ' + gsuite_action.get_exception_message())
@@ -500,13 +501,13 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
     db_session = db_connection().get_session()
     if action_name == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
         response = actions.delete_user_from_group(auth_token, group_email, user_email)
-        if ResponseType.ERROR in response:
+        if constants.ResponseType.ERROR in response:
             return response_messages.ResponseMessage(response.resp.status,'Action failed with error - ' + response['error']['message'])
         db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
                                                             DirectoryStructure.parent_email == group_email, DirectoryStructure.member_email == user_email)).delete()
     elif action_name == action_constants.ActionNames.ADD_USER_TO_GROUP:
         response = actions.add_user_to_group(auth_token, group_email, user_email)
-        if ResponseType.ERROR in response:
+        if constants.ResponseType.ERROR in response:
             return response_messages.ResponseMessage(response.resp.status,'Action failed with error - ' + response['error']['message'])
         dirstructure = DirectoryStructure()
         dirstructure.datasource_id = datasource_id
