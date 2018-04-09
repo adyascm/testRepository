@@ -74,14 +74,14 @@ custom:
 
 functions:
   get-google-oauthlogin:
-    handler: adya.gsuite.services.lambda.auth_handler.google_oauth_request
+    handler: adya.gsuite.services.lambda.oauth_handler.google_oauth_request
     events:
       - http:
           path: oauthlogin
           method: get
 
   get-google-oauthcallback:
-    handler: adya.gsuite.services.lambda.auth_handler.google_oauth_callback
+    handler: adya.gsuite.services.lambda.oauth_handler.google_oauth_callback
     events:
       - http:
           path: oauthcallback
