@@ -6,7 +6,7 @@ from adya.core.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
 import os
-
+from adya.common.response_messages import Logger
 
 def get_rendered_html(template_name, template_parameters):
     try:
@@ -19,8 +19,7 @@ def get_rendered_html(template_name, template_parameters):
                 raise Exception()
 
     except Exception as e:
-        print e
-        print "Exception occurred while rendering html."
+        Logger().exception("Exception occurred while rendering html.")
 
 def send_welcome_email(login_user):
     try:
@@ -39,8 +38,7 @@ def send_welcome_email(login_user):
         email_subject = "Welcome to Adya!"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
-        print e
-        print "Exception occurred sending welcome email!"
+        Logger().exception("Exception occurred sending welcome email!")
 
 def send_gdrive_scan_completed_email(datasource):
     try:
@@ -62,8 +60,7 @@ def send_gdrive_scan_completed_email(datasource):
         email_subject="Your gdrive scan has completed!"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
-        print e
-        print "Exception occurred sending gdrive scan completed email"
+        Logger().exception("Exception occurred sending gdrive scan completed email")
 
 
 def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
@@ -112,8 +109,7 @@ def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
         return data
 
     except Exception as e:
-        print e
-        print "Exception occurred retrieving data for gdrive scan completed email."
+        Logger().exception("Exception occurred retrieving data for gdrive scan completed email.")
 
 
 def convert_list_pystache_format(placeholder, list_items):

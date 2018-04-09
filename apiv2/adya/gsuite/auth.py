@@ -7,6 +7,7 @@ import google.oauth2.credentials
 from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
+from adya.common.response_messages import Logger
 
 from adya.common.constants.scopeconstants import LOGIN_SCOPE, DRIVE_SCAN_SCOPE, SCOPE_DICT
 import gutils
@@ -65,7 +66,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
-    print "Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes)
+    Logger().info("Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes))
     domain_id = login_email
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow()
