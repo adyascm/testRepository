@@ -1,7 +1,7 @@
 from flask_restful import request
 import json
 import constants
-
+from adya.common.response_messages import Logger
 from adya.db.models import alchemy_encoder
 from adya.db.connection import db_connection
 
@@ -23,7 +23,7 @@ class RequestSession():
             headers_dict = self.req.headers
             params_dict = self.req.args
         else:
-            print "Dumping the event object - " + json.dumps(self.req)
+            Logger().info("Dumping the event object - " + str(json.dumps(self.req)))
             self.isLocal = False
             headers_dict = self.req
             if "headers" in self.req:

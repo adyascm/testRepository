@@ -4,7 +4,7 @@ from adya.db.connection import db_connection
 from sqlalchemy import and_
 from datetime import datetime, timedelta
 from adya.controllers import domain_controller
-
+from adya.common.response_messages import Logger
 
 def get_activities_for_user(auth_token, user_email, start_time=None):
 
@@ -21,11 +21,11 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
 
 
 def process_user_activity(user_email, activities):
-    print "got activities: ", activities
+    Logger().info("got activities: "+ str(activities))
     processed_activities = []
     if 'items' in activities:
         activity_log_list = activities['items']
-        print("PROCESS ACTIVITY USER LOG : Drive Returned ", len(activity_log_list), " Activity Details ")
+        Logger().info("PROCESS ACTIVITY USER LOG : Drive Returned "+ str(len(activity_log_list))+ " Activity Details ")
 
         for activity in activity_log_list:
             activity_events = activity['events']

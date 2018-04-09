@@ -6,6 +6,7 @@ from threading import Thread
 import time
 import os
 
+from adya.common.response_messages import Logger
 from adya.common import constants, utils
 from adya.common.response_messages import Logger
 from adya.db.connection import db_connection
@@ -88,11 +89,11 @@ def create_datasource(auth_token, payload):
             create_dummy_datasource(
                 db_session, existing_user.domain_id, datasource_id)
         else:
-            print "Starting the scan"
+            Logger().info("Starting the scan")
             query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(constants.SCAN_START, auth_token, query_params, {}, "adya-google")
-            print "Received the response of start scan api"
+            Logger().info("Received the response of start scan api")
         return datasource
     else:
         return None
@@ -124,9 +125,9 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
-        print "Datasource deleted successfully"
+        Logger().info("Datasource deleted successfully")
     except Exception as ex:
-        print "Exception occurred during datasource data delete - " + ex.message
+        Logger().exception("Exception occurred during datasource data delete - ")
 
 
 def delete_datasource(auth_token, datasource_id):
@@ -146,7 +147,7 @@ def delete_datasource(auth_token, datasource_id):
             gutils.revoke_appaccess(
                 auth_token, user_email=None, db_session=db_session)
         except Exception as ex:
-            Logger().exception("Exception occurred while revoking the app access - {} ".format(ex.message))
+            Logger().exception("Exception occurred while revoking the app access ")
 
 
 
@@ -165,8 +166,8 @@ def create_domain(db_session, domain_id, domain_name):
 
 
 def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):
-    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
-        domain_id, datasource_id, is_admin, is_service_account_enabled)
+    Logger().info("Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
+        domain_id, datasource_id, is_admin, is_service_account_enabled))
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
 
     db_session = db_connection().get_session()

@@ -3,7 +3,7 @@ from adya.common import utils
 from adya.common.request_session import RequestSession
 from adya.datasources.google import incremental_scan
 from adya.controllers import domain_controller,actions_controller
-
+from adya.common.response_messages import Logger
 
 def start_scan(event, context):
     req_session = RequestSession(event)
@@ -18,7 +18,7 @@ def start_scan(event, context):
     return req_session.generate_response(202)
 
 def get_drive_resources(event, context):
-    print "started initial gdrive scan"
+    Logger().info("started initial gdrive scan")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True, ['dataSourceId', 'domainId','ownerEmail'],
                                                          ['nextPageToken','userEmail'])
@@ -31,7 +31,7 @@ def get_drive_resources(event, context):
     return req_session.generate_response(202)
 
 def process_drive_resources(event, context):
-    print "Processing Data"
+    Logger().info("Processing Data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],['userEmail', 'is_new_resource', 'notify_app'])
@@ -47,7 +47,7 @@ def process_drive_resources(event, context):
 
 
 def process_resource_permissions(event, context):
-    print "Getting Permission Data"
+    Logger().info("Getting Permission Data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],['userEmail'])
@@ -67,7 +67,7 @@ def process_resource_permissions(event, context):
 
 
 def get_domain_users(event, context):
-    print("Getting domain user")
+    Logger().info("Getting domain user")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -83,7 +83,7 @@ def get_domain_users(event, context):
     return req_session.generate_response(202)
 
 def process_domain_users(event, context):
-    print("Process users data")
+    Logger().info("Process users data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
@@ -100,7 +100,7 @@ def process_domain_users(event, context):
 
 
 def get_domain_groups(event, context):
-    print("Getting domain groups")
+    Logger().info("Getting domain groups")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -116,7 +116,7 @@ def get_domain_groups(event, context):
     return req_session.generate_response(202)
 
 def process_domain_groups(event, context):
-    print("Process groups data")
+    Logger().info("Process groups data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])

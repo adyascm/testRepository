@@ -4,7 +4,7 @@ from adya.common import utils
 from adya.common.request_session import RequestSession
 from adya.db.models import DataSource
 from adya.controllers import domain_controller,actions_controller
-
+from adya.common.response_messages import Logger
 
 class DriveScan(Resource):
     def post(self):
@@ -20,7 +20,7 @@ class DriveScan(Resource):
 
 class DriveResources(Resource):
     def get(self):
-        print "started initial gdrive scan"
+        Logger().info("started initial gdrive scan")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId','ownerEmail'], ['nextPageToken','userEmail'])
@@ -33,7 +33,7 @@ class DriveResources(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print "Processing Data"
+        Logger().info("Processing Data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],['userEmail', 'is_new_resource', 'notify_app'])
@@ -50,7 +50,7 @@ class DriveResources(Resource):
 
 class GetPermission(Resource):
     def post(self):
-        print "Getting Permission Data"
+        Logger().info("Getting Permission Data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],['userEmail'])
@@ -70,7 +70,7 @@ class GetPermission(Resource):
 
 class GetDomainuser(Resource):
     def get(self):
-        print("Getting domain user")
+        Logger().info("Getting domain user")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -86,7 +86,7 @@ class GetDomainuser(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print("Process users data")
+        Logger().info("Process users data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])
@@ -104,7 +104,7 @@ class GetDomainuser(Resource):
 
 class GetDomainGroups(Resource):
     def get(self):
-        print("Getting domain groups")
+        Logger().info("Getting domain groups")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -120,7 +120,7 @@ class GetDomainGroups(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print("Process groups data")
+        Logger().info("Process groups data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])
