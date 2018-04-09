@@ -111,7 +111,9 @@ const Policy = {
     getPolicy: () => 
         requests.get('/common/policies'),
     deletePolicy: (policyId) =>
-        requests.del('/common/policies?policyId=' + policyId)
+        requests.del('/common/policies?policyId=' + policyId),
+    updatePolicy: (policyId, policyInfo) =>
+        requests.put('/common/policies?policyId=' + policyId, policyInfo)
 }
 
 
