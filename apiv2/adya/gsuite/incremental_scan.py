@@ -128,7 +128,7 @@ def subscribe(domain_id, datasource_id):
         # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
                                           aws_utils.get_lambda_name("get",
-                                                                    constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "adya-google"))
+                                                                    constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
 
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
@@ -423,7 +423,7 @@ def handle_change(drive_service, datasource_id, email, file_id):
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
                         'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
-        messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
 
         # payload = {}
         # payload["old_permissions"] = existing_permissions
