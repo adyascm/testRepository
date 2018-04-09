@@ -93,6 +93,14 @@ class Policy extends Component {
             })
     }
 
+    deletePolicy = (policyId) => {
+        this.props.policyLoadStart()
+        this.props.policyLoaded(agent.Policy.deletePolicy(policyId))
+        this.setState({
+            fetchPolicy: true            
+        })
+    }
+
     render() {
 
         let policyCards = null
@@ -111,7 +119,7 @@ class Policy extends Component {
                         </Card.Content>
                         <Card.Content extra>
                             <div className='ui three buttons'>
-                                <Button basic color='red'>Delete</Button>
+                                <Button basic color='red' onClick={() => this.deletePolicy(policy.policy_id)}>Delete</Button>
                                 <Button basic color='blue'>Modify</Button>    
                             </div>
                         </Card.Content>
