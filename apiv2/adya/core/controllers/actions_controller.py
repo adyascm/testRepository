@@ -269,7 +269,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     existing_permission.permission_type = new_permission_role
 
-    if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+    if action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE or new_permission_role == constants.Role.OWNER:
         db_session.query(ResourcePermission).filter(and_(ResourcePermission.email == resource_owner,
                         ResourcePermission.resource_id == resource_id, ResourcePermission.datasource_id == datasource_id)).\
                           update({ResourcePermission.permission_type: constants.Role.WRITER})
@@ -374,7 +374,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                 resource.exposure_type = constants.ResourceExposureType.INTERNAL
 
     if len(permissions_to_update) > 0:
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, user_email)
         updated_permissions = gsuite_action.delete_permissions()
 
         if len(updated_permissions) < 1:
