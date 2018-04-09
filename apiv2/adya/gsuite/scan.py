@@ -542,7 +542,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
                 Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
-                messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
+                messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
                                              query_params, {}, "gsuite")
 
 def get_scan_status(datasource):
