@@ -54,6 +54,8 @@ class ResourceDetailsSection extends Component {
     }
 
     render() {
+        if(!this.props.rowData)
+            return null;
         let panes = [
             { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions
             rowData={this.props.rowData} onPermissionChange={this.onPermissionChange}
