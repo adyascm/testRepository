@@ -373,7 +373,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                 resource.exposure_type = constants.ResourceExposureType.INTERNAL
 
     if len(permissions_to_update) > 0:
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, initiated_by)
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(auth_token, permissions_to_update, user_email)
         updated_permissions = gsuite_action.delete_permissions()
 
         if len(updated_permissions) < 1:
