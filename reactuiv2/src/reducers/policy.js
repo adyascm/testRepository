@@ -1,8 +1,7 @@
 import {
-    SET_POLICY_ROW_FILTERS,
     SET_POLICY_FILTER,
-    CREATE_POLICY_LOAD_START,
-    CREATE_POLICY_LOADED,
+    POLICY_LOAD_START,
+    POLICY_LOADED,
     LOGOUT
 } from '../constants/actionTypes'
 
@@ -14,27 +13,24 @@ const defaultState = {
 
 export default (state=defaultState, action) => {
     switch(action.type) {
-        case SET_POLICY_ROW_FILTERS:
-            return {
-                ...state,
-                policyFilters: action.payload
-            }
         case SET_POLICY_FILTER:
-            if (action.policyFilterType === 'filterType' || 
-                action.policyFilterType === 'filterCondition' ||
-                action.policyFilterType === 'filterValue')
-                    state[action.policyFilterType].push(action.policyFilterValue)
+            if (action.policyFilterType === 'policyConditions') {
+                if (!state[action.policyFilterType])
+                    state[action.policyFilterType] = []
+                state[action.policyFilterType].push(action.policyFilterValue)
+            }
             else 
                 state[action.policyFilterType] = action.policyFilterValue
             return {
                 ...state
             }
-        case CREATE_POLICY_LOAD_START:
+        case POLICY_LOAD_START:
             return {
                 ...state,
                 isLoading: true
             }
-        case CREATE_POLICY_LOADED:
+        case POLICY_LOADED:
+            console.log("policy loaded : ", action.payload)
             return {
                 ...state,
                 policyData: !action.error?action.payload:[],

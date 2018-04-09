@@ -109,7 +109,9 @@ const Policy = {
     createPolicy: (policyInfo) =>
         requests.post('/common/policies', policyInfo),
     getPolicy: () => 
-        requests.get('/common/policies')
+        requests.get('/common/policies'),
+    deletePolicy: (policyId) =>
+        requests.del('/common/policies?policyId=' + policyId)
 }
 
 
