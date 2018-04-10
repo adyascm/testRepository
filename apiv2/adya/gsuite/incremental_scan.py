@@ -279,12 +279,7 @@ def process_userlist_notification(notification_type, datasource_id, channel_id, 
 
 
 def process_notifications(notification_type, datasource_id, channel_id):
-    Logger().info("Processing Subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(
-        notification_type,
-        datasource_id, channel_id))
-
     if notification_type == "sync":
-        Logger().info("Sync notification received, ignore...")
         return
 
     db_session = db_connection().get_session()
@@ -297,12 +292,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
         return
     user_email = subscription.user_email
     try:
-        subscribed_user = db_session.query(DomainUser).filter(
-            and_(DomainUser.email == subscription.user_email, DomainUser.member_type == 'INT')).first()
-        if not subscribed_user:
-            Logger().warn("Subscribed user does not exist, hence ignoring the notification")
-            return
-
         drive_service = None
         if not subscription.drive_root_id == "SVC":
             login_user = db_session.query(LoginUser).filter(LoginUser.email == subscription.user_email).first()
@@ -314,21 +303,21 @@ def process_notifications(notification_type, datasource_id, channel_id):
             if subscription.stale == 0:
                 subscription.stale = 1
                 db_connection().commit()
-                Logger().info("Subscription already in progress  for datasource_id: {} and channel_id: {}, hence marking it stale and returning.".format(
-                    datasource_id, channel_id))
+                Logger().info("Subscription already in progress for user: {} and channel_id: {}, hence marking it stale and returning.".format(
+                    user_email, channel_id))
             else:
-                Logger().info("Subscription already in progress and marked stale for datasource_id: {} and channel_id: {}, hence directly returning.".format(
-                    datasource_id, channel_id))
+                Logger().info("Subscription already in progress and marked stale for user:{} and channel_id: {}, hence directly returning.".format(
+                    user_email, channel_id))
 
             return
 
         should_mark_in_progress = True
 
         page_token = subscription.page_token
-        Logger().info("process_notifications : page_token {}" .format(page_token))
         while True:
             response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                     spaces='drive').execute()
+            Logger().info("Processing notification for user: {} with page token: {}".format(user_email, page_token))
             Logger().info("Changes for this notification found are - {}".format(response))
             # Mark Inprogress
             if should_mark_in_progress:
@@ -344,7 +333,10 @@ def process_notifications(notification_type, datasource_id, channel_id):
                 fileId = change.get('fileId')
                 handle_change(drive_service, datasource_id, user_email, fileId)
 
-            if 'newStartPageToken' in response:
+            if 'nextPageToken' in response:
+                # More changes available, so continue fetching changes with the updated page token
+                page_token = response.get('nextPageToken')
+            elif 'newStartPageToken' in response:
                 # Last page, save this token for the next polling interval
                 page_token = response.get('newStartPageToken')
                 break
@@ -372,7 +364,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
 
 
 def handle_change(drive_service, datasource_id, email, file_id):
-    Logger().info('Handling the change for file: %s' % file_id)
     db_session = db_connection().get_session()
     try:
         results = drive_service.files() \
@@ -383,7 +374,12 @@ def handle_change(drive_service, datasource_id, email, file_id):
         Logger().info("Updated resource for change notification is - {}".format(results))
 
         if results and results['owners'][0]['emailAddress'] != email:
-            Logger().info("owner of the file is not same as subscribed user. Owner email : {} and subscribed user email : {}".\
+            Logger().warn("Owner of the file is not same as subscribed user, hence ignoring. Owner email : {} and subscribed user email : {}".\
+                format(results['owners'][0]['emailAddress'], email))
+            return
+
+        if results and not "permissions" in results:
+            Logger().warn("Permissions not found for this resource, something wrong, hence ignoring. Owner email : {} and subscribed user email : {}".\
                 format(results['owners'][0]['emailAddress'], email))
             return
 
@@ -391,21 +387,19 @@ def handle_change(drive_service, datasource_id, email, file_id):
 
         resource = db_session.query(Resource).filter(
             and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
-        if resource:
-            saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
-            difference = abs(saved_last_modified_time - last_modified_time)
-            if (difference.seconds <= 5000):
-                Logger().info("The difference in time is - {}".format(difference.seconds))
-                Logger().info("Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time))
-                return
+        # if resource:
+        #     saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
+        #     difference = abs(saved_last_modified_time - last_modified_time)
+        #     if (difference.seconds <= 5000):
+        #         Logger().info("The difference in time is - {}".format(difference.seconds))
+        #         Logger().info("Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time))
+        #         return
 
         existing_permissions = []
-
         is_new_resource = 0
+
         if resource:
             existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
-            Logger().info("Modified time of the changed resource is - {}, and stored resource is {}".format(last_modified_time,
-                                                                                                    resource.last_modified_time))
             Logger().info( "Deleting the existing permissions and resource, and add again")
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
                                                              ResourcePermission.datasource_id == datasource_id)).delete(
