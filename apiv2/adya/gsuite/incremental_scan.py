@@ -33,7 +33,7 @@ def handle_channel_expiration():
             body = {
                 "id": row.channel_id,
                 "type": "web_hook",
-                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "token": row.datasource_id,
                 "payload": "true",
                 "params": {"ttl": 86100}
@@ -94,7 +94,7 @@ def handle_channel_expiration_For_userlist_watch(db_session):
             body = {
                 "id": subscription.channel_id,
                 "type": "web_hook",
-                "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "params": {"ttl": "1800"}
             }
             directory_service = gutils.get_directory_service(None, subscription.user_email)
@@ -128,7 +128,7 @@ def subscribe(domain_id, datasource_id):
         # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
                                           aws_utils.get_lambda_name("get",
-                                                                    constants.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+                                                                    urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
 
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
@@ -184,7 +184,7 @@ def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
     body = {
         "id": channel_id,
         "type": "web_hook",
-        "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
+        "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
         "params": {"ttl": "1800"},
         "token": datasource_id
     }
@@ -222,7 +222,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         body = {
             "id": channel_id,
             "type": "web_hook",
-            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
             "token": datasource.datasource_id,
             "payload": "true",
             "params": {"ttl": 86100}
@@ -360,7 +360,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
         if subscription.stale == 1:
             subscription.stale = 0
             db_connection().commit()
-            response = requests.post(constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            response = requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                      headers={"X-Goog-Channel-Token": datasource_id,
                                               "X-Goog-Channel-ID": channel_id,
                                               'X-Goog-Resource-State': notification_type})
@@ -429,7 +429,7 @@ def handle_change(drive_service, datasource_id, email, file_id):
         # payload["old_permissions"] = existing_permissions
         # payload["resource"] = results
         # policy_params = {'dataSourceId': datasource_id, 'resourceId': file_id}
-        # messaging.trigger_post_event(constants.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
+        # messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
     except Exception as e:
         Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
@@ -446,7 +446,7 @@ def unsubscribe_for_a_user(subscription):
         body = {
             "id": subscription.channel_id,
             "type": "web_hook",
-            "address": constants.get_url_from_path(constants.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
             "token": subscription.datasource_id,
             "payload": "true",
             "params": {"ttl": 86100},
