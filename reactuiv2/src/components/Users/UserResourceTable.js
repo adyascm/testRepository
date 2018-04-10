@@ -25,9 +25,9 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USERS_RESOURCE_LOADED, payload }),
     onChangePermission: (actionType, resource, newValue) =>
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue }),
-    setPaginationData: (pageNumber, pageLimit) => 
+    setPaginationData: (pageNumber, pageLimit) =>
         dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit }),
-    resetPaginationData: (pageNumber, pageLimit) => 
+    resetPaginationData: (pageNumber, pageLimit) =>
         dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit })
 });
 
@@ -46,7 +46,8 @@ class UserResourceTable extends Component {
             permissionOptions: [
                 { text: 'Can Read', value: 'reader' },
                 { text: 'Can Write', value: 'writer' },
-                { text: 'Owner', value: 'owner' }
+                { text: 'Owner', value: 'owner' },
+                {text: 'Can Comment', value: 'commenter'}
             ]
         }
     }
@@ -54,12 +55,12 @@ class UserResourceTable extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))    
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) || 
+        if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit}))
@@ -99,7 +100,7 @@ class UserResourceTable extends Component {
         }
 
         let tableRowData = null
-        
+
         if (this.props.selectedUserItem.resources)
             tableRowData = this.props.selectedUserItem.resources.map(rowData => {
                 return (
@@ -118,7 +119,7 @@ class UserResourceTable extends Component {
                     </Table.Row>
                 )
             })
-        
+
         if (this.props.isResourcesLoading)
             return (
                 <div style={{ height: '200px' }}>
@@ -149,13 +150,13 @@ class UserResourceTable extends Component {
                         </div>
                     </div>
                 )
-            else 
+            else
                 return (
                     <div style={{ marginLeft: '30%' }}>
-                        No Resources to display for user 
+                        No Resources to display for user
                     </div>
                 )
-        }        
+        }
     }
 }
 
