@@ -317,7 +317,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
         while True:
             response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                     spaces='drive').execute()
-            Logger().info("Processing notification for user: {} with page token: {}".format(user_email, page_token)
+            Logger().info("Processing notification for user: {} with page token: {}".format(user_email, page_token))
             Logger().info("Changes for this notification found are - {}".format(response))
             # Mark Inprogress
             if should_mark_in_progress:
