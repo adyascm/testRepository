@@ -110,12 +110,12 @@ class Login extends Component {
                                     </Header>
                                     <a target='_blank' href='https://www.adya.io/resources/'>Learn more</a>
                                     </Grid.Column > */}
-                                    <Grid.Column width={16} style={{backgroundColor:'#fff'}}>
+                                    <Grid.Column width={16} style={{backgroundColor:'#e0e1e2'}}>
                                         <Image verticalAlign='middle' size='medium' src='/images/AdyaLogo.png' />
                                         <h2 textAlign='center' style={{'marginTop': '-5px', 'color':'#f78851'}}>
                                             Manage and secure your SaaS Apps
                                         </h2>  
-                                        <Button compact basic onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
+                                        <Button compact onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
                                             <Button.Content>
                                                 <Image src='/images/Google.png' />
                                             </Button.Content>
