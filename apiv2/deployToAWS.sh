@@ -12,19 +12,19 @@ rm -rf target/dist/adyaapp &> /dev/null
 mkdir target &> /dev/null
 mkdir target/dist &> /dev/null
 mkdir target/dist/adyaapp &> /dev/null
-mkdir target/dist/adyaapp/common &> /dev/null
+mkdir target/dist/adyaapp/core &> /dev/null
 mkdir target/dist/adyaapp/gsuite &> /dev/null
 
-cp -r adya target/dist/adyaapp/common
-cp -r lib/lib/python2.7/site-packages/* target/dist/adyaapp/common
+cp -r adya target/dist/adyaapp/core
+cp -r lib/lib/python2.7/site-packages/* target/dist/adyaapp/core
 
 cp -r adya target/dist/adyaapp/gsuite
 cp -r lib/lib/python2.7/site-packages/* target/dist/adyaapp/gsuite
 
-cp common-serverless.yml target/dist/adyaapp/common/serverless.yml
+cp core-serverless.yml target/dist/adyaapp/core/serverless.yml
 cp gsuite-serverless.yml target/dist/adyaapp/gsuite/serverless.yml
 
-cd target/dist/adyaapp/common
+cd target/dist/adyaapp/core
 
 sls create_domain --stage=$STAGE
 sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE

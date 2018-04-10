@@ -26,11 +26,8 @@ def get_user_group_tree(auth_token):
         if is_service_account_is_enabled and not is_admin:
                 extUsers = db_session.query(DomainUser).filter(and_(Resource.resource_owner_id == login_user_email,
                                ResourcePermission.resource_id == Resource.resource_id,
-                               ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
-                               DomainUser.datasource_id == datasource_id,
                                ResourcePermission.email == DomainUser.email,
-                               ResourcePermission.datasource_id == datasource_id,
-                              DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
+                               ResourcePermission.datasource_id == datasource_id)).all()
 
                 for extusr in extUsers :
                     extusr.parents = []

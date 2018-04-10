@@ -14,7 +14,7 @@ def send_push_notification(queue_name, string_payload):
 
     session.post(url=constants.REAL_TIME_URL, json=push_message)
 
-def trigger_get_event(endpoint, auth_token, query_params, service_name="adya-common"):
+def trigger_get_event(endpoint, auth_token, query_params, service_name="core"):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
@@ -26,7 +26,7 @@ def trigger_get_event(endpoint, auth_token, query_params, service_name="adya-com
         print "Making a GET lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
-def trigger_post_event(endpoint, auth_token, query_params, body, service_name="adya-common"):
+def trigger_post_event(endpoint, auth_token, query_params, body, service_name="core"):
     print "trigger_post_event "
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -40,7 +40,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="a
         print "Making a POST lambda invoke on the following function - " + endpoint
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
-def trigger_delete_event(endpoint, auth_token, query_params, service_name="adya-common"):
+def trigger_delete_event(endpoint, auth_token, query_params, service_name="core"):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)

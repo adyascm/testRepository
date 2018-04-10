@@ -28,11 +28,16 @@ def get_widget_data(auth_token, widget_id):
     domain_datasource_ids = [r for r, in domain_datasource_ids]
     data = None
     if widget_id == 'usersCount':
-        user_count_query = db_session.query(DomainUser).filter(
-            DomainUser.datasource_id.in_(domain_datasource_ids))
+
         if is_service_account_is_enabled and not is_admin:
-            user_count_query = user_count_query.filter(DomainUser.email == login_user_email)
-        data = user_count_query.count()
+            user_count_query = db_session.query(ResourcePermission.email).filter( and_(
+                 ResourcePermission.datasource_id.in_(domain_datasource_ids),Resource.resource_owner_id == login_user_email,
+                                                    ResourcePermission.resource_id == Resource.resource_id)).distinct().count()
+        else:
+            user_count_query = db_session.query(DomainUser).filter(
+                DomainUser.datasource_id.in_(domain_datasource_ids)).count()
+
+        data = user_count_query
     elif widget_id == 'groupsCount':
         group_count_query = db_session.query(DomainGroup).filter(
             DomainGroup.datasource_id.in_(domain_datasource_ids))

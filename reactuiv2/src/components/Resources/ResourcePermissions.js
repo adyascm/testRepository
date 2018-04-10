@@ -21,7 +21,8 @@ const ResourcePermissions = props => {
     let permissionOptions = [
         { text: 'Can Read', value: 'reader' },
         { text: 'Can Write', value: 'writer' },
-        { text: 'Owner', value: 'owner' }
+        { text: 'Owner', value: 'owner' },
+        {text: 'Can Comment', value: 'commenter'}
     ]
 
     let permissions = props.rowData.permissions

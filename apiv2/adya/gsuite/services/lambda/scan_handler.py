@@ -1,7 +1,7 @@
 from adya.gsuite import scan, incremental_scan
 from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
-from adya.controllers import domain_controller,actions_controller
+from adya.core.controllers import actions_controller
 
 
 def start_scan(event, context):
