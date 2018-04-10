@@ -79,7 +79,7 @@ def create_datasource(auth_token, payload):
             print "Starting the scan"
             query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
-            messaging.trigger_post_event(urls.SCAN_START, auth_token, query_params, {}, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_START, auth_token, query_params, {}, "gsuite")
             print "Received the response of start scan api"
         return datasource
     else:

@@ -55,42 +55,34 @@ class Policy extends Component {
     closePolicyModalForm = (event) => {
         event.preventDefault()
         this.setState({
-            showPolicyForm: false
+            showPolicyForm: false,
+            policyDetails: undefined
         })
     }
 
     submitPolicyModalForm = () => {
         let policyInfo = {
             "datasource_id": this.props.datasources[0]["datasource_id"],
-            "name": "TestPolicy",
-            "description": "Test",
+            "name": this.props.name,
+            "description": this.props.description,
             "created_by": this.props.currentUser["email"],
             "trigger_type": this.props.policyType,
             "conditions": this.props.policyConditions,
-            "actions": [{
-                "action_type": this.props.actionType,
-                "config": {
-                    "to": this.state.To
-                }
-            }]
+            "actions": this.props.policyActions
         }
+
+        this.props.policyLoadStart()
+        if (!this.state.policyId)
+            this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
+        else 
+            this.props.policyLoaded(agent.Policy.updatePolicy(this.state.policyId,policyInfo))
+        
         this.setState({
             showPolicyForm: false,
-            fetchPolicy: true
-        })
-        this.props.policyLoadStart()
-        this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
-    }
-
-    handleInputEmailChange = (event, emailCategory) => {
-        if (emailCategory === 'To')
-            this.setState({
-                'To': event.target.value
-            })
-        else 
-            this.setState({
-                'CC': event.target.value
-            })
+            fetchPolicy: true,
+            policyDetails: undefined,
+            policyId: undefined
+        })        
     }
 
     deletePolicy = (policyId) => {
@@ -98,6 +90,15 @@ class Policy extends Component {
         this.props.policyLoaded(agent.Policy.deletePolicy(policyId))
         this.setState({
             fetchPolicy: true            
+        })
+    }
+
+    modifyPolicy = (policy) => {
+        console.log("modify policy: ", policy)
+        this.setState({
+            showPolicyForm: true,
+            policyDetails: policy,
+            policyId: policy.policy_id
         })
     }
 
@@ -120,7 +121,7 @@ class Policy extends Component {
                         <Card.Content extra>
                             <div className='ui three buttons'>
                                 <Button basic color='red' onClick={() => this.deletePolicy(policy.policy_id)}>Delete</Button>
-                                <Button basic color='blue'>Modify</Button>    
+                                <Button basic color='blue' onClick={() => this.modifyPolicy(policy)}>Modify</Button>    
                             </div>
                         </Card.Content>
                     </Card>
@@ -134,7 +135,7 @@ class Policy extends Component {
                         Policy Form
                     </Modal.Header>
                     <Modal.Content>
-                        <PolicyItemDetail sendEmail={this.handleInputEmailChange} />
+                        <PolicyItemDetail policyDetails={this.state.policyDetails} />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button negative onClick={this.closePolicyModalForm}>Close</Button>

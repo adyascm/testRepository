@@ -8,7 +8,8 @@ import agent from '../../utils/agent';
 import {
     SET_POLICY_FILTER,
     CREATE_POLICY_LOAD_START,
-    CREATE_POLICY_LOADED
+    CREATE_POLICY_LOADED,
+    UPDATE_POLICY_FILTER
 } from '../../constants/actionTypes';
 
 
@@ -18,7 +19,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     setPolicyFilter: (policyFilterType, policyFilterValue) => 
-        dispatch({ type: SET_POLICY_FILTER, policyFilterType, policyFilterValue })
+        dispatch({ type: SET_POLICY_FILTER, policyFilterType, policyFilterValue }),
+    updatePolicyFilter: (payload) =>
+        dispatch({ type: UPDATE_POLICY_FILTER, payload })
 });
 
 class PolicyItemDetail extends Component {
@@ -26,11 +29,17 @@ class PolicyItemDetail extends Component {
         super(props);
 
         this.state = {
-            filterRow: []
+            filterRow: [],
+            name: '',
+            description: ''
         }
     }
 
     componentWillMount() {
+        let filterRow = this.state.filterRow
+        let newFilter = (<PolicyCondition />)
+        filterRow.push(newFilter)
+
         this.setState({
             policyOptions: [
                 { text: '', value: '' },
@@ -49,8 +58,32 @@ class PolicyItemDetail extends Component {
                 { text: 'Does not contain', value: 'notcontain' }],
             filterRow: this.props.policyFilters?this.props.policyFilters:[],
             disableEmailField: true,
-            filterValue: ''
+            filterValue: '',
+            filterRow: filterRow
         })
+
+        if (this.props.policyDetails) {
+            //bulk update the policy filters to state
+            //console.log("actions : ", JSON.parse(this.props.policyDetails.actions[0].config).to)
+            this.props.updatePolicyFilter(this.props.policyDetails)
+            let policyCondition = this.props.policyDetails.conditions.map(policyCondition => {
+                return (
+                    <PolicyCondition policyCondition={policyCondition} />
+                )
+            })
+            this.setState({
+                name: this.props.policyDetails.name,
+                description: this.props.policyDetails.description,
+                policyTrigger: this.props.policyDetails.trigger_type,
+                filterRow: policyCondition,
+                disableEmailField: false,
+                To: JSON.parse(this.props.policyDetails.actions[0].config).to
+            })
+        }
+        else {
+            //Clear the previous state of policy filters
+            this.props.updatePolicyFilter(undefined)
+        }
     }
 
     addFilter = () => {
@@ -64,21 +97,45 @@ class PolicyItemDetail extends Component {
     }
 
     sendEmailChange = () => {
-        if (this.state.disableEmailField) 
-            this.props.setPolicyFilter('actionType', 'SEND_EMAIL')
         this.setState({
             disableEmailField: !this.state.disableEmailField
         })
     }
 
-    // handleInputEmailChange = (event, emailCategory) => {
-    //     this.setState({
-    //         emailCategory: event.target.value
-    //     })
-    // }
+    handleInputEmailChange = (event, emailCategory) => {
+        if (emailCategory === 'To')
+            this.setState({
+                'To': event.target.value
+            })
+    }
+
+    updatePolicyAction = () => {
+        let policyAction = {
+            'action_type': 'SEND_EMAIL',
+            'config': {
+                'to': this.state.To
+            }
+        }
+        this.props.setPolicyFilter('policyActions', policyAction)
+    }
 
     handlePolicyChange = (event,data) => {
         this.props.setPolicyFilter('policyType', data.value)
+    }
+
+    handlePolicyDataChange = (event,data,type) => {
+        if (type === 'name')
+            this.setState({
+                'name': data.value
+            })
+        else 
+            this.setState({
+                'description': data.value
+            })
+    }
+
+    updatePolicyData = (event,data,type) => {
+        this.props.setPolicyFilter(type,data)
     }
 
     render() {
@@ -93,8 +150,8 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field control={Input} label='To' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'To')} />
-                <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} />
+                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')} onBlur={this.updatePolicyAction} />
+                {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
             </Form.Group>
         )
 
@@ -114,13 +171,23 @@ class PolicyItemDetail extends Component {
                 <Container style={containerStyle}>
                     <Form>
                         <Segment.Group>
+                            {/* <Segment>
+                                <Form.Group>
+                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' />
+                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' />
+                                </Form.Group>
+                            </Segment> */}
                             <Segment>
+                                <Form.Group widths='equal'>
+                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyDataChange(event,data,'name')} onBlur={(event,data) => this.updatePolicyData(event,this.state.name,'name')} />
+                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyDataChange(event,data,'description')} onBlur={(event,data) => this.updatePolicyData(event,this.state.description,'description')} />
+                                </Form.Group>
                                 <Header as='h4' color='green'>WHEN</Header>
-                                <Form.Field control={Select} label='Action' options={this.state.policyOptions} placeholder='Select an action...' onChange={this.handlePolicyChange} />
+                                <Form.Field control={Select} label='Action' options={this.state.policyOptions} placeholder='Select an action...' value={this.state.policyTrigger} onChange={this.handlePolicyChange} />
                             </Segment>
                             <Segment>
                                 <Header as='h4' color='yellow'>IF</Header>
-                                <PolicyCondition />
+                                {/* <PolicyCondition /> */}
                                 {filterRow}
                                 <div style={{'textAlign': 'center'}}>
                                     <Button basic color='green' onClick={this.addFilter}>Add Filter</Button>
@@ -128,7 +195,7 @@ class PolicyItemDetail extends Component {
                             </Segment>
                             <Segment>
                                 <Header as='h4' color='red'>THEN</Header>
-                                <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} />
+                                <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                 {this.state.disableEmailField?null:emailFieldInput}
                             </Segment>
                         </Segment.Group>

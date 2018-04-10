@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse, request
 from adya.gsuite import scan
 from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
-from adya.core.controllers import actions_controller, domain_controller
+from adya.core.controllers import actions_controller
 
 class DriveScan(Resource):
     def post(self):

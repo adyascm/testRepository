@@ -26,13 +26,13 @@ def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_accoun
 
     if is_service_account_enabled == 'True' or is_admin == 'True':
         messaging.trigger_get_event(
-            urls.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
+            urls.SCAN_DOMAIN_USERS, auth_token, query_params, "gsuite")
         messaging.trigger_get_event(
-            urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
+            urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "gsuite")
     else:
         query_params["ownerEmail"] = existing_user.email
         messaging.trigger_get_event(
-            urls.SCAN_RESOURCES, auth_token, query_params, "adya-google")
+            urls.SCAN_RESOURCES, auth_token, query_params, "gsuite")
 
 # To avoid lambda timeout (5min) we are making another httprequest to process fileId with nextPagetoke
 def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_token=None,user_email=None):
@@ -66,7 +66,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
             while  sentfile_count < file_count:
                 resourcedata = {}
                 resourcedata["resources"] = results['files'][sentfile_count:sentfile_count+25]
-                messaging.trigger_post_event(urls.SCAN_RESOURCES, auth_token, query_params, resourcedata, "adya-google")
+                messaging.trigger_post_event(urls.SCAN_RESOURCES, auth_token, query_params, resourcedata, "gsuite")
                 sentfile_count +=25
             next_page_token = results.get('nextPageToken')
             if next_page_token:
@@ -75,7 +75,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':owner_email, 'nextPageToken': next_page_token}
                     if user_email:
                         query_params["userEmail"] = user_email
-                    messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "gsuite")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -291,13 +291,13 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             # no need to send user count to ui , so passing send_message flag as false
             update_and_get_count(datasource_id, DataSource.total_user_count, user_count, False)
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id }
-            messaging.trigger_post_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, data, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, data, "gsuite")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
-                    messaging.trigger_get_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, "gsuite")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -363,7 +363,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     Logger().info("Google service account is enabled, starting to fetch files for each processed user")
     for user_email in resource_usersList:
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,'ownerEmail':user_email,'userEmail': user_email if datasource.is_serviceaccount_enabled else ""}
-        messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "adya-google")
+        messaging.trigger_get_event(urls.SCAN_RESOURCES,auth_token, query_params, "gsuite")
 
     #Scan apps only for service account
     if datasource.is_serviceaccount_enabled:
@@ -371,7 +371,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
         userEmailList = {}
         userEmailList["userEmailList"] = user_email_list
-        messaging.trigger_post_event(urls.SCAN_USERS_APP, auth_token, query_params, userEmailList, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_USERS_APP, auth_token, query_params, userEmailList, "gsuite")
 
 
 def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
@@ -395,13 +395,13 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
             data = {"groupsResponseData": results["groups"]}
 
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
-            messaging.trigger_post_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, data, "adya-google")
+            messaging.trigger_post_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, data, "gsuite")
             next_page_token = results.get('nextPageToken')
             if next_page_token:
                 timediff = time.time() - starttime
                 if timediff >= constants.NEXT_CALL_FROM_FILE_ID:
                     query_params = {"domainId": domain_id, "dataSourceId": datasource_id, "nextPageToken": next_page_token}
-                    messaging.trigger_get_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "adya-google")
+                    messaging.trigger_get_event(urls.SCAN_DOMAIN_GROUPS, auth_token, query_params, "gsuite")
                     break
             else:
                 #Set the scan - fetch status as complete
@@ -441,7 +441,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         db_connection().commit()
         
         query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
-        messaging.trigger_post_event(urls.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "adya-google")
+        messaging.trigger_post_event(urls.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "gsuite")
         Logger().info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
     except Exception as ex:
         update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
@@ -542,8 +542,8 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
                 Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
-                messaging.trigger_post_event(constants.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
-                                             query_params, {}, "adya-google")
+                messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
+                                             query_params, {}, "gsuite")
 
 def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:

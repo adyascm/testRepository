@@ -37,6 +37,16 @@ class PolicyCondition extends Component {
         }
     }
 
+    componentWillMount() {
+        if (this.props.policyCondition) {
+            this.setState({
+                filterType: this.props.policyCondition.match_type,
+                filterCondition: this.props.policyCondition.match_condition,
+                filterValue: this.props.policyCondition.match_value
+            })
+        }
+    }
+
     handleFilterTypeChange = (event,data) => {
         this.setState({
             filterType: data.value
@@ -55,15 +65,24 @@ class PolicyCondition extends Component {
         })
     }
 
-    handleKeyPress = (event) => {
-        if (event.key === 'Enter') {
-            let appliedFilter = {
-                "match_type": this.state.filterType,
-                "match_condition": this.state.filterCondition,
-                "match_value": this.state.filterValue
-            }
-            this.props.setPolicyFilter('policyConditions', appliedFilter)
+    // handleKeyPress = (event) => {
+    //     if (event.key === 'Enter') {
+    //         let appliedFilter = {
+    //             "match_type": this.state.filterType,
+    //             "match_condition": this.state.filterCondition,
+    //             "match_value": this.state.filterValue
+    //         }
+    //         this.props.setPolicyFilter('policyConditions', appliedFilter)
+    //     }
+    // }
+
+    updateFilterValueChange = () => {
+        let appliedFilter = {
+            "match_type": this.state.filterType,
+            "match_condition": this.state.filterCondition,
+            "match_value": this.state.filterValue
         }
+        this.props.setPolicyFilter('policyConditions', appliedFilter)
     }
 
     // removeFilter = () => {
@@ -76,9 +95,9 @@ class PolicyCondition extends Component {
     render() {
         return (
             <Form.Group widths='equal'>
-                <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
-                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
-                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.filterValue} onChange={this.handleFilterValueChange} onKeyPress={this.handleKeyPress} />
+                <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.filterType} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
+                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} value={this.state.filterCondition} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
+                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.filterValue} onChange={this.handleFilterValueChange} onBlur={this.updateFilterValueChange} />
                 {/* <div style={{'height': '20px', 'paddingTop': '25px'}}>
                     <Button basic color='red' onClick={this.removeFilter}>
                         <Icon name='close' />
