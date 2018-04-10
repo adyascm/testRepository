@@ -93,14 +93,14 @@ class Login extends Component {
     render() {
         if (!this.props.currentUser) {
             return (
-                <div style={{ height: '100%' }}>
+                <div style={{ height: document.body.clientHeight}}>
                     <Grid textAlign='center'
-                        style={{ height: '100%' }}
+                        style={{ height: document.body.clientHeight }}
                         verticalAlign='middle' >
                         <Grid.Column style={{ maxWidth: 650 }}>
                             <Segment>
                                 <Grid>
-                                <Grid.Column width={8} verticalAlign='middle' style={{ minHeight:'300px'}} stretched>
+                                {/* <Grid.Column width={8} verticalAlign='middle' style={{ minHeight:'300px'}} stretched>
                                     <Header as='h3' color='yellow' textAlign='center'>
                                             Manage and secure your SaaS Apps
                                     </Header>
@@ -109,24 +109,33 @@ class Login extends Component {
                                             {this.state.currentThumbnail.desc}    
                                     </Header>
                                     <a target='_blank' href='https://www.adya.io/resources/'>Learn more</a>
-                                    </Grid.Column >
-                                    <Grid.Column width={8} style={{backgroundColor:'#577484'}}>
-                                        <Image size='large' src='/images/AdyaLogo.png' />
-                                        
-                                        {/*<Segment >
-                                 <Button.Group> */}
-                                        <Button basic onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
+                                    </Grid.Column > */}
+                                    <Grid.Column width={16} style={{backgroundColor:'#e0e1e2'}}>
+                                        <Image verticalAlign='middle' size='medium' src='/images/AdyaLogo.png' />
+                                        <h2 textAlign='center' style={{'marginTop': '-5px', 'color':'#f78851'}}>
+                                            Manage and secure your SaaS Apps
+                                        </h2>  
+                                        <Button compact onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
                                             <Button.Content>
-                                                <Image src='/images/btn_google_signin_light_normal_web.png' />
+                                                <Image src='/images/Google.png' />
                                             </Button.Content>
                                         </Button>
-                                        {/* <Button.Or />
-                                    <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
-                                </Button.Group> 
-                            </Segment>*/}
-                            <a style={{ color:'white'}} target='_blank' href='https://www.adya.io/privacy-policy/'>Privacy Policy</a>
-                                    </Grid.Column >
-                                    
+                                        <div>
+                                        <a style={{ color:'black', 'display': 'block', 'paddingTop': '10px', 'fontSize': '14pt'}} target='_blank' href='https://www.adya.io/resources/'>Click here for installation instructions</a>
+                                        <a style={{ color:'gray', 'display': 'block', 'paddingTop': '10px', 'fontSize': '8pt'}} target='_blank' href='https://www.adya.io/privacy-policy/'>Privacy Policy</a>
+                                        </div>
+                                        {/* <Segment >
+                                            <Button.Group>
+                                                    <Button basic onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
+                                                        <Button.Content>
+                                                            <Image src='/images/btn_google_signin_light_normal_web.png' />
+                                                        </Button.Content>
+                                                    </Button>
+                                                    <Button.Or />
+                                                <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
+                                            </Button.Group> 
+                                        </Segment> */}
+                                    </Grid.Column >              
                                 </Grid>
                             </Segment>
                         </Grid.Column>
