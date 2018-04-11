@@ -2,13 +2,14 @@ import React, { Component } from "react";
 import { Redirect } from 'react-router-dom'
 import { connect } from 'react-redux';
 import authenticate from '../utils/oauth';
-import { Segment, Header, Button, Grid, Image, Divider } from 'semantic-ui-react';
+import { Segment, Header, Button, Grid, Image, Divider, Loader, Dimmer, Icon } from 'semantic-ui-react';
 import {
     LOGIN_ERROR,
     LOGIN_SUCCESS,
     LOGIN_PAGE_UNLOADED,
     LOGIN_START
 } from '../constants/actionTypes';
+import DimmerDimmable from "semantic-ui-react/dist/commonjs/modules/Dimmer/DimmerDimmable";
 
 const mapStateToProps = state => ({
     ...state.auth,
@@ -110,19 +111,26 @@ class Login extends Component {
                                     </Header>
                                     <a target='_blank' href='https://www.adya.io/resources/'>Learn more</a>
                                     </Grid.Column > */}
-                                    <Grid.Column width={16} style={{backgroundColor:'#e0e1e2'}}>
+                                    <Grid.Column width={16} style={{backgroundColor:'#fff'}}>
                                         <Image verticalAlign='middle' size='medium' src='/images/AdyaLogo.png' />
                                         <h2 textAlign='center' style={{'marginTop': '-5px', 'color':'#f78851'}}>
                                             Manage and secure your SaaS Apps
                                         </h2>  
-                                        <Button compact onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
+                                        {/* <Button compact basic onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
                                             <Button.Content>
                                                 <Image src='/images/Google.png' />
                                             </Button.Content>
-                                        </Button>
+                                        </Button> */}
+                                        <div onClick={this.props.inProgress || this.props.errorMessage ? null : this.signInGoogle()} style={{'cursor': 'pointer'}}>
+                                            {this.props.inProgress? 
+                                                (<Dimmer active inverted>
+                                                    <Loader inverted />
+                                                </Dimmer>) : null}
+                                            <Image src='/images/Google.png' verticalAlign='middle' />
+                                        </div>
                                         <div>
-                                        <a style={{ color:'black', 'display': 'block', 'paddingTop': '10px', 'fontSize': '14pt'}} target='_blank' href='https://www.adya.io/resources/'>Click here for installation instructions</a>
-                                        <a style={{ color:'gray', 'display': 'block', 'paddingTop': '10px', 'fontSize': '8pt'}} target='_blank' href='https://www.adya.io/privacy-policy/'>Privacy Policy</a>
+                                            <a style={{ color:'black', 'display': 'block', 'paddingTop': '10px', 'fontSize': '14pt'}} target='_blank' href='https://www.adya.io/resources/'>Click here for installation instructions</a>
+                                            <a style={{ color:'gray', 'display': 'block', 'paddingTop': '10px', 'fontSize': '8pt'}} target='_blank' href='https://www.adya.io/privacy-policy/'>Privacy Policy</a>
                                         </div>
                                         {/* <Segment >
                                             <Button.Group>
