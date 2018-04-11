@@ -127,7 +127,7 @@ def gdrive_periodic_changes_poll(datasource_id=None):
     if datasource_id:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
     for row in subscription_list.all():
-        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email)
+        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
         requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                                      headers={"X-Goog-Channel-Token": row.datasource_id,
                                               "X-Goog-Channel-ID": row.channel_id,
