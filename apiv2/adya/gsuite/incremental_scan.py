@@ -120,7 +120,19 @@ def handle_channel_expiration_For_userlist_watch(db_session):
     db_connection().commit()
     Logger().info("handle_channel_expiration_For_userlist_watch completed")
 
-
+def gdrive_periodic_changes_poll(datasource_id=None):
+    db_session = db_connection().get_session()
+    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
+    subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.last_accessed < hour_back)
+    if datasource_id:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
+    for row in subscription_list.all():
+        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email)
+        requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                                     headers={"X-Goog-Channel-Token": row.datasource_id,
+                                              "X-Goog-Channel-ID": row.channel_id,
+                                              'X-Goog-Resource-State': "change"})
+    return
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
@@ -129,6 +141,11 @@ def subscribe(domain_id, datasource_id):
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
                                           aws_utils.get_lambda_name("get",
                                                                     urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+
+        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 0 * * ? *)",
+                                          aws_utils.get_lambda_name("get",
+                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
 
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
@@ -320,6 +337,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
             changes = response.get('changes')
             if len(changes) < 1:
                 Logger().info("No changes found for this notification, hence ignoring.")
+                return
 
             # Mark Inprogress
             if should_mark_in_progress:

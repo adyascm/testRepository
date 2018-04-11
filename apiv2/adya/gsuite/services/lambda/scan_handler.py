@@ -206,5 +206,14 @@ def handle_channel_expiration(event, context):
     response = incremental_scan.handle_channel_expiration()
     return req_session.generate_response(202)
 
+def gdrive_periodic_changes_poll(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(False, optional_params=['datasource_id'])
+    if req_error:
+        return req_error
+
+    response = incremental_scan.gdrive_periodic_changes_poll(req_session.get_req_param('datasource_id'))
+    return req_session.generate_response(200)
+
 
 

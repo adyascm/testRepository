@@ -190,6 +190,14 @@ functions:
           method: get
           cors: true
 
+  get-google-scan-polldrivechanges:
+    handler: adya.gsuite.services.lambda.scan_handler.gdrive_periodic_changes_poll
+    events:
+      - http:
+          path: scan/polldrivechanges
+          method: get
+          cors: true
+
   post-google-scan-processnotifications:
     handler: adya.gsuite.services.lambda.scan_handler.process_gdrive_notifications
     events:

@@ -18,6 +18,7 @@ SCAN_USERS_APP = '/google/scan/usersapp'
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/subscribenotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/processnotifications'
 HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/google/scan/handlechannelexpiration'
+GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 
 GET_USER_GROUP_TREE_PATH = "/common/getusergrouptree"
