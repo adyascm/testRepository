@@ -20,7 +20,6 @@ class DriveScan(Resource):
 
 class DriveResources(Resource):
     def get(self):
-        Logger().info("started initial gdrive scan")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId','ownerEmail'], ['nextPageToken','userEmail'])
@@ -33,7 +32,6 @@ class DriveResources(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        Logger().info("Processing Data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],['userEmail', 'is_incremental_scan'])
@@ -47,7 +45,6 @@ class DriveResources(Resource):
 
 class GetDomainuser(Resource):
     def get(self):
-        Logger().info("Getting domain user")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -63,7 +60,6 @@ class GetDomainuser(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        Logger().info("Process users data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])
@@ -81,7 +77,6 @@ class GetDomainuser(Resource):
 
 class GetDomainGroups(Resource):
     def get(self):
-        Logger().info("Getting domain groups")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -97,7 +92,6 @@ class GetDomainGroups(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        Logger().info("Process groups data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])

@@ -100,8 +100,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         existing_permissions = []
         is_new_resource = 1
         #If it is called from incremental scan, check if the resource already exist
-        if is_incremental_scan and len(resourcedata) == 1:
+        if is_incremental_scan and len(resources) == 1:
             file_id = resources[0]["id"]
+            Logger().info( "Incremental scan processing request, checking if file - {} exist".format(file_id))
             existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
             if existing_resource:
                 is_new_resource = 0

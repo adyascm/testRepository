@@ -18,7 +18,6 @@ def start_scan(event, context):
     return req_session.generate_response(202)
 
 def get_drive_resources(event, context):
-    Logger().info("started initial gdrive scan")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(True, ['dataSourceId', 'domainId','ownerEmail'],
                                                          ['nextPageToken','userEmail'])
@@ -31,7 +30,6 @@ def get_drive_resources(event, context):
     return req_session.generate_response(202)
 
 def process_drive_resources(event, context):
-    Logger().info("Processing Data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],['userEmail', 'is_incremental_scan'])
@@ -44,7 +42,6 @@ def process_drive_resources(event, context):
     return req_session.generate_response(202)
 
 def get_domain_users(event, context):
-    Logger().info("Getting domain user")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -60,7 +57,6 @@ def get_domain_users(event, context):
     return req_session.generate_response(202)
 
 def process_domain_users(event, context):
-    Logger().info("Process users data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
@@ -77,7 +73,6 @@ def process_domain_users(event, context):
 
 
 def get_domain_groups(event, context):
-    Logger().info("Getting domain groups")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -93,7 +88,6 @@ def get_domain_groups(event, context):
     return req_session.generate_response(202)
 
 def process_domain_groups(event, context):
-    Logger().info("Process groups data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId', 'domainId'])
