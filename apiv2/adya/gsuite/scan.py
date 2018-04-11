@@ -101,17 +101,16 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         is_new_resource = 1
         #If it is called from incremental scan, check if the resource already exist
         if is_incremental_scan and len(resourcedata) == 1:
-            existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resourcedata[0]["id"], Resource.datasource_id == datasource_id)).first()
+            file_id = resources[0]["id"]
+            existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
             if existing_resource:
                 is_new_resource = 0
                 existing_permissions = json.dumps(existing_resource.permissions, cls=alchemy_encoder())
                 Logger().info( "Resource exist, so deleting the existing permissions and resource, and add again")
                 db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
-                                                                ResourcePermission.datasource_id == datasource_id)).delete(
-                    synchronize_session=False)
+                                                                ResourcePermission.datasource_id == datasource_id)).delete()
                 db_session.query(Resource).filter(
-                    and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
-                    synchronize_session=False)
+                    and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete()
                 db_connection().commit()
 
         data_for_permission_table =[]
