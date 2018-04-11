@@ -109,15 +109,16 @@ def validate(auth_token, datasource_id, payload):
     resource = payload["resource"]
     has_permission_changed = False
     for new_permission in new_permissions:
-        Logger().info("Checking new permission - {}".format(new_permission.email))
-        if (not new_permission.email in old_permissions_map):
-            Logger().info("New permission does not exist in old permissions - {}".format(new_permission.email))
+        new_permission_email = new_permission["email"]
+        Logger().info("Checking new permission - {}".format(new_permission_email))
+        if (not new_permission_email in old_permissions_map):
+            Logger().info("New permission does not exist in old permissions - {}".format(new_permission_email))
             has_permission_changed = True
         else:
-            if (not old_permissions_map[new_permission.email]["permission_type"] == new_permission.permission_type):
-                Logger().info("New permission is not same as old permission - {}".format(new_permission.email))
+            if (not old_permissions_map[new_permission_email]["permission_type"] == new_permission["permission_type"]):
+                Logger().info("New permission is not same as old permission - {}".format(new_permission_email))
                 has_permission_changed = True
-            del old_permissions_map[new_permission.email]
+            del old_permissions_map[new_permission_email]
 
     if not has_permission_changed and old_permissions_map:
         Logger().info("Old permissions were more than new permissions")
@@ -141,22 +142,22 @@ def validate_policy(db_session, datasource_id, policy, resource, new_permissions
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
-            is_violated = is_violated & check_value_violation(policy_condition, resource.resource_name)
+            is_violated = is_violated & check_value_violation(policy_condition, resource["resource_name"])
         elif policy_match_type == constants.PolicyMatchType.DOCUMENT_OWNER:
-            is_violated = is_violated & check_value_violation(policy_condition, resource.resource_owner_id)
+            is_violated = is_violated & check_value_violation(policy_condition, resource["resource_owner_id"])
         elif policy_match_type == constants.PolicyMatchType.DOCUMENT_EXPOSURE:
-            is_violated = is_violated & check_value_violation(policy_condition, resource.exposure_type)
+            is_violated = is_violated & check_value_violation(policy_condition, resource["exposure_type"])
         elif policy_match_type == constants.PolicyMatchType.PERMISSION_EMAIL:
             is_permission_violated = 0
             for permission in new_permissions:
-                is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission.email)
+                is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission["email"])
             is_violated = is_violated & is_permission_violated
 
     if is_violated:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
-                to_address = action.config["to"]
+                to_address = json.loads(action.config)["to"]
                 aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
 
 # generic function for matching policy condition and corresponding value
