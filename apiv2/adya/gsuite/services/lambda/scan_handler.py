@@ -34,7 +34,7 @@ def process_drive_resources(event, context):
     Logger().info("Processing Data")
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId'],['userEmail', 'notify_app'])
+        True, ['dataSourceId', 'domainId'],['userEmail', 'is_incremental_scan'])
     if req_error:
         return req_error
     is_incremental_scan = req_session.get_req_param('is_incremental_scan')
