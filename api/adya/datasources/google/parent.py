@@ -3,6 +3,7 @@ from adya.db.connection import db_connection
 from adya.db.models import Resource,ResourceParent,DomainUser,DataSource
 from adya.common import constants
 from sqlalchemy import and_
+from adya.common.response_messages import Logger
 #  this class is use to get permisson for drive resources
 
 
@@ -22,7 +23,7 @@ class GetParents():
     def resource_parentscallback(self,request_id, response, exception):
 
             if exception:
-                print exception
+                Logger().exception()
             else:
                 request_id = int(request_id)
                 resource_id = self.resources[request_id - 1]
@@ -72,8 +73,7 @@ class GetParents():
         try:
             db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
             db_connection().commit()
-            print "Inserted parent data into db"
+            Logger().info("Inserted parent data into db")
         except Exception as ex:
-            print (ex)
-            print("Updating parents for failed")
+            Logger().exception("Updating parents for failed")
         

@@ -3,6 +3,7 @@ from adya.db.connection import db_connection
 from adya.db.models import Resource,ResourcePermission,DomainUser
 from adya.common import constants
 from sqlalchemy import and_
+from adya.common.response_messages import Logger
 #  this class is use to get permisson for drive resources
 
 
@@ -101,8 +102,7 @@ class GetPermission():
         try:
             db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
             db_connection().commit()
-            print "Inserted permission data into db"
+            Logger().info("Inserted permission data into db")
         except Exception as ex:
-            print (ex)
-            print("Updating permission for failed")
+            Logger().exception("Updating permission for failed")
         

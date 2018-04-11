@@ -7,6 +7,7 @@ from sqlalchemy.orm import scoped_session
 
 from adya.common.constants import constants
 from adya.common.db.models import Base
+from adya.common.response_messages import Logger
 
 
 class db_connection:
@@ -37,7 +38,7 @@ class db_connection:
                 if self._engine:
                     self._engine.dispose()
             except Exception as ex:
-                print "Exception occurred while closing the db connection - {}".format(ex.message)
+                Logger().exception("Exception occurred while closing the db connection")
 
     instance = None
     def __init__(self):

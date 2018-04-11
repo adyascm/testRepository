@@ -11,7 +11,7 @@ from adya.gsuite import scan
 from adya.common.db.connection import db_connection
 from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
 from adya.common.db import db_utils
-
+from adya.common.response_messages import Logger
 
 def get_policies(auth_token):
     db_session = db_connection().get_session()
@@ -109,11 +109,11 @@ def validate(auth_token, datasource_id, resource_id, domain_id, payload):
     for new_permission in new_permissions:
         if ((not new_permission.email in old_permissions_map)
             or (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type)):
-            print "Permissions changed for this document, validate other policy conditions now..."
+            Logger().info("Permissions changed for this document, validate other policy conditions now...")
             policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
                                                             Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
             if not policies or len(policies) < 1:
-                print "No policies found for permission change trigger, ignoring..."
+                Logger().info("No policies found for permission change trigger, ignoring...")
                 return
 
             for policy in policies:
@@ -150,28 +150,28 @@ def validate_resource_permission_change_policy(db_session, domain_id, policy, re
         policy_actions = db_session.query(PolicyAction).filter(PolicyCondition.policy_id == PolicyAction.policy_id).all()
         for action in policy_actions:
             if action == constants.policyActionType.SEND_EMAIL:
-                print "send email"
+                Logger().info("send email")
                   # TODO: send email code
 
     else:
-        print "no policy matched"
+        Logger().warn("no policy matched")
         return
 
 
 def validate_permission_change_for_resource_name(match_condition, match_value, resource_name):
-    print "match type is document name"
+    Logger().info("match type is document name")
     response = match_condition_with_match_value(match_condition, match_value, resource_name)
     return response
 
 
 def validate_permission_change_for_resource_owner(match_condition, match_value, resource_owner):
-    print "match type is a document owner"
+    Logger().info("match type is a document owner")
     response = match_condition_with_match_value(match_condition, match_value, resource_owner)
     return response
 
 
 def validate_permission_change_for_resource_exposure(db_session, domain_id, datasource_id, match_condition, match_value, resource):
-    print "macth type is document exposure"
+    Logger().info("macth type is document exposure")
     resource_permissions = resource['permissions']
     resource_exposure_type = constants.ResourceExposureType.PRIVATE
     for permission in resource_permissions:
@@ -183,7 +183,7 @@ def validate_permission_change_for_resource_exposure(db_session, domain_id, data
 
 
 def validate_permission_change_for_permission_email(match_condition, match_value, resource_permissions):
-    print "match type is permission email"
+    Logger().info("match type is permission email")
     perm_list = []
     for permission in resource_permissions:
         perm_list.append(permission.email)

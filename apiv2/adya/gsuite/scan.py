@@ -13,11 +13,12 @@ from adya.common.db import models
 from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
+from adya.common.response_messages import Logger
 
 
 def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):
-    print "Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
-        domain_id, datasource_id, is_admin, is_service_account_enabled)
+    Logger().info("Received the request to start a scan for domain_id: {} datasource_id:{} is_admin:{} is_service_account_enabled: {}".format(
+        domain_id, datasource_id, is_admin, is_service_account_enabled))
     query_params = {'domainId': domain_id, 'dataSourceId': datasource_id}
 
     db_session = db_connection().get_session()
@@ -237,7 +238,7 @@ def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list,
 
 
 def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
-    Logger().info("Started getting parents data", user_email)
+    Logger().info("Started getting parents data" + str(user_email))
     db_session = db_connection().get_session()
     useremail_resources_map = {}
     if user_email:
@@ -568,7 +569,7 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
                                             models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
         db_connection().commit()
     except Exception as ex:
-        Logger().exception(ex)
+        Logger().exception()
 
 def get_all_user_app(auth_token,domain_id,datasource_id,user_email_list):
 

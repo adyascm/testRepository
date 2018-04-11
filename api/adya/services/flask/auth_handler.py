@@ -6,7 +6,6 @@ from adya.controllers import auth_controller
 from adya.datasources.google import gutils
 from adya.common.request_session import RequestSession
 
-
 class google_oauth_request(Resource):
     def get(self):
         req_session = RequestSession(request)

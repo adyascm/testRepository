@@ -2,7 +2,7 @@ from flask_restful import Resource,request
 from adya.datasources.google import incremental_scan
 from adya.controllers import domain_controller
 from adya.common.request_session import RequestSession
-
+from adya.common.request_session import RequestSession
 
 class subscribe(Resource):
     def post(self):
@@ -24,7 +24,7 @@ class process_notifications(Resource):
 
         datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
         channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-        print "Processing notifications for ", datasource_id, " on channel: ", channel_id
+        Logger().info("Processing notifications for " + str(datasource_id) + " on channel: " + str(channel_id))
         incremental_scan.process_notifications(datasource_id, channel_id)
         return req_session.generate_response(202, "Finished processing notifications. ")
 
@@ -48,12 +48,12 @@ class trigger_process_notifications(Resource):
             return req_error
 
         auth_token = req_session.get_auth_token()
-        print auth_token
+        Logger().info(str(auth_token))
         data_source = domain_controller.get_datasource(auth_token, None)
 
-        print data_source
+        Logger().info(str(data_source))
         domain_id = data_source[0].domain_id
-        print "Processing notifications for ", domain_id, " on channel: ", auth_token
+        Logger().info("Processing notifications for " + str(domain_id) + " on channel: " + str(auth_token))
         incremental_scan.subscribe(domain_id, auth_token)
         incremental_scan.process_notifications(domain_id, auth_token)
         return req_session.generate_response(202, "Finished processing notifications. ")

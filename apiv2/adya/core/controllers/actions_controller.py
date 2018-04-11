@@ -13,6 +13,7 @@ from adya.common.utils.response_messages import ResponseMessage
 from adya.gsuite import actions, gutils
 from adya.gsuite.scan import get_resource_exposure_type
 from adya.common.email_templates import adya_emails
+from adya.common.response_messages import Logger
 
 
 def get_actions():
@@ -187,9 +188,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         return execution_status
 
     except Exception as e:
-        print e
-        print traceback.print_exc()
-        print "Exception occurred while initiating action using payload ", action_payload, " on domain: ", domain_id, " and datasource: ", datasource_id
+        Logger().exception("Exception occurred while initiating action using payload "+ str(action_payload) + " on domain: " + str(domain_id) +" and datasource: " + str(datasource_id))
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
 def create_watch_report(auth_token, datasource_id, action_payload):
@@ -258,7 +257,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
                             ResourcePermission.email == user_email)).first()
 
     if not existing_permission and action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
-        print "add a new permission "
+        Logger().info("add a new permission ")
         action_payload["new_permission_role"]= constants.Role.WRITER
         response = add_resource_permission(auth_token, datasource_id, action_payload)
         if response.response_code == constants.SUCCESS_STATUS_CODE:
@@ -267,11 +266,11 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
                      ResourcePermission.datasource_id == datasource_id,
                      ResourcePermission.email == user_email)).first()
         else:
-            print "Permission does not exist in db, so cannot update - Bad Request"
+            Logger().info("Permission does not exist in db, so cannot update - Bad Request")
             return ResponseMessage(400, "Bad Request - Permission not found in records")
 
     elif not existing_permission:
-        print "Permission does not exist in db, so cannot update - Bad Request"
+        Logger().info("Permission does not exist in db, so cannot update - Bad Request")
         return ResponseMessage(400, "Bad Request - Permission not found in records")
 
     existing_permission.permission_type = new_permission_role
@@ -654,8 +653,7 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         db_connection().commit()
 
     except Exception as e:
-        print e
-        print "Exception occurred while processing audit log for domain: ", domain_id, " and datasource_id: ", datasource_id, " and initiated_by: ", initiated_by
+        Logger().exception("Exception occurred while processing audit log for domain: "+ str(domain_id) + " and datasource_id: " + str(datasource_id) + " and initiated_by: " + str(initiated_by))
 
 
 def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
@@ -678,7 +676,6 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
         db_connection().commit()
         return True
     except Exception as ex:
-        print ex
-        print "Exception occurred while deleting app for datasource_id: ", datasource_id, " and user_email: ", user_email
+        Logger().exception("Exception occurred while deleting app for datasource_id: " + str(datasource_id) + " and user_email: " + str(user_email))
         return False
 

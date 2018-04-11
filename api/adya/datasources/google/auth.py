@@ -18,6 +18,7 @@ from adya.db.models import Domain, LoginUser, DomainUser
 from adya.db.connection import db_connection
 from adya.controllers import auth_controller, domain_controller
 from sqlalchemy import and_
+from adya.common.response_messages import Logger
 
 def oauth_request(scopes):
     scope = LOGIN_SCOPE
@@ -66,7 +67,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     profile_info = service.userinfo().get().execute()
 
     login_email = profile_info['email'].lower()
-    print "Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes)
+    Logger().info("Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes))
     domain_id = login_email
     db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow()

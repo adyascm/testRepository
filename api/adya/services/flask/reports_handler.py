@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from adya.common.response_messages import Logger
 from flask_restful import Resource, request
 
 from adya.controllers import reports_controller, domain_controller
@@ -72,7 +73,7 @@ class RunReport(Resource):
         run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(auth_token,
                                                         req_session.get_req_param('reportId'))
 
-        print run_report_data
+        Logger().info(str(run_report_data))
 
         return req_session.generate_sqlalchemy_response(200, run_report_data)
 
