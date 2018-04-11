@@ -290,6 +290,18 @@ def process_notifications(notification_type, datasource_id, channel_id):
         Logger().warn("Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
             datasource_id, channel_id))
         return
+
+    if subscription.in_progress == 1:
+        if subscription.stale == 0:
+            subscription.stale = 1
+            db_connection().commit()
+            Logger().warn("Subscription already in progress for user: {} and channel_id: {}, hence marking it stale and returning.".format(
+                user_email, channel_id))
+        else:
+            Logger().warn("Subscription already in progress and marked stale for user:{} and channel_id: {}, hence directly returning.".format(
+                user_email, channel_id))
+        return
+
     user_email = subscription.user_email
     try:
         drive_service = None
@@ -298,27 +310,17 @@ def process_notifications(notification_type, datasource_id, channel_id):
             drive_service = gutils.get_gdrive_service(login_user.auth_token, user_email, db_session)
         else:
             drive_service = gutils.get_gdrive_service(None, user_email, db_session)
-
-        if subscription.in_progress == 1:
-            if subscription.stale == 0:
-                subscription.stale = 1
-                db_connection().commit()
-                Logger().info("Subscription already in progress for user: {} and channel_id: {}, hence marking it stale and returning.".format(
-                    user_email, channel_id))
-            else:
-                Logger().info("Subscription already in progress and marked stale for user:{} and channel_id: {}, hence directly returning.".format(
-                    user_email, channel_id))
-
-            return
-
         should_mark_in_progress = True
 
         page_token = subscription.page_token
         while True:
             response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                     spaces='drive').execute()
-            Logger().info("Processing notification for user: {} with page token: {}".format(user_email, page_token))
-            Logger().info("Changes for this notification found are - {}".format(response))
+            Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
+            changes = response.get('changes')
+            if len(changes) < 1:
+                Logger().info("No changes found for this notification, hence ignoring.")
+
             # Mark Inprogress
             if should_mark_in_progress:
                 Logger().info("Marking the subscription to be in progress ")
@@ -328,7 +330,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
                 db_connection().commit()
                 should_mark_in_progress = False
 
-            for change in response.get('changes'):
+            for change in changes:
                 # Process change
                 fileId = change.get('fileId')
                 handle_change(drive_service, datasource_id, user_email, fileId)
@@ -359,8 +361,8 @@ def process_notifications(notification_type, datasource_id, channel_id):
 
 
     except Exception as e:
-        Logger().exception( "Exception occurred while processing push notification for datasource_id: {} channel_id: {} - {}".format(
-            datasource_id, channel_id, e))
+        Logger().exception( "Exception occurred while processing push notification for user: {}, datasource_id: {} channel_id: {} - {}".format(
+            user_email, datasource_id, channel_id, e))
 
 
 def handle_change(drive_service, datasource_id, email, file_id):

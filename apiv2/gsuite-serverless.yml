@@ -57,6 +57,13 @@ custom:
       httpProtocol: "https://"
       apiHost: "api-dev.adyatest.com"
       uiHost: "app.adyatest.com"
+    staging: 
+      awsProfile: devProfile
+      dbName: "staging"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "apistaging.adya.io"
+      uiHost: "staging.adya.io"
     prod:
       awsProfile: prodProfile
       dbName: "prod"
