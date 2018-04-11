@@ -405,10 +405,10 @@ def handle_change(drive_service, datasource_id, email, file_id):
                 format(results['owners'][0]['emailAddress'], email))
             return
 
-        last_modified_time = dateutil.parser.parse(results['modifiedTime'])
+        # last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
-        resource = db_session.query(Resource).filter(
-            and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
+        # resource = db_session.query(Resource).filter(
+        #     and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
         # if resource:
         #     saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
         #     difference = abs(saved_last_modified_time - last_modified_time)
@@ -417,28 +417,28 @@ def handle_change(drive_service, datasource_id, email, file_id):
         #         Logger().info("Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time))
         #         return
 
-        existing_permissions = []
-        is_new_resource = 0
+        # existing_permissions = []
+        # is_new_resource = 0
 
-        if resource:
-            existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
-            Logger().info( "Deleting the existing permissions and resource, and add again")
-            db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
-                                                             ResourcePermission.datasource_id == datasource_id)).delete(
-                synchronize_session=False)
-            db_session.query(Resource).filter(
-                and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
-                synchronize_session=False)
-            db_connection().commit()
-        else:
-            is_new_resource = 1
-            Logger().info("Resource does not exist in DB, so would add it now")
+        # if resource:
+        #     existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
+        #     Logger().info( "Deleting the existing permissions and resource, and add again")
+        #     db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
+        #                                                      ResourcePermission.datasource_id == datasource_id)).delete(
+        #         synchronize_session=False)
+        #     db_session.query(Resource).filter(
+        #         and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
+        #         synchronize_session=False)
+        #     db_connection().commit()
+        # else:
+        #     is_new_resource = 1
+        #     Logger().info("Resource does not exist in DB, so would add it now")
 
         resourcedata = {}
         resourcedata["resources"] = [results]
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
-                        'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
+                        'userEmail': email, 'is_incremental_scan': 1}
         messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
 
         # payload = {}

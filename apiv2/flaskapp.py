@@ -68,6 +68,7 @@ api.add_resource(auditlog_handler.get_audit_log, urls.GET_AUDITLOG_PATH)
 
 #policies
 api.add_resource(policy_handler.Policy, urls.POLICIES_PATH)
+api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
 
 
 if __name__ == '__main__':

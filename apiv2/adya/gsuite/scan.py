@@ -89,13 +89,31 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
 
 
 ## processing resource data for fileIds
-def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is_new_resource=1, notify_app=0):
+def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is_incremental_scan=0):
+
     try:
         Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
         resources = resourcedata["resources"]
         resourceList = []
-        session = FuturesSession()
         db_session = db_connection().get_session()
+
+        existing_permissions = []
+        is_new_resource = 1
+        #If it is called from incremental scan, check if the resource already exist
+        if is_incremental_scan and len(resourcedata) == 1:
+            existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resourcedata[0]["id"], Resource.datasource_id == datasource_id)).first()
+            if existing_resource:
+                is_new_resource = 0
+                existing_permissions = json.dumps(existing_resource.permissions, cls=alchemy_encoder())
+                Logger().info( "Resource exist, so deleting the existing permissions and resource, and add again")
+                db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
+                                                                ResourcePermission.datasource_id == datasource_id)).delete(
+                    synchronize_session=False)
+                db_session.query(Resource).filter(
+                    and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
+                    synchronize_session=False)
+                db_connection().commit()
+
         data_for_permission_table =[]
         data_for_parent_table =[]
         external_user_map = {}
@@ -176,19 +194,10 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                         data_for_permission_table.append(resource_permission)
             resource["exposure_type"] = resource_exposure_type
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
-            # resource_parent_data = resourcedata.get('parents')
-            # resource_parent = {}
-            # resource_parent["domain_id"] = domain_id
-            # resource_parent["datasource_id"] = datasource_id
-            # resource_parent["email"] = user_email
-            # resource_parent["resource_id"] = resource_id
-            # resource_parent["parent_id"] = resource_parent_data[0] if resource_parent_data else None
-            # data_for_parent_table.append(resource_parent)
             resourceList.append(resource)
         
         db_session.bulk_insert_mappings(Resource, resourceList)
         db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
-        # db_session.bulk_insert_mappings(ResourceParent, data_for_parent_table)
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()
@@ -196,9 +205,17 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         if is_new_resource == 1:
             update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
 
-        if notify_app == 1:
+        if is_incremental_scan == 1:
             messaging.send_push_notification("adya-"+datasource_id, 
                 json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
+
+            #Trigger the policy validation now
+            payload = {}
+            payload["old_permissions"] = existing_permissions
+            payload["resource"] = resourceList[0]
+            payload["new_permissions"] = data_for_permission_table
+            policy_params = {'dataSourceId': datasource_id}
+            messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
         Logger().info("Processed drive resources for {} files using email: {}".format(resource_count, user_email))
     except Exception as ex:

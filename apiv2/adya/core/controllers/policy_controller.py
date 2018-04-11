@@ -12,6 +12,8 @@ from adya.common.db.connection import db_connection
 from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
 from adya.common.db import db_utils
 from adya.common.response_messages import Logger
+from adya.common.utils import aws_utils
+
 
 def get_policies(auth_token):
     db_session = db_connection().get_session()
@@ -97,19 +99,20 @@ def update_policy(auth_token, policy_id, payload):
         return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
     
 
-def validate(auth_token, datasource_id, resource_id, domain_id, payload):
-    db_session = db_connection().get_session()
+def validate(auth_token, datasource_id, payload):
     old_permissions = payload["old_permissions"]
+    new_permissions = payload["new_permissions"]
     old_permissions_map = {}
     for permission in old_permissions:
         old_permissions_map[permission.email] = permission
 
     resource = payload["resource"]
-    new_permissions = resource["permissions"]
     for new_permission in new_permissions:
         if ((not new_permission.email in old_permissions_map)
             or (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type)):
-            Logger().info("Permissions changed for this document, validate other policy conditions now...")
+            
+            Logger().info("Permissions changed for this document, validate policy conditions now...")
+            db_session = db_connection().get_session()
             policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
                                                             Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
             if not policies or len(policies) < 1:
@@ -117,96 +120,39 @@ def validate(auth_token, datasource_id, resource_id, domain_id, payload):
                 return
 
             for policy in policies:
-                validate_resource_permission_change_policy(db_session, domain_id, policy, resource)
+                validate_policy(db_session, datasource_id, policy, resource, new_permissions)
             return
     return
 
 
-def validate_resource_permission_change_policy(db_session, domain_id, policy, resource):
-    policy_conditions = policy.conditions
-    datasource_id = policy.datasource_id
-    response = False
-    for policy_condition in policy_conditions:
-        match_condition = policy_condition.match_condition
-        match_value = policy_condition.match_value
-        policy_match_type = policy_condition.match_type
-        if policy_match_type == constants.PolicyMatchType.DOCUMENT_NAME:
-            resource_name = resource['name']
-            response = validate_permission_change_for_resource_name(match_condition, match_value, resource_name)
-
+def validate_policy(db_session, datasource_id, policy, resource, new_permissions):
+    is_violated = 1
+    for policy_condition in policy.conditions:
+        if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
+            is_violated = is_violated & check_value_violation(policy_condition, resource.resource_name)
         elif policy_match_type == constants.PolicyMatchType.DOCUMENT_OWNER:
-            resource_owner = resource['owners']
-            response = validate_permission_change_for_resource_owner(match_condition, match_value, resource_owner)
-
+            is_violated = is_violated & check_value_violation(policy_condition, resource.resource_owner_id)
         elif policy_match_type == constants.PolicyMatchType.DOCUMENT_EXPOSURE:
-            response = validate_permission_change_for_resource_exposure(db_session, domain_id, datasource_id, match_condition, match_value, resource)
-
+            is_violated = is_violated & check_value_violation(policy_condition, resource.exposure_type)
         elif policy_match_type == constants.PolicyMatchType.PERMISSION_EMAIL:
-            resource_permissions = resource['permissions']
-            response = validate_permission_change_for_permission_email(match_condition, match_value, resource_permissions)
+            is_permission_violated = 0
+            for permission in new_permissions:
+                is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission.email)
+            is_violated = is_violated & is_permission_violated
 
-
-    if response:
-        policy_actions = db_session.query(PolicyAction).filter(PolicyCondition.policy_id == PolicyAction.policy_id).all()
-        for action in policy_actions:
-            if action == constants.policyActionType.SEND_EMAIL:
-                Logger().info("send email")
-                  # TODO: send email code
-
-    else:
-        Logger().warn("no policy matched")
-        return
-
-
-def validate_permission_change_for_resource_name(match_condition, match_value, resource_name):
-    Logger().info("match type is document name")
-    response = match_condition_with_match_value(match_condition, match_value, resource_name)
-    return response
-
-
-def validate_permission_change_for_resource_owner(match_condition, match_value, resource_owner):
-    Logger().info("match type is a document owner")
-    response = match_condition_with_match_value(match_condition, match_value, resource_owner)
-    return response
-
-
-def validate_permission_change_for_resource_exposure(db_session, domain_id, datasource_id, match_condition, match_value, resource):
-    Logger().info("macth type is document exposure")
-    resource_permissions = resource['permissions']
-    resource_exposure_type = constants.ResourceExposureType.PRIVATE
-    for permission in resource_permissions:
-        resource_exposure_type = scan.get_resources(db_session, domain_id, datasource_id, permission.email,
-                                                    permission.displayName, resource_exposure_type)
-
-    response = match_condition_with_match_value(match_condition, match_value, resource_exposure_type)
-    return response
-
-
-def validate_permission_change_for_permission_email(match_condition, match_value, resource_permissions):
-    Logger().info("match type is permission email")
-    perm_list = []
-    for permission in resource_permissions:
-        perm_list.append(permission.email)
-
-    if (match_condition == constants.PolicyConditionMatch.EQUAL and match_value in perm_list) or \
-            (match_condition == constants.PolicyConditionMatch.NOTEQUAL and match_value not in perm_list):
-        return True
-    elif match_condition == constants.PolicyConditionMatch.CONTAIN :
-        for perm in perm_list:
-            if match_value in perm:
-                return True
-
-    else:
-        return False
-
+    if is_violated:
+        Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
+        for action in policy.actions:
+            if action.action_type == constants.policyActionType.SEND_EMAIL:
+                to_address = action.config["to"]
+                aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
 
 # generic function for matching policy condition and corresponding value
-def match_condition_with_match_value(match_condition, match_value, param):
-    if (match_condition == constants.PolicyConditionMatch.EQUAL and match_value == param) or \
-            (match_condition == constants.PolicyConditionMatch.NOTEQUAL and match_value != param):
-            return True
-    elif match_condition == constants.PolicyConditionMatch.CONTAIN and match_value in param:
-        return True
-    else:
-        return False
+def check_value_violation(policy_condition, value):
+    if (policy_condition.match_condition == constants.PolicyConditionMatch.EQUAL and policy_condition.match_value == value) or \
+            (policy_condition.match_condition == constants.PolicyConditionMatch.NOTEQUAL and policy_condition.match_value != value):
+            return 1
+    elif policy_condition.match_condition == constants.PolicyConditionMatch.CONTAIN and policy_condition.match_value in value:
+        return 1
+    return 0
 
