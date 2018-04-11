@@ -29,6 +29,10 @@ const UserDetails = props => {
         {
             text: 'Get weekly report of all activities for \"' + props.selectedUserItem['name'] + '\"',
             value: 'watch_all_action_for_user'
+        },
+        {
+            text: 'Send mail to \"' + props.selectedUserItem['name'] + '\" to audit documents',
+            value: 'notify_user_for_clean_up'   
         }];
 
     var quickActionsforExtUser = [
