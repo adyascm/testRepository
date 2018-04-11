@@ -123,9 +123,11 @@ def handle_channel_expiration_For_userlist_watch(db_session):
 def gdrive_periodic_changes_poll(datasource_id=None):
     db_session = db_connection().get_session()
     hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
-    subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.last_accessed < hour_back)
+    subscription_list = db_session.query(PushNotificationsSubscription)
     if datasource_id:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
+    else:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
     for row in subscription_list.all():
         Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
         requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
