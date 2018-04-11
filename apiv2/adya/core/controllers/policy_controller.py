@@ -100,28 +100,40 @@ def update_policy(auth_token, policy_id, payload):
     
 
 def validate(auth_token, datasource_id, payload):
-    old_permissions = payload["old_permissions"]
+    old_permissions = json.loads(payload["old_permissions"])
     new_permissions = payload["new_permissions"]
     old_permissions_map = {}
     for permission in old_permissions:
-        old_permissions_map[permission.email] = permission
+        old_permissions_map[permission["email"]] = permission
 
     resource = payload["resource"]
+    has_permission_changed = False
     for new_permission in new_permissions:
-        if ((not new_permission.email in old_permissions_map)
-            or (not old_permissions_map[new_permission.email].permission_type == new_permission.permission_type)):
-            
-            Logger().info("Permissions changed for this document, validate policy conditions now...")
-            db_session = db_connection().get_session()
-            policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
-                                                            Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
-            if not policies or len(policies) < 1:
-                Logger().info("No policies found for permission change trigger, ignoring...")
-                return
+        Logger().info("Checking new permission - {}".format(new_permission.email))
+        if (not new_permission.email in old_permissions_map):
+            Logger().info("New permission does not exist in old permissions - {}".format(new_permission.email))
+            has_permission_changed = True
+        else:
+            if (not old_permissions_map[new_permission.email]["permission_type"] == new_permission.permission_type):
+                Logger().info("New permission is not same as old permission - {}".format(new_permission.email))
+                has_permission_changed = True
+            del old_permissions_map[new_permission.email]
 
-            for policy in policies:
-                validate_policy(db_session, datasource_id, policy, resource, new_permissions)
+    if not has_permission_changed and old_permissions_map:
+        Logger().info("Old permissions were more than new permissions")
+        has_permission_changed = True
+            
+    if has_permission_changed:
+        Logger().info("Permissions changed for this document, validate policy conditions now...")
+        db_session = db_connection().get_session()
+        policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
+                                                        Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
+        if not policies or len(policies) < 1:
+            Logger().info("No policies found for permission change trigger, ignoring...")
             return
+        for policy in policies:
+            validate_policy(db_session, datasource_id, policy, resource, new_permissions)
+        return
     return
 
 
