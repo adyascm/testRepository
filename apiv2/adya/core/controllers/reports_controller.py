@@ -12,20 +12,32 @@ from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite import activities
 
-
-def get_widget_data(auth_token, widget_id):
-    if not auth_token:
+def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
+    if not (auth_token or datasource_id):
         return None
-    db_session = db_connection().get_session()
-    existing_user = db_utils.get_user_session(auth_token)
-    user_domain_id = existing_user.domain_id
-    login_user_email = existing_user.email
-    is_admin = existing_user.is_admin
-    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
 
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == user_domain_id).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
+    db_session = db_connection().get_session()
+
+    is_admin = False
+    login_user_email = user_email
+    is_service_account_is_enabled = True
+    domain_datasource_ids = []
+
+    if auth_token:
+        existing_user = db_utils.get_user_session(auth_token)
+        user_domain_id = existing_user.domain_id
+        login_user_email = existing_user.email
+        is_admin = existing_user.is_admin
+        is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+        datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
+        domain_datasource_ids = [r for r, in datasource_ids]
+    elif datasource_id:
+        datasource = db_session.query(DataSource).filter(
+            DataSource.datasource_id == datasource_id).first()
+        is_service_account_is_enabled = datasource.is_serviceaccount_enabled
+        domain_datasource_ids = [datasource.datasource_id]
+
     data = None
     if widget_id == 'usersCount':
 

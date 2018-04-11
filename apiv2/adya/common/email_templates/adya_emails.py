@@ -47,10 +47,18 @@ def send_gdrive_scan_completed_email(datasource):
         if not datasource:
             return "Invalid datasource! Aborting..."
 
+        session = db_connection().get_session()
+        all_users = session.query(LoginUser).filter(and_(LoginUser.domain_id == datasource.domain_id, LoginUser.is_enabled == True)).all()
+        auth_token = all_users[0].auth_token
+        if len(all_users) < 1:
+            Logger().info("No user to send an email to, so aborting...")
+            return
+
         template_name = "gdrive_scan_completed"
-        template_parameters=get_gdrive_scan_completed_parameters(datasource)
+        template_parameters=get_gdrive_scan_summary(datasource,auth_token,None)
         rendered_html = get_rendered_html(template_name, template_parameters)
-        user_list = [template_parameters['email']]
+
+        user_list = [user.email for user in all_users]
         email_subject="Your gdrive scan has completed!"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
@@ -58,22 +66,11 @@ def send_gdrive_scan_completed_email(datasource):
         print "Exception occurred sending gdrive scan completed email"
 
 
-def get_gdrive_scan_completed_parameters(datasource):
+def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
     try:
         if not datasource:
             return "Invalid datasource! Aborting..."
-
-        session = db_connection().get_session()
-        users_query = session.query(LoginUser).filter(and_(LoginUser.domain_id == datasource.domain_id, LoginUser.is_enabled == True))
-        #if datasource.is_serviceaccount_enabled:
-        #    users_query = users_query.filter(LoginUser.is_admin_user)
-        all_users = users_query.all()
-        
-        if len(all_users) < 1:
-            print "No user to send an email to, so aborting..."
-            return
-        emails = ",".join(user.email for user in all_users)
-        countSharedDocumentsByType = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsByType")['rows']
+        countSharedDocumentsByType = reports_controller.get_widget_data(auth_token, "sharedDocsByType",datasource.datasource_id,user_email)['rows']
 
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
@@ -88,8 +85,8 @@ def get_gdrive_scan_completed_parameters(datasource):
                 countPublicSharedDocs = item[1]
 
         countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs
-        externalDocsListData = reports_controller.get_widget_data(all_users[0].auth_token, "sharedDocsList")
-        externalUserListData = reports_controller.get_widget_data(all_users[0].auth_token, "externalUsersList")
+        externalDocsListData = reports_controller.get_widget_data(auth_token,"sharedDocsList", datasource.datasource_id,user_email)
+        externalUserListData = reports_controller.get_widget_data(auth_token,"externalUsersList", datasource.datasource_id,user_email)
 
         trial_link = constants.UI_HOST
 
@@ -106,7 +103,6 @@ def get_gdrive_scan_completed_parameters(datasource):
             "documentsCountData": externalDocsListData["totalCount"],
             "externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
-            "email": emails,
             "countDomainData": countDomainSharedDocs,
             "trialLink": trial_link,
             "restFiles": "...and " + str(restFiles) + " other documents" if restFiles > 0 else "",
@@ -130,3 +126,16 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
+def send_clean_files_email(datasource_id,user_email):
+    try:
+        if not datasource_id:
+            return "Invalid datasource! Aborting..."
+        db_session = db_connection().get_session()
+        datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
+        template_name = "clean_files"
+        template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject="CleanUp Your Files!"
+        aws_utils.send_email([user_email], email_subject, rendered_html)
+    except Exception as e:
+        Logger().exception("Exception occurred sending clean files email")

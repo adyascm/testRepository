@@ -12,6 +12,7 @@ from adya.common.utils.response_messages import ResponseMessage
 
 from adya.gsuite import actions, gutils
 from adya.gsuite.scan import get_resource_exposure_type
+from adya.common.email_templates import adya_emails
 
 
 def get_actions():
@@ -98,6 +99,11 @@ def get_actions():
                                             "Get weekly report of all activities for selected user",
                                             [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
+    notifyUserForCleanUp = instantiate_action("GSUITE", action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP,
+                                            "Notify user",
+                                            "Send mail to user to audit documents",
+                                            [{"key": "user_email", "label": "For user", "editable": 0}], False)                                        
+
     removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER,
                                         "Remove sharing",
                                          "Remove access to selected user for any documents owned by others", [
@@ -138,7 +144,8 @@ def get_actions():
                removeAllAction,
                removeUserFromGroup,
                addUserToGroup,
-               addPermissionForFile
+               addPermissionForFile,
+               notifyUserForCleanUp
                ]
 
     return actions
@@ -528,6 +535,11 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     #Watch report action
     if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
         return create_watch_report(auth_token, datasource_id, action_payload)
+
+    #Trigger mail for cleaning files
+    elif action_config.key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
+        user_email = action_parameters['user_email']
+        return adya_emails.send_clean_files_email(datasource_id,user_email)     
 
     #Directory change actions
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
