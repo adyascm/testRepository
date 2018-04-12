@@ -40,28 +40,40 @@ class PolicyCondition extends Component {
     componentWillMount() {
         if (this.props.policyCondition) {
             this.setState({
-                filterType: this.props.policyCondition.match_type,
-                filterCondition: this.props.policyCondition.match_condition,
-                filterValue: this.props.policyCondition.match_value
+                policyCondition: this.props.policyCondition
+            })
+        }
+    }
+
+    componentWillReceiveProps(nextProps){
+        if (nextProps.policyCondition) {
+            this.setState({
+                policyCondition: nextProps.policyCondition
             })
         }
     }
 
     handleFilterTypeChange = (event,data) => {
+        var condition = this.state.policyCondition;
+        condition.match_type = data.value;
         this.setState({
-            filterType: data.value
+            policyCondition: condition
         })
     }
 
     handleFilterConditionChange = (event,data) => {
+        var condition = this.state.policyCondition;
+        condition.match_condition = data.value;
         this.setState({
-            filterCondition: data.value
+            policyCondition: condition
         })
     }
 
     handleFilterValueChange = (event,data) => {
+        var condition = this.state.policyCondition;
+        condition.match_value = data.value;
         this.setState({
-            filterValue: data.value
+            policyCondition: condition
         })
     }
 
@@ -85,24 +97,18 @@ class PolicyCondition extends Component {
         this.props.setPolicyFilter('policyConditions', appliedFilter)
     }
 
-    // removeFilter = () => {
-    //     let filterRow = this.state.filterRow
-    //     filterRow.pop()
-    //     this.props.setPolicyRowFilters(this.state.filterRow)
-    //     this.setState({ filterRow })
-    // }
-
     render() {
+        console.log("props key : ", this.props.counter)
         return (
-            <Form.Group widths='equal'>
-                <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.filterType} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
-                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} value={this.state.filterCondition} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
-                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.filterValue} onChange={this.handleFilterValueChange} onBlur={this.updateFilterValueChange} />
-                {/* <div style={{'height': '20px', 'paddingTop': '25px'}}>
-                    <Button basic color='red' onClick={this.removeFilter}>
+            <Form.Group key={this.props.counter} widths='equal'>
+                <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.policyCondition.match_type} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
+                <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} value={this.state.policyCondition.match_condition} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
+                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.policyCondition.match_value} onChange={this.handleFilterValueChange} />
+                <div style={{'height': '20px', 'paddingTop': '25px'}}>
+                    <Button basic color='red' onClick={() => this.props.removeFilter(this.props.index)}>
                         <Icon name='close' />
                     </Button>
-                </div> */}
+                </div>
             </Form.Group>
         )
     }

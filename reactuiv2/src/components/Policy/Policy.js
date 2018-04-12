@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Card, Button, Modal, Icon, Container, Dimmer, Loader } from 'semantic-ui-react'
 import PolicyItemDetail from './PolicyItemDetail';
+import PolicyDetails from './PolicyDetails'
 import { connect } from 'react-redux'
 import  agent from '../../utils/agent'
 import {
@@ -107,9 +108,9 @@ class Policy extends Component {
         let policyCards = null
 
         if (this.props.policyData && this.props.policyData.length > 0)
-            policyCards = this.props.policyData.map(policy => {
+            policyCards = this.props.policyData.map((policy, index) => {
                 return (
-                    <Card>
+                    <Card key={index}>
                         <Card.Content>
                             <Card.Header>
                                 {policy.name}
@@ -136,6 +137,7 @@ class Policy extends Component {
                     </Modal.Header>
                     <Modal.Content>
                         <PolicyItemDetail policyDetails={this.state.policyDetails} />
+                        {/* <PolicyDetails /> */}
                     </Modal.Content>
                     <Modal.Actions>
                         <Button negative onClick={this.closePolicyModalForm}>Close</Button>

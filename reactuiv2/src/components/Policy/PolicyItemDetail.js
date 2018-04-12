@@ -27,73 +27,51 @@ const mapDispatchToProps = dispatch => ({
 class PolicyItemDetail extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
-            filterRow: [],
-            name: '',
-            description: ''
+            triggerType: props.policyDetails != null ? props.policyDetails.triggerType : "",
+            conditions: props.policyDetails != null ? props.policyDetails.conditions : [{match_type: "", match_condition: "", match_value: ""}],
+            actions: props.policyDetails != null ? props.policyDetails.actions : [],
+            name: props.policyDetails != null ? props.policyDetails.name : "",
+            description: props.policyDetails != null ? props.policyDetails.description : "",
         }
     }
 
     componentWillMount() {
-        let filterRow = this.state.filterRow
-        let newFilter = (<PolicyCondition />)
-        filterRow.push(newFilter)
-
+        
         this.setState({
-            policyOptions: [
+            policyTriggerType: [
                 { text: '', value: '' },
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
-            filterTypeOptions: [
-                { text: '', value: '' },
-                { text: 'Document.Name', value: 'DOCUMENT_NAME' },
-                { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
-                { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
-                { text: 'Permission.Email', value: 'PERMISSION_EMAIL' }],
-            filterConditionOptions: [
-                { text: '', value: '' },
-                { text: 'Equals', value: 'equal' },
-                { text: 'Not Equals', value: 'notequal' },
-                { text: 'Contains', value: 'contain' },
-                { text: 'Does not contain', value: 'notcontain' }],
-            filterRow: this.props.policyFilters?this.props.policyFilters:[],
+            // filterTypeOptions: [
+            //     { text: '', value: '' },
+            //     { text: 'Document.Name', value: 'DOCUMENT_NAME' },
+            //     { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
+            //     { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
+            //     { text: 'Permission.Email', value: 'PERMISSION_EMAIL' }],
+            // filterConditionOptions: [
+            //     { text: '', value: '' },
+            //     { text: 'Equals', value: 'equal' },
+            //     { text: 'Not Equals', value: 'notequal' },
+            //     { text: 'Contains', value: 'contain' },
+            //     { text: 'Does not contain', value: 'notcontain' }],
             disableEmailField: true,
-            filterValue: '',
-            filterRow: filterRow
         })
-
-        if (this.props.policyDetails) {
-            //bulk update the policy filters to state
-            //console.log("actions : ", JSON.parse(this.props.policyDetails.actions[0].config).to)
-            this.props.updatePolicyFilter(this.props.policyDetails)
-            let policyCondition = this.props.policyDetails.conditions.map(policyCondition => {
-                return (
-                    <PolicyCondition policyCondition={policyCondition} />
-                )
-            })
-            this.setState({
-                name: this.props.policyDetails.name,
-                description: this.props.policyDetails.description,
-                policyTrigger: this.props.policyDetails.trigger_type,
-                filterRow: policyCondition,
-                disableEmailField: false,
-                To: JSON.parse(this.props.policyDetails.actions[0].config).to
-            })
-        }
-        else {
-            //Clear the previous state of policy filters
-            this.props.updatePolicyFilter(undefined)
-        }
     }
 
-    addFilter = () => {
-        let key = this.state.filterRow.length
-        let newFilter = (
-            <PolicyCondition />
-        )
-        let filterRow = this.state.filterRow
-        filterRow.push(newFilter)
-        this.setState({ filterRow })
+    addPolicyCondition = () => {
+        let conditions = this.state.conditions;
+        conditions.push({match_type: "", match_condition: "", match_value: ""})
+        this.setState({
+            conditions: conditions
+        })
+    }
+
+    removeFilter = (key) => {
+        let conditions = this.state.conditions;
+        conditions.splice(key, 1)
+        this.setState({
+            conditions: conditions
+        })
     }
 
     sendEmailChange = () => {
@@ -119,23 +97,21 @@ class PolicyItemDetail extends Component {
         this.props.setPolicyFilter('policyActions', policyAction)
     }
 
-    handlePolicyChange = (event,data) => {
-        this.props.setPolicyFilter('policyType', data.value)
+    handlePolicyTriggerTypeChange = (event,data) => {
+        this.setState({
+            triggerType: data.value
+        })
     }
 
-    handlePolicyDataChange = (event,data,type) => {
+    handlePolicyNameChange = (event,data,type) => {
         if (type === 'name')
             this.setState({
-                'name': data.value
+                name: data.value
             })
         else 
             this.setState({
-                'description': data.value
+                description: data.value
             })
-    }
-
-    updatePolicyData = (event,data,type) => {
-        this.props.setPolicyFilter(type,data)
     }
 
     render() {
@@ -144,16 +120,16 @@ class PolicyItemDetail extends Component {
             textAlign: "left"
         };
 
-        let filterRow = this.state.filterRow.map((row) => {
-            return row
-        })
-
         let emailFieldInput = (
             <Form.Group widths='equal'>
                 <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')} onBlur={this.updatePolicyAction} />
                 {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
             </Form.Group>
         )
+
+        let conditions = this.state.conditions.map((condition, index) => {
+            return <PolicyCondition policyCondition={condition} index={index} removeFilter={this.removeFilter} />
+        })
 
         if (this.props.isLoading) {
             return (
@@ -171,26 +147,20 @@ class PolicyItemDetail extends Component {
                 <Container style={containerStyle}>
                     <Form>
                         <Segment.Group>
-                            {/* <Segment>
-                                <Form.Group>
-                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' />
-                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' />
-                                </Form.Group>
-                            </Segment> */}
                             <Segment>
                                 <Form.Group widths='equal'>
-                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyDataChange(event,data,'name')} onBlur={(event,data) => this.updatePolicyData(event,this.state.name,'name')} />
-                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyDataChange(event,data,'description')} onBlur={(event,data) => this.updatePolicyData(event,this.state.description,'description')} />
+                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyNameChange(event,data,'name')} />
+                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyNameChange(event,data,'description')} />
                                 </Form.Group>
                                 <Header as='h4' color='green'>WHEN</Header>
-                                <Form.Field control={Select} label='Action' options={this.state.policyOptions} placeholder='Select an action...' value={this.state.policyTrigger} onChange={this.handlePolicyChange} />
+                                <Form.Field control={Select} label='Action' options={this.state.policyTriggerType} placeholder='Select an action...' value={this.state.triggerType} onChange={this.handlePolicyTriggerTypeChange} />
                             </Segment>
                             <Segment>
                                 <Header as='h4' color='yellow'>IF</Header>
                                 {/* <PolicyCondition /> */}
-                                {filterRow}
+                                {conditions}
                                 <div style={{'textAlign': 'center'}}>
-                                    <Button basic color='green' onClick={this.addFilter}>Add Filter</Button>
+                                    <Button basic color='green' onClick={this.addPolicyCondition}>Add Filter</Button>
                                 </div>
                             </Segment>
                             <Segment>
