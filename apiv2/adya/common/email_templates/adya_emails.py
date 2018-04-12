@@ -133,6 +133,7 @@ def send_clean_files_email(datasource_id,user_email):
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject="CleanUp Your Files!"
         aws_utils.send_email([user_email], email_subject, rendered_html)
-        return ResponseMessage(200, "Notification sent to {} for cleanUp".format(user_email))
+        return True
     except Exception as e:
         Logger().exception("Exception occurred sending clean files email")
+        return False

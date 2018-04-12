@@ -538,8 +538,11 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     #Trigger mail for cleaning files
     elif action_config.key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
         user_email = action_parameters['user_email']
-        return adya_emails.send_clean_files_email(datasource_id,user_email)     
-
+        if adya_emails.send_clean_files_email(datasource_id,user_email):
+            return ResponseMessage(200, "Notification sent to {} for cleanUp".format(user_email))
+        else:
+            return ResponseMessage(400, "Sending Notification failed for {}".format(user_email))
+    
     #Directory change actions
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
         return modify_group_membership(auth_token, datasource_id, action_config.key, action_parameters)
