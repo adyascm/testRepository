@@ -238,12 +238,13 @@ class ResourcesListTable extends Component {
                                     </Table.Cell>
                                     <Table.Cell>
                                         {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
-                                        <DatePicker 
-                                            selected={this.state.currentDate} 
-                                            onChange={this.handleDateChange} 
-                                            showTimeSelect 
-                                            dateFormat="LLL"
-                                        />
+                                        <Input>
+                                            <DatePicker 
+                                                selected={this.state.currentDate} 
+                                                onChange={this.handleDateChange}
+                                                dateFormat="LLL"
+                                            />
+                                        </Input>
                                     </Table.Cell>
                                 </Table.Row>
                                 {tableRowData}

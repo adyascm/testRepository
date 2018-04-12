@@ -36,9 +36,9 @@ class Dashboard extends Component {
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: 'folder'}}},
     ];
     this.chartWidgetConfigs = [
-      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: ''}}},
+      { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}},
       { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {scopeExposure: 0}}},
-      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: ''}}}
+      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}}
     ];
     this.gridWidgetConfigs = [
       { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'EXT'}}},
