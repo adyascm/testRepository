@@ -120,7 +120,21 @@ def handle_channel_expiration_For_userlist_watch(db_session):
     db_connection().commit()
     Logger().info("handle_channel_expiration_For_userlist_watch completed")
 
-
+def gdrive_periodic_changes_poll(datasource_id=None):
+    db_session = db_connection().get_session()
+    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
+    subscription_list = db_session.query(PushNotificationsSubscription)
+    if datasource_id:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
+    else:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
+    for row in subscription_list.all():
+        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
+        requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+                                     headers={"X-Goog-Channel-Token": row.datasource_id,
+                                              "X-Goog-Channel-ID": row.channel_id,
+                                              'X-Goog-Resource-State': "change"})
+    return
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
@@ -129,6 +143,11 @@ def subscribe(domain_id, datasource_id):
         aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
                                           aws_utils.get_lambda_name("get",
                                                                     urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+
+        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 0 * * ? *)",
+                                          aws_utils.get_lambda_name("get",
+                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
 
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         db_session.query(PushNotificationsSubscription).filter(
@@ -320,6 +339,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
             changes = response.get('changes')
             if len(changes) < 1:
                 Logger().info("No changes found for this notification, hence ignoring.")
+                return
 
             # Mark Inprogress
             if should_mark_in_progress:
@@ -385,10 +405,10 @@ def handle_change(drive_service, datasource_id, email, file_id):
                 format(results['owners'][0]['emailAddress'], email))
             return
 
-        last_modified_time = dateutil.parser.parse(results['modifiedTime'])
+        # last_modified_time = dateutil.parser.parse(results['modifiedTime'])
 
-        resource = db_session.query(Resource).filter(
-            and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
+        # resource = db_session.query(Resource).filter(
+        #     and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
         # if resource:
         #     saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
         #     difference = abs(saved_last_modified_time - last_modified_time)
@@ -397,28 +417,28 @@ def handle_change(drive_service, datasource_id, email, file_id):
         #         Logger().info("Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time))
         #         return
 
-        existing_permissions = []
-        is_new_resource = 0
+        # existing_permissions = []
+        # is_new_resource = 0
 
-        if resource:
-            existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
-            Logger().info( "Deleting the existing permissions and resource, and add again")
-            db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
-                                                             ResourcePermission.datasource_id == datasource_id)).delete(
-                synchronize_session=False)
-            db_session.query(Resource).filter(
-                and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
-                synchronize_session=False)
-            db_connection().commit()
-        else:
-            is_new_resource = 1
-            Logger().info("Resource does not exist in DB, so would add it now")
+        # if resource:
+        #     existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
+        #     Logger().info( "Deleting the existing permissions and resource, and add again")
+        #     db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
+        #                                                      ResourcePermission.datasource_id == datasource_id)).delete(
+        #         synchronize_session=False)
+        #     db_session.query(Resource).filter(
+        #         and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
+        #         synchronize_session=False)
+        #     db_connection().commit()
+        # else:
+        #     is_new_resource = 1
+        #     Logger().info("Resource does not exist in DB, so would add it now")
 
         resourcedata = {}
         resourcedata["resources"] = [results]
         datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
-                        'userEmail': email, 'is_new_resource': is_new_resource, 'notify_app': 1}
+                        'userEmail': email, 'is_incremental_scan': 1}
         messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
 
         # payload = {}

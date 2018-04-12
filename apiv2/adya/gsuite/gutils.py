@@ -8,6 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE
 import os
 import httplib2
+from adya.common.response_messages import Logger
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
@@ -114,7 +115,7 @@ def check_if_serviceaccount_enabled(emailid):
         profile_info = drive.about().get(fields="user").execute()
         return True
     except Exception as e:
-        print e
+        Logger().exception()
     return False
 
 
@@ -124,7 +125,7 @@ def check_if_user_isamdin(auth_token, user_email=None, db_session = None):
         users = directory_service.users().get(userKey=user_email).execute()
         return True
     except Exception as ex:
-        print ex
+        Logger().exception()
     return False
 
 

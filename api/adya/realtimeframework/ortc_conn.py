@@ -1,4 +1,5 @@
 import ortc
+from adya.common.response_messages import Logger
 
 class RealtimeConnection(object):
     ortc_client = None
@@ -23,18 +24,18 @@ class RealtimeConnection(object):
                 self.ortc_client.connect(self.application_key)
             else:
                 self.ortc_client.send(self.channel, self.message)
-                print "Tried to send message to realtime framework"
+                Logger().info("Tried to send message to realtime framework")
         except Exception as ex:
-            print "Sending message to realtime framework failed with exception - " + ex
+            Logger().exception("Sending message to realtime framework failed with exception - ")
             
     def on_connected(self, sender):
         try:
             if self.last_message:
                 self.ortc_client.send(self.last_channel, self.last_message)
-                print "Tried to send message to realtime framework"
+                Logger().info("Tried to send message to realtime framework")
                 self.last_message = None
         except Exception as ex:
-            print "Sending message to realtime framework failed with exception - " + ex
+            Logger().exception("Sending message to realtime framework failed with exception - ")
 
     def on_reconnecting(self, sender):
         return

@@ -1,5 +1,6 @@
 import datetime
 
+from adya.common.response_messages import Logger
 from adya.datasources.google import gutils
 from adya.common import utils, response_messages
 from adya.common import constants
@@ -13,7 +14,7 @@ from adya.db.models import DomainUser, Resource
 
 def delete_user_from_group(auth_token, group_email, user_email):
     directory_service = gutils.get_directory_service(auth_token)
-    print "Initiating removal of user {} from group {} ...".format(user_email, group_email)
+    Logger().info("Initiating removal of user {} from group {} ...".format(user_email, group_email))
     try:
         response = directory_service.members().delete(groupKey=group_email, memberKey=user_email).execute()
         return response
@@ -31,7 +32,7 @@ def add_user_to_group(auth_token, group_email, user_email):
         "email": user_email,
         "role": "MEMBER"
     }
-    print "Initiating addition of user {} to group {} ...".format(user_email, group_email)
+    Logger().info("Initiating addition of user {} to group {} ...".format(user_email, group_email))
     try:
         response = directory_service.members().insert(groupKey=group_email, body=body).execute()
         return response
@@ -45,7 +46,7 @@ def get_applicationDataTransfers_for_gdrive(datatransfer_service):
 
     results = datatransfer_service.applications().list(maxResults=10).execute()
     applications = results.get('applications', [])
-    print 'Applications: {}'.format(applications) 
+    Logger().info('Applications: {}'.format(applications))
     applicationDataTransfers = []
     if not applications:
         return applicationDataTransfers
@@ -64,7 +65,7 @@ def get_applicationDataTransfers_for_gdrive(datatransfer_service):
 
 def transfer_ownership(auth_token, old_owner_email, new_owner_email):
     datatransfer_service = gutils.get_gdrive_datatransfer_service(auth_token)
-    print "Initiating data transfer..."
+    Logger().info("Initiating data transfer...")
     applicationDataTransfers = get_applicationDataTransfers_for_gdrive(datatransfer_service)
 
     directory_service = gutils.get_directory_service(auth_token)
@@ -77,7 +78,7 @@ def transfer_ownership(auth_token, old_owner_email, new_owner_email):
                             "applicationDataTransfers": applicationDataTransfers}
 
     response = datatransfer_service.transfers().insert(body=transfersResource).execute()
-    print response
+    Logger().info(str(response))
     # handle failure in response
     return response
 
@@ -125,8 +126,7 @@ class AddOrUpdatePermisssionForResource():
     def batch_request_callback(self, request_id, response, exception):
         if exception:
             self.exception_message = str(exception)
-            print "Exception occurred while updating permissions in batch."
-            print exception
+            Logger().exception("Exception occurred while updating permissions in batch.")
         else:
             index = int(request_id) - 1
             self.updated_permissions.append(self.permissions[(self.batch_number*100) + index])

@@ -5,6 +5,7 @@ import os
 from sqlalchemy import String, Boolean, and_
 import csv
 
+from adya.common.response_messages import Logger
 from adya.common.utils import utils, messaging
 from adya.common.constants import constants, urls
 from adya.common.utils import utils
@@ -76,7 +77,7 @@ def create_datasource(auth_token, payload):
             create_dummy_datasource(
                 db_session, existing_user.domain_id, datasource_id)
         else:
-            print "Starting the scan"
+            Logger().info("Starting the scan")
             query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id, "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
             messaging.trigger_post_event(urls.SCAN_START, auth_token, query_params, {}, "gsuite")
@@ -112,9 +113,9 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
-        print "Datasource deleted successfully"
+        Logger().info("Datasource deleted successfully")
     except Exception as ex:
-        print "Exception occurred during datasource data delete - " + ex.message
+        Logger().exception("Exception occurred during datasource data delete - ")
 
 
 def delete_datasource(auth_token, datasource_id):
@@ -134,7 +135,7 @@ def delete_datasource(auth_token, datasource_id):
             gutils.revoke_appaccess(
                 auth_token, user_email=None, db_session=db_session)
         except Exception as ex:
-            Logger().exception("Exception occurred while revoking the app access - {} ".format(ex.message))
+            Logger().exception("Exception occurred while revoking the app access")
 
 
 def create_dummy_datasource(db_session, domain_id, datasource_id):

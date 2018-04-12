@@ -11,21 +11,36 @@ from adya.common.db import db_utils
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite import activities
+from adya.common.response_messages import Logger
 
 
-def get_widget_data(auth_token, widget_id):
-    if not auth_token:
+def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
+
+    if not (auth_token or datasource_id):
         return None
-    db_session = db_connection().get_session()
-    existing_user = db_utils.get_user_session(auth_token)
-    user_domain_id = existing_user.domain_id
-    login_user_email = existing_user.email
-    is_admin = existing_user.is_admin
-    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
 
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == user_domain_id).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
+    db_session = db_connection().get_session()
+    
+    is_admin = False
+    login_user_email = user_email
+    is_service_account_is_enabled = True
+    domain_datasource_ids = []
+
+    if auth_token:
+        existing_user = db_utils.get_user_session(auth_token)
+        user_domain_id = existing_user.domain_id
+        login_user_email = existing_user.email
+        is_admin = existing_user.is_admin
+        is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+        datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
+        domain_datasource_ids = [r for r, in datasource_ids]
+    elif datasource_id:
+        datasource = db_session.query(DataSource).filter(
+            DataSource.datasource_id == datasource_id).first()
+        is_service_account_is_enabled = datasource.is_serviceaccount_enabled
+        domain_datasource_ids = [datasource.datasource_id]
+
     data = None
     if widget_id == 'usersCount':
 
@@ -215,7 +230,7 @@ def create_report(auth_token, payload):
         try:
             db_connection().commit()
         except Exception as ex:
-            print (ex)
+            Logger().exception()
 
         return report
     else:
@@ -262,7 +277,7 @@ def delete_report(auth_token, report_id):
     try:
         db_connection().commit()
     except:
-        print "Exception occured while delete a report"
+        Logger().exception("Exception occured while delete a report")
 
     return existing_report
 
@@ -354,19 +369,19 @@ def update_report(auth_token, payload):
         try:
             db_connection().commit()
         except Exception as ex:
-            print ex
+            Logger().exception()
         return payload
     else:
         return None
 
 
 def generate_csv_report(report_id):
-    print "generate_csv_report :  start"
+    Logger().info("generate_csv_report :  start")
 
     report_data, email_list, report_type, report_desc, report_name = run_report(None, report_id)
-    print "generate_csv_report : report data : ", report_data
+    Logger().info("generate_csv_report : report data : " + str(report_data))
     csv_records = ""
-    print "report type : ", report_type
+    Logger().info("report type : "+ str(report_type))
     if report_type == "Permission":
 
         perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
@@ -376,7 +391,7 @@ def generate_csv_report(report_id):
                                    "last_modified_time", "creation_time",
                                    "exposure_type", "user_email", "permission_type"]
 
-        print "making csv "
+        Logger().info("making csv ")
 
         csv_records += ",".join(perm_csv_display_header) + "\n"
         for data in report_data:
@@ -387,7 +402,7 @@ def generate_csv_report(report_id):
                     csv_records += (str(data[perm_report_data_header[i]])) + ','
             csv_records += "\n"
 
-        print csv_records
+        Logger().info(str(csv_records))
 
     elif report_type == "Activity":
 
@@ -403,7 +418,7 @@ def generate_csv_report(report_id):
                 else:
                     csv_records += (str(data[activity_report_data_header[i]])) + ','
             csv_records += "\n"
-        print csv_records
+        Logger().info(str(csv_records))
 
-    print "csv_ record ", csv_records
+    Logger().info("csv_ record " + str(csv_records))
     return csv_records, email_list, report_desc, report_name

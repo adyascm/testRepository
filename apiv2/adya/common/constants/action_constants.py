@@ -15,6 +15,7 @@ class ActionNames(Enum):
     REMOVE_USER_FROM_GROUP = "remove_user_from_group"
     ADD_USER_TO_GROUP = "add_user_to_group"
     ADD_PERMISSION_FOR_A_FILE = "add_permission_for_a_File"
+    NOTIFY_USER_FOR_CLEANUP = "notify_user_for_clean_up"
 
 
 

@@ -2,7 +2,9 @@ from flask_restful import Resource, reqparse, request
 from adya.gsuite import scan
 from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
+
 from adya.core.controllers import actions_controller
+from adya.common.response_messages import Logger
 
 class DriveScan(Resource):
     def post(self):
@@ -18,7 +20,6 @@ class DriveScan(Resource):
 
 class DriveResources(Resource):
     def get(self):
-        print "started initial gdrive scan"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId','ownerEmail'], ['nextPageToken','userEmail'])
@@ -31,25 +32,19 @@ class DriveResources(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print "Processing Data"
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId', 'domainId'],['userEmail', 'is_new_resource', 'notify_app'])
+            True, ['dataSourceId', 'domainId'],['userEmail', 'is_incremental_scan'])
         if req_error:
             return req_error
-
-        is_new_resource = req_session.get_req_param('is_new_resource')
-        notify_app = req_session.get_req_param('notify_app')
-        is_new_resource = 1 if is_new_resource is None else is_new_resource
-        notify_app = 0 if notify_app is None else notify_app
+        is_incremental_scan = req_session.get_req_param('is_incremental_scan')
+        is_incremental_scan = 0 if is_incremental_scan is None else is_incremental_scan
         scan.process_resource_data(req_session.get_req_param(
-            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(),
-            is_new_resource, notify_app)
+            'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(), is_incremental_scan)
         return req_session.generate_response(202)
 
 class GetDomainuser(Resource):
     def get(self):
-        print("Getting domain user")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -65,7 +60,6 @@ class GetDomainuser(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print("Process users data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])
@@ -83,7 +77,6 @@ class GetDomainuser(Resource):
 
 class GetDomainGroups(Resource):
     def get(self):
-        print("Getting domain groups")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'],["nextPageToken"])
@@ -99,7 +92,6 @@ class GetDomainGroups(Resource):
         return req_session.generate_response(202)
 
     def post(self):
-        print("Process groups data")
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
             True, ['dataSourceId', 'domainId'])

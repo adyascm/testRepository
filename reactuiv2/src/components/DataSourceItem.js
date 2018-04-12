@@ -12,6 +12,10 @@ const DataSourceItem = props => {
         ev.preventDefault();
         props.onDelete(datasource);
     };
+    const onPollChanges = (datasource) => ev => {
+        ev.preventDefault();
+        props.onPollChanges(datasource);
+    };
 
     if (datasource) {
         var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
@@ -19,6 +23,7 @@ const DataSourceItem = props => {
             percent = 0;
         var statusText = "Scan is in progress. Please wait for it to complete."
         var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+        var pollIcon = null;
         var status = common.DataSourceUtils.getScanStatus(datasource);
         var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
         if (status == 'error')
@@ -30,6 +35,7 @@ const DataSourceItem = props => {
         {
             statusText = "Scan is complete."
             progressBar = (<Progress size='small' precision='0' percent={percent} success />);
+            pollIcon = <Button style={{margin:"5px"}} circular basic icon='refresh' onClick={onPollChanges(datasource)}/>;
         }
             
 
@@ -47,6 +53,7 @@ const DataSourceItem = props => {
                     <Card.Header textAlign='right'>
                         {datasource.display_name}
                         {/* {syncStatus} */}
+                        {pollIcon}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
                         Created on: <strong><IntlProvider locale='en'  >

@@ -36,7 +36,7 @@ const LoggedInView = props => {
                     <Menu.Item onClick={() => props.handleClick("/users")} active={props.currLocation.includes('/users')} >Users</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/resources")} active={props.currLocation.includes('/resources')} >Documents</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
-                    {/* <Menu.Item onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item> */}
+                    <Menu.Item onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item>
                 </Menu.Menu>

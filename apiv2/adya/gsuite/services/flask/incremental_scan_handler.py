@@ -1,7 +1,7 @@
 from flask_restful import Resource,request
 from adya.gsuite import incremental_scan
 from adya.common.utils.request_session import RequestSession
-
+from adya.common.response_messages import Logger
 
 class subscribe(Resource):
     def post(self):
@@ -23,7 +23,7 @@ class process_notifications(Resource):
 
         datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
         channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-        print "Processing notifications for ", datasource_id, " on channel: ", channel_id
+        Logger().info("Processing notifications for " + str(datasource_id) + " on channel: " + str(channel_id))
         incremental_scan.process_notifications(datasource_id, channel_id)
         return req_session.generate_response(202, "Finished processing notifications. ")
 
@@ -37,4 +37,14 @@ class handle_channel_expiration(Resource):
 
         response = incremental_scan.handle_channel_expiration()
         return req_session.generate_response(202, response)
+
+class PollChanges(Resource):
+    def get(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(False, optional_params=['datasource_id'])
+        if req_error:
+            return req_error
+
+        response = incremental_scan.gdrive_periodic_changes_poll(req_session.get_req_param('datasource_id'))
+        return req_session.generate_response(200)
 

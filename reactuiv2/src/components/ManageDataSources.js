@@ -61,6 +61,7 @@ class ManageDataSources extends Component {
     super();
 
     this.handleClick = this.handleClick.bind(this);
+    this.onPollChanges = this.onPollChanges.bind(this);
 
     this.addNewDatasource = () => ev => {
       ev.preventDefault();
@@ -103,6 +104,10 @@ class ManageDataSources extends Component {
   handleClick() {
     this.props.goToDashboard("/")
     this.props.history.push("/")
+  }
+
+  onPollChanges = (datasource) => {
+    agent.Setting.pollGSuiteDriveChanges(datasource);
   }
 
   render() {
@@ -160,7 +165,7 @@ class ManageDataSources extends Component {
             {
               this.props.common.datasources && this.props.common.datasources.map(ds => {
                 return (
-                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} />
+                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
                 )
               })
             }

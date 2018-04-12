@@ -1,3 +1,4 @@
+from adya.common.response_messages import Logger
 import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -22,8 +23,8 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
         )
 
         if lambda_function and lambda_function['ResponseMetadata']['HTTPStatusCode'] != constants.SUCCESS_STATUS_CODE:
-            print "Did not find the report trigger lambda to be attached to cloud watch event, skipping creating " \
-                  "the cloud watch event "
+            Logger().info("Did not find the report trigger lambda to be attached to cloud watch event, skipping creating " \
+                  "the cloud watch event ")
             return False
 
         # Put an event rule
@@ -32,7 +33,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
             ScheduleExpression=cron_expression,
             State='ENABLED'
         )
-        print "Created cloud watch event with response - " + str(response)
+        Logger().info("Created cloud watch event with response - " + str(response))
 
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
 
@@ -48,8 +49,8 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                     }
                 ]
             )
-            print "Attached the cloud watch event target to the lambda - " + \
-                str(targetresponse)
+            Logger().info("Attached the cloud watch event target to the lambda - " + 
+                str(targetresponse))
 
             response = lambda_client.add_permission(
                 Action='lambda:InvokeFunction',
@@ -59,16 +60,15 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                 StatementId=str(uuid.uuid4()),
             )
 
-            print "adding permission for lambda - " + str(response)
+            Logger().info("adding permission for lambda - " + str(response))
 
             return True
         else:
-            print "Unable to create cloudwatch event"
+            Logger().warn("Unable to create cloudwatch event")
             return False
 
     except Exception as ex:
-        print "Exception occurred while creating the cloudwatch event - " + \
-            str(ex)
+        Logger().exception("Exception occurred while creating the cloudwatch event - ")
         return False
 
 
@@ -76,7 +76,7 @@ def delete_cloudwatch_event(cloudwatch_event_name, function_name):
     try:
         session = boto3.Session()
         cloudwatch_client = session.client('events')
-        print "delete_cloudwatch_event : "
+        Logger().info("delete_cloudwatch_event : ")
         # remove all the targets from the rule
         response = cloudwatch_client.remove_targets(
             Rule=cloudwatch_event_name,
@@ -85,7 +85,7 @@ def delete_cloudwatch_event(cloudwatch_event_name, function_name):
             ]
         )
 
-        print "removed target : "
+        Logger().info("removed target : ")
 
         if response and response['ResponseMetadata']['HTTPStatusCode'] == constants.SUCCESS_STATUS_CODE:
             # after removing all the targets , now delete the rule
@@ -94,10 +94,9 @@ def delete_cloudwatch_event(cloudwatch_event_name, function_name):
                 Name=cloudwatch_event_name
             )
 
-            print "removed rule  : "
+            Logger().info("removed rule  : ")
     except Exception as ex:
-        print "Exception occurred while deleting the cloudwatch event - " + \
-            str(ex)
+        Logger().exception("Exception occurred while deleting the cloudwatch event - ")
         return False
 
 
@@ -126,13 +125,12 @@ def send_email(user_list, email_subject, rendered_html):
         )
 
     except Exception as e:
-        print e
-        print "Exception occurred sending ", email_subject, " email to: ", user_list
+        Logger().exception("Exception occurred sending " + str(email_subject) + " email to: " + str(user_list))
 
 
 def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
 
-    print "sending raw email start : "
+    Logger().info("sending raw email start : ")
     try:
         filename = str(report_name) + ".csv"
         msg = MIMEMultipart('mixed')
@@ -152,10 +150,9 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
             },
         )
 
-        print "email sent "
+        Logger().info("email sent ")
     except Exception as e:
-        print e
-        print "Exception occurred sending  email to: ", user_list
+        Logger().exception("Exception occurred sending  email to: "+ str(user_list))
 
 
 def invoke_lambda(function_name, auth_token, body):
@@ -171,9 +168,8 @@ def invoke_lambda(function_name, auth_token, body):
             Payload=bytes(json.dumps(body))
         )
     except Exception as ex:
-        print "Exception occurred while invoking lambda function {}".format(
-            function_name)
-        print ex
+        Logger().exception("Exception occurred while invoking lambda function {}".format(
+            function_name))
 
 
 def get_lambda_name(httpmethod, endpoint, service_name="adya-common"):

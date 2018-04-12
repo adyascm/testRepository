@@ -43,8 +43,8 @@ const Setting = {
         requests.post('/common/datasources', dataSource),
     deleteDataSource: (dataSource) =>
         requests.del('/common/datasources?datasourceId=' + dataSource.datasource_id),
-    processNotifications: () =>
-        requests.get('/google/scan/processnotifications')
+    pollGSuiteDriveChanges: (dataSource) =>
+        requests.get('/google/scan/polldrivechanges?datasource_id=' + dataSource.datasource_id)
 };
 
 const Actions = {

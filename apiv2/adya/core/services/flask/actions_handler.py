@@ -2,7 +2,7 @@ from flask_restful import Resource,request
 from adya.core.controllers import domain_controller, actions_controller
 from adya.common.utils.request_session import RequestSession
 import json
-
+from adya.common.response_messages import Logger
 
 class get_all_actions(Resource):
     def get(self):
@@ -31,6 +31,6 @@ class initiate_action(Resource):
 
         action_payload = req_session.get_body()
 
-        print "Initiating action using payload: ", action_payload, "on domain: ", domain_id, " and datasource_id: ", datasource_id
+        Logger().info("Initiating action using payload: " + str(action_payload) + "on domain: " + str(domain_id) + " and datasource_id: " + str(datasource_id))
         response = actions_controller.initiate_action(auth_token, domain_id, datasource_id, action_payload)
         return req_session.generate_response(response.response_code, response.get_response_body())

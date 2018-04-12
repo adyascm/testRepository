@@ -1,4 +1,5 @@
 import json
+from adya.common.response_messages import Logger
 from adya.db.models import alchemy_encoder, LoginUser, DataSource
 from adya.common.constants import API_HOST, Role
 import os
@@ -7,21 +8,21 @@ def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
     if not url.startswith('http'):
         url = API_HOST + url
-    print "Making a GET request on the following url - " + url
+    Logger().info("Making a GET request on the following url - " + str(url))
     return session.get(url=url, headers=headers)
 
 def delete_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
     if not url.startswith('http'):
         url = API_HOST + url
-    print "Making a DELETE request on the following url - " + url
+    Logger().info("Making a DELETE request on the following url - " + str(url))
     return session.delete(url=url, headers=headers)
 
 def post_call_with_authorization_header(session, url, auth_token, json):
     headers = {"Authorization": auth_token, "Content-Type": "application/json"}
     if not url.startswith('http'):
         url = API_HOST + url
-    print "Making a POST request on the following url - " + url
+    Logger().info("Making a POST request on the following url - " + str(url))
     return session.post(url=url, json=json, headers=headers)
 
 

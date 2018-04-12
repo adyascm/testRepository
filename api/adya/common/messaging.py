@@ -1,3 +1,4 @@
+from adya.common.response_messages import Logger
 import utils
 import constants
 import aws_utils,sys
@@ -18,38 +19,38 @@ def trigger_get_event(endpoint, auth_token, query_params, service_name="adya-com
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
-        print "Making a GET request on the following url - " + endpoint
+        Logger().info("Making a GET request on the following url - " + str(endpoint))
         utils.get_call_with_authorization_header(session, endpoint, auth_token)
     else:
         body = _add_query_params_to_body({}, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-get-"+ slugify(endpoint)
-        print "Making a GET lambda invoke on the following function - " + endpoint
+        Logger().info("Making a GET lambda invoke on the following function - " + str(endpoint))
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
 def trigger_post_event(endpoint, auth_token, query_params, body, service_name="adya-common"):
-    print "trigger_post_event "
+    Logger().info("trigger_post_event ")
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
-        print "Making a POST request on the following url - " + endpoint
+        Logger().info("Making a POST request on the following url - " + str(endpoint))
         utils.post_call_with_authorization_header(session, endpoint, auth_token, body)
     else:
-        print "trigger_post_event : lambda "
+        Logger().info("trigger_post_event : lambda ")
         body = _add_query_params_to_body(body, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-post-"+ slugify(endpoint)
-        print "Making a POST lambda invoke on the following function - " + endpoint
+        Logger().info("Making a POST lambda invoke on the following function - " + str(endpoint))
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
 def trigger_delete_event(endpoint, auth_token, query_params, service_name="adya-common"):
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
         endpoint = _add_query_params_to_url(endpoint, query_params)
-        print "Making a DELETE request on the following url - " + endpoint
+        Logger().info("Making a DELETE request on the following url - " + str(endpoint))
         utils.delete_call_with_authorization_header(session, endpoint, auth_token)
     else:
         body = _add_query_params_to_body({},query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-delete-"+ slugify(endpoint)
-        print "Making a DELETE lambda invoke on the following function - " + endpoint
+        Logger().info("Making a DELETE lambda invoke on the following function - " + str(endpoint))
         aws_utils.invoke_lambda(endpoint, auth_token, body)
 
 def _add_query_params_to_url(endpoint, query_params):

@@ -4,6 +4,7 @@ from adya.common.constants import constants
 
 from adya.common.db.models import alchemy_encoder
 from adya.common.db.connection import db_connection
+from adya.common.response_messages import Logger
 
 class RequestSession():
     def __init__(self, req):
@@ -23,7 +24,7 @@ class RequestSession():
             headers_dict = self.req.headers
             params_dict = self.req.args
         else:
-            print "Dumping the event object - " + json.dumps(self.req)
+            Logger().info("Dumping the event object - " + json.dumps(self.req))
             self.isLocal = False
             headers_dict = self.req
             if "headers" in self.req:
