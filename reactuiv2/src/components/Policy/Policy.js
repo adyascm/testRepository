@@ -10,9 +10,7 @@ import {
 } from '../../constants/actionTypes'
 
 const mapStateToProps = state => ({
-    ...state.policy,
-    datasources: state.common.datasources,
-    currentUser: state.common.currentUser
+    ...state.policy
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -38,10 +36,12 @@ class Policy extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.state.fetchPolicy) {
+        if ((nextProps.policyData !== this.props.policyData) && (this.state.showPolicyForm ||
+            this.state.fetchPolicy)) {
             nextProps.policyLoadStart()
             nextProps.policyLoaded(agent.Policy.getPolicy())
             this.setState({
+                showPolicyForm: false,
                 fetchPolicy: false
             })
         }
@@ -59,31 +59,6 @@ class Policy extends Component {
             showPolicyForm: false,
             policyDetails: undefined
         })
-    }
-
-    submitPolicyModalForm = () => {
-        let policyInfo = {
-            "datasource_id": this.props.datasources[0]["datasource_id"],
-            "name": this.props.name,
-            "description": this.props.description,
-            "created_by": this.props.currentUser["email"],
-            "trigger_type": this.props.policyType,
-            "conditions": this.props.policyConditions,
-            "actions": this.props.policyActions
-        }
-
-        this.props.policyLoadStart()
-        if (!this.state.policyId)
-            this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
-        else 
-            this.props.policyLoaded(agent.Policy.updatePolicy(this.state.policyId,policyInfo))
-        
-        this.setState({
-            showPolicyForm: false,
-            fetchPolicy: true,
-            policyDetails: undefined,
-            policyId: undefined
-        })        
     }
 
     deletePolicy = (policyId) => {
@@ -129,25 +104,7 @@ class Policy extends Component {
                 )
             })
 
-        if (this.state.showPolicyForm) {
-            return (
-                <Modal size='large' className="scrolling" open={this.state.showPolicyForm}>
-                    <Modal.Header>
-                        Policy Form
-                    </Modal.Header>
-                    <Modal.Content>
-                        <PolicyItemDetail policyDetails={this.state.policyDetails} />
-                        {/* <PolicyDetails /> */}
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button negative onClick={this.closePolicyModalForm}>Close</Button>
-                        <Button positive onClick={this.submitPolicyModalForm}>Submit</Button>
-                    </Modal.Actions>
-                </Modal>
-            ) 
-        }
-
-        else if (this.props.isLoading) {
+        if (this.props.isLoading) {
             return (
                 <Container>
                   <Dimmer active inverted>
@@ -158,19 +115,25 @@ class Policy extends Component {
         }
 
         return (
-            <Card.Group>
-                {policyCards}
-                <Card>
-                  <Card.Content>
-                    <Card.Description>
-                      Click on Add Policy to add a new Policy
-                    </Card.Description>
-                  </Card.Content>
-                  <Card.Content extra>
-                    <Button basic color='green'onClick={this.openPolicyModalForm}>Add Policy</Button>
-                  </Card.Content>
-                </Card>
-            </Card.Group>
+            <div>
+                <Card.Group>
+                    {policyCards}
+                    <Card>
+                    <Card.Content>
+                        <Card.Description>
+                        Click on Add Policy to add a new Policy
+                        </Card.Description>
+                    </Card.Content>
+                    <Card.Content extra>
+                        <Button basic color='green' onClick={this.openPolicyModalForm}>Add Policy</Button>
+                    </Card.Content>
+                    </Card>
+                </Card.Group>
+                {/* {!this.state.showPolicyForm?null:(<PolicyItemDetail showPolicyForm={this.state.showPolicyForm} policyDetails={this.state.policyDetails} 
+                    closePolicyModalForm={this.closePolicyModalForm} submitPolicyModalForm={this.submitPolicyModalForm} />)} */}
+                <PolicyItemDetail policyDetails={this.state.policyDetails} showPolicyForm={this.state.showPolicyForm} 
+                    closePolicyModalForm={this.closePolicyModalForm} />
+            </div>
           )
     }
 }

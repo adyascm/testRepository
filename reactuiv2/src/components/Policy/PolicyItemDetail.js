@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PolicyCondition from './PolicyCondition'
-import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon } from 'semantic-ui-react';
+import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon, Modal } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
@@ -9,30 +9,36 @@ import {
     SET_POLICY_FILTER,
     CREATE_POLICY_LOAD_START,
     CREATE_POLICY_LOADED,
-    UPDATE_POLICY_FILTER
+    UPDATE_POLICY_FILTER,
+    POLICY_LOAD_START,
+    POLICY_LOADED
 } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
-    ...state.policy
+    ...state.policy,
+    datasources: state.common.datasources,
+    currentUser: state.common.currentUser
 });
 
 const mapDispatchToProps = dispatch => ({
-    setPolicyFilter: (policyFilterType, policyFilterValue) => 
-        dispatch({ type: SET_POLICY_FILTER, policyFilterType, policyFilterValue }),
-    updatePolicyFilter: (payload) =>
-        dispatch({ type: UPDATE_POLICY_FILTER, payload })
+    policyLoadStart: () =>
+        dispatch({ type: POLICY_LOAD_START }),
+    policyLoaded: (payload) =>
+        dispatch({ type: POLICY_LOADED, payload })
 });
 
 class PolicyItemDetail extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            triggerType: props.policyDetails != null ? props.policyDetails.triggerType : "",
-            conditions: props.policyDetails != null ? props.policyDetails.conditions : [{match_type: "", match_condition: "", match_value: ""}],
-            actions: props.policyDetails != null ? props.policyDetails.actions : [],
-            name: props.policyDetails != null ? props.policyDetails.name : "",
-            description: props.policyDetails != null ? props.policyDetails.description : "",
+            triggerType: "",
+            conditions: [{match_type: "", match_condition: "", match_value: ""}],
+            actions: [],
+            name: "",
+            description: "",
+            policyId: undefined,
+            showPolicyForm: false
         }
     }
 
@@ -42,20 +48,25 @@ class PolicyItemDetail extends Component {
             policyTriggerType: [
                 { text: '', value: '' },
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
-            // filterTypeOptions: [
-            //     { text: '', value: '' },
-            //     { text: 'Document.Name', value: 'DOCUMENT_NAME' },
-            //     { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
-            //     { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
-            //     { text: 'Permission.Email', value: 'PERMISSION_EMAIL' }],
-            // filterConditionOptions: [
-            //     { text: '', value: '' },
-            //     { text: 'Equals', value: 'equal' },
-            //     { text: 'Not Equals', value: 'notequal' },
-            //     { text: 'Contains', value: 'contain' },
-            //     { text: 'Does not contain', value: 'notcontain' }],
             disableEmailField: true,
         })
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.showPolicyForm !== this.state.showPolicyForm)
+            this.setState({
+                showPolicyForm: nextProps.showPolicyForm
+            })
+        if (nextProps.policyDetails !== this.props.policyDetails) {
+            this.setState({
+                name: nextProps.policyDetails?nextProps.policyDetails.name:'',
+                description: nextProps.policyDetails?nextProps.policyDetails.description:'',
+                triggerType: nextProps.policyDetails?nextProps.policyDetails.trigger_type:'',
+                conditions: nextProps.policyDetails?nextProps.policyDetails.conditions:[{match_type: "", match_condition: "", match_value: ""}],
+                actions: nextProps.policyDetails?nextProps.policyDetails.actions:[],
+                policyId: nextProps.policyDetails?nextProps.policyDetails.policy_id:undefined
+            })
+        }
     }
 
     addPolicyCondition = () => {
@@ -87,16 +98,6 @@ class PolicyItemDetail extends Component {
             })
     }
 
-    updatePolicyAction = () => {
-        let policyAction = {
-            'action_type': 'SEND_EMAIL',
-            'config': {
-                'to': this.state.To
-            }
-        }
-        this.props.setPolicyFilter('policyActions', policyAction)
-    }
-
     handlePolicyTriggerTypeChange = (event,data) => {
         this.setState({
             triggerType: data.value
@@ -114,6 +115,30 @@ class PolicyItemDetail extends Component {
             })
     }
 
+    submitPolicyModalForm = () => {
+        let policyInfo = {
+            "datasource_id": this.props.datasources[0]["datasource_id"],
+            "name": this.state.name,
+            "description": this.state.description,
+            "created_by": this.props.currentUser["email"],
+            "trigger_type": this.state.triggerType,
+            "conditions": this.state.conditions,
+            "actions": this.state.actions
+        }
+
+        this.props.policyLoadStart()
+        if (!this.state.policyId)
+            this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
+        else 
+            this.props.policyLoaded(agent.Policy.updatePolicy(this.state.policyId,policyInfo))
+        
+        this.setState({
+            showPolicyForm: false,
+            policyDetails: undefined,
+            policyId: undefined
+        })        
+    }
+
     render() {
         let containerStyle = {
             height: "100%",
@@ -122,7 +147,7 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')} onBlur={this.updatePolicyAction} />
+                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')}  />
                 {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
             </Form.Group>
         )
@@ -143,14 +168,14 @@ class PolicyItemDetail extends Component {
             )
         }
         else {
-            return (
+            let modalContent = (
                 <Container style={containerStyle}>
                     <Form>
                         <Segment.Group>
                             <Segment>
                                 <Form.Group widths='equal'>
-                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyNameChange(event,data,'name')} />
-                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyNameChange(event,data,'description')} />
+                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyNameChange(event,data,'name')}  />
+                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyNameChange(event,data,'description')}  />
                                 </Form.Group>
                                 <Header as='h4' color='green'>WHEN</Header>
                                 <Form.Field control={Select} label='Action' options={this.state.policyTriggerType} placeholder='Select an action...' value={this.state.triggerType} onChange={this.handlePolicyTriggerTypeChange} />
@@ -171,6 +196,22 @@ class PolicyItemDetail extends Component {
                         </Segment.Group>
                     </Form>
                 </Container>
+            )
+            return (
+                <Modal size='large' className="scrolling" open={this.state.showPolicyForm}>
+                    <Modal.Header>
+                        Policy Form
+                    </Modal.Header>
+                    <Modal.Content>
+                        {/* <PolicyItemDetail policyDetails={this.state.policyDetails} /> */}
+                        {/* <PolicyDetails /> */}
+                        {modalContent}
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>
+                        <Button positive onClick={this.submitPolicyModalForm}>Submit</Button>
+                    </Modal.Actions>
+                </Modal>
             )
         }
 

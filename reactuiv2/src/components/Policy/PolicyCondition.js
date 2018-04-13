@@ -90,9 +90,9 @@ class PolicyCondition extends Component {
 
     updateFilterValueChange = () => {
         let appliedFilter = {
-            "match_type": this.state.filterType,
-            "match_condition": this.state.filterCondition,
-            "match_value": this.state.filterValue
+            "match_type": this.state.policyCondition.match_type,
+            "match_condition": this.state.policyCondition.match_condition,
+            "match_value": this.state.policyCondition.match_value
         }
         this.props.setPolicyFilter('policyConditions', appliedFilter)
     }
@@ -103,7 +103,7 @@ class PolicyCondition extends Component {
             <Form.Group key={this.props.counter} widths='equal'>
                 <Form.Field control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.policyCondition.match_type} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
                 <Form.Field control={Select} label='Condition' options={this.state.filterConditionOptions} value={this.state.policyCondition.match_condition} placeholder='Select a condition...' onChange={this.handleFilterConditionChange} />
-                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.policyCondition.match_value} onChange={this.handleFilterValueChange} />
+                <Form.Field control={Input} label='Value' placeholder='Specify a value' value={this.state.policyCondition.match_value} onChange={this.handleFilterValueChange}  />
                 <div style={{'height': '20px', 'paddingTop': '25px'}}>
                     <Button basic color='red' onClick={() => this.props.removeFilter(this.props.index)}>
                         <Icon name='close' />
