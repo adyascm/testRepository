@@ -124,6 +124,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
             resource["datasource_id"] = datasource_id
             resource_id = resourcedata['id']
             resource["resource_id"] = resource_id
+            if resourcedata['name'] == "engineering":
+                test = 123
+
             resource["resource_name"] = resourcedata['name']
             mime_type = gutils.get_file_type_from_mimetype(resourcedata['mimeType'])
             resource["resource_type"] = mime_type
@@ -143,55 +146,54 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
             resource_permissions = resourcedata.get('permissions')
             if resource_permissions:
                 for permission in resource_permissions:
-                        permission_id = permission.get('id')
-                        email_address = permission.get('emailAddress')
-                        display_name = permission.get('displayName')
-                        expiration_time = permission.get('expirationTime')
-                        is_deleted = permission.get('deleted')
-                        if is_deleted:
-                            continue
-                        permission_exposure = constants.ResourceExposureType.INTERNAL
-                        resource_exposure_type = get_resource_exposure_type(db_session, domain_id, email_address, display_name,
-                                                                            resource_exposure_type)
-                        if email_address:
-                            if gutils.check_if_external_user(db_session, domain_id,email_address):
+                    permission_id = permission.get('id')
+                    email_address = permission.get('emailAddress')
+                    display_name = permission.get('displayName')
+                    expiration_time = permission.get('expirationTime')
+                    is_deleted = permission.get('deleted')
+                    if is_deleted:
+                        continue
+                    permission_exposure = constants.ResourceExposureType.INTERNAL
+                    if email_address:
+                        if gutils.check_if_external_user(db_session, domain_id,email_address):
 
-                                permission_exposure = constants.ResourceExposureType.EXTERNAL
-                                ## insert non domain user as External user in db, Domain users will be
-                                ## inserted during processing Users
-                                if not email_address in external_user_map:
+                            permission_exposure = constants.ResourceExposureType.EXTERNAL
+                            ## insert non domain user as External user in db, Domain users will be
+                            ## inserted during processing Users
+                            if not email_address in external_user_map:
 
-                                    externaluser = {}
-                                    externaluser["datasource_id"] = datasource_id
-                                    externaluser["email"] = email_address
-                                    externaluser["first_name"] = ""
-                                    externaluser["last_name"] = ""
-                                    if display_name and display_name != "":
-                                        name_list = display_name.split(' ')
-                                        externaluser["first_name"] = name_list[0]
-                                        if len(name_list) > 1:
-                                            externaluser["last_name"] = name_list[1]
-                                    externaluser["member_type"] = constants.UserMemberType.EXTERNAL
-                                    external_user_map[email_address]= externaluser
-                        #Shared with everyone in domain
-                        elif display_name:
-                            email_address = "__ANYONE__@"+ domain_id
-                            permission_exposure = constants.ResourceExposureType.DOMAIN
-                        #Shared with everyone in public
-                        else:
-                            email_address = constants.ResourceExposureType.PUBLIC
-                            permission_exposure = constants.ResourceExposureType.PUBLIC
-                        resource_permission = {}
-                        resource_permission["datasource_id"] = datasource_id
-                        resource_permission["resource_id"] = resource_id
-                        resource_permission["email"] = email_address
-                        resource_permission["permission_id"] = permission_id
-                        resource_permission["permission_type"] = permission['role']
-                        resource_permission["exposure_type"] = permission_exposure
-                        if expiration_time:
-                            resource_permission["expiration_time"] = expiration_time[:-1]
-                        resource_permission["is_deleted"] = is_deleted
-                        data_for_permission_table.append(resource_permission)
+                                externaluser = {}
+                                externaluser["datasource_id"] = datasource_id
+                                externaluser["email"] = email_address
+                                externaluser["first_name"] = ""
+                                externaluser["last_name"] = ""
+                                if display_name and display_name != "":
+                                    name_list = display_name.split(' ')
+                                    externaluser["first_name"] = name_list[0]
+                                    if len(name_list) > 1:
+                                        externaluser["last_name"] = name_list[1]
+                                externaluser["member_type"] = constants.UserMemberType.EXTERNAL
+                                external_user_map[email_address]= externaluser
+                    #Shared with everyone in domain
+                    elif display_name:
+                        email_address = "__ANYONE__@"+ domain_id
+                        permission_exposure = constants.ResourceExposureType.DOMAIN
+                    #Shared with everyone in public
+                    else:
+                        email_address = constants.ResourceExposureType.PUBLIC
+                        permission_exposure = constants.ResourceExposureType.PUBLIC
+                    resource_permission = {}
+                    resource_permission["datasource_id"] = datasource_id
+                    resource_permission["resource_id"] = resource_id
+                    resource_permission["email"] = email_address
+                    resource_permission["permission_id"] = permission_id
+                    resource_permission["permission_type"] = permission['role']
+                    resource_permission["exposure_type"] = permission_exposure
+                    if expiration_time:
+                        resource_permission["expiration_time"] = expiration_time[:-1]
+                    resource_permission["is_deleted"] = is_deleted
+                    data_for_permission_table.append(resource_permission)
+                    resource_exposure_type = get_resource_exposure_type(permission_exposure, resource_exposure_type)
             resource["exposure_type"] = resource_exposure_type
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)
@@ -223,25 +225,16 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
 
 
-def get_resource_exposure_type(db_session, domain_id, email_address, display_name, resource_exposure_type):
-    if email_address:
-        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL \
-                and resource_exposure_type != constants.ResourceExposureType.PUBLIC \
-                and resource_exposure_type != constants.ResourceExposureType.DOMAIN:
-            resource_exposure_type = constants.ResourceExposureType.INTERNAL
-        if gutils.check_if_external_user(db_session, domain_id, email_address):
-            if resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-                resource_exposure_type = constants.ResourceExposureType.EXTERNAL
-
-    elif display_name:
-        if resource_exposure_type != constants.ResourceExposureType.EXTERNAL and \
-                        resource_exposure_type != constants.ResourceExposureType.PUBLIC:
-            resource_exposure_type = constants.ResourceExposureType.DOMAIN
-    else:
-        resource_exposure_type = constants.ResourceExposureType.PUBLIC
-
-    return resource_exposure_type
-
+def get_resource_exposure_type(permission_exposure, highest_exposure):
+    if permission_exposure == constants.ResourceExposureType.PUBLIC:
+        highest_exposure = constants.ResourceExposureType.PUBLIC
+    elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
+        highest_exposure = constants.ResourceExposureType.EXTERNAL
+    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL):
+        highest_exposure = constants.ResourceExposureType.DOMAIN
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL and highest_exposure == constants.ResourceExposureType.DOMAIN):
+        highest_exposure = constants.ResourceExposureType.INTERNAL
+    return highest_exposure
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
     requestdata = {"fileIds": batch_request_file_id_list}

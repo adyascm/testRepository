@@ -41,3 +41,4 @@ GET_AUDITLOG_PATH = '/common/getauditlog'
 POLICIES_PATH = '/common/policies'
 POLICIES_VALIDATE_PATH = '/common/policies/validate'
 
+ACTION_PATH = '/google/actions'

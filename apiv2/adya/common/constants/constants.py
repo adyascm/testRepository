@@ -16,6 +16,7 @@ DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
+INTERNAL_SECRET = "dfskdjfsd-sdfkjsdhfsdfk-sdfksdf"
 
 def get_url_from_path(path):
     return API_HOST + path
@@ -94,3 +95,7 @@ class PolicyMatchType(Enum):
 
 class policyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
+
+class TriggerType(Enum):
+    ASYNC = "ASYNC"
+    SYNC = "SYNC"

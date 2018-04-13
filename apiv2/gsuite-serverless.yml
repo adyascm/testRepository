@@ -229,3 +229,27 @@ functions:
           path: getactivitiesforuser
           method: get
           cors: true
+
+  post-google-actions:
+    handler: adya.gsuite.services.lambda.action_handler.add_permissions_action
+    events:
+      - http:
+          path: actions
+          method: post
+          cors: true
+
+  put-google-actions:
+    handler: adya.gsuite.services.lambda.action_handler.update_permissions_action
+    events:
+      - http:
+          path: actions
+          method: put
+          cors: true
+
+  delete-google-actions:
+    handler: adya.gsuite.services.lambda.action_handler.delete_permissions_action
+    events:
+      - http:
+          path: actions
+          method: delete
+          cors: true        
