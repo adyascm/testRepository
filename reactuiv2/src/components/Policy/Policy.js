@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Button, Modal, Icon, Container, Dimmer, Loader } from 'semantic-ui-react'
 import PolicyItemDetail from './PolicyItemDetail';
-import PolicyDetails from './PolicyDetails'
 import { connect } from 'react-redux'
 import  agent from '../../utils/agent'
 import {
