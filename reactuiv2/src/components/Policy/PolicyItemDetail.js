@@ -57,14 +57,24 @@ class PolicyItemDetail extends Component {
             this.setState({
                 showPolicyForm: nextProps.showPolicyForm
             })
-        if (nextProps.policyDetails !== this.props.policyDetails) {
+        if (nextProps.policyDetails && (nextProps.policyDetails !== this.props.policyDetails)) {
+            let allActions = nextProps.policyDetails.actions
+            if (allActions.length > 0) {
+                let emailAction = allActions[0]
+                let emailConfig = JSON.parse(emailAction.config)
+                let disableEmailField = false
+                this.setState({
+                    To: emailConfig.to,
+                    disableEmailField: disableEmailField
+                })
+            }
             this.setState({
-                name: nextProps.policyDetails?nextProps.policyDetails.name:'',
-                description: nextProps.policyDetails?nextProps.policyDetails.description:'',
-                triggerType: nextProps.policyDetails?nextProps.policyDetails.trigger_type:'',
-                conditions: nextProps.policyDetails?nextProps.policyDetails.conditions:[{match_type: "", match_condition: "", match_value: ""}],
-                actions: nextProps.policyDetails?nextProps.policyDetails.actions:[],
-                policyId: nextProps.policyDetails?nextProps.policyDetails.policy_id:undefined
+                name: nextProps.policyDetails.name,
+                description: nextProps.policyDetails.description,
+                triggerType: nextProps.policyDetails.trigger_type,
+                conditions: nextProps.policyDetails.conditions,
+                actions: allActions,
+                policyId: nextProps.policyDetails.policy_id
             })
         }
     }
@@ -92,10 +102,25 @@ class PolicyItemDetail extends Component {
     }
 
     handleInputEmailChange = (event, emailCategory) => {
-        if (emailCategory === 'To')
+        if (emailCategory === 'To') {
             this.setState({
-                'To': event.target.value
+                To: event.target.value
             })
+        }
+    }
+
+    updateEmailAction = () => {
+        let emailAction = {
+            action_type: 'SEND_EMAIL',
+            config: {
+                to: this.state.To
+            }
+        }
+        let action = this.state.actions
+        action.push(emailAction)
+        this.setState({
+            actions: action
+        })
     }
 
     handlePolicyTriggerTypeChange = (event,data) => {
@@ -147,7 +172,7 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')}  />
+                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')} onBlur={this.updateEmailAction} />
                 {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
             </Form.Group>
         )
