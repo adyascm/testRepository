@@ -9,3 +9,155 @@ body {
 /* body > div{
   height: 100%
 } */
+
+/*!
+ * Start Bootstrap - Business Casual (https://startbootstrap.com/template-overviews/business-casual)
+ * Copyright 2013-2017 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-business-casual/blob/master/LICENSE)
+ */
+
+ body {
+  font-family: 'Raleway', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f7f7f7;
+  height: 100%
+
+}
+
+h1, h2, h3, h4, h5, h6, .text-heading {
+  font-family: 'Raleway', sans-serif;
+}
+
+h1 {
+  font-size: 4rem;
+}
+
+.tagline-upper {
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tagline-lower {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.text-expanded {
+  letter-spacing: 2px;
+}
+
+.text-shadow {
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.text-lg {
+  font-size: 1.25rem;
+}
+
+.text-dark {
+  color:#454545;
+}
+
+
+.bg-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+hr.divider {
+  border-color: #292b2c;
+  max-width: 250px;
+}
+
+.map-container iframe {
+  pointer-events: none;
+}
+
+.map-container iframe.clicked {
+  pointer-events: auto;
+}
+
+.grey-bg{background-color: #153449;}
+
+.home_bg{background: url('/images/bg-app.png') no-repeat center center;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+.padd-top{padding: 100px 0;}
+.m-t-10{margin-top:10px;}
+.col-md-6, .col-md-4, .col-md-5, .col-md-7, .col-md-8{float: left;}
+.color-red{color: #D22215;}
+.color-green{color: #0CA25F;}
+.color-blue{color:#1852d3;}
+  .top-text{font-weight: bold;font-size:35px;line-height: 43px;}
+.scan-button{margin-top:30px;}
+
+.box-bg{
+  width: 60%;
+  margin: 0 auto;
+  webkit-box-shadow: -2px 1px 13px 2px rgba(3,66,104,0.38);
+    box-shadow: -2px 1px 13px 2px rgba(3,66,104,0.38);
+    padding: 40px 0;
+}
+.box-bg p{ color: #333;
+    font-size: 24px;
+  }
+.box-bg h1{
+      font-size: 34px;
+    font-weight: 500;
+    margin: 20px 0;
+}
+.bg-grey{background-color: #f8f8f8;}
+.btn-wrap-header{font-size: 22px; font-weight: bold;}
+.green-color{background-color: #3db57f;}
+.purple-color{background-color: #7159f2;}
+.orange-color{color: #f78851;}
+.font-white{color: #fff !important;}
+.p-b-30{padding-bottom: 30px;}
+.xs-show{display:none;}
+
+    /* responsive code*/
+
+    @media only screen and (max-width: 769px) {
+
+      .mt-3, .my-3{margin-top: 0!important;}
+      .three-div .col-md-4{padding:15px 30px;}
+      .button-blue{font-size: 13px;padding:12px 36px;}
+      .ul-section{margin-left: 0;}
+      .video-div iframe{width:100% !important;}
+      .left-d-div{padding:0;text-align: center;}
+      .left-d-div .result-shar h3{position: relative;left:0;top:0;}
+      /* .chart-section img{width:100%;} */
+      .chart-section canvas{padding: 14% 0 10% 0;}
+      .left-d-div img{margin: 0;}
+      .text-resl{padding:0;}
+      .form-results{width:100%;}
+      .testimonials-text.float-left{float: none !important;height:auto !important;text-align: left;}
+      .testimonials-main.col-md-12{width: 100% !important;}
+      .vertical-middle{display: block;}
+      .video-gif img{margin-bottom: 20px;}
+      .quote-green{right: 10%;}
+    }
+    @media only screen and (min-width:768px) and (max-width:1024px){
+      .vert-line-left, .vert-line-right{  width: 19%; top: 19%;}
+    }
+    @media only screen and (min-width:200px) and (max-width:480px){
+      .xs-show{display: block;}
+      .xs-hide{display: none;}
+      .btn-wrap-header { font-size: 14px; }
+      .btn-wrap{padding: 10px;}
+      .vert-line-left, .vert-line-right{top:13%; width:33%;} 
+      .mob-mar-t{margin-top: 30px;}
+    }
+    @media only screen and (min-width:481px) and (max-width:767px){
+      .xs-show{display: block;}
+      .xs-hide{display: none;}
+      .btn-wrap-header { font-size: 14px; }
+      .btn-wrap{padding: 10px;}
+      .vert-line-left, .vert-line-right{top:10%; width:33%;} 
+      .mob-mar-t{margin-top: 30px;}
+    }
+    .logo{width:"300px";height:"100%"}
