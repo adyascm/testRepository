@@ -20,6 +20,7 @@ PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/processnotifications'
 HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/google/scan/handlechannelexpiration'
 GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
+GET_ACTIVITIES_FOR_USER_PATH = '/google/getactivitiesforuser'
 
 GET_USER_GROUP_TREE_PATH = "/common/getusergrouptree"
 GET_APPS = "/common/getappsdata"
@@ -30,8 +31,6 @@ ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
 
 GET_SCHEDULED_REPORT_PATH = '/common/scheduledreport'
 RUN_SCHEDULED_REPORT = '/common/scheduledreport/runreport'
-
-GET_ACTIVITIES_FOR_USER_PATH = '/common/getactivitiesforuser'
 
 GET_ALL_ACTIONS_PATH = '/common/getallactions'
 INITIATE_ACTION_PATH = '/common/initiateaction'

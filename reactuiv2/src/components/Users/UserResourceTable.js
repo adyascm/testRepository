@@ -53,14 +53,14 @@ class UserResourceTable extends Component {
     }
 
     componentWillMount() {
-        if (this.props.selectedUserItem && !this.props.selectedUserItem.resources) {
+        if (this.props.selectedUserItem) {
             this.props.onLoadStart()
             this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.resources) ||
+        if ((this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"]) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["key"]], 'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit}))

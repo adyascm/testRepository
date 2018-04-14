@@ -222,7 +222,7 @@ functions:
           method: post
           cors: true
   
-  get-common-getactivitiesforuser:
+  get-google-getactivitiesforuser:
     handler: adya.gsuite.services.lambda.activities_handler.get_activities_for_user
     events:
       - http:
