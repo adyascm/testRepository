@@ -62,7 +62,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
     return result
 
 
-def trigger_delete_event(endpoint, auth_token, query_params, body=None, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_name="core", trigger_type=constants.TriggerType.ASYNC):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
