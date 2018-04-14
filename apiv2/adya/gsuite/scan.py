@@ -206,6 +206,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
 
         if is_new_resource == 1:
             update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
+            if is_incremental_scan ==1:
+                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True)
 
         if is_incremental_scan == 1:
             messaging.send_push_notification("adya-"+datasource_id, 
