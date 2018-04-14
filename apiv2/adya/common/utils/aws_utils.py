@@ -129,8 +129,6 @@ def send_email(user_list, email_subject, rendered_html):
 
 
 def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
-
-    Logger().info("sending raw email start : ")
     try:
         filename = str(report_name) + ".csv"
         msg = MIMEMultipart('mixed')
@@ -150,7 +148,7 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
             },
         )
 
-        Logger().info("email sent ")
+        Logger().info("Email sent to - {}".format(str(user_list)))
     except Exception as e:
         Logger().exception("Exception occurred sending  email to: " + str(user_list))
 
@@ -167,6 +165,8 @@ def invoke_lambda(function_name, auth_token, body, trigger_type=constants.Trigge
             LogType='None',
             Payload=bytes(json.dumps(body))
         )
+        if trigger_type == constants.TriggerType.SYNC:
+            Logger().info("Response from sync lambda invocation is - {}".format(response))
         return response
     except Exception as ex:
         Logger().exception("Exception occurred while invoking lambda function {}".format(
