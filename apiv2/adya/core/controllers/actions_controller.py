@@ -229,7 +229,7 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
 
     query_params = {"user_email": resource_owner, "datasource_id": datasource_id, "initiated_by_email": action_payload['initiated_by']}
     body = json.dumps([permission], cls=alchemy_encoder())
-    new_permissions = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params, body, "gsuite", constants.TriggerType.SYNC)
+    new_permissions = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params, json.loads(body), "gsuite", constants.TriggerType.SYNC)
 
     if new_permissions:
         return response_messages.ResponseMessage(200, 'Action completed successfully')
@@ -276,10 +276,10 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     query_param = {'user_email': resource_owner, 'initiated_by_email': initiated_user, 'datasource_id': datasource_id}
     body = json.dumps([existing_permission], cls=alchemy_encoder())
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
-        updated_permissions = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,
+        updated_permissions = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, json.loads(body),
                                                              "gsuite", constants.TriggerType.SYNC)
     else:
-        updated_permissions = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, body,
+        updated_permissions = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, json.loads(body),
                                                              "gsuite", constants.TriggerType.SYNC)
 
     if updated_permissions:
@@ -414,9 +414,9 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
         if permissions_to_update_count < BATCH_COUNT:
-            deleted_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,"gsuite", constants.TriggerType.SYNC)
+            deleted_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, json.loads(body),"gsuite", constants.TriggerType.SYNC)
         else:
-            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,"gsuite")
+            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, json.loads(body),"gsuite")
         sent_perms_count += BATCH_COUNT
 
     if permissions_to_update_count < BATCH_COUNT:

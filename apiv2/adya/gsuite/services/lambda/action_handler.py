@@ -8,7 +8,7 @@ def add_permissions_action(event, context):
     if req_error:
         return req_error
 
-    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), json.loads(req_session.get_body()),
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
                                                               req_session.get_req_param('user_email'),
                                                               req_session.get_req_param('initiated_by_email'),
                                                               req_session.get_req_param('datasource_id'))
@@ -21,7 +21,7 @@ def delete_permissions_action(event, context):
     if req_error:
         return req_error
 
-    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), json.loads(req_session.get_body()),
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
                                                               req_session.get_req_param('user_email'),
                                                               req_session.get_req_param('initiated_by_email'),
                                                               req_session.get_req_param('datasource_id'))
@@ -34,7 +34,7 @@ def update_permissions_action(event, context):
     req_error = req_session.validate_authorized_request(True, ['user_email', 'initiated_by_email', 'datasource_id'])
     if req_error:
         return req_error
-    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), json.loads(req_session.get_body()),
+    gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
                                                               req_session.get_req_param('user_email'),
                                                               req_session.get_req_param('initiated_by_email'),
                                                               req_session.get_req_param('datasource_id'))

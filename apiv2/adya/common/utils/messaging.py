@@ -96,7 +96,7 @@ def trigger_update_event(endpoint, auth_token, query_params, body=None, service_
             if api_response.status_code >= 200 and api_response.status_code < 300:
                 result = api_response.content
     else:
-        body = _add_query_params_to_body({}, query_params)
+        body = _add_query_params_to_body(body, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-put-" + slugify(endpoint)
         Logger().info("Making a UPDATE lambda invoke on the following function - " + str(endpoint))
         result = aws_utils.invoke_lambda(
