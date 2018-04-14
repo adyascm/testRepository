@@ -10,8 +10,10 @@ class Actions(Resource):
         req_error = req_session.validate_authorized_request(True, ['user_email','initiated_by_email', 'datasource_id'])
         if req_error:
             return req_error
-
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
+        body = req_session.get_body()
+        if not "permissions" in body:
+            return req_session.generate_error_response(400, "Missing permissions to add")
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), body["permissions"],
                                                                 req_session.get_req_param('user_email'),
                                                                 req_session.get_req_param('initiated_by_email'),
                                                                 req_session.get_req_param('datasource_id'))
@@ -23,8 +25,10 @@ class Actions(Resource):
         req_error = req_session.validate_authorized_request(True, ['user_email', 'initiated_by_email', 'datasource_id'])
         if req_error:
             return req_error
-
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
+        body = req_session.get_body()
+        if not "permissions" in body:
+            return req_session.generate_error_response(400, "Missing permissions to delete")
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), body["permissions"],
                                                                 req_session.get_req_param('user_email'),
                                                                 req_session.get_req_param('initiated_by_email'),
                                                                 req_session.get_req_param('datasource_id'))
@@ -36,7 +40,10 @@ class Actions(Resource):
         req_error = req_session.validate_authorized_request(True, ['user_email', 'initiated_by_email', 'datasource_id'])
         if req_error:
             return req_error
-        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), req_session.get_body(),
+        body = req_session.get_body()
+        if not "permissions" in body:
+            return req_session.generate_error_response(400, "Missing permissions to update")
+        gsuite_action = actions.AddOrUpdatePermisssionForResource(req_session.get_auth_token(), body["permissions"],
                                                                 req_session.get_req_param('user_email'),
                                                                 req_session.get_req_param('initiated_by_email'),
                                                                 req_session.get_req_param('datasource_id'))
