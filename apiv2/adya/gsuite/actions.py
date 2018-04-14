@@ -134,7 +134,7 @@ class AddOrUpdatePermisssionForResource():
                 "emailAddress": email
 
             }
-            request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
+            request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object, useDomainAdminAccess=True,
                                                               transferOwnership=True if role == 'owner' else False,
                                                               fields='id, emailAddress, type, kind, displayName')
             try:
@@ -187,7 +187,7 @@ class AddOrUpdatePermisssionForResource():
                 "role": role,
             }
             request = self.drive_service.permissions().update(fileId=resource_id, body=update_permission_object,
-                                                              permissionId=permission_id,
+                                                              permissionId=permission_id, useDomainAdminAccess=True,
                                                               transferOwnership=True if role == 'owner' else False)
             self.change_requests.append(request)
         self.execute()
@@ -198,7 +198,7 @@ class AddOrUpdatePermisssionForResource():
         for permission in self.permissions:
             resource_id = permission['resource_id']
             permission_id = permission['permission_id']
-            request = self.drive_service.permissions().delete(fileId=resource_id, permissionId=permission_id)
+            request = self.drive_service.permissions().delete(fileId=resource_id, permissionId=permission_id, useDomainAdminAccess=True)
             self.change_requests.append(request)
         self.execute()
         delete_resource_permission(self.initiated_by_email, self.datasource_id, self.updated_permissions)
