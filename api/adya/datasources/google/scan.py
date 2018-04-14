@@ -208,58 +208,6 @@ def get_resource_exposure_type(db_session, domain_id, email_address, display_nam
 
     return resource_exposure_type
 
-
-def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
-    requestdata = {"fileIds": batch_request_file_id_list}
-    url = constants.SCAN_PERMISSIONS + "?domainId=" + \
-                domain_id + "&dataSourceId=" + datasource_id
-    if user_email:
-        url = url +"&userEmail=" + user_email
-    utils.post_call_with_authorization_header(session,url,auth_token,requestdata).result()
-    processed_file_count = len(batch_request_file_id_list)
-    update_and_get_count(datasource_id, DataSource.processed_file_count, processed_file_count, True)
-
-
-def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
-    Logger().info("Started getting parents data", user_email)
-    db_session = db_connection().get_session()
-    useremail_resources_map = {}
-    if user_email:
-        resources_data = db_session.query(Resource.resource_id).distinct(Resource.resource_id)\
-                               .filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id != constants.ROOT)).all()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,1)
-        useremail_resources_map[user_email] = []
-        for data in resources_data:
-            useremail_resources_map[user_email].append(data.resource_id)
-    else:
-        alluserquery = db_session.query(DomainUser.email).filter(and_(DomainUser.domain_id==domain_id,\
-                               DomainUser.datasource_id == datasource_id, DomainUser.member_type == UserMemberType.INTERNAL)).subquery()
-        queried_data = db_session.query(ResourcePermission.resource_id,ResourcePermission.email)\
-                               .filter(and_(ResourcePermission.domain_id==domain_id,\
-                               ResourcePermission.datasource_id == datasource_id,\
-                               ResourcePermission.email.in_(alluserquery))).all()
-        unique_email_id_count = db_session.query(ResourcePermission.email).distinct(ResourcePermission.email)\
-                          .filter(and_(ResourcePermission.datasource_id == datasource_id,ResourcePermission.email.in_(alluserquery))).count()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,unique_email_id_count)
-        for resource_map in queried_data:
-            if not resource_map.email in useremail_resources_map:
-                useremail_resources_map[resource_map.email] =[]
-            useremail_resources_map[resource_map.email].append(resource_map.resource_id)
-    last_result = None
-    session = FuturesSession()
-    for email in useremail_resources_map:
-        batch_request_file_id_list = useremail_resources_map[email]
-        requestdata = {"fileIds": batch_request_file_id_list}
-        if not user_email:
-            url = constants.SCAN_PARENTS + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id + "&userEmail=" + email
-        else:
-            url = constants.SCAN_PARENTS + "?domainId=" + \
-                        domain_id + "&dataSourceId=" + datasource_id
-        last_result = utils.post_call_with_authorization_header(session,url,auth_token,requestdata)
-    if last_result:
-        last_result.result()
-
 def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     Logger().info("Initiating fetching of google directory users using for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
     directory_service = gutils.get_directory_service(auth_token)

@@ -8,6 +8,7 @@ import { store } from './store';
 import Header from './components/Header.js'
 import Dashboard from './components/Dashboard.js'
 import Login from './components/Login.js'
+import NewLogin from './components/NewLogin'
 import ManageDataSources from './components/ManageDataSources.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
@@ -81,7 +82,7 @@ class App extends Component {
             <Container fluid style={{ marginTop: '6em', height: '100%' }}>
             <GlobalMessage />
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
-              <Route exact path="/login" component={Login} />
+              <Route exact path="/login" component={NewLogin} />
               <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
               <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
               <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />

@@ -8,6 +8,7 @@ from adya.common.constants import urls
 
 from adya.core.services.flask import auth_handler, domain_handler, directory_handler, reports_handler, resource_handler, actions_handler, auditlog_handler, policy_handler
 from adya.gsuite.services.flask import oauth_handler, scan_handler, incremental_scan_handler, activities_handler
+from adya.gsuite.services.flask import action_handler
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -63,6 +64,7 @@ api.add_resource(activities_handler.get_activities_for_user,
 # actions
 api.add_resource(actions_handler.get_all_actions, urls.GET_ALL_ACTIONS_PATH)
 api.add_resource(actions_handler.initiate_action, urls.INITIATE_ACTION_PATH)
+api.add_resource(action_handler.Actions, urls.ACTION_PATH)
 
 api.add_resource(auditlog_handler.get_audit_log, urls.GET_AUDITLOG_PATH)
 
