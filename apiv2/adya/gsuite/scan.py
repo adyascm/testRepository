@@ -334,7 +334,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     user_count = 0
     for user_data in users_data:
         user_count = user_count + 1
-        user_email = user_data["emails"][0]["address"]
+        user_email = user_data.get("primaryEmail")
         names = user_data["name"]
         user = {}
         user["datasource_id"] = datasource_id
@@ -345,7 +345,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["is_admin"] = user_data.get("isAdmin")
         user["creation_time"] = user_data["creationTime"][:-1]
         user["is_suspended"] = user_data.get("suspended")
-        user["primary_email"] = user_data.get("primaryEmail")
+        user["primary_email"] = user_email
         user["user_id"] = user_data["id"]
         user["photo_url"] = user_data.get("thumbnailPhotoUrl")
         aliases = user_data.get("aliases")
