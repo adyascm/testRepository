@@ -191,7 +191,7 @@ class AddOrUpdatePermisssionForResource():
                                                               transferOwnership=True if role == 'owner' else False)
             self.change_requests.append(request)
         self.execute()
-        if role == "owner":
+        #if role == "owner":
             #TODO: Change previous owner
 
         update_resource_permissions(self.initiated_by_email, self.datasource_id, self.updated_permissions)
