@@ -172,8 +172,7 @@ def subscribe(domain_id, datasource_id):
                 _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
 
             # watch on userlist
-
-            subscribe_for_userlist_watch(datasource.datasource_id, admin_user, admin_customer_id)
+            #subscribe_for_userlist_watch(datasource.datasource_id, admin_user, admin_customer_id)
 
 
         else:
