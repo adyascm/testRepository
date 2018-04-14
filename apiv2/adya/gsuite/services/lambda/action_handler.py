@@ -1,6 +1,6 @@
 import json
-from apiv2.adya.common.utils.request_session import RequestSession
-from apiv2.adya.gsuite import actions
+from adya.common.utils.request_session import RequestSession
+from adya.gsuite import actions
 
 def add_permissions_action(event, context):
     req_session = RequestSession(event)
