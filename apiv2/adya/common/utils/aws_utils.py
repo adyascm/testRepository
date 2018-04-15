@@ -1,7 +1,7 @@
 import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger, ResponseMessage
 
 import boto3
 import json
@@ -167,7 +167,7 @@ def invoke_lambda(function_name, auth_token, body, trigger_type=constants.Trigge
         )
         if trigger_type == constants.TriggerType.SYNC:
             Logger().info("Response from sync lambda invocation is - {}".format(response))
-        return response
+        return ResponseMessage(response['StatusCode'], None, response['Payload'])
     except Exception as ex:
         Logger().exception("Exception occurred while invoking lambda function {}".format(
             function_name))

@@ -13,7 +13,7 @@ from adya.common.db import models
 from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 
 def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):

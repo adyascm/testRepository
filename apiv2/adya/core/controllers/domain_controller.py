@@ -5,7 +5,7 @@ import os
 from sqlalchemy import String, Boolean, and_
 import csv
 
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 from adya.common.utils import utils, messaging
 from adya.common.constants import constants, urls
 from adya.common.utils import utils

@@ -3,7 +3,7 @@ import uuid
 
 from flask_restful import Resource, request
 
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 from adya.core.controllers import reports_controller, domain_controller
 from adya.common.utils.request_session import RequestSession
 

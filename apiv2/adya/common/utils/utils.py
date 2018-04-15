@@ -1,7 +1,7 @@
 import json
 from adya.common.constants import constants
 import os
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}

@@ -4,7 +4,7 @@ from adya.common.constants import constants
 
 from adya.common.db.models import alchemy_encoder
 from adya.common.db.connection import db_connection
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 class RequestSession():
     def __init__(self, req):

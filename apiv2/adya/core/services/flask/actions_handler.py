@@ -2,7 +2,7 @@ from flask_restful import Resource,request
 from adya.core.controllers import domain_controller, actions_controller
 from adya.common.utils.request_session import RequestSession
 import json
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 class get_all_actions(Resource):
     def get(self):

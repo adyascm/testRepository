@@ -7,7 +7,7 @@ from sqlalchemy.orm import scoped_session
 
 from adya.common.constants import constants
 from adya.common.db.models import Base
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 
 class db_connection:

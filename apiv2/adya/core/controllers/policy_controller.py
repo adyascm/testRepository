@@ -11,7 +11,7 @@ from adya.gsuite import scan
 from adya.common.db.connection import db_connection
 from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
 from adya.common.db import db_utils
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
 
 

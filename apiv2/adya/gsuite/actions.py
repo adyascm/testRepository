@@ -90,7 +90,7 @@ class AddOrUpdatePermisssionForResource():
         self.owner_email = owner_email
         self.change_requests = []
         self.drive_service = gutils.get_gdrive_service(auth_token, initiated_by_email)
-        self.exception_message = ""
+        self.exception_messages = []
         self.updated_permissions = {}
 
     def execute(self):
@@ -103,7 +103,8 @@ class AddOrUpdatePermisssionForResource():
     def batch_request_callback(self, request_id, response, exception):
         if exception:
             Logger().exception("Exception occurred while updating permissions in batch - {}".format(exception))
-            self.exception_message = str(exception)
+            content = json.loads(exception.content)
+            self.exception_messages.append(content['error']['message'])         
         else:
             permission = self.permissions[int(request_id)-1]
             if not permission['resource_id'] in self.updated_permissions:
@@ -111,8 +112,8 @@ class AddOrUpdatePermisssionForResource():
             else:
                 self.updated_permissions[permission['resource_id']].append(permission)
 
-    def get_exception_message(self):
-        return self.exception_message
+    def get_exception_messages(self):
+        return self.exception_messages
 
     def add_permissions(self):
         for permission in self.permissions:
@@ -137,44 +138,24 @@ class AddOrUpdatePermisssionForResource():
             request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
                                                               transferOwnership=True if role == 'owner' else False,
                                                               fields='id, emailAddress, type, kind, displayName')
+            isSuccess = False
             try:
                 response = request.execute()
                 Logger().info("Add permission response from google is - {}".format(response))
                 permission['permission_id'] = response['id']
                 permission['exposure_type'] = constants.ResourceExposureType.INTERNAL
-
-                # If the user does not exist in DomainUser table add now
-                existing_user = db_session.query(DomainUser).filter(
-                    and_(DomainUser.datasource_id == permission['datasource_id'],
-                         DomainUser.email == permission['email'])).first()
-                if not existing_user:
-                    permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
-                    domainUser = DomainUser()
-                    domainUser.datasource_id = permission['datasource_id']
-                    domainUser.email = permission['email']
-                    domainUser.member_type = constants.UserMemberType.EXTERNAL
-                    display_name = response['displayName'] if 'displayName' in response else ""
-                    name = display_name.split(' ')
-                    
-                    if len(name) > 0 and name[0]:
-                        domainUser.first_name = name[0]
-                        if len(name) > 1:
-                            domainUser.last_name = name[1]
-                    else:
-                        domainUser.first_name = domainUser.email
-                        domainUser.last_name = ""
-                    db_session.add(domainUser)
-                    db_connection().commit()
-
+                isSuccess = True
             except Exception as ex:
                 Logger().exception("Exception occurred while adding a new permission")
                 content = json.loads(ex.content)
-                self.exception_message = content['error']['message']
-            new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id, self.initiated_by_email)
-            if not permission['resource_id'] in self.updated_permissions:
-                self.updated_permissions[permission['resource_id']] = [new_permission]
-            else:
-                self.updated_permissions[permission['resource_id']].append(new_permission)
+                self.exception_messages.append(content['error']['message'])
+                
+            if isSuccess:
+                new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id, self.initiated_by_email)
+                if not permission['resource_id'] in self.updated_permissions:
+                    self.updated_permissions[permission['resource_id']] = [new_permission]
+                else:
+                    self.updated_permissions[permission['resource_id']].append(new_permission)
 
         return self.updated_permissions
 
@@ -187,13 +168,12 @@ class AddOrUpdatePermisssionForResource():
                 "role": role,
             }
             request = self.drive_service.permissions().update(fileId=resource_id, body=update_permission_object,
-                                                              permissionId=permission_id,
+                                                              permissionId=permission_id, useDomainAdminAccess=True,
                                                               transferOwnership=True if role == 'owner' else False)
             self.change_requests.append(request)
         self.execute()
         #if role == "owner":
             #TODO: Change previous owner
-
         update_resource_permissions(self.initiated_by_email, self.datasource_id, self.updated_permissions)
         return self.updated_permissions
 
@@ -220,9 +200,12 @@ def update_resource_permissions(initiated_by_email, datasource_id, updated_permi
 # db update for delete permission
 def delete_resource_permission(initiated_by_email, datasource_id, updated_permissions):
     db_session = db_connection().get_session()
+    external_users = {}
     for resource_id in updated_permissions:
         deleted_permissions = updated_permissions[resource_id]
         for perm in deleted_permissions:
+            if perm.exposure_type == constants.ResourceExposureType.EXTERNAL and not perm.email in external_users:
+                external_users[perm.email] = 1
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
                                                              ResourcePermission.resource_id == resource_id)).delete()
@@ -247,9 +230,47 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
             updated_resource.last_modified_time = datetime.datetime.utcnow()
             db_connection().commit()
 
+    anything_changed = False
+    for external_user in external_users:
+        permissions_count = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
+                                                                             datasource_id,
+                                                                             ResourcePermission.email == external_user)).count()
+        if permissions_count < 1:
+            db_session.query(DomainUser).filter(
+                and_(DomainUser.email == external_user, DomainUser.datasource_id == datasource_id,
+                     DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
+            anything_changed = True
+
+    if anything_changed:
+        db_connection().commit()
+
 # adding a new permission in db
 def add_new_permission_to_db(updated_permission, resource_id, datasource_id, initiated_by_email):
+
+    # If the user does not exist in DomainUser table add now
     db_session = db_connection().get_session()
+    existing_user = db_session.query(DomainUser).filter(
+        and_(DomainUser.datasource_id == datasource_id,
+                DomainUser.email == updated_permission['email'])).first()
+    if not existing_user:
+        #Update the exposure type of the permission
+        updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
+        domainUser = DomainUser()
+        domainUser.datasource_id = datasource_id
+        domainUser.email = updated_permission['email']
+        domainUser.member_type = constants.UserMemberType.EXTERNAL
+        display_name = response['displayName'] if 'displayName' in response else ""
+        name = display_name.split(' ')
+        if len(name) > 0 and name[0]:
+            domainUser.first_name = name[0]
+            if len(name) > 1:
+                domainUser.last_name = name[1]
+        else:
+            domainUser.first_name = domainUser.email
+            domainUser.last_name = ""
+        db_session.add(domainUser)
+        db_connection().commit()
+
     permission = ResourcePermission()
     permission.datasource_id = datasource_id
     permission.resource_id = resource_id
