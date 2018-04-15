@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from adya.common.db.models import DomainUser, DomainGroup, Resource
+from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission
 
 from adya.common.db.connection import db_connection
 
@@ -176,7 +176,24 @@ def process_slack_files(datasource_id, file_list):
             resource.web_view_link = file['url_private']
             resource.parent_id = file['channels']  #giving channel id as parent  TODO: channels will be list ; group can also be possible
 
-        #     TODO : Permissions
+            shared_id_list = []
+            # files shared in various ways
+            shared_in_channel = file['channels']
+            shared_in_private_group = file['groups']
+            shared_in_direct_msgs = file['ims']
+            shared_id_list.append(shared_in_channel)
+            shared_id_list.append(shared_in_private_group)
+            shared_id_list.append(shared_in_direct_msgs)
+
+            # TODO : Permissions for all fields
+            # permissions processing
+            for shared_list in shared_id_list:
+                for shared_id in shared_list:
+                    resourcePermission = ResourcePermission()
+                    resourcePermission.datasource_id = datasource_id
+                    resourcePermission.resource_id = file['name']
+                    resourcePermission.email = shared_id #adding id
+
         db_session = db_connection().get_session()
         db_session.add(resource)
         db_connection().commit()
