@@ -5,6 +5,7 @@ from adya.common.db.connection import db_connection
 from adya.common.utils import messaging
 
 from adya.common.constants import urls
+from adya.common.utils.response_messages import Logger
 from adya.slack import slack_utils
 
 
@@ -18,7 +19,7 @@ def get_slack_users(auth_token, datasource_id, next_cursor_token=None):
                            cursor = next_cursor_token
                         )
 
-        # Logger().info("list of users :  - {}".format(user_list))
+        Logger().info("list of users :  - {}".format(user_list))
         member_list = user_list['members']
         query_params = {'dataSourceId': datasource_id}
         # adding user to db
@@ -34,10 +35,9 @@ def get_slack_users(auth_token, datasource_id, next_cursor_token=None):
             print "update the values"
 
     except Exception as ex:
-        # Logger().exception(
-        #     "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
-        #     format(next_cursor))
-        print
+        Logger().exception(
+            "Exception occurred while getting data for slack users using next_cursor_token: {}".
+            format(next_cursor_token))
 
 
 def process_slack_users(datasource_id , member_list):
@@ -59,8 +59,8 @@ def process_slack_users(datasource_id , member_list):
         db_session.add(user)
         db_connection().commit()
 
-    except Exception as e:
-        print
+    except Exception as ex:
+        Logger().exception("Exception occurred while processing data for slack users ex: {}".format(ex))
 
 
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
@@ -78,16 +78,15 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
             private_channels = slack_client.api_call("groups.list")
             private_channel_list = private_channels['groups']
             channel_list.append(private_channel_list)
+            Logger().info("list of private channels :  - {}".format(private_channels))
 
-        # Logger().info("list of private channels :  - {}".format(private_channels))
-        # Logger().info("list of public channels :  - {}".format(public_channels))
+        Logger().info("list of public channels :  - {}".format(public_channels))
 
         public_channel_list = public_channels['channels']
 
         channel_list.append(public_channel_list)
 
-
-        # Logger().info("list of channels :  - {}".format(channel_list))
+        Logger().info("list of channels :  - {}".format(channel_list))
 
         query_params = {'dataSourceId': datasource_id}
         # adding channels to db
@@ -103,11 +102,10 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
              print "update the values"
 
     except Exception as ex:
-        # Logger().exception(
-        #     "Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
-        #     format(next_cursor))
-        print
-
+        Logger().exception(
+            "Exception occurred while getting data for slack channels using next_cursor_token: {}".
+            format(next_cursor_token))
+        
 
 def process_slack_channels(datasource_id, channel_list):
 
@@ -126,7 +124,7 @@ def process_slack_channels(datasource_id, channel_list):
         db_connection().commit()
 
     except Exception as ex:
-        print ex
+        Logger().exception("Exception occurred while processing data for slack channels using ex : {}".format(ex))
 
 
 
