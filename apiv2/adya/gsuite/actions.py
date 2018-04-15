@@ -216,8 +216,8 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
     for resource_id in updated_permissions:
         deleted_permissions = updated_permissions[resource_id]
         for perm in deleted_permissions:
-            if perm.exposure_type == constants.ResourceExposureType.EXTERNAL and not perm.email in external_users:
-                external_users[perm.email] = 1
+            if perm["exposure_type"] == constants.ResourceExposureType.EXTERNAL and not perm['email'] in external_users:
+                external_users[perm['email']] = 1
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
                                                              ResourcePermission.resource_id == resource_id)).delete()
