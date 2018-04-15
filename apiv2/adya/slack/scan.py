@@ -1,4 +1,6 @@
-from adya.common.db.models import DomainUser, DomainGroup
+from datetime import datetime
+
+from adya.common.db.models import DomainUser, DomainGroup, Resource
 
 from adya.common.db.connection import db_connection
 
@@ -32,6 +34,7 @@ def get_slack_users(auth_token, datasource_id, next_cursor_token=None):
             query_params = {"dataSourceId": datasource_id, "nextCursor": next_cursor_token}
             messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
         else:
+            # TODO: update count or signal of ending of user scan
             print "update the values"
 
     except Exception as ex:
@@ -99,13 +102,15 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
             messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
 
         else:
-             print "update the values"
+            # TODO: update count or signal of ending of channels scan
+
+            print "update the values"
 
     except Exception as ex:
         Logger().exception(
             "Exception occurred while getting data for slack channels using next_cursor_token: {}".
             format(next_cursor_token))
-        
+
 
 def process_slack_channels(datasource_id, channel_list):
 
@@ -126,6 +131,58 @@ def process_slack_channels(datasource_id, channel_list):
     except Exception as ex:
         Logger().exception("Exception occurred while processing data for slack channels using ex : {}".format(ex))
 
+
+def get_slack_files(auth_token, datasource_id, page_number_token=None):
+    try:
+        slack_client = slack_utils.get_slack_client(auth_token)
+        file_list = slack_client.api_call("files.list", page=page_number_token)
+
+        files = file_list['files']
+        page_number = file_list['paging']['page']
+        total_number_of_page = file_list['paging']['pages']
+
+        query_params = {'dataSourceId': datasource_id}
+        # adding channels to db
+        # TODO: RECONCILIATION
+        messaging.trigger_post_event(urls.SCAN_SLACK_FILES, auth_token, query_params, files, "slack")
+
+        if page_number< total_number_of_page:
+            page_number = page_number+1
+            query_params = {"dataSourceId": datasource_id, "nextPageNumber": page_number}
+            messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
+
+        else:
+            # TODO: update count or signal of ending of file scan
+
+            print "update the values"
+
+    except Exception as ex:
+        Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
+
+
+def process_slack_files(datasource_id, file_list):
+
+    try:
+        resource = Resource()
+        for file in file_list:
+            resource.datasource_id = datasource_id
+            resource.resource_id = file['F3CEP2KFZ']
+            resource.resource_name = file['name']
+            resource.resource_type = file['filetype']
+            resource.resource_size = file['size']
+            resource.resource_owner_id = file['user']
+            resource.creation_time = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
+            resource.web_content_link = file['url_private_download']
+            resource.web_view_link = file['url_private']
+            resource.parent_id = file['channels']  #giving channel id as parent  TODO: channels will be list ; group can also be possible
+
+        #     TODO : Permissions
+        db_session = db_connection().get_session()
+        db_session.add(resource)
+        db_connection().commit()
+
+    except Exception as ex:
+        Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
 
 
 

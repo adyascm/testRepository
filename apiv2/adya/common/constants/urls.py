@@ -53,3 +53,4 @@ SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 # slack scan
 SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
+SCAN_SLACK_FILES = '/slack/scan/files'
