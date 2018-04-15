@@ -231,9 +231,9 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
                 break
             elif resource_perm.exposure_type == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
                 highest_exposure = constants.ResourceExposureType.EXTERNAL
-            elif resource_perm.exposure_type == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL):
+            elif resource_perm.exposure_type == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
                 highest_exposure = constants.ResourceExposureType.DOMAIN
-            elif resource_perm.exposure_type == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL and highest_exposure == constants.ResourceExposureType.DOMAIN):
+            elif resource_perm.exposure_type == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
                 highest_exposure = constants.ResourceExposureType.INTERNAL
         #Update the resource with highest exposure
         if not updated_resource.exposure_type == highest_exposure:

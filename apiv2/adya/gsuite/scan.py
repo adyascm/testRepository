@@ -232,9 +232,9 @@ def get_resource_exposure_type(permission_exposure, highest_exposure):
         highest_exposure = constants.ResourceExposureType.PUBLIC
     elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
         highest_exposure = constants.ResourceExposureType.EXTERNAL
-    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL):
+    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
         highest_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL and highest_exposure == constants.ResourceExposureType.DOMAIN):
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
         highest_exposure = constants.ResourceExposureType.INTERNAL
     return highest_exposure
 
