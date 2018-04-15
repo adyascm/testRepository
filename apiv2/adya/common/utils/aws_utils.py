@@ -164,7 +164,7 @@ def invoke_lambda(function_name, auth_token, body, trigger_type=constants.Trigge
         LogType='None',
         Payload=bytes(json.dumps(body))
     )
-    response_payload = {"body": ""}
+    response_payload = {"statusCode": 200, "body": ""}
     if trigger_type == constants.TriggerType.SYNC:
         response_payload = json.loads(response['Payload'].read().decode("utf-8"))
         Logger().info("Response from sync lambda invocation is - {}".format(response_payload))
