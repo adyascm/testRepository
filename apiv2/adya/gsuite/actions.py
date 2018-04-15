@@ -151,11 +151,15 @@ class AddOrUpdatePermisssionForResource():
                 self.exception_messages.append(content['error']['message'])
                 
             if isSuccess:
-                new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id, self.initiated_by_email)
-                if not permission['resource_id'] in self.updated_permissions:
-                    self.updated_permissions[permission['resource_id']] = [new_permission]
-                else:
-                    self.updated_permissions[permission['resource_id']].append(new_permission)
+                try:
+                    new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id, self.initiated_by_email)
+                    if not permission['resource_id'] in self.updated_permissions:
+                        self.updated_permissions[permission['resource_id']] = [new_permission]
+                    else:
+                        self.updated_permissions[permission['resource_id']].append(new_permission)
+                except Exception as ex:
+                    Logger().exception("Exception occurred while adding new permission to db")
+                    self.exception_messages.append("Exception occurred while adding new permission to db")
 
         return self.updated_permissions
 
@@ -174,7 +178,11 @@ class AddOrUpdatePermisssionForResource():
         self.execute()
         #if role == "owner":
             #TODO: Change previous owner
-        update_resource_permissions(self.initiated_by_email, self.datasource_id, self.updated_permissions)
+        try:
+            update_resource_permissions(self.initiated_by_email, self.datasource_id, self.updated_permissions)
+        except Exception as ex:
+            Logger().exception("Exception occurred while updating permission to db")
+            self.exception_messages.append("Exception occurred while updating permission to db")
         return self.updated_permissions
 
     def delete_permissions(self):
@@ -184,7 +192,11 @@ class AddOrUpdatePermisssionForResource():
             request = self.drive_service.permissions().delete(fileId=resource_id, permissionId=permission_id)
             self.change_requests.append(request)
         self.execute()
-        delete_resource_permission(self.initiated_by_email, self.datasource_id, self.updated_permissions)
+        try:
+            delete_resource_permission(self.initiated_by_email, self.datasource_id, self.updated_permissions)
+        except Exception as ex:
+            Logger().exception("Exception occurred while removing permission from db")
+            self.exception_messages.append("Exception occurred while removing permission from db")
         return self.updated_permissions
 
 def update_resource_permissions(initiated_by_email, datasource_id, updated_permissions):
@@ -194,7 +206,7 @@ def update_resource_permissions(initiated_by_email, datasource_id, updated_permi
         for perm in resource_permissions:
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
-                                                             ResourcePermission.resource_id == resource_id)).update({"permission_type": perm.permission_type})
+                                                             ResourcePermission.resource_id == resource_id)).update({"permission_type": perm["permission_type"]})
     db_connection().commit()
 
 # db update for delete permission
