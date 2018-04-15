@@ -23,7 +23,7 @@ def add_permissions_action(event, context):
         else:
             return req_session.generate_error_response(500, "Action partially executed")
     else:
-        return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+        return req_session.generate_success_response(200, "Action completed successfully")
 
 def delete_permissions_action(event, context):
     req_session = RequestSession(event)
@@ -46,7 +46,7 @@ def delete_permissions_action(event, context):
         else:
             return req_session.generate_error_response(500, "Action partially executed")
     else:
-        return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+        return req_session.generate_success_response(200, "Action completed successfully")
 
 
 def update_permissions_action(event, context):
@@ -72,4 +72,4 @@ def update_permissions_action(event, context):
         else:
             return req_session.generate_error_response(500, "Action partially executed")
     else:
-        return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+        return req_session.generate_success_response(200, "Action completed successfully")

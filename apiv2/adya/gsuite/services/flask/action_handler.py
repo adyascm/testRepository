@@ -26,7 +26,7 @@ class Actions(Resource):
             else:
                 return req_session.generate_error_response(500, "Action partially executed")
         else:
-            return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+            return req_session.generate_success_response(200, "Action completed successfully")
 
     def delete(self):
         req_session = RequestSession(request)
@@ -49,7 +49,7 @@ class Actions(Resource):
             else:
                 return req_session.generate_error_response(500, "Action partially executed")
         else:
-            return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+            return req_session.generate_success_response(200, "Action completed successfully")
 
     def put(self):
         req_session = RequestSession(request)
@@ -73,6 +73,6 @@ class Actions(Resource):
             else:
                 return req_session.generate_error_response(500, "Action partially executed")
         else:
-            return req_session.generate_sqlalchemy_response(200, "Action completed successfully")
+            return req_session.generate_success_response(200, "Action completed successfully")
 
 
