@@ -13,7 +13,7 @@ from adya.common.db import models
 from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 
 def start_scan(auth_token, domain_id, datasource_id, is_admin, is_service_account_enabled):
@@ -153,7 +153,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                     is_deleted = permission.get('deleted')
                     if is_deleted:
                         continue
-                    permission_exposure = constants.ResourceExposureType.INTERNAL
+                    permission_exposure = constants.ResourceExposureType.PRIVATE
                     if email_address:
                         if gutils.check_if_external_user(db_session, domain_id,email_address):
 
@@ -174,6 +174,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                                         externaluser["last_name"] = name_list[1]
                                 externaluser["member_type"] = constants.UserMemberType.EXTERNAL
                                 external_user_map[email_address]= externaluser
+                        elif not email_address == resource["resource_owner_id"]:
+                            permission_exposure = constants.ResourceExposureType.INTERNAL
                     #Shared with everyone in domain
                     elif display_name:
                         email_address = "__ANYONE__@"+ domain_id
@@ -206,6 +208,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
 
         if is_new_resource == 1:
             update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
+            if is_incremental_scan ==1:
+                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True)
 
         if is_incremental_scan == 1:
             messaging.send_push_notification("adya-"+datasource_id, 
@@ -230,9 +234,9 @@ def get_resource_exposure_type(permission_exposure, highest_exposure):
         highest_exposure = constants.ResourceExposureType.PUBLIC
     elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
         highest_exposure = constants.ResourceExposureType.EXTERNAL
-    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL):
+    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
         highest_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC and highest_exposure == constants.ResourceExposureType.EXTERNAL and highest_exposure == constants.ResourceExposureType.DOMAIN):
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
         highest_exposure = constants.ResourceExposureType.INTERNAL
     return highest_exposure
 
@@ -332,7 +336,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     user_count = 0
     for user_data in users_data:
         user_count = user_count + 1
-        user_email = user_data["emails"][0]["address"]
+        user_email = user_data.get("primaryEmail")
         names = user_data["name"]
         user = {}
         user["datasource_id"] = datasource_id
@@ -343,7 +347,7 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         user["is_admin"] = user_data.get("isAdmin")
         user["creation_time"] = user_data["creationTime"][:-1]
         user["is_suspended"] = user_data.get("suspended")
-        user["primary_email"] = user_data.get("primaryEmail")
+        user["primary_email"] = user_email
         user["user_id"] = user_data["id"]
         user["photo_url"] = user_data.get("thumbnailPhotoUrl")
         aliases = user_data.get("aliases")

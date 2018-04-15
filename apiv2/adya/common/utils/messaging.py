@@ -2,9 +2,10 @@ import utils
 from adya.common.constants import constants
 import aws_utils
 import sys
+import json
 from slugify import slugify
 from requests_futures.sessions import FuturesSession
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger, ResponseMessage
 
 
 def send_push_notification(queue_name, string_payload):
@@ -27,8 +28,7 @@ def trigger_get_event(endpoint, auth_token, query_params, service_name="core", t
             session, endpoint, auth_token)
         if trigger_type == constants.TriggerType.SYNC:
             api_response = response.result()
-            if api_response.status_code >= 200 and api_response.status_code < 300:
-                result = api_response.content
+            result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
         body = _add_query_params_to_body({}, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-get-" + slugify(endpoint)
@@ -48,8 +48,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
             session, endpoint, auth_token, body)
         if trigger_type == constants.TriggerType.SYNC:
             api_response = response.result()
-            if api_response.status_code >= 200 and api_response.status_code < 300:
-                result = api_response.content
+            result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
 
     else:
         Logger().info("trigger_post_event : lambda ")
@@ -62,7 +61,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
     return result
 
 
-def trigger_delete_event(endpoint, auth_token, query_params, body=None, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_name="core", trigger_type=constants.TriggerType.ASYNC):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -72,10 +71,9 @@ def trigger_delete_event(endpoint, auth_token, query_params, body=None, service_
             session, endpoint, auth_token, body)
         if trigger_type == constants.TriggerType.SYNC:
             api_response = response.result()
-            if api_response.status_code >= 200 and api_response.status_code < 300:
-                result = api_response.content
+            result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
-        body = _add_query_params_to_body({}, query_params)
+        body = _add_query_params_to_body(body, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-delete-" + slugify(endpoint)
         Logger().info("Making a DELETE lambda invoke on the following function - " + str(endpoint))
         result = aws_utils.invoke_lambda(
@@ -93,10 +91,9 @@ def trigger_update_event(endpoint, auth_token, query_params, body=None, service_
             session, endpoint, auth_token, body)
         if trigger_type == constants.TriggerType.SYNC:
             api_response = response.result()
-            if api_response.status_code >= 200 and api_response.status_code < 300:
-                result = api_response.content
+            result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
-        body = _add_query_params_to_body({}, query_params)
+        body = _add_query_params_to_body(body, query_params)
         endpoint = service_name + "-" + constants.DEPLOYMENT_ENV + "-put-" + slugify(endpoint)
         Logger().info("Making a UPDATE lambda invoke on the following function - " + str(endpoint))
         result = aws_utils.invoke_lambda(

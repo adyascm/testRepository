@@ -32,8 +32,8 @@ class PolicyItemDetail extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            triggerType: "",
-            conditions: [{match_type: "", match_condition: "", match_value: ""}],
+            triggerType: "PERMISSION_CHANGE",
+            conditions: [{ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" }],
             actions: [],
             name: "",
             description: "",
@@ -43,10 +43,9 @@ class PolicyItemDetail extends Component {
     }
 
     componentWillMount() {
-        
+
         this.setState({
             policyTriggerType: [
-                { text: '', value: '' },
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
             disableEmailField: true,
         })
@@ -81,7 +80,7 @@ class PolicyItemDetail extends Component {
 
     addPolicyCondition = () => {
         let conditions = this.state.conditions;
-        conditions.push({match_type: "", match_condition: "", match_value: ""})
+        conditions.push({ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" })
         this.setState({
             conditions: conditions
         })
@@ -123,18 +122,18 @@ class PolicyItemDetail extends Component {
         })
     }
 
-    handlePolicyTriggerTypeChange = (event,data) => {
+    handlePolicyTriggerTypeChange = (event, data) => {
         this.setState({
             triggerType: data.value
         })
     }
 
-    handlePolicyNameChange = (event,data,type) => {
+    handlePolicyNameChange = (event, data, type) => {
         if (type === 'name')
             this.setState({
                 name: data.value
             })
-        else 
+        else
             this.setState({
                 description: data.value
             })
@@ -154,14 +153,14 @@ class PolicyItemDetail extends Component {
         this.props.policyLoadStart()
         if (!this.state.policyId)
             this.props.policyLoaded(agent.Policy.createPolicy(policyInfo))
-        else 
-            this.props.policyLoaded(agent.Policy.updatePolicy(this.state.policyId,policyInfo))
-        
+        else
+            this.props.policyLoaded(agent.Policy.updatePolicy(this.state.policyId, policyInfo))
+
         this.setState({
             showPolicyForm: false,
             policyDetails: undefined,
             policyId: undefined
-        })        
+        })
     }
 
     render() {
@@ -172,7 +171,7 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event,'To')} onBlur={this.updateEmailAction} />
+                <Form.Field required control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event, 'To')} onBlur={this.updateEmailAction} />
                 {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
             </Form.Group>
         )
@@ -193,49 +192,40 @@ class PolicyItemDetail extends Component {
             )
         }
         else {
-            let modalContent = (
-                <Container style={containerStyle}>
-                    <Form>
-                        <Segment.Group>
-                            <Segment>
-                                <Form.Group widths='equal'>
-                                    <Form.Field control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event,data) => this.handlePolicyNameChange(event,data,'name')}  />
-                                    <Form.Field control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event,data) => this.handlePolicyNameChange(event,data,'description')}  />
-                                </Form.Group>
-                                <Header as='h4' color='green'>WHEN</Header>
-                                <Form.Field control={Select} label='Action' options={this.state.policyTriggerType} placeholder='Select an action...' value={this.state.triggerType} onChange={this.handlePolicyTriggerTypeChange} />
-                            </Segment>
-                            <Segment>
-                                <Header as='h4' color='yellow'>IF</Header>
-                                {/* <PolicyCondition /> */}
-                                {conditions}
-                                <div style={{'textAlign': 'center'}}>
-                                    <Button basic color='green' onClick={this.addPolicyCondition}>Add Filter</Button>
-                                </div>
-                            </Segment>
-                            <Segment>
-                                <Header as='h4' color='red'>THEN</Header>
-                                <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
-                                {this.state.disableEmailField?null:emailFieldInput}
-                            </Segment>
-                        </Segment.Group>
-                    </Form>
-                </Container>
-            )
             return (
                 <Modal size='large' className="scrolling" open={this.state.showPolicyForm}>
                     <Modal.Header>
-                        Policy Form
+                        Policy Details
                     </Modal.Header>
                     <Modal.Content>
-                        {/* <PolicyItemDetail policyDetails={this.state.policyDetails} /> */}
-                        {/* <PolicyDetails /> */}
-                        {modalContent}
+                        <Form onSubmit={this.submitPolicyModalForm} >
+                            <Segment.Group>
+                                <Segment>
+                                    <Form.Group widths='equal'>
+                                        <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />
+                                        <Form.Field required control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'description')} />
+                                    </Form.Group>
+                                    <Header as='h4' color='green'>TYPE</Header>
+                                    <Form.Field required control={Select} label='Action' options={this.state.policyTriggerType} placeholder='Select an action...' value={this.state.triggerType} onChange={this.handlePolicyTriggerTypeChange} />
+                                </Segment>
+                                <Segment>
+                                    <Header as='h4' color='yellow'>CONDITIONS</Header>
+                                    {/* <PolicyCondition /> */}
+                                    {conditions}
+                                    <div style={{ 'textAlign': 'center' }}>
+                                        <Button basic color='green' onClick={this.addPolicyCondition}>Add Condition</Button>
+                                    </div>                                
+                                </Segment>
+                                <Segment>
+                                    <Header as='h4' color='red'>ACTIONS</Header>
+                                    <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
+                                    {this.state.disableEmailField ? null : emailFieldInput}
+                                </Segment>
+                            </Segment.Group>
+                            <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>
+                            <Button positive content='Submit'></Button>
+                        </Form>
                     </Modal.Content>
-                    <Modal.Actions>
-                        <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>
-                        <Button positive onClick={this.submitPolicyModalForm}>Submit</Button>
-                    </Modal.Actions>
                 </Modal>
             )
         }

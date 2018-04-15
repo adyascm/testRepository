@@ -4,7 +4,7 @@ from adya.common.constants import constants
 
 from adya.common.db.models import alchemy_encoder
 from adya.common.db.connection import db_connection
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 class RequestSession():
     def __init__(self, req):
@@ -70,6 +70,9 @@ class RequestSession():
                 return self.req
 
     def generate_error_response(self, http_code, message):
+        return self.generate_response(http_code, {'message': message})
+
+    def generate_success_response(self, http_code, message):
         return self.generate_response(http_code, {'message': message})
 
     def generate_redirect_response(self, location):

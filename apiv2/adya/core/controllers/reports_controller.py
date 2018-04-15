@@ -11,7 +11,7 @@ from adya.common.db import db_utils
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite import activities
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):

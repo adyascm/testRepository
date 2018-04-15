@@ -120,7 +120,7 @@ class Policy extends Component {
                     <Card>
                     <Card.Content>
                         <Card.Description>
-                        Click on Add Policy to add a new Policy
+                        Click on button to add a new policy
                         </Card.Description>
                     </Card.Content>
                     <Card.Content extra>

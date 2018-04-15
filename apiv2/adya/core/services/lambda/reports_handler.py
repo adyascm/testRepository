@@ -2,7 +2,7 @@ import json
 from adya.core.controllers import reports_controller, directory_controller, resource_controller, domain_controller
 from adya.common.utils import aws_utils
 from adya.common.utils.request_session import RequestSession
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 def get_widget_data(event, context):
     req_session = RequestSession(event)

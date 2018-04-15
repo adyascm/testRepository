@@ -13,7 +13,7 @@ from adya.gsuite import actions, gutils
 from adya.common.email_templates import adya_emails
 from adya.common.db.models import alchemy_encoder
 
-BATCH_COUNT = 2
+BATCH_COUNT = 50
 
 def get_actions():
     # if not datasource_type:
@@ -229,13 +229,9 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
 
     query_params = {"user_email": resource_owner, "datasource_id": datasource_id, "initiated_by_email": action_payload['initiated_by']}
     body = json.dumps([permission], cls=alchemy_encoder())
-    new_permissions = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params, body, "gsuite", constants.TriggerType.SYNC)
-
-    if new_permissions:
-        return response_messages.ResponseMessage(200, 'Action completed successfully')
-    else:
-        return response_messages.ResponseMessage(400, 'Action failed')
-
+    response = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params, {"permissions": json.loads(body)}, "gsuite", constants.TriggerType.SYNC)
+    return response
+    
 
 def update_or_delete_resource_permission(auth_token, datasource_id, action_payload):
     action_parameters = action_payload['parameters']
@@ -272,21 +268,19 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
         Logger().info("Permission does not exist in db, so cannot update - Bad Request")
         return ResponseMessage(400, "Bad Request - Permission not found in records")
 
-    existing_permission.permission_type = new_permission_role
     query_param = {'user_email': resource_owner, 'initiated_by_email': initiated_user, 'datasource_id': datasource_id}
-    body = json.dumps([existing_permission], cls=alchemy_encoder())
+    existing_permission_json = json.loads(json.dumps(existing_permission, cls=alchemy_encoder()))
+    existing_permission_json["permission_type"] = new_permission_role
+    body = [existing_permission_json]
+    response = "Action executed"
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
-        updated_permissions = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,
+        response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
                                                              "gsuite", constants.TriggerType.SYNC)
     else:
-        updated_permissions = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, body,
+        response = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
                                                              "gsuite", constants.TriggerType.SYNC)
 
-    if updated_permissions:
-        return response_messages.ResponseMessage(200, 'Action completed successfully')
-    else:
-        return response_messages.ResponseMessage(400, 'Action failed')
-
+    return response
 
 
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type):
@@ -304,51 +298,18 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
 
     permissions_to_update = []
     response_data = {}
-    external_users = {}
     for resource in shared_resources:
         has_domain_sharing = False
         permission_changes = []
         for permission in resource.permissions:
             if permission.exposure_type in permission_type and permission.email != user_email:
-                # Collect all external user emails, so that once permissions are removed, if their all access is removed, we need to remove from user table
-                if permission.exposure_type == constants.ResourceExposureType.EXTERNAL and not permission.email in external_users:
-                    external_users[permission.email] = 1
                 permissions_to_update.append(permission)
 
             if permission.exposure_type == constants.ResourceExposureType.DOMAIN:
                 has_domain_sharing = True
 
-        # updating the exposure type in resource table
-        # First case is that we are removing all permissions on a resource, so just set the exposure to PRIVATE
-        if not removal_type == constants.ResourceExposureType.EXTERNAL:
-            resource.exposure_type = constants.ResourceExposureType.PRIVATE
-        else:
-            # If we are removing only external permissions, then if any of the permissions had domain level sharing, set resource exposure to DOMAIN, else INTERNAL
-            if has_domain_sharing:
-                resource.exposure_type = constants.ResourceExposureType.DOMAIN
-            else:
-                resource.exposure_type = constants.ResourceExposureType.INTERNAL
-
-    response = execute_batch_delete(auth_token, datasource_id, resource.resource_owner_id, action_payload['initiated_by'], permissions_to_update)
-    # Remove all external users who do not have any permissions now
-    _remove_external_users_if_no_permissions(datasource_id, external_users, db_session)
+    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
-
-def _remove_external_users_if_no_permissions(datasource_id, external_users, db_session):
-    anything_changed = False
-    for external_user in external_users:
-        permissions_count = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
-                                                                             datasource_id,
-                                                                             ResourcePermission.email == external_user)).count()
-        if permissions_count < 1:
-            db_session.query(DomainUser).filter(
-                and_(DomainUser.email == external_user, DomainUser.datasource_id == datasource_id,
-                     DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
-            anything_changed = True
-
-    if anything_changed:
-        db_connection().commit()
-
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, removal_type):
     action_parameters = action_payload['parameters']
@@ -361,13 +322,8 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
 
     permissions_to_update = []
     has_domain_sharing = False
-    external_users = {}
     for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
-            # Collect all external user emails, so that once permissions are removed, if their all access is removed, we need to remove from user table
-            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL and not permission.email in external_users:
-                external_users[permission.email] = 1
-
             if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
                 permissions_to_update.append(permission)
             elif permission.exposure_type == constants.ResourceExposureType.DOMAIN:
@@ -377,17 +333,7 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
             if permission.permission_type != 'owner':
                 permissions_to_update.append(permission)
 
-    if len(permissions_to_update) > 0 and removal_type == constants.ResourceExposureType.EXTERNAL:
-        if has_domain_sharing:
-            resource.exposure_type = constants.ResourceExposureType.DOMAIN
-        else:
-            resource.exposure_type = constants.ResourceExposureType.INTERNAL
-    else:
-        resource.exposure_type = constants.ResourceExposureType.PRIVATE
-
     response = execute_batch_delete(auth_token, datasource_id, resource.resource_owner_id, action_payload['initiated_by'], permissions_to_update)
-    # Remove all external users who do not have any permissions now
-    _remove_external_users_if_no_permissions(datasource_id, external_users, db_session)
     return response
 
 def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by):
@@ -396,34 +342,36 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
                                                                             datasource_id,
                                                                             ResourcePermission.email == user_email,
                                                                             ResourcePermission.permission_type != "owner")).all()
-    permissions_to_update = []
+    permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
-        permissions_to_update.append(permission)
+        owner = permission.resource.resource_owner_id
+        if owner in permissions_to_update_by_resource_owner:
+            permissions_to_update_by_resource_owner[owner].append(permission)
+        else:
+            permissions_to_update_by_resource_owner[owner] = [permission]
     
-    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
-    # Remove all external users who do not have any permissions now
-    _remove_external_users_if_no_permissions(datasource_id, [user_email], db_session)
+    response = response_messages.ResponseMessage(200, 'Action submitted successfully')
+    for owner in permissions_to_update_by_resource_owner:
+        permissions_to_update = permissions_to_update_by_resource_owner[owner]
+        response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update):
     permissions_to_update_count = len(permissions_to_update)
     sent_perms_count = 0
     query_param = {'datasource_id': datasource_id, "user_email": user_email, "initiated_by_email": initiated_by}
-    deleted_response = None
+    sync_response = 'Action completed successfully'
     while sent_perms_count < permissions_to_update_count:
         permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
         if permissions_to_update_count < BATCH_COUNT:
-            deleted_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,"gsuite", constants.TriggerType.SYNC)
+            sync_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},"gsuite", constants.TriggerType.SYNC)
         else:
-            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, body,"gsuite")
+            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},"gsuite")
         sent_perms_count += BATCH_COUNT
 
     if permissions_to_update_count < BATCH_COUNT:
-        if deleted_response or permissions_to_update_count == 0:
-            return response_messages.ResponseMessage(200, 'Action completed successfully')
-        else:
-            return response_messages.ResponseMessage(400, 'Action failed')
+        return sync_response
     else:
         return response_messages.ResponseMessage(200, 'Action submitted successfully')
 

@@ -57,7 +57,7 @@ const Actions = {
 
 const Activity = {
     getActivitiesForUser: (user_email) =>
-        requests.get('/common/getactivitiesforuser?user_email=' + user_email)
+        requests.get('/google/getactivitiesforuser?user_email=' + user_email)
 }
 
 const Dashboard = {
