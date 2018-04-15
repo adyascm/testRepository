@@ -153,7 +153,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                     is_deleted = permission.get('deleted')
                     if is_deleted:
                         continue
-                    permission_exposure = constants.ResourceExposureType.INTERNAL
+                    permission_exposure = constants.ResourceExposureType.PRIVATE
                     if email_address:
                         if gutils.check_if_external_user(db_session, domain_id,email_address):
 
@@ -174,6 +174,8 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                                         externaluser["last_name"] = name_list[1]
                                 externaluser["member_type"] = constants.UserMemberType.EXTERNAL
                                 external_user_map[email_address]= externaluser
+                        elif not email_address == resource["resource_owner_id"]:
+                            permission_exposure = constants.ResourceExposureType.INTERNAL
                     #Shared with everyone in domain
                     elif display_name:
                         email_address = "__ANYONE__@"+ domain_id

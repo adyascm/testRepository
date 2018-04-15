@@ -308,7 +308,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
             if permission.exposure_type == constants.ResourceExposureType.DOMAIN:
                 has_domain_sharing = True
 
-    response = execute_batch_delete(auth_token, datasource_id, resource.resource_owner_id, action_payload['initiated_by'], permissions_to_update)
+    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
 
 def update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, removal_type):
@@ -342,11 +342,18 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
                                                                             datasource_id,
                                                                             ResourcePermission.email == user_email,
                                                                             ResourcePermission.permission_type != "owner")).all()
-    permissions_to_update = []
+    permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
-        permissions_to_update.append(permission)
+        owner = permission.resource.resource_owner_id
+        if owner in permissions_to_update_by_resource_owner:
+            permissions_to_update_by_resource_owner[owner].append(permission)
+        else:
+            permissions_to_update_by_resource_owner[owner] = [permission]
     
-    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
+    response = response_messages.ResponseMessage(200, 'Action submitted successfully')
+    for owner in permissions_to_update_by_resource_owner:
+        permissions_to_update = permissions_to_update_by_resource_owner[owner]
+        response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update):

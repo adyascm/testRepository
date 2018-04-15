@@ -89,7 +89,7 @@ class AddOrUpdatePermisssionForResource():
         self.permissions = permissions
         self.owner_email = owner_email
         self.change_requests = []
-        self.drive_service = gutils.get_gdrive_service(auth_token, initiated_by_email)
+        self.drive_service = gutils.get_gdrive_service(auth_token, owner_email)
         self.exception_messages = []
         self.updated_permissions = {}
 
