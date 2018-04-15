@@ -17,3 +17,4 @@ httplib2
 pystache
 python-slugify
 python-dateutil
+slackclient
