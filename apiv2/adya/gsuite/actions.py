@@ -168,7 +168,7 @@ class AddOrUpdatePermisssionForResource():
                 "role": role,
             }
             request = self.drive_service.permissions().update(fileId=resource_id, body=update_permission_object,
-                                                              permissionId=permission_id, useDomainAdminAccess=True,
+                                                              permissionId=permission_id,
                                                               transferOwnership=True if role == 'owner' else False)
             self.change_requests.append(request)
         self.execute()

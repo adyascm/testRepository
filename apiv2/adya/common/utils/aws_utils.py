@@ -165,9 +165,10 @@ def invoke_lambda(function_name, auth_token, body, trigger_type=constants.Trigge
             LogType='None',
             Payload=bytes(json.dumps(body))
         )
+        response_payload = json.loads(response['Payload'].read().decode("utf-8"))
         if trigger_type == constants.TriggerType.SYNC:
-            Logger().info("Response from sync lambda invocation is - {}".format(response))
-        return ResponseMessage(response['StatusCode'], None, json.loads(response['Payload'].read().decode("utf-8")))
+            Logger().info("Response from sync lambda invocation is - {}".format(response_payload))
+        return ResponseMessage(response_payload['statusCode'], None, response_payload['body'])
     except Exception as ex:
         Logger().exception("Exception occurred while invoking lambda function {}".format(
             function_name))
