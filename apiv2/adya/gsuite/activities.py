@@ -1,6 +1,6 @@
 import gutils
 from datetime import datetime, timedelta
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 def get_activities_for_user(auth_token, user_email, start_time=None):
 

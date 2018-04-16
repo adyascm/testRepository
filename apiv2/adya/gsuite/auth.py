@@ -7,7 +7,7 @@ import google.oauth2.credentials
 from google.oauth2 import service_account
 import googleapiclient.discovery
 from oauth2client.service_account import ServiceAccountCredentials
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 from adya.common.constants.scopeconstants import LOGIN_SCOPE, DRIVE_SCAN_SCOPE, SCOPE_DICT
 import gutils

@@ -6,7 +6,7 @@ from adya.core.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
 import os
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 def get_rendered_html(template_name, template_parameters):
     try:

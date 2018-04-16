@@ -4,7 +4,7 @@ from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
 
 from adya.core.controllers import actions_controller
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger
 
 class DriveScan(Resource):
     def post(self):
@@ -155,4 +155,4 @@ class GetUserApp(Resource):
         if response:
             return req_session.generate_response(202, "Action submitted successfully")
         else:
-            return req_session.generate_response(400, 'Action Failed - ' + gsuite_action.get_exception_message())
+            return req_session.generate_response(400, 'Action Failed')

@@ -1,7 +1,7 @@
 import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
-from adya.common.response_messages import Logger
+from adya.common.utils.response_messages import Logger, ResponseMessage
 
 import boto3
 import json
@@ -154,23 +154,21 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
 
 
 def invoke_lambda(function_name, auth_token, body, trigger_type=constants.TriggerType.ASYNC):
-    try:
-        if not body:
-            body = {}
-        body['Authorization'] = auth_token
-        client = boto3.client('lambda')
-        response = client.invoke(
-            FunctionName=function_name,
-            InvocationType='Event' if trigger_type == constants.TriggerType.ASYNC else 'RequestResponse',
-            LogType='None',
-            Payload=bytes(json.dumps(body))
-        )
-        if trigger_type == constants.TriggerType.SYNC:
-            Logger().info("Response from sync lambda invocation is - {}".format(response))
-        return response
-    except Exception as ex:
-        Logger().exception("Exception occurred while invoking lambda function {}".format(
-            function_name))
+    if not body:
+        body = {}
+    body['Authorization'] = auth_token
+    client = boto3.client('lambda')
+    response = client.invoke(
+        FunctionName=function_name,
+        InvocationType='Event' if trigger_type == constants.TriggerType.ASYNC else 'RequestResponse',
+        LogType='None',
+        Payload=bytes(json.dumps(body))
+    )
+    response_payload = {"statusCode": 200, "body": ""}
+    if trigger_type == constants.TriggerType.SYNC:
+        response_payload = json.loads(response['Payload'].read().decode("utf-8"))
+        Logger().info("Response from sync lambda invocation is - {}".format(response_payload))
+    return ResponseMessage(response_payload['statusCode'], None, response_payload['body'])
 
 
 def get_lambda_name(httpmethod, endpoint, service_name="core"):

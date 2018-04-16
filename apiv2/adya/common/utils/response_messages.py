@@ -4,12 +4,18 @@ import sys
 
 
 class ResponseMessage():
-    def __init__(self, response_code, response_message):
+    def __init__(self, response_code, response_message, response_body=None):
         self.response_code = response_code
-        self.response_message = response_message
+        if response_body:
+            self.response_body = response_body
+        else:
+            self.response_body = {"message": response_message}
+
+    def get_response_code(self):
+        return self.response_code
 
     def get_response_body(self):
-        return {"message": self.response_message}
+        return self.response_body
 
 
 class Logger:

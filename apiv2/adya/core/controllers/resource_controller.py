@@ -40,7 +40,10 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     if resource_type:
         resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
     if exposure_type:
-        resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
+        if exposure_type == constants.ResourceExposureType.EXTERNAL:
+            resources_query = resources_query.filter(or_(resource_alias.exposure_type == exposure_type, resource_alias.exposure_type == constants.ResourceExposureType.PUBLIC))
+        else:
+            resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
     if prefix:
         page_limit = 10
         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
