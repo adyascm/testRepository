@@ -6,32 +6,39 @@ from adya.common.db.connection import db_connection
 
 from adya.common.utils import messaging
 
-from adya.common.constants import urls
+from adya.common.constants import urls, constants
 from adya.common.utils.response_messages import Logger
+from adya.gsuite.gutils import check_if_external_user
 from adya.slack import slack_utils
 
 
-def get_slack_users(auth_token, datasource_id, next_cursor_token=None):
+def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None):
 
     try:
         slack_client = slack_utils.get_slack_client(auth_token)
         user_list = slack_client.api_call(
                           "users.list",
-                           limit=2,
+                           limit=150,
                            cursor = next_cursor_token
                         )
 
         Logger().info("list of users :  - {}".format(user_list))
         member_list = user_list['members']
+        total_memeber_count = len(member_list)
         query_params = {'dataSourceId': datasource_id}
         # adding user to db
         # TODO: RECONCILIATION
-        messaging.trigger_post_event(urls.SCAN_SLACK_USERS, auth_token, query_params, member_list, "slack")
-        next_cursor_token = user_list['response_metadata']['next_cursor']
+        sentmemeber_count = 0
+        while sentmemeber_count < total_memeber_count:
+            memebersdata = {}
+            memebersdata["users"] = member_list[sentmemeber_count:sentmemeber_count + 30]
+            messaging.trigger_post_event(urls.SCAN_SLACK_USERS, auth_token, query_params, memebersdata, "slack")
+            sentmemeber_count += 30
 
+        next_cursor_token = user_list['response_metadata']['next_cursor']
         # making new call
         if next_cursor_token:
-            query_params = {"dataSourceId": datasource_id, "nextCursor": next_cursor_token}
+            query_params = {"dataSourceId": datasource_id, "nextCursor": next_cursor_token, "domainId": domain_id}
             messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
         else:
             # TODO: update count or signal of ending of user scan
@@ -43,10 +50,12 @@ def get_slack_users(auth_token, datasource_id, next_cursor_token=None):
             format(next_cursor_token))
 
 
-def process_slack_users(datasource_id , member_list):
+def process_slack_users(datasource_id , domain_id, memebersdata):
     try:
+        db_session = db_connection().get_session()
         user = DomainUser()
-        for member in member_list:
+        members_data = memebersdata["users"]
+        for member in members_data:
             if member['deleted']:
                 continue
             profile_info = member['profile']
@@ -57,8 +66,12 @@ def process_slack_users(datasource_id , member_list):
             user.full_name = profile_info['real_name']
             user.user_id = member['id']
             user.is_admin = member['is_admin']
+            user.creation_time = datetime.fromtimestamp(member['updated']).strftime("%Y-%m-%d %H:%M:%S")
+            user.member_type = constants.UserMemberType.INTERNAL
+            # check for user type
+            if check_if_external_user(db_session, domain_id, profile_info['email']):
+                user.member_type = constants.UserMemberType.EXTERNAL
 
-        db_session = db_connection().get_session()
         db_session.add(user)
         db_connection().commit()
 
@@ -68,33 +81,33 @@ def process_slack_users(datasource_id , member_list):
 
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
     try:
-        channel_list = []
         slack_client = slack_utils.get_slack_client(auth_token)
         public_channels= slack_client.api_call("channels.list",
-                                                    limit = 2,
+                                                    limit = 150,
                                                     cursor = next_cursor_token
                                                     )
-
-
+        channel_list = public_channels['channels']
         if not next_cursor_token:
             # this api call is being made only for the first time
             private_channels = slack_client.api_call("groups.list")
             private_channel_list = private_channels['groups']
-            channel_list.append(private_channel_list)
+            channel_list.extend(private_channel_list)
             Logger().info("list of private channels :  - {}".format(private_channels))
 
         Logger().info("list of public channels :  - {}".format(public_channels))
-
-        public_channel_list = public_channels['channels']
-
-        channel_list.append(public_channel_list)
 
         Logger().info("list of channels :  - {}".format(channel_list))
 
         query_params = {'dataSourceId': datasource_id}
         # adding channels to db
         # TODO: RECONCILIATION
-        messaging.trigger_post_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, channel_list, "slack")
+        total_channel_count = len(channel_list)
+        sentchannel_count = 0
+        while sentchannel_count < total_channel_count:
+            channelsdata = {}
+            channelsdata["channels"] = channel_list[sentchannel_count:sentchannel_count + 30]
+            messaging.trigger_post_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, channel_list, "slack")
+            sentchannel_count += 30
 
         next_cursor_token_for_public_channel = public_channels['response_metadata']['next_cursor']
         if next_cursor_token_for_public_channel:
@@ -112,17 +125,19 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
             format(next_cursor_token))
 
 
-def process_slack_channels(datasource_id, channel_list):
+def process_slack_channels(datasource_id, channel_data):
 
     try:
         groups = DomainGroup()
-        for all_channels in channel_list:
-            for channel in all_channels:
-                groups.datasource_id = datasource_id
-                # TODO: Field that should store whether channel is private for public
-                groups.email = channel['id']
-                groups.name = channel['name']
-                groups.direct_members_count = channel['num_members']
+        channel_list = channel_data["channels"]
+        for channel in channel_list:
+            groups.datasource_id = datasource_id
+            # TODO: Field that should store whether channel is private for public
+            groups.email = channel['id']
+            groups.name = channel['name']
+            groups.direct_members_count = channel['num_members']
+            groups.include_all_user = channel['is_general']
+
 
         db_session = db_connection().get_session()
         db_session.add(groups)
@@ -161,7 +176,6 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
 
 
 def process_slack_files(datasource_id, file_list):
-
     try:
         resource = Resource()
         for file in file_list:

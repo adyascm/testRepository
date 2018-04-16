@@ -8,11 +8,12 @@ class SlackUsers(Resource):
     def post(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId'])
+            True, ['dataSourceId', 'domainId'])
         if req_error:
             return req_error
 
-        scan.process_slack_users(req_session.get_req_param('dataSourceId'), req_session.get_body())
+        scan.process_slack_users(req_session.get_req_param('dataSourceId'), req_session.get_req_param('domainId'),
+                                 req_session.get_body())
 
         return req_session.generate_response(202)
 
