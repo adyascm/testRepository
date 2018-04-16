@@ -36,7 +36,7 @@ class UserOwnedResources extends Component {
         this.state = {
             columnHeaders: [
                 "Resource",
-                "Email",
+                "Type",
                 "Exposure",
                 ""
             ]
@@ -97,14 +97,18 @@ class UserOwnedResources extends Component {
                     return (
                         <Table.Row>
                             <div style={{'word-break': 'break-word'}}>
-                                <Table.Cell width="6">{rowData["resource_name"]}</Table.Cell>
+                                <Table.Cell width="3">{rowData["resource_name"]}</Table.Cell>
                             </div>
-                            <Table.Cell width="6">
+                            {/* <Table.Cell width="6">
                                 {rowData["resource_owner_id"]}
                                 <Icon name='pencil' style={{'cursor': 'pointer'}} onClick={() => this.handleEmailChange(rowData)} />
-                            </Table.Cell>
+                            </Table.Cell> */}
+                            <Table.Cell width="3">{rowData["resource_type"]}</Table.Cell>
                             <Table.Cell width="2">{rowData["exposure_type"]}</Table.Cell>
-                            <Table.Cell textAlign='center' width="2"><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
+                            <Table.Cell textAlign='center' width="4">
+                                <Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label>
+                                <Label as='button' color='blue' active onClick={() => this.handleEmailChange(rowData)}>Change Owner</Label>
+                            </Table.Cell>
                         </Table.Row>
                     )
                 return null
