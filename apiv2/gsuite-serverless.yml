@@ -205,6 +205,13 @@ functions:
           path: scan/processnotifications
           method: post
           cors: true
+  post-google-scan-processactivitynotifications:
+    handler: adya.gsuite.services.lambda.scan_handler.process_gdrive_activity_notifications
+    events:
+      - http:
+          path: scan/processactivitynotifications
+          method: post
+          cors: true        
 
   post-google-scan-subscribenotifications:
     handler: adya.gsuite.services.lambda.scan_handler.subscribe_gdrive_notifications
@@ -213,6 +220,14 @@ functions:
           path: scan/subscribenotifications
           method: post
           cors: true
+
+  post-google-scan-subscribeactivitynotifications:
+    handler: adya.gsuite.services.lambda.scan_handler.subscribe_gdrive_activity_notifications
+    events:
+      - http:
+          path: scan/subscribeactivitynotifications
+          method: post
+          cors: true        
 
   post-google-scan-processdirectorynotifications:
     handler: adya.gsuite.services.lambda.scan_handler.process_directory_notification
