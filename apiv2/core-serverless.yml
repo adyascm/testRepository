@@ -284,4 +284,19 @@ functions:
           path: policies/validate
           method: post
           cors: true
+  
+  get-common-alerts:
+    handler: adya.core.services.lambda.alert_handler.get_alert
+    events:
+      -http:
+        path: alerts
+        method: get
+        cors: true
 
+  post-common-alerts:
+    handler: adya.core.services.lambda.alert_handler.post_alert
+    events:
+      -http:
+        path: alerts
+        method: post
+        cors: true

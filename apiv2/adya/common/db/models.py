@@ -296,12 +296,17 @@ def get_table(tablename):
 class Alert(Base):
     __tablename__= 'alert'
     alert_id = Column(String(255), primary_key=True)
+    policy_id = Column(String(255), ForeignKey('policy.policy_id'))
     datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
     name = Column(String(255))
-    description = Column(String(255))
-    policy = relationship(
-        "Policy", backref="policy"
-    )
+    description_template = Column(String(255))
+    payload = Column(String(255))
+    created_at = Column(DateTime)
+    severity = Column(String(255))
+    isOpen = Column(Boolean)
+    last_updated = Column(DateTime)
+    number_of_violations = Column(Integer)
+   
 
 class Policy(Base):
     __tablename__ = 'policy'

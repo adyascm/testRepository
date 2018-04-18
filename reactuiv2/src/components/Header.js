@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { LOGOUT, SET_REDIRECT_PROPS } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
-import { Container, Image, Menu, Icon } from 'semantic-ui-react'
+import { Container, Image, Menu, Icon, Label } from 'semantic-ui-react'
 import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const LoggedOutView = props => {
@@ -44,6 +44,11 @@ const LoggedInView = props => {
                 <Menu.Menu position='right'>
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
+                    </Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
+                        <Icon name='bell' />
+                        <span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>15</span>
+                        {/* <Label color='teal' size='mini' floating>12</Label> */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
                     {/* <Dropdown item icon='settings'>
