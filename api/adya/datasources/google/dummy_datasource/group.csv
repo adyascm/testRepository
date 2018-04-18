@@ -1,5 +1,0 @@
-datasource_id,group_id,email,name,direct_members_count,description,include_all_user,aliases,is_external
-0f3838b0-be97-46be-b3b5-82266578582e,0111kx3o417r265,engg@adyatest.com,Engineering,2,Engineering,0,,0
-0f3838b0-be97-46be-b3b5-82266578582e,04anzqyu3v2v55s,finance@adyatest.com,Finance,1,Finanace,0,,0
-0f3838b0-be97-46be-b3b5-82266578582e,02jxsxqh0sndl1j,mktg@adyatest.com,Marketing,2,Marketing,0,,0
-0f3838b0-be97-46be-b3b5-82266578582e,01x0gk371vuy97r,sales@adyatest.com,Sales,2,Sales,0,,0
