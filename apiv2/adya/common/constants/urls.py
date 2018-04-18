@@ -16,7 +16,9 @@ SCAN_GROUP_MEMBERS = "/google/scan/groupmembers"
 SCAN_USERS_APP = '/google/scan/usersapp'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/subscribenotifications'
+SUBSCRIBE_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH = '/google/scan/subscribeactivitynotifications'
 PROCESS_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/processnotifications'
+PROCESS_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH = '/google/scan/processactivitynotifications'
 HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/google/scan/handlechannelexpiration'
 GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'

@@ -1,4 +1,5 @@
 from adya.gsuite import scan, incremental_scan
+from adya.gsuite import gsuite_notification_activity
 from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
 
@@ -161,6 +162,14 @@ def subscribe_gdrive_notifications(event, context):
     incremental_scan.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
     return req_session.generate_response(202)
 
+def subscribe_gdrive_activity_notifications(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True, ["domainId", "dataSourceId"])
+    if req_error:
+        return req_error
+    gsuite_notification_activity.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
+    return req_session.generate_response(202)    
+
 
 def process_gdrive_notifications(event, context):
     req_session = RequestSession(event)
@@ -173,6 +182,18 @@ def process_gdrive_notifications(event, context):
     notification_type = req_session.get_req_header('X-Goog-Resource-State')
     incremental_scan.process_notifications(notification_type, datasource_id, channel_id)
     return req_session.generate_response(202)
+
+def process_gdrive_activity_notifications(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID', 'X-Goog-Resource-State'])
+    if req_error:
+        return req_error
+
+    datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
+    channel_id = req_session.get_req_header('X-Goog-Channel-ID')
+    notification_type = req_session.get_req_header('X-Goog-Resource-State')
+    gsuite_notification_activity.process_notifications(notification_type, datasource_id, channel_id)
+    return req_session.generate_response(202)    
 
 
 def process_directory_notification(event, context):
