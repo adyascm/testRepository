@@ -209,7 +209,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         if is_new_resource == 1:
             update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
             if is_incremental_scan ==1:
-                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True)
+                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True, False)
 
         if is_incremental_scan == 1:
             messaging.send_push_notification("adya-"+datasource_id, 
@@ -536,7 +536,7 @@ class GroupData():
         batch.execute()
 
 
-def update_and_get_count(datasource_id, column_name, column_value, send_message=False):
+def update_and_get_count(datasource_id, column_name, column_value, send_message=False, send_email=True):
     db_session = db_connection().get_session()
     rows_updated = 0
     try:
@@ -552,7 +552,8 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         if get_scan_status(datasource) == 1:
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
-            adya_emails.send_gdrive_scan_completed_email(datasource)
+            if send_email:
+                adya_emails.send_gdrive_scan_completed_email(datasource)
 
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
