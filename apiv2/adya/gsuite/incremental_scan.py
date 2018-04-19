@@ -41,7 +41,7 @@ def handle_channel_expiration():
                 reports_service = gutils.get_gdrive_reports_service(
                     None, row.user_email, db_session)
 
-                address = urls.PROCESS_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH
+                address = urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH
                 body["address"] = constants.get_url_from_path(address)
 
                 response = reports_service.activities().watch(
@@ -64,7 +64,7 @@ def handle_channel_expiration():
                 Logger.info("Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                     row.domain_id, row.datasource_id, row.channel_id))
 
-                address = urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH
+                address = urls.PROCESS_DRIVE_NOTIFICATIONS_PATH
                 body["address"] = constants.get_url_from_path(address)
 
                 response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true',
@@ -101,7 +101,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         body = {
             "id": channel_id,
             "type": "web_hook",
-            "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "address": constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
             "token": datasource.datasource_id,
             "payload": "true",
             "params": {"ttl": 86100}
@@ -137,7 +137,7 @@ def _subscribe_for_activity(db_session, login_user, datasource, admin_user_email
     body = {
         "id": channel_id,
         "type": "web_hook",
-        "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH),
+        "address": constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
         "token": datasource.datasource_id,
         "payload": "true",
         "params": {"ttl": 86100}
@@ -238,7 +238,7 @@ def unsubscribe_subscription(subscription):
         address = ''
         if notification_type == TypeOfPushNotificationCallback.DRIVE_CHANGE:
              drive_service = gutils.get_gdrive_service(None, subscription.user_email)
-             address =  urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH
+             address =  urls.PROCESS_DRIVE_NOTIFICATIONS_PATH
              body = {
                  "id": subscription.channel_id,
                  "type": "web_hook",
@@ -255,7 +255,7 @@ def unsubscribe_subscription(subscription):
 
         elif notification_type == TypeOfPushNotificationCallback.ACTIVITY_CHANGE:
             report_service = gutils.get_gdrive_reports_service(None, subscription.user_email)
-            address = urls.PROCESS_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH
+            address = urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH
             body = {
                 "id": subscription.channel_id,
                 "resourceId": subscription.resource_id
@@ -270,3 +270,27 @@ def unsubscribe_subscription(subscription):
     except Exception as ex:
         Logger().exception("Exception occurred while unsubscribing for push notifications for - {}".format(ex))
         return False
+
+
+def gdrive_periodic_changes_poll(datasource_id=None):
+    db_session = db_connection().get_session()
+    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
+    subscription_list = db_session.query(PushNotificationsSubscription)
+    if datasource_id:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
+    else:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
+    for row in subscription_list.all():
+        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
+        if row.notification_type == constants.TypeOfPushNotificationCallback.ACTIVITY_CHANGE:
+            requests.post(constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
+                          headers={"X-Goog-Channel-Token": row.datasource_id,
+                                   "X-Goog-Channel-ID": row.channel_id,
+                                   'X-Goog-Resource-State': "change"})
+
+        elif row.notification_type == constants.TypeOfPushNotificationCallback.DRIVE_CHANGE:
+            requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
+                          headers={"X-Goog-Channel-Token": row.datasource_id,
+                                                  "X-Goog-Channel-ID": row.channel_id,
+                                                  'X-Goog-Resource-State': "change"})
+    return
