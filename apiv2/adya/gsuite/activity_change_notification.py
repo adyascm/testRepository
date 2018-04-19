@@ -96,18 +96,18 @@ def process_notifications_for_activity_watch(notification_type, datasource_id, c
                 # resource_list.append(resource)
 
             # db update ; considering there will be no bulk update
-            db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id ==
-                                                   resource["resource_id"])).update({Resource.last_modifying_user_email:
-                                             last_modifying_user_email, Resource.last_modified_time: last_modified_time,
-                                 Resource.resource_owner_id: resource['resource_owner_id']})
+            # db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id ==
+            #                                        resource["resource_id"])).update({Resource.last_modifying_user_email:
+            #                                  last_modifying_user_email, Resource.last_modified_time: last_modified_time,
+            #                      Resource.resource_owner_id: resource['resource_owner_id']})
 
-            db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
-                                    ResourcePermission.resource_id == resource_permission["resource_id"],
-                                    ResourcePermission.email == resource_permission['email'])).\
-                                    update({
-                                    ResourcePermission.permission_type: resource_permission['permission_type'],
-                                    ResourcePermission.exposure_type: resource_permission['exposure_type']
-                                    })
+            # db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
+            #                         ResourcePermission.resource_id == resource_permission["resource_id"],
+            #                         ResourcePermission.email == resource_permission['email'])).\
+            #                         update({
+            #                         ResourcePermission.permission_type: resource_permission['permission_type'],
+            #                         ResourcePermission.exposure_type: resource_permission['exposure_type']
+            #                         })
 
             # bulk update
             # db_session.bulk_update_mappings(Resource, resource_list)

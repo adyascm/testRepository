@@ -127,7 +127,7 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
                                             resource_id, resource_uri, notification_type, start_token)
 
 
-def _subscribe_for_activity(db_session, login_user, datasource, admin_user_email):
+def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user_email):
     channel_id = str(uuid.uuid4())
     access_time = datetime.datetime.utcnow()
 
@@ -158,55 +158,43 @@ def _subscribe_for_activity(db_session, login_user, datasource, admin_user_email
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
+    # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
+    aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
+                                        aws_utils.get_lambda_name("get",
+                                                                urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+
+    # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+    aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 0 * * ? *)",
+                                        aws_utils.get_lambda_name("get",
+                                                                urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
+    datasource = db_session.query(DataSource).filter(
+        DataSource.datasource_id == datasource_id).first()
+    db_session.query(PushNotificationsSubscription).filter(
+        PushNotificationsSubscription.datasource_id == datasource_id).delete()
+    datasource.is_push_notifications_enabled = False
+    db_connection().commit()
+
+    login_user = db_session.query(LoginUser).filter(
+        LoginUser.domain_id == datasource.domain_id).first()
+
+    #Try subscribing for activity notifications
     try:
-        # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
-                                          aws_utils.get_lambda_name("get",
-                                                                    urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+        _subscribe_for_drive_activity(db_session, login_user, datasource, login_user.email)
+    except:
+        Logger().exception("Failed to subscribe for drive activity notifications")
 
-        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
-        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 0 * * ? *)",
-                                          aws_utils.get_lambda_name("get",
-                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
-        datasource = db_session.query(DataSource).filter(
-            DataSource.datasource_id == datasource_id).first()
-        db_session.query(PushNotificationsSubscription).filter(
-            PushNotificationsSubscription.datasource_id == datasource_id).delete()
-        datasource.is_push_notifications_enabled = False
-        db_connection().commit()
-
-        login_user = db_session.query(LoginUser).filter(
-            LoginUser.domain_id == datasource.domain_id).first()
-
-        admin_user_email = None
+    #Try subscribing for drive change notifications
+    if datasource.is_serviceaccount_enabled:
         domain_users = db_session.query(DomainUser).filter(
             and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
         for user in domain_users:
-            if user.is_admin:
-                admin_user_email = user.email
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
+    else:
+        Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
+        _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
 
-        Logger().info("Got all users to subscribe for push notifications for datasource_id: {}".format(
-            datasource.datasource_id))
-        try:
-            _subscribe_for_activity(db_session, login_user, datasource, admin_user_email)
-        except:
-                Logger().info("subscribe for activity gave error as it is not paid account")
-                if datasource.is_serviceaccount_enabled:
-                    for user in domain_users:
-                        _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
-                        Logger().info(
-                            "Redirecting all users to subscribe for push notifications using drive api, for datasource_id: {}".format(
-                                datasource.datasource_id))
-                else:
-                    Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
-                    _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
-
-        datasource.is_push_notifications_enabled = True
-        db_connection().commit()
-    except Exception:
-        Logger().exception("Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} -".format(
-            domain_id, datasource_id))
-
+    datasource.is_push_notifications_enabled = True
+    db_connection().commit()
 
 def add_push_notifications_subscription(db_session, datasource, channel_id, user_email, access_time, expire_time,
                                         resource_id, resource_uri, notification_type, page_token):
@@ -232,7 +220,7 @@ def unsubscribe_subscription(subscription):
     try:
         if not subscription.resource_id:
             Logger().error("Subscription resource id is missing, hence ignoring unsubscription request...")
-            return
+            return True
 
         notification_type = subscription.notification_type
         address = ''
