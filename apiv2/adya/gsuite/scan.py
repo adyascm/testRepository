@@ -178,7 +178,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                             permission_exposure = constants.ResourceExposureType.INTERNAL
                     #Shared with everyone in domain
                     elif display_name:
-                        email_address = "__ANYONE__@"+ domain_id
+                        email_address = "__ANYONE__@"+ display_name
                         permission_exposure = constants.ResourceExposureType.DOMAIN
                     #Shared with everyone in public
                     else:
