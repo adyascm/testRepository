@@ -217,18 +217,7 @@ class PushNotificationsSubscription(Base):
     expire_at = Column(DateTime)
     resource_id = Column(String(255))
     resource_uri = Column(String(255))
-
-
-class PushNotificationsSubscriptionForUserlist(Base):
-    __tablename__ = 'push_notifications_subscription_for_userlist'
-    directory_domain = Column(String(255))
-    datasource_id = Column(String(36), primary_key=True)
-    channel_id = Column(String(100), primary_key=True)
-    user_email = Column(String(255))
-    last_accessed = Column(DateTime)
-    expire_at = Column(DateTime)
-    resource_id = Column(String(255))
-    resource_uri = Column(String(255))
+    notification_type = Column(String(30))
 
 
 class Action(Base):
