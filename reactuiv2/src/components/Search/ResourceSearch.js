@@ -18,7 +18,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
     onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
-    onsearchLoad: (payload) => dispatch({ type: RESOURCES_SEARCH_PAYLOAD, payload }),
+    onsearchLoad: (payload, prefix) => dispatch({ type: RESOURCES_SEARCH_PAYLOAD, payload, prefix }),
     onsearchEmpty: () => dispatch({ type: RESOURCES_SEARCH_EMPTY })
 });
 
@@ -45,7 +45,7 @@ class ResourceSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        this.props.onsearchLoad(this.state.results)
+        this.props.onsearchLoad(this.state.results, this.state.value)
 
         if (this.props.onChangeReportInput) {
            var entityinfokey = ["selected_entity",  "selected_entity_name"]
