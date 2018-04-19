@@ -6,10 +6,15 @@ import uuid
 import datetime
 
 
-def get_alerts(auth_token):
+def get_alerts(auth_token, fetch_violation_count=False):
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token, db_session=db_session)
 
+    if fetch_violation_count:
+        open_alerts_count = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
+                                                         Alert.datasource_id == DataSource.datasource_id,
+                                                         Alert.isOpen == True).count()
+        return open_alerts_count
     alerts = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
                                             Alert.datasource_id == DataSource.datasource_id).all()
 

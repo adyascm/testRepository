@@ -1,11 +1,14 @@
 import {
     ALERTS_LOAD_START,
-    ALERTS_LOADED
+    ALERTS_LOADED,
+    ALERTS_FETCH_OPEN_ALERTS,
+    LOGOUT
 } from '../constants/actionTypes'
 
 const defaultState = {
     isLoading: false,
-    alerts: undefined
+    alerts: undefined,
+    openAlerts: undefined
 }
 
 export default (state = defaultState, action) => {
@@ -21,6 +24,13 @@ export default (state = defaultState, action) => {
                 isLoading: false,
                 alerts: !action.error?action.payload:[]
             }
+        case ALERTS_FETCH_OPEN_ALERTS:
+            return {
+                ...state,
+                openAlerts: action.openAlertsCount
+            }
+        case LOGOUT:
+            break
     }
     return {
         ...defaultState

@@ -118,8 +118,10 @@ const Policy = {
 
 const Alert = {
     getAlert: () =>
-        requests.get('/common/alerts')
-}
+        requests.get('/common/alerts'),
+    getViolationCount: (fetchViolationCount) =>
+        requests.get('/common/alerts?fetchViolationCount=' + fetchViolationCount)
+}   
 
 
 export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, setToken: _token => { token = _token; } };

@@ -47,7 +47,7 @@ const LoggedInView = props => {
                     </Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
-                        <span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>15</span>
+                        {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)}
                         {/* <Label color='teal' size='mini' floating>12</Label> */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
@@ -69,7 +69,8 @@ const LoggedInView = props => {
 
 const mapStateToProps = state => ({
     ...state.common,
-    ...state.dashboard
+    ...state.dashboard,
+    openAlertsCount: state.alert.openAlerts
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -99,7 +100,7 @@ class Header extends React.Component {
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} handleClick={this.handleClick} />
-                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} {...this.props} />
+                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} openAlertsCount={this.props.openAlertsCount} {...this.props} />
             </Menu>
         )
     }
