@@ -282,6 +282,20 @@ def get_table(tablename):
     elif tablename == 'app_user_association':
         return ApplicationUserAssociation
 
+class Alert(Base):
+    __tablename__= 'alert'
+    alert_id = Column(String(255), primary_key=True)
+    policy_id = Column(String(255), ForeignKey('policy.policy_id'))
+    datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
+    name = Column(String(255))
+    description_template = Column(Text)
+    payload = Column(Text)
+    created_at = Column(DateTime)
+    severity = Column(String(255))
+    isOpen = Column(Boolean)
+    last_updated = Column(DateTime)
+    number_of_violations = Column(Integer)
+   
 
 class Policy(Base):
     __tablename__ = 'policy'

@@ -10,6 +10,7 @@ import message from './reducers/message'
 import auditlog from './reducers/auditlog'
 import apps from './reducers/apps'
 import policy from './reducers/policy'
+import alert from './reducers/alert'
 
 
 export default combineReducers({
@@ -22,7 +23,8 @@ export default combineReducers({
   message,
   auditlog,
   apps,
-  policy
+  policy,
+  alert
 });
 
 // const rootReducer = (state,action) => {
