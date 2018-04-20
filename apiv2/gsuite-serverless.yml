@@ -71,6 +71,13 @@ custom:
       httpProtocol: "https://"
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
+    liteapp: 
+      awsProfile: prodProfile
+      dbName: "liteapp"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "liteappapi.adya.io"
+      uiHost: "liteapp.adya.io"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
@@ -198,13 +205,20 @@ functions:
           method: get
           cors: true
 
-  post-google-scan-processnotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_gdrive_notifications
+  post-google-scan-processdrivenotifications:
+    handler: adya.gsuite.services.lambda.scan_handler.process_drive_change_notifications
     events:
       - http:
-          path: scan/processnotifications
+          path: scan/processdrivenotifications
           method: post
           cors: true
+  post-google-scan-processactivitynotifications:
+    handler: adya.gsuite.services.lambda.scan_handler.process_activity_change_notifications
+    events:
+      - http:
+          path: scan/processactivitynotifications
+          method: post
+          cors: true        
 
   post-google-scan-subscribenotifications:
     handler: adya.gsuite.services.lambda.scan_handler.subscribe_gdrive_notifications
@@ -214,14 +228,6 @@ functions:
           method: post
           cors: true
 
-  post-google-scan-processdirectorynotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_directory_notification
-    events:
-      - http:
-          path: scan/directoryprocessnotifications
-          method: post
-          cors: true
-  
   get-google-getactivitiesforuser:
     handler: adya.gsuite.services.lambda.activities_handler.get_activities_for_user
     events:

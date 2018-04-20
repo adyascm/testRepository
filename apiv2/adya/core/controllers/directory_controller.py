@@ -1,6 +1,5 @@
 from sqlalchemy import and_, desc, asc
 import json
-
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission
 from adya.common.db.connection import db_connection
@@ -90,19 +89,22 @@ def getGroupData(users_groups, db_session, domain_id, datasource_id):
 
 def get_all_apps(auth_token):
     db_session = db_connection().get_session()
-    domain_data = db_session.query(DomainUser, DataSource.datasource_id).filter(
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == LoginUser.domain_id).filter(LoginUser.auth_token == auth_token).all()
+    domain_datasource_ids = [r.datasource_id for r in datasources]
+    domain_user = db_session.query(DomainUser).filter(
         DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token, LoginUser.email == DomainUser.email).all()
+        filter(LoginUser.auth_token == auth_token, LoginUser.email == DomainUser.email).first()
 
-    is_admin = domain_data[0].DomainUser.is_admin
-    login_user_email = domain_data[0].DomainUser.email
-    domain_datasource_ids = [r[1] for r in domain_data]
-
+    is_admin = True
+    if domain_user:
+        is_admin = domain_user.is_admin
+        login_user_email = domain_user.email
+        
     apps_query_data = db_session.query(Application).filter(Application.datasource_id.in_(domain_datasource_ids))
     if not is_admin:
         apps_query_data = apps_query_data.filter(Application.client_id == ApplicationUserAssociation.client_id,
-                                               ApplicationUserAssociation.datasource_id == Application.datasource_id,
-                                               ApplicationUserAssociation.user_email == login_user_email)
+                                            ApplicationUserAssociation.datasource_id == Application.datasource_id,
+                                            ApplicationUserAssociation.user_email == login_user_email)
     apps_data = apps_query_data.order_by(desc(Application.score)).all()
     return apps_data
 

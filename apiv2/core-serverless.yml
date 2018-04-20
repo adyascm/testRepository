@@ -84,6 +84,13 @@ custom:
       httpProtocol: "https://"
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
+    liteapp: 
+      awsProfile: prodProfile
+      dbName: "liteapp"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "liteappapi.adya.io"
+      uiHost: "liteapp.adya.io"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
@@ -284,4 +291,27 @@ functions:
           path: policies/validate
           method: post
           cors: true
+  
+  get-common-alerts:
+    handler: adya.core.services.lambda.alert_handler.get_alert
+    events:
+      - http:
+          path: alerts
+          method: get
+          cors: true
 
+  post-common-alerts:
+    handler: adya.core.services.lambda.alert_handler.post_alert
+    events:
+      - http:
+          path: alerts
+          method: post
+          cors: true
+  
+  get-common-alerts-count:
+    handler: adya.core.services.lambda.alert_handler.get_alert_count
+    events:
+      - http:
+          path: alerts/count
+          method: get
+          cors: true

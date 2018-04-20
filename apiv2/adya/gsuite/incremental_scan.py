@@ -1,18 +1,17 @@
 import requests
 import uuid
-import datetime, dateutil.parser
+import datetime
 from datetime import timedelta
-import json
 import gutils
 from sqlalchemy import and_
 
+from adya.common.constants.constants import TypeOfPushNotificationCallback
 from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
 from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, DomainUser, \
-    LoginUser, DataSource, alchemy_encoder, PushNotificationsSubscriptionForUserlist
+    LoginUser, DataSource
 from adya.common.constants import constants, urls
-from adya.common.utils import utils, messaging, response_messages, aws_utils
-
+from adya.common.utils import aws_utils, messaging
 
 
 def handle_channel_expiration():
@@ -21,9 +20,15 @@ def handle_channel_expiration():
     for row in subscription_list:
         access_time = datetime.datetime.utcnow()
         expire_time = access_time
-        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=86100)):
-            # Unsubscribe and subscribe again
-            unsubscribe_for_a_user(row)
+
+        #If the subscription is not yet expired and expiry is more than 6 hours, dont resubscribe
+        #It will happen in the next 6 hourly check
+        if row.expire_at > access_time and row.expire_at > (access_time + timedelta(seconds=21600)):
+            continue
+
+        #If the subscription is not yet expired and is going to expire in next 6 hours, then first unsubscribe
+        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=21600)):
+            unsubscribe_subscription(row)
 
         try:
             is_service_account_enabled = False
@@ -33,33 +38,46 @@ def handle_channel_expiration():
             body = {
                 "id": row.channel_id,
                 "type": "web_hook",
-                "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
                 "token": row.datasource_id,
                 "payload": "true",
                 "params": {"ttl": 86100}
             }
 
-            if is_service_account_enabled:
-                drive_service = gutils.get_gdrive_service(None, row.user_email, db_session)
-                directory_service = gutils.get_directory_service(None, row.user_email, db_session)
+            if row.notification_type == TypeOfPushNotificationCallback.ACTIVITY_CHANGE:
+                reports_service = gutils.get_gdrive_reports_service(
+                    None, row.user_email, db_session)
+
+                address = urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH
+                body["address"] = constants.get_url_from_path(address)
+
+                response = reports_service.activities().watch(
+                    userKey='all', applicationName='drive', body=body).execute()
+
+
             else:
-                user = db_session.query(LoginUser).filter(
-                    and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
-                drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
+                if is_service_account_enabled:
+                    drive_service = gutils.get_gdrive_service(None, row.user_email, db_session)
+                else:
+                    user = db_session.query(LoginUser).filter(
+                        and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
+                    drive_service = gutils.get_gdrive_service(user.auth_token, row.user_email, db_session)
 
-            if row.page_token == '':
-                response = drive_service.changes().getStartPageToken().execute()
-                row.page_token = response.get('startPageToken')
-                Logger().info("new start token - {}".format(row.page_token))
+                if row.page_token == '':
+                    response = drive_service.changes().getStartPageToken().execute()
+                    row.page_token = response.get('startPageToken')
+                    Logger().info("new start token - {}".format(row.page_token))
 
-            Logger.info("Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
-                row.domain_id, row.datasource_id, row.channel_id))
+                Logger.info("Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+                    row.domain_id, row.datasource_id, row.channel_id))
 
-            response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true',
+                address = urls.PROCESS_DRIVE_NOTIFICATIONS_PATH
+                body["address"] = constants.get_url_from_path(address)
+
+                response = drive_service.changes().watch(pageToken=row.page_token, restrictToMyDrive='true',
                                                      body=body).execute()
 
-            Logger().info("Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
-                row.domain_id, row.datasource_id, row.channel_id, response))
+                Logger().info("Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+                    row.domain_id, row.datasource_id, row.channel_id, response))
 
             expire_time = access_time + timedelta(seconds=86100)
             row.resource_id = response['resourceId']
@@ -73,159 +91,7 @@ def handle_channel_expiration():
         row.expire_at = expire_time
     db_connection().commit()
 
-    # handling for userlist watch
-    handle_channel_expiration_For_userlist_watch(db_session)
-
     return "Subscription renewal completed"
-
-
-def handle_channel_expiration_For_userlist_watch(db_session):
-    Logger().info("handle_channel_expiration_For_userlist_watch ")
-    userlist_subscriptions = db_session.query(PushNotificationsSubscriptionForUserlist).all()
-    for subscription in userlist_subscriptions:
-        access_time = datetime.datetime.utcnow()
-        expire_time = access_time
-        if subscription.expire_at > access_time and subscription.expire_at < (access_time + timedelta(seconds=86100)):
-            Logger.info("unsubscribe")
-            # Unsubscribe and subscribe again
-            # TODO: ADD LOGIC TO UNSUBSCRIBE
-
-        try:
-            body = {
-                "id": subscription.channel_id,
-                "type": "web_hook",
-                "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                "params": {"ttl": "1800"}
-            }
-            directory_service = gutils.get_directory_service(None, subscription.user_email)
-            Logger().info("subscribe userlist : body - {}".format(body))
-
-            # get domain id from datasource id
-            datasource = db_session.query(DataSource).filter()
-            watch_userlist_response = directory_service.users().watch(body=body, domain=subscription.directory_domain,
-                                                                      projection="full").execute()
-
-            Logger().info("subbscribe userlist : watch_userlist_response : {} ".format(watch_userlist_response))
-
-            expire_time = access_time + timedelta(seconds=86100)
-            subscription.resource_id = watch_userlist_response['resourceId']
-            subscription.resource_uri = watch_userlist_response['resourceUri']
-
-        except Exception as e:
-            Logger().exception("Exception occurred while trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
-                subscription.directory_domain, subscription.datasource_id, subscription.channel_id))
-        subscription.last_accessed = access_time
-        subscription.expire_at = expire_time
-
-    db_connection().commit()
-    Logger().info("handle_channel_expiration_For_userlist_watch completed")
-
-def gdrive_periodic_changes_poll(datasource_id=None):
-    db_session = db_connection().get_session()
-    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
-    subscription_list = db_session.query(PushNotificationsSubscription)
-    if datasource_id:
-        subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
-    else:
-        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
-    for row in subscription_list.all():
-        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
-        requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                     headers={"X-Goog-Channel-Token": row.datasource_id,
-                                              "X-Goog-Channel-ID": row.channel_id,
-                                              'X-Goog-Resource-State': "change"})
-    return
-
-def subscribe(domain_id, datasource_id):
-    db_session = db_connection().get_session()
-    try:
-        # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
-                                          aws_utils.get_lambda_name("get",
-                                                                    urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
-
-        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
-        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 * * * ? *)",
-                                          aws_utils.get_lambda_name("get",
-                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
-
-        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        db_session.query(PushNotificationsSubscription).filter(
-            PushNotificationsSubscription.datasource_id == datasource_id).delete()
-        datasource.is_push_notifications_enabled = False
-        db_connection().commit()
-
-        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
-
-        if datasource.is_serviceaccount_enabled:
-            domain_users = db_session.query(DomainUser).filter(
-                and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
-            admin_user = None
-            admin_customer_id = None
-            Logger().info("Got {} users to subscribe for push notifications for datasource_id: {}".format(len(domain_users),
-                                                                                                  datasource.datasource_id))
-            for user in domain_users:
-                if user.is_admin:
-                    admin_user = user.email
-                    admin_customer_id = user.customer_id
-                Logger().info("Subscribing for push notification for user {}".format(user.email))
-                _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
-
-            # watch on userlist
-            #subscribe_for_userlist_watch(datasource.datasource_id, admin_user, admin_customer_id)
-
-
-        else:
-            Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
-            _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
-
-        datasource.is_push_notifications_enabled = True
-        db_connection().commit()
-    except Exception as e:
-        Logger().exception("Exception occurred while requesting push notifications subscription for domain_id: {} datasource_id: {} - {}".format(
-            domain_id, datasource_id, e))
-
-
-def subscribe_for_userlist_watch(datasource_id, admin_user, admin_customer_id):
-    access_time = datetime.datetime.utcnow()
-
-    Logger().info("subscribing for watch on userlist ")
-    Logger().info("admin user - {}".format(admin_user))
-    directory_service = gutils.get_directory_service(None, admin_user)
-    domain_name = None
-    # get domain
-    directory_domain = directory_service.domains().list(customer=admin_customer_id).execute()
-    if directory_domain['domains'][0]['isPrimary']:
-        domain_name = directory_domain['domains'][0]['domainName']
-
-    channel_id = str(uuid.uuid4())
-    body = {
-        "id": channel_id,
-        "type": "web_hook",
-        "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH),
-        "params": {"ttl": "1800"},
-        "token": datasource_id
-    }
-
-    Logger().info("subscribe userlist : body : {} ".format(body))
-
-    watch_userlist_response = directory_service.users().watch(body=body, domain=domain_name,
-                                                              projection="full", event="add").execute()
-
-    Logger().info("subbscribe userlist : watch_userlist_response : {} ".format(watch_userlist_response))
-
-    expire_time = access_time + timedelta(seconds=86100)
-
-    # db entry for userlist watch
-    push_notification_subscription_for_userlist = PushNotificationsSubscriptionForUserlist()
-    push_notification_subscription_for_userlist.datasource_id = datasource_id
-    push_notification_subscription_for_userlist.channel_id = channel_id
-    push_notification_subscription_for_userlist.resource_id = watch_userlist_response['resourceId']
-    push_notification_subscription_for_userlist.resource_uri = watch_userlist_response['resourceUri']
-    push_notification_subscription_for_userlist.user_email = admin_user
-    push_notification_subscription_for_userlist.last_accessed = access_time
-    push_notification_subscription_for_userlist.expire_at = expire_time
-    push_notification_subscription_for_userlist.directory_domain = domain_name
 
 
 def _subscribe_for_user(db_session, auth_token, datasource, email):
@@ -235,12 +101,13 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
     start_token = ''
     resource_id = ''
     resource_uri = ''
+    notification_type = ''
     try:
         drive_service = gutils.get_gdrive_service(auth_token, email, db_session)
         body = {
             "id": channel_id,
             "type": "web_hook",
-            "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
+            "address": constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
             "token": datasource.datasource_id,
             "payload": "true",
             "params": {"ttl": 86100}
@@ -256,223 +123,168 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         expire_time = access_time + timedelta(seconds=86100)
         resource_id = watch_response['resourceId']
         resource_uri = watch_response['resourceUri']
-
+        notification_type = TypeOfPushNotificationCallback.DRIVE_CHANGE
 
     except Exception as ex:
         Logger().exception("Exception occurred while subscribing for push notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
             datasource.domain_id, datasource.datasource_id, channel_id, ex))
 
+    add_push_notifications_subscription(db_session, datasource, channel_id, email, access_time, expire_time,
+                                            resource_id, resource_uri, notification_type, start_token)
+
+
+def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user_email):
+    channel_id = str(uuid.uuid4())
+    access_time = datetime.datetime.utcnow()
+
+    reports_service = gutils.get_gdrive_reports_service(
+        login_user.auth_token, admin_user_email, db_session)
+
+    body = {
+        "id": channel_id,
+        "type": "web_hook",
+        "address": constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
+        "token": datasource.datasource_id,
+        "payload": "true",
+        "params": {"ttl": 21600}
+    }
+
+    watch_response = reports_service.activities().watch(
+        userKey='all', applicationName='drive', body=body).execute()
+
+    Logger().info(" watch_response for all users :  {} ".format(watch_response))
+    expire_time = access_time + timedelta(seconds=86100)
+    resource_id = watch_response['resourceId']
+    resource_uri = watch_response['resourceUri']
+    notification_type = TypeOfPushNotificationCallback.ACTIVITY_CHANGE
+
+    add_push_notifications_subscription(db_session, datasource, channel_id, admin_user_email, access_time, expire_time,
+                                            resource_id, resource_uri, notification_type, None)
+
+
+def subscribe(domain_id, datasource_id):
+    db_session = db_connection().get_session()
+    # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
+    aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
+                                        aws_utils.get_lambda_name("get",
+                                                                urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+
+    # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+    aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
+                                        aws_utils.get_lambda_name("get",
+                                                                urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
+    datasource = db_session.query(DataSource).filter(
+        DataSource.datasource_id == datasource_id).first()
+    db_session.query(PushNotificationsSubscription).filter(
+        PushNotificationsSubscription.datasource_id == datasource_id).delete()
+    datasource.is_push_notifications_enabled = False
+    db_connection().commit()
+
+    login_user = db_session.query(LoginUser).filter(
+        LoginUser.domain_id == datasource.domain_id).first()
+
+    #Try subscribing for activity notifications
+    try:
+        _subscribe_for_drive_activity(db_session, login_user, datasource, login_user.email)
+    except:
+        Logger().exception("Failed to subscribe for drive activity notifications")
+
+    #Try subscribing for drive change notifications
+    if datasource.is_serviceaccount_enabled:
+        domain_users = db_session.query(DomainUser).filter(
+            and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
+        for user in domain_users:
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
+    else:
+        Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
+        _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
+
+    datasource.is_push_notifications_enabled = True
+    db_connection().commit()
+
+def add_push_notifications_subscription(db_session, datasource, channel_id, user_email, access_time, expire_time,
+                                        resource_id, resource_uri, notification_type, page_token):
+
     push_notifications_subscription = PushNotificationsSubscription()
     push_notifications_subscription.domain_id = datasource.domain_id
     push_notifications_subscription.datasource_id = datasource.datasource_id
     push_notifications_subscription.channel_id = channel_id
-    push_notifications_subscription.drive_root_id = "SVC" if datasource.is_serviceaccount_enabled else ""
-    push_notifications_subscription.page_token = start_token
+    push_notifications_subscription.drive_root_id = "SVC"
+    push_notifications_subscription.page_token = page_token
     push_notifications_subscription.in_progress = 0
     push_notifications_subscription.stale = 0
-    push_notifications_subscription.user_email = email
+    push_notifications_subscription.user_email = user_email
     push_notifications_subscription.last_accessed = access_time
     push_notifications_subscription.expire_at = expire_time
     push_notifications_subscription.resource_id = resource_id
     push_notifications_subscription.resource_uri = resource_uri
+    push_notifications_subscription.notification_type = notification_type
     db_session.add(push_notifications_subscription)
 
 
-def process_userlist_notification(notification_type, datasource_id, channel_id, body):
-    Logger().info("process subscription notification type - {} for datasource_id: {} and channel_id: {}.".format(
-        notification_type,
-        datasource_id, channel_id))
-    if notification_type == "sync":
-        Logger().info("Sync notification received, ignore...")
-        return
-
-    db_session = db_connection().get_session()
-
-    exisiting_subscription = db_session.query(PushNotificationsSubscriptionForUserlist).filter(
-        PushNotificationsSubscriptionForUserlist.channel_id == channel_id).first()
-    if not exisiting_subscription:
-        Logger().error( "Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-            datasource_id, channel_id))
-        return
-
-
-def process_notifications(notification_type, datasource_id, channel_id):
-    if notification_type == "sync":
-        return
-
-    db_session = db_connection().get_session()
-
-    subscription = db_session.query(PushNotificationsSubscription).filter(
-        PushNotificationsSubscription.channel_id == channel_id).first()
-    if not subscription:
-        Logger().warn("Subscription does not exist for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-            datasource_id, channel_id))
-        return
-
-    if subscription.in_progress == 1:
-        if subscription.stale == 0:
-            subscription.stale = 1
-            db_connection().commit()
-            Logger().warn("Subscription already in progress for user: {} and channel_id: {}, hence marking it stale and returning.".format(
-                user_email, channel_id))
-        else:
-            Logger().warn("Subscription already in progress and marked stale for user:{} and channel_id: {}, hence directly returning.".format(
-                user_email, channel_id))
-        return
-
-    user_email = subscription.user_email
-    try:
-        drive_service = None
-        if not subscription.drive_root_id == "SVC":
-            login_user = db_session.query(LoginUser).filter(LoginUser.email == subscription.user_email).first()
-            drive_service = gutils.get_gdrive_service(login_user.auth_token, user_email, db_session)
-        else:
-            drive_service = gutils.get_gdrive_service(None, user_email, db_session)
-        should_mark_in_progress = True
-
-        page_token = subscription.page_token
-        while True:
-            response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
-                                                    spaces='drive').execute()
-            Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
-            changes = response.get('changes')
-            if len(changes) < 1:
-                Logger().info("No changes found for this notification, hence ignoring.")
-                return
-
-            # Mark Inprogress
-            if should_mark_in_progress:
-                Logger().info("Marking the subscription to be in progress ")
-                db_session.refresh(subscription)
-                subscription.in_progress = 1
-                subscription.last_accessed = datetime.datetime.utcnow()
-                db_connection().commit()
-                should_mark_in_progress = False
-
-            for change in changes:
-                # Process change
-                fileId = change.get('fileId')
-                handle_change(drive_service, datasource_id, user_email, fileId)
-
-            if 'nextPageToken' in response:
-                # More changes available, so continue fetching changes with the updated page token
-                page_token = response.get('nextPageToken')
-            elif 'newStartPageToken' in response:
-                # Last page, save this token for the next polling interval
-                page_token = response.get('newStartPageToken')
-                break
-
-        db_session.refresh(subscription)
-        if page_token != subscription.page_token:
-            subscription.page_token = page_token
-        subscription.last_accessed = datetime.datetime.utcnow()
-        subscription.in_progress = 0
-        db_connection().commit()
-
-        db_session.refresh(subscription)
-        if subscription.stale == 1:
-            subscription.stale = 0
-            db_connection().commit()
-            response = requests.post(constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-                                     headers={"X-Goog-Channel-Token": datasource_id,
-                                              "X-Goog-Channel-ID": channel_id,
-                                              'X-Goog-Resource-State': notification_type})
-
-
-    except Exception as e:
-        Logger().exception( "Exception occurred while processing push notification for user: {}, datasource_id: {} channel_id: {} - {}".format(
-            user_email, datasource_id, channel_id, e))
-
-
-def handle_change(drive_service, datasource_id, email, file_id):
-    db_session = db_connection().get_session()
-    try:
-        results = drive_service.files() \
-            .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
-                                        "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
-                                        "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
-                                        "owners,size,createdTime, modifiedTime").execute()
-        Logger().info("Updated resource for change notification is - {}".format(results))
-
-        if results and results['owners'][0]['emailAddress'] != email:
-            Logger().warn("Owner of the file is not same as subscribed user, hence ignoring. Owner email : {} and subscribed user email : {}".\
-                format(results['owners'][0]['emailAddress'], email))
-            return
-
-        if results and not "permissions" in results:
-            Logger().warn("Permissions not found for this resource, something wrong, hence ignoring. Owner email : {} and subscribed user email : {}".\
-                format(results['owners'][0]['emailAddress'], email))
-            return
-
-        # last_modified_time = dateutil.parser.parse(results['modifiedTime'])
-
-        # resource = db_session.query(Resource).filter(
-        #     and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
-        # if resource:
-        #     saved_last_modified_time = dateutil.parser.parse(resource.last_modified_time.isoformat() + 'Z')
-        #     difference = abs(saved_last_modified_time - last_modified_time)
-        #     if (difference.seconds <= 5000):
-        #         Logger().info("The difference in time is - {}".format(difference.seconds))
-        #         Logger().info("Resource not found which is modified prior to: {}, hence ignoring...".format(last_modified_time))
-        #         return
-
-        # existing_permissions = []
-        # is_new_resource = 0
-
-        # if resource:
-        #     existing_permissions = json.dumps(resource.permissions, cls=alchemy_encoder())
-        #     Logger().info( "Deleting the existing permissions and resource, and add again")
-        #     db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
-        #                                                      ResourcePermission.datasource_id == datasource_id)).delete(
-        #         synchronize_session=False)
-        #     db_session.query(Resource).filter(
-        #         and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete(
-        #         synchronize_session=False)
-        #     db_connection().commit()
-        # else:
-        #     is_new_resource = 1
-        #     Logger().info("Resource does not exist in DB, so would add it now")
-
-        resourcedata = {}
-        resourcedata["resources"] = [results]
-        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
-                        'userEmail': email, 'is_incremental_scan': 1}
-        messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
-
-        # payload = {}
-        # payload["old_permissions"] = existing_permissions
-        # payload["resource"] = results
-        # policy_params = {'dataSourceId': datasource_id, 'resourceId': file_id}
-        # messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
-
-    except Exception as e:
-        Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
-            datasource_id, email, file_id, e))
-
-
-def unsubscribe_for_a_user(subscription):
+def unsubscribe_subscription(subscription):
     try:
         if not subscription.resource_id:
             Logger().error("Subscription resource id is missing, hence ignoring unsubscription request...")
-            return
+            return True
 
-        drive_service = gutils.get_gdrive_service(None, subscription.user_email)
-        body = {
-            "id": subscription.channel_id,
-            "type": "web_hook",
-            "address": constants.get_url_from_path(urls.PROCESS_GDRIVE_NOTIFICATIONS_PATH),
-            "token": subscription.datasource_id,
-            "payload": "true",
-            "params": {"ttl": 86100},
-            "resourceId": subscription.resource_id,
-            "resourceUri": subscription.resource_uri
-        }
-        Logger().info("trying to unsubscribe the channel with body - {}".format(body))
-        unsubscribe_response = drive_service.channels().stop(body=body).execute()
-        Logger().info("google unsubscribe response : {} ".format(unsubscribe_response))
+        notification_type = subscription.notification_type
+        address = ''
+        if notification_type == TypeOfPushNotificationCallback.DRIVE_CHANGE:
+             drive_service = gutils.get_gdrive_service(None, subscription.user_email)
+             address =  urls.PROCESS_DRIVE_NOTIFICATIONS_PATH
+             body = {
+                 "id": subscription.channel_id,
+                 "type": "web_hook",
+                 "address": constants.get_url_from_path(address),
+                 "token": subscription.datasource_id,
+                 "payload": "true",
+                 "params": {"ttl": 86100},
+                 "resourceId": subscription.resource_id,
+                 "resourceUri": subscription.resource_uri
+             }
+             Logger().info("trying to unsubscribe the channel with body - {}".format(body))
+             unsubscribe_response = drive_service.channels().stop(body=body).execute()
+             Logger().info("google unsubscribe response for drive: {} ".format(unsubscribe_response))
+
+        elif notification_type == TypeOfPushNotificationCallback.ACTIVITY_CHANGE:
+            report_service = gutils.get_gdrive_reports_service(None, subscription.user_email)
+            address = urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH
+            body = {
+                "id": subscription.channel_id,
+                "resourceId": subscription.resource_id
+            }
+
+            Logger().info("trying to unsubscribe the channel with body - {}".format(body))
+            unsubscribe_response = report_service.channels().stop(body=body).execute()
+            Logger().info("google unsubscribe response for activity : {} ".format(unsubscribe_response))
+
         return True
 
     except Exception as ex:
         Logger().exception("Exception occurred while unsubscribing for push notifications for - {}".format(ex))
         return False
+
+
+def gdrive_periodic_changes_poll(datasource_id=None):
+    db_session = db_connection().get_session()
+    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
+    subscription_list = db_session.query(PushNotificationsSubscription)
+    if datasource_id:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
+    else:
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
+    for row in subscription_list.all():
+        Logger().info("Requesting refresh of gdrive data for user: {}".format(row.user_email))
+        if row.notification_type == constants.TypeOfPushNotificationCallback.ACTIVITY_CHANGE:
+            requests.post(constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
+                          headers={"X-Goog-Channel-Token": row.datasource_id,
+                                   "X-Goog-Channel-ID": row.channel_id,
+                                   'X-Goog-Resource-State': "change"})
+
+        elif row.notification_type == constants.TypeOfPushNotificationCallback.DRIVE_CHANGE:
+            requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
+                          headers={"X-Goog-Channel-Token": row.datasource_id,
+                                                  "X-Goog-Channel-ID": row.channel_id,
+                                                  'X-Goog-Resource-State': "change"})
+    return

@@ -13,6 +13,7 @@ from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyActi
 from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
+from adya.common.email_templates import adya_emails
 
 
 def get_policies(auth_token):
@@ -158,7 +159,13 @@ def validate_policy(db_session, datasource_id, policy, resource, new_permissions
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
-                aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
+                #aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
+                adya_emails.send_policy_violate_email(to_address, policy, resource)
+        payload = {}
+        payload["datasource_id"] = datasource_id
+        payload["name"] = policy["name"]
+        payload["policy_id"] = policy["policy_id"]
+        messaging.trigger_post_event(urls.ALERTS_PATH, payload)
 
 # generic function for matching policy condition and corresponding value
 def check_value_violation(policy_condition, value):

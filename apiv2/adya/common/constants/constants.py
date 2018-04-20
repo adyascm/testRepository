@@ -31,6 +31,7 @@ class ResourceExposureType(Enum):
     DOMAIN = "DOMAIN"
     EXTERNAL = "EXT"
     PUBLIC = "PUBLIC"
+    ANYONEWITHLINK = 'ANYONEWITHLINK'
 
 
 class PermissionType(Enum):
@@ -80,9 +81,10 @@ class ResponseType(Enum):
 
 
 class DocType(Enum):
-    PUBLIC_COUNT = 'Shared public links'
+    PUBLIC_COUNT = 'Publicly discoverable'
     EXTERNAL_COUNT = 'Shared with users outside company'
     DOMAIN_COUNT = 'Shared across company'
+    ANYONE_WITH_LINK_COUNT = 'Shared public link'
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
@@ -99,3 +101,22 @@ class policyActionType(Enum):
 class TriggerType(Enum):
     ASYNC = "ASYNC"
     SYNC = "SYNC"
+
+
+Permission_Role_mapping = {
+    'can_edit': 'writer',
+    'can_view': 'reader',
+    'owner': 'owner',
+    'can_comment': 'commenter'
+}
+
+permission_priority = {
+    "can_view": 1,
+    "can_comment": 2,
+    "can_edit": 3
+}
+
+
+class TypeOfPushNotificationCallback(Enum):
+    DRIVE_CHANGE = 'DRIVE_CHANGE'
+    ACTIVITY_CHANGE = 'ACTIVITY_CHANGE'

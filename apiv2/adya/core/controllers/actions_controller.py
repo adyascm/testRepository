@@ -15,6 +15,7 @@ from adya.common.db.models import alchemy_encoder
 
 BATCH_COUNT = 50
 
+
 def get_actions():
     # if not datasource_type:
     #    return "Please pass a valid datasource_type in order to get all the actions enabled for it."
@@ -105,9 +106,9 @@ def get_actions():
                                             [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
     notifyUserForCleanUp = instantiate_action("GSUITE", action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP,
-                                            "Notify user",
-                                            "Send mail to user to audit documents",
-                                            [{"key": "user_email", "label": "For user", "editable": 0}], False)                                        
+                                              "Notify user",
+                                              "Send mail to user to audit documents",
+                                              [{"key": "user_email", "label": "For user", "editable": 0}], False)
 
     removeAllAction = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER,
                                          "Remove sharing",
@@ -193,7 +194,9 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
         return execution_status
 
     except Exception as e:
-        Logger().exception("Exception occurred while initiating action using payload "+ str(action_payload) + " on domain: " + str(domain_id) +" and datasource: " + str(datasource_id))
+        Logger().exception(
+            "Exception occurred while initiating action using payload " + str(action_payload) + " on domain: " + str(
+                domain_id) + " and datasource: " + str(datasource_id))
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
 
@@ -227,11 +230,13 @@ def add_resource_permission(auth_token, datasource_id, action_payload):
     permission.email = action_parameters['user_email']
     permission.permission_type = new_permission_role
 
-    query_params = {"user_email": resource_owner, "datasource_id": datasource_id, "initiated_by_email": action_payload['initiated_by']}
+    query_params = {"user_email": resource_owner, "datasource_id": datasource_id,
+                    "initiated_by_email": action_payload['initiated_by']}
     body = json.dumps([permission], cls=alchemy_encoder())
-    response = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params, {"permissions": json.loads(body)}, "gsuite", constants.TriggerType.SYNC)
+    response = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params,
+                                            {"permissions": json.loads(body)}, "gsuite", constants.TriggerType.SYNC)
     return response
-    
+
 
 def update_or_delete_resource_permission(auth_token, datasource_id, action_payload):
     action_parameters = action_payload['parameters']
@@ -250,19 +255,8 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     if not existing_permission and action_payload['key'] == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         Logger().info("add a new permission ")
-        action_parameters['new_permission_role'] = constants.Role.WRITER
         response = add_resource_permission(auth_token, datasource_id, action_payload)
-        if response.response_code == constants.SUCCESS_STATUS_CODE:
-            # closing the session beacuse the ResourcePermission is of None type. so we can't query in same session
-            db_connection().close_connection()
-            existing_permission = db_session.query(ResourcePermission).filter(
-                and_(ResourcePermission.resource_id == resource_id,
-                     ResourcePermission.datasource_id == datasource_id,
-                     ResourcePermission.email == user_email)).first()
-
-        else:
-            Logger().info("Permission does not exist in db, so cannot update - Bad Request")
-            return ResponseMessage(400, "Bad Request - Permission not found in records")
+        return response
 
     if not existing_permission:
         Logger().info("Permission does not exist in db, so cannot update - Bad Request")
@@ -275,10 +269,10 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     response = "Action executed"
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
-                                                             "gsuite", constants.TriggerType.SYNC)
+                                                  "gsuite", constants.TriggerType.SYNC)
     else:
         response = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
-                                                             "gsuite", constants.TriggerType.SYNC)
+                                                  "gsuite", constants.TriggerType.SYNC)
 
     return response
 
@@ -311,6 +305,7 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
     response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
 
+
 def update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, removal_type):
     action_parameters = action_payload['parameters']
     resource_id = action_parameters['resource_id']
@@ -333,8 +328,10 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
             if permission.permission_type != 'owner':
                 permissions_to_update.append(permission)
 
-    response = execute_batch_delete(auth_token, datasource_id, resource.resource_owner_id, action_payload['initiated_by'], permissions_to_update)
+    response = execute_batch_delete(auth_token, datasource_id, resource.resource_owner_id,
+                                    action_payload['initiated_by'], permissions_to_update)
     return response
+
 
 def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by):
     db_session = db_connection().get_session()
@@ -349,12 +346,13 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
             permissions_to_update_by_resource_owner[owner].append(permission)
         else:
             permissions_to_update_by_resource_owner[owner] = [permission]
-    
+
     response = response_messages.ResponseMessage(200, 'Action submitted successfully')
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
         response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
     return response
+
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update):
     permissions_to_update_count = len(permissions_to_update)
@@ -365,15 +363,19 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
         if permissions_to_update_count < BATCH_COUNT:
-            sync_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},"gsuite", constants.TriggerType.SYNC)
+            sync_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param,
+                                                           {"permissions": json.loads(body)}, "gsuite",
+                                                           constants.TriggerType.SYNC)
         else:
-            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},"gsuite")
+            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},
+                                           "gsuite")
         sent_perms_count += BATCH_COUNT
 
     if permissions_to_update_count < BATCH_COUNT:
         return sync_response
     else:
         return response_messages.ResponseMessage(200, 'Action submitted successfully')
+
 
 def modify_group_membership(auth_token, datasource_id, action_name, action_parameters):
     user_email = action_parameters["user_email"]
@@ -412,15 +414,15 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
         return create_watch_report(auth_token, datasource_id, action_payload)
 
-    #Trigger mail for cleaning files
+    # Trigger mail for cleaning files
     elif action_config.key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
         user_email = action_parameters['user_email']
-        if adya_emails.send_clean_files_email(datasource_id,user_email):
+        if adya_emails.send_clean_files_email(datasource_id, user_email):
             return ResponseMessage(200, "Notification sent to {} for cleanUp".format(user_email))
         else:
             return ResponseMessage(400, "Sending Notification failed for {}".format(user_email))
-    
-    #Directory change actions
+
+    # Directory change actions
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
         return modify_group_membership(auth_token, datasource_id, action_config.key, action_parameters)
 
@@ -535,7 +537,8 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
         db_connection().commit()
 
     except Exception as e:
-        Logger().exception("Exception occurred while processing audit log for domain: "+ str(domain_id) + " and datasource_id: " + str(datasource_id) + " and initiated_by: " + str(initiated_by))
+        Logger().exception("Exception occurred while processing audit log for domain: " + str(
+            domain_id) + " and datasource_id: " + str(datasource_id) + " and initiated_by: " + str(initiated_by))
 
 
 def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
@@ -561,5 +564,6 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
         db_connection().commit()
         return True
     except Exception as ex:
-        Logger().exception("Exception occurred while deleting app for datasource_id: " + str(datasource_id) + " and user_email: " + str(user_email))
+        Logger().exception("Exception occurred while deleting app for datasource_id: " + str(
+            datasource_id) + " and user_email: " + str(user_email))
         return False

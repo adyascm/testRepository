@@ -41,7 +41,8 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoading: false,
                 resourceTree: !action.error ? action.payload : [],
-                rowData: undefined
+                rowData: undefined,
+                resourceSearchPayload: undefined
             }
         case RESOURCES_PAGINATION_DATA:
             return {
@@ -52,12 +53,14 @@ export default (state = defaultState, action) => {
         case RESOURCES_SEARCH_PAYLOAD:
             return {
                 ...state,
-                resourceSearchPayload: action.payload
+                resourceSearchPayload: action.payload,
+                prefix: action.prefix
             }
         case RESOURCES_SEARCH_EMPTY:
             return {
                 ...state,
-                resourceSearchPayload: undefined
+                resourceSearchPayload: undefined,
+                prefix: undefined
             }
         case RESOURCES_TREE_SET_ROW_DATA:
             return {

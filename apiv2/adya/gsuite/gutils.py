@@ -2,10 +2,13 @@ from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
 import json
 import requests
+
+from adya.common.constants import constants
 from adya.common.db.connection import db_connection
 from adya.common.db.models import LoginUser, Domain
 from oauth2client.service_account import ServiceAccountCredentials
-from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE
+from adya.common.constants import constants
+from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
 import os
 import httplib2
 from adya.common.utils.response_messages import Logger
@@ -21,8 +24,7 @@ CLIENT_JSON_FILE_DATA = json.load(open(CLIENT_SECRETS_FILE))
 CLIENT_ID = CLIENT_JSON_FILE_DATA['web']['client_id']
 CLIENT_SECRET = CLIENT_JSON_FILE_DATA['web']['client_secret']
 SERVICE_ACCOUNT_SECRETS_FILE = dir_path + "/service_account.json"
-SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE,
-                                                                  SERVICE_ACCOUNT_SCOPE)
+
 GOOGLE_API_SCOPES = json.load(open(dir_path + "/google_api_scopes.json"))
 
 def revoke_appaccess(auth_token, user_email=None, db_session = None):
@@ -60,6 +62,11 @@ def get_credentials(auth_token, user_email=None, db_session = None):
 
 
 def get_delegated_credentials(emailid):
+    SERVICE_OBJECT = None
+    if constants.DEPLOYMENT_ENV == "liteapp":
+        SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SERVICE_ACCOUNT_READONLY_SCOPE)
+    else:
+        SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SERVICE_ACCOUNT_SCOPE)
     credentials = SERVICE_OBJECT.create_delegated(emailid)
     http = credentials.authorize(httplib2.Http())
     credentials.refresh(http)
@@ -138,3 +145,17 @@ def check_if_external_user(db_session, domain_id, email):
         if email == domain_name:
             return False
     return True
+
+
+def get_resource_exposure_type(permission_exposure, highest_exposure):
+    if permission_exposure == constants.ResourceExposureType.PUBLIC:
+        highest_exposure = constants.ResourceExposureType.PUBLIC
+    elif permission_exposure == constants.ResourceExposureType.ANYONEWITHLINK and not highest_exposure == constants.ResourceExposureType.PUBLIC:
+        highest_exposure = constants.ResourceExposureType.ANYONEWITHLINK
+    elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not (highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.PUBLIC):
+        highest_exposure = constants.ResourceExposureType.EXTERNAL
+    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL):
+        highest_exposure = constants.ResourceExposureType.DOMAIN
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
+        highest_exposure = constants.ResourceExposureType.INTERNAL
+    return highest_exposure

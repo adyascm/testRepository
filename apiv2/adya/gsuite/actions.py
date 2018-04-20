@@ -9,6 +9,7 @@ from adya.common.db.connection import db_connection
 from adya.common.utils.response_messages import Logger
 from adya.common.db.models import DomainUser, Resource, DataSource, ResourcePermission, DomainGroup, alchemy_encoder
 
+
 def delete_user_from_group(auth_token, group_email, user_email):
     directory_service = gutils.get_directory_service(auth_token)
     Logger().info("Initiating removal of user {} from group {} ...".format(user_email, group_email))
@@ -104,9 +105,9 @@ class AddOrUpdatePermisssionForResource():
         if exception:
             Logger().exception("Exception occurred while updating permissions in batch - {}".format(exception))
             content = json.loads(exception.content)
-            self.exception_messages.append(content['error']['message'])         
+            self.exception_messages.append(content['error']['message'])
         else:
-            permission = self.permissions[int(request_id)-1]
+            permission = self.permissions[int(request_id) - 1]
             if not permission['resource_id'] in self.updated_permissions:
                 self.updated_permissions[permission['resource_id']] = [permission]
             else:
@@ -122,25 +123,30 @@ class AddOrUpdatePermisssionForResource():
             email = permission['email']
             email_type = "user"
             db_session = db_connection().get_session()
+            existing_permission = None
             existing_group = db_session.query(DomainGroup).filter(
-                    and_(DomainGroup.datasource_id == permission['datasource_id'],
-                         DomainGroup.email == email)).first()
+                and_(DomainGroup.datasource_id == permission['datasource_id'],
+                     DomainGroup.email == email)).first()
 
             if existing_group:
                 email_type = "group"
-            
+
             add_permission_object = {
                 "role": role,
                 "type": email_type,
                 "emailAddress": email
 
             }
+
             request = self.drive_service.permissions().create(fileId=resource_id, body=add_permission_object,
                                                               transferOwnership=True if role == 'owner' else False,
                                                               fields='id, emailAddress, type, kind, displayName')
             isSuccess = False
             try:
+                # check for existing permission only if action role is of 'owner'
                 response = request.execute()
+                permission['displayName'] = response['displayName'] if 'displayName' in response else ""
+
                 Logger().info("Add permission response from google is - {}".format(response))
                 permission['permission_id'] = response['id']
                 permission['exposure_type'] = constants.ResourceExposureType.INTERNAL
@@ -149,10 +155,11 @@ class AddOrUpdatePermisssionForResource():
                 Logger().exception("Exception occurred while adding a new permission")
                 content = json.loads(ex.content)
                 self.exception_messages.append(content['error']['message'])
-                
+
             if isSuccess:
                 try:
-                    new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id, self.initiated_by_email)
+                    new_permission = add_new_permission_to_db(permission, resource_id, self.datasource_id,
+                                                              self.initiated_by_email, role)
                     if not permission['resource_id'] in self.updated_permissions:
                         self.updated_permissions[permission['resource_id']] = [new_permission]
                     else:
@@ -176,8 +183,6 @@ class AddOrUpdatePermisssionForResource():
                                                               transferOwnership=True if role == 'owner' else False)
             self.change_requests.append(request)
         self.execute()
-        #if role == "owner":
-            #TODO: Change previous owner
         try:
             update_resource_permissions(self.initiated_by_email, self.datasource_id, self.updated_permissions)
         except Exception as ex:
@@ -199,15 +204,32 @@ class AddOrUpdatePermisssionForResource():
             self.exception_messages.append("Exception occurred while removing permission from db")
         return self.updated_permissions
 
+
 def update_resource_permissions(initiated_by_email, datasource_id, updated_permissions):
     db_session = db_connection().get_session()
     for resource_id in updated_permissions:
         resource_permissions = updated_permissions[resource_id]
+        new_owner = None
         for perm in resource_permissions:
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
-                                                             ResourcePermission.resource_id == resource_id)).update({"permission_type": perm["permission_type"]})
+                                                             ResourcePermission.resource_id == resource_id)). \
+                                                             update({"permission_type": perm["permission_type"]})
+            if perm["permission_type"] == "owner":
+                new_owner = perm['email']
+
+        existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
+                                                                   Resource.datasource_id == datasource_id)).first()
+
+        existing_resource.last_modifying_user_email = initiated_by_email
+        existing_resource.last_modified_time = datetime.datetime.utcnow()
+
+        if new_owner:
+            update_old_owner_permission(db_session, datasource_id, resource_id, new_owner)
+            existing_resource.resource_owner_id = new_owner
+
     db_connection().commit()
+
 
 # db update for delete permission
 def delete_resource_permission(initiated_by_email, datasource_id, updated_permissions):
@@ -223,19 +245,12 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
                                                              ResourcePermission.resource_id == resource_id)).delete()
         db_connection().commit()
         updated_resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
-                                                             Resource.resource_id == resource_id)).first()
+                                                                  Resource.resource_id == resource_id)).first()
         highest_exposure = constants.ResourceExposureType.PRIVATE
         for resource_perm in updated_resource.permissions:
-            if resource_perm.exposure_type == constants.ResourceExposureType.PUBLIC:
-                highest_exposure = constants.ResourceExposureType.PUBLIC
-                break
-            elif resource_perm.exposure_type == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
-                highest_exposure = constants.ResourceExposureType.EXTERNAL
-            elif resource_perm.exposure_type == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
-                highest_exposure = constants.ResourceExposureType.DOMAIN
-            elif resource_perm.exposure_type == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
-                highest_exposure = constants.ResourceExposureType.INTERNAL
-        #Update the resource with highest exposure
+            highest_exposure = gutils.get_resource_exposure_type(resource_perm.exposure_type, highest_exposure)
+
+        # Update the resource with highest exposure
         if not updated_resource.exposure_type == highest_exposure:
             updated_resource.exposure_type = highest_exposure
             updated_resource.last_modifying_user_email = initiated_by_email
@@ -256,22 +271,22 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
     if anything_changed:
         db_connection().commit()
 
-# adding a new permission in db
-def add_new_permission_to_db(updated_permission, resource_id, datasource_id, initiated_by_email):
 
+# adding a new permission in db
+def add_new_permission_to_db(updated_permission, resource_id, datasource_id, initiated_by_email, role):
     # If the user does not exist in DomainUser table add now
     db_session = db_connection().get_session()
     existing_user = db_session.query(DomainUser).filter(
         and_(DomainUser.datasource_id == datasource_id,
-                DomainUser.email == updated_permission['email'])).first()
+             DomainUser.email == updated_permission['email'])).first()
     if not existing_user:
-        #Update the exposure type of the permission
+        # Update the exposure type of the permission
         updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
         domainUser = DomainUser()
         domainUser.datasource_id = datasource_id
         domainUser.email = updated_permission['email']
         domainUser.member_type = constants.UserMemberType.EXTERNAL
-        display_name = response['displayName'] if 'displayName' in response else ""
+        display_name = updated_permission['displayName']
         name = display_name.split(' ')
         if len(name) > 0 and name[0]:
             domainUser.first_name = name[0]
@@ -292,11 +307,12 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
     permission.exposure_type = updated_permission['exposure_type']
     db_session.add(permission)
 
-    #Update the exposure type of the resource based on the updated permission
+    # Update the exposure type of the resource based on the updated permission
     existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
                                                                Resource.datasource_id == datasource_id)).first()
     if permission.exposure_type == constants.ResourceExposureType.EXTERNAL:
-        if not (existing_resource.exposure_type == constants.ResourceExposureType.EXTERNAL and existing_resource.exposure_type == constants.ResourceExposureType.PUBLIC):
+        if not (
+                existing_resource.exposure_type == constants.ResourceExposureType.EXTERNAL and existing_resource.exposure_type == constants.ResourceExposureType.PUBLIC):
             existing_resource.exposure_type = constants.ResourceExposureType.EXTERNAL
 
     else:
@@ -305,5 +321,20 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
 
     existing_resource.last_modifying_user_email = initiated_by_email
     existing_resource.last_modified_time = datetime.datetime.utcnow()
+
+    if role == constants.Role.OWNER:
+        existing_resource.resource_owner_id = updated_permission['email']
+        update_old_owner_permission(db_session, datasource_id, resource_id, updated_permission['email'])
+
     db_connection().commit()
     return permission
+
+
+def update_old_owner_permission(db_session, datasource_id, resource_id, updated_email):
+    resource_permission = db_session.query(ResourcePermission).filter(
+        and_(ResourcePermission.resource_id == resource_id,
+             ResourcePermission.datasource_id == datasource_id, ResourcePermission.email <> updated_email,
+             ResourcePermission.permission_type == constants.Role.OWNER)).update(
+        {ResourcePermission.permission_type: constants.Role.WRITER})
+
+    return resource_permission
