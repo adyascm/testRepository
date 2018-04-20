@@ -81,10 +81,10 @@ class ResponseType(Enum):
 
 
 class DocType(Enum):
-    PUBLIC_COUNT = 'Shared public on web'
+    PUBLIC_COUNT = 'Publicly discoverable'
     EXTERNAL_COUNT = 'Shared with users outside company'
     DOMAIN_COUNT = 'Shared across company'
-    ANYONE_WITH_LINK_COUNT = 'Shared anyone with link'
+    ANYONE_WITH_LINK_COUNT = 'Shared public link'
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
