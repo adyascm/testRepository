@@ -248,17 +248,8 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
                                                                   Resource.resource_id == resource_id)).first()
         highest_exposure = constants.ResourceExposureType.PRIVATE
         for resource_perm in updated_resource.permissions:
-            if resource_perm.exposure_type == constants.ResourceExposureType.PUBLIC:
-                highest_exposure = constants.ResourceExposureType.PUBLIC
-                break
-            elif resource_perm.exposure_type == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
-                highest_exposure = constants.ResourceExposureType.EXTERNAL
-            elif resource_perm.exposure_type == constants.ResourceExposureType.DOMAIN and not (
-                    highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
-                highest_exposure = constants.ResourceExposureType.DOMAIN
-            elif resource_perm.exposure_type == constants.ResourceExposureType.INTERNAL and not (
-                        highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
-                highest_exposure = constants.ResourceExposureType.INTERNAL
+            highest_exposure = gutils.get_resource_exposure_type(resource_perm.exposure_type, highest_exposure)
+
         # Update the resource with highest exposure
         if not updated_resource.exposure_type == highest_exposure:
             updated_resource.exposure_type = highest_exposure

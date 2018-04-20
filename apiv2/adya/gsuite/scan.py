@@ -180,6 +180,12 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                     elif display_name:
                         email_address = "__ANYONE__@"+ display_name
                         permission_exposure = constants.ResourceExposureType.DOMAIN
+
+                    #  Shared with anyone with link
+                    elif permission_id == 'anyoneWithLink':
+                        email_address = constants.ResourceExposureType.ANYONEWITHLINK
+                        permission_exposure = constants.ResourceExposureType.ANYONEWITHLINK
+
                     #Shared with everyone in public
                     else:
                         email_address = constants.ResourceExposureType.PUBLIC
@@ -195,7 +201,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
                         resource_permission["expiration_time"] = expiration_time[:-1]
                     resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
-                    resource_exposure_type = get_resource_exposure_type(permission_exposure, resource_exposure_type)
+                    resource_exposure_type = gutils.get_resource_exposure_type(permission_exposure, resource_exposure_type)
             resource["exposure_type"] = resource_exposure_type
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)
@@ -228,17 +234,6 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
         Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
 
-
-def get_resource_exposure_type(permission_exposure, highest_exposure):
-    if permission_exposure == constants.ResourceExposureType.PUBLIC:
-        highest_exposure = constants.ResourceExposureType.PUBLIC
-    elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not highest_exposure == constants.ResourceExposureType.PUBLIC:
-        highest_exposure = constants.ResourceExposureType.EXTERNAL
-    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL):
-        highest_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
-        highest_exposure = constants.ResourceExposureType.INTERNAL
-    return highest_exposure
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
     requestdata = {"fileIds": batch_request_file_id_list}

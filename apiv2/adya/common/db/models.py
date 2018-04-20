@@ -124,7 +124,7 @@ class Resource(Base):
     resource_owner_id = Column(String(320))
     last_modified_time = Column(DateTime)
     creation_time = Column(DateTime)
-    exposure_type = Column(String(10))
+    exposure_type = Column(String(30))
     web_content_link = Column(Text)
     web_view_link = Column(Text)
     icon_link = Column(Text)
@@ -152,7 +152,7 @@ class ResourcePermission(Base):
     email = Column(String(320), primary_key=True)
     permission_id = Column(String(260), nullable=False)
     permission_type = Column(String(10))
-    exposure_type = Column(String(10))
+    exposure_type = Column(String(30))
     expiration_time = Column(DateTime)
     is_deleted = Column(Boolean, default=False)
     __table_args__ = (

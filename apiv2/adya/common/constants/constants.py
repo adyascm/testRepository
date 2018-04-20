@@ -31,6 +31,7 @@ class ResourceExposureType(Enum):
     DOMAIN = "DOMAIN"
     EXTERNAL = "EXT"
     PUBLIC = "PUBLIC"
+    ANYONEWITHLINK = 'ANYONEWITHLINK'
 
 
 class PermissionType(Enum):
@@ -80,9 +81,10 @@ class ResponseType(Enum):
 
 
 class DocType(Enum):
-    PUBLIC_COUNT = 'Shared public links'
+    PUBLIC_COUNT = 'Shared public on web'
     EXTERNAL_COUNT = 'Shared with users outside company'
     DOMAIN_COUNT = 'Shared across company'
+    ANYONE_WITH_LINK_COUNT = 'Shared anyone with link'
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
