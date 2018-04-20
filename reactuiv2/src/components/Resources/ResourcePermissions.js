@@ -64,7 +64,7 @@ const ResourcePermissions = props => {
                             {permission["email"]}
                         </Table.Cell>
                         <Table.Cell>
-                            <Dropdown fluid selection options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} />
+                            <Dropdown fluid selection options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} selectOnBlur={false} />
                         </Table.Cell>
                     </Table.Row>
                 )
@@ -109,7 +109,7 @@ const ResourcePermissions = props => {
                         <Input fluid placeholder='Enter the new user email' onChange={handleEmailChange} />
                     </Table.Cell>
                     <Table.Cell>
-                        <Dropdown fluid selection options={permissionOptions} onChange={(event,data) => handleDropDownChange(event,data.value)} />
+                        <Dropdown fluid selection options={permissionOptions} onChange={(event,data) => handleDropDownChange(event,data.value)} selectOnBlur={false} />
                     </Table.Cell>
                 </Table.Row>
                 {permissionUsers}

@@ -13,10 +13,6 @@ const ResourceDetails = props => {
 
     var quickActions = [
         {
-            text: '',
-            value: ''
-        },
-        {
             text: 'Transfer ownership of \"' + props.rowData['resource_name'] + '\"',
             value: 'change_owner'
         },
@@ -56,7 +52,7 @@ const ResourceDetails = props => {
                         </div>
                     </Item.Meta>
                     <Item.Extra extra="true">
-                        <Dropdown placeholder='Quick Actions...' selection fluid options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
+                        <Dropdown placeholder='Quick Actions...' selection fluid options={quickActions} value='' onChange={(event, data) => props.onQuickAction(data.value)} selectOnBlur={false} />
                     </Item.Extra>
                 </Item.Content>
             </Item>
