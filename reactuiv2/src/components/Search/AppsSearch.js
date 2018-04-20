@@ -34,7 +34,9 @@ class AppsSearch extends Component {
         this.state = {
             isLoading: false,
             value: '',
-            results: []
+            results: [],
+            hideSearchMenu: true,
+            showNoResults: false
         }
     }
 
@@ -52,11 +54,18 @@ class AppsSearch extends Component {
         if (value === '') {
             this.props.setAppsSearchResults(undefined)
             this.setState({
-                value
+                value: value,
+                results: [],
+                hideSearchMenu: true,
+                showNoResults: false
             })
             return
         }
-        this.setState({ isLoading: true, value })
+        this.setState({ 
+            isLoading: true, 
+            value: value,
+            hideSearchMenu: false 
+        })
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
@@ -72,7 +81,8 @@ class AppsSearch extends Component {
             }
             this.setState({
                 isLoading: false,
-                results: results
+                results: results,
+                showNoResults: results.length > 0 ? false : true
             })
         }, 1000)
     }
@@ -83,8 +93,20 @@ class AppsSearch extends Component {
         this.props.appUsersLoadStart()
         this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id))
         this.setState({
-            value: result.display_text
+            value: result.display_text,
+            hideSearchMenu: true,
+            showNoResults: false
         })
+    }
+
+    handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            this.props.setAppsSearchResults(this.state.results)
+            this.setState({
+                hideSearchMenu: true,
+                showNoResults: false
+            })
+        }
     }
 
     render() {
@@ -96,6 +118,9 @@ class AppsSearch extends Component {
                 results={this.state.results}
                 value={this.state.value}
                 resultRenderer={this.resultRenderer}
+                onKeyPress={this.handleKeyPress}
+                open={!this.state.hideSearchMenu}
+                showNoResults={this.state.showNoResults}
             />
         )
     }

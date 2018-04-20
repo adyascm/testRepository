@@ -29,8 +29,9 @@ class ResourceSearch extends Component {
         this.state = {
             isLoading: false,
             value: this.props.defaultValue? this.props.defaultValue : '',
-            results: []
-
+            results: [],
+            hideSearchMenu: true,
+            showNoResults: false
         }
     }
 
@@ -53,17 +54,28 @@ class ResourceSearch extends Component {
            this.props.onChangeReportInput(entityinfokey, entityinfovalue)
         }
         this.setState({
-            value: result.resource_name
+            value: result.resource_name,
+            hideSearchMenu: true,
+            showNoResults: false
         })
     }
 
     handleSearchChange = (e, { value }) => {
         if (value === '') {
             this.props.onsearchEmpty()
-            this.setState({ value })
+            this.setState({ 
+                value: value,
+                results: [],
+                hideSearchMenu: true,
+                showNoResults: false
+             })
             return 
         }
-        this.setState({ isLoading: true, value })
+        this.setState({ 
+            isLoading: true, 
+            value: value,
+            hideSearchMenu: false
+        })
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
@@ -75,12 +87,14 @@ class ResourceSearch extends Component {
                 agent.Resources.getResourcesTree(this.props.filterMetadata).then(res => {
                     this.setState({
                         isLoading: false,
-                        results: res
+                        results: res,
+                        showNoResults: res.length > 0 ? false : true
                     })
                 }, error => {
                     this.setState({
                         isLoading: false,
-                        results: []
+                        results: [],
+                        showNoResults: true
                     })
                 })
             }            
@@ -89,15 +103,27 @@ class ResourceSearch extends Component {
                     this.setState({
                         isLoading: false,
                         results: res,
+                        showNoResults: res.length > 0 ? false : true
                     })
                 }, error => {
                     this.setState({
                         isLoading: false,
                         results: [],
+                        showNoResults: true
                     })
                 });
             }
         }, 1000)
+    }
+
+    handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            this.props.onsearchLoad(this.state.results)
+            this.setState({
+                hideSearchMenu: true,
+                showNoResults: false
+            })
+        }
     }
 
     render() {
@@ -111,6 +137,9 @@ class ResourceSearch extends Component {
                 results={results}
                 value={value}
                 resultRenderer={this.resultRenderer}
+                onKeyPress={this.handleKeyPress}
+                open={!this.state.hideSearchMenu}
+                showNoResults={this.state.showNoResults}
                 fluid
                 // {...this.props} 
             />
