@@ -84,6 +84,13 @@ custom:
       httpProtocol: "https://"
       apiHost: "api.adya.io"
       uiHost: "app.adya.io"
+    liteapp: 
+      awsProfile: prodProfile
+      dbName: "liteapp"
+      region: us-east-1
+      httpProtocol: "https://"
+      apiHost: "liteappapi.adya.io"
+      uiHost: "liteapp.adya.io"
 
   customDomain:
     domainName: ${self:custom.stages.${self:provider.stage}.apiHost}
