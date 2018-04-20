@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { LOGOUT, SET_REDIRECT_PROPS } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
-import { Container, Image, Menu, Icon } from 'semantic-ui-react'
+import { Container, Image, Menu, Icon, Label } from 'semantic-ui-react'
 import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const LoggedOutView = props => {
@@ -45,6 +45,11 @@ const LoggedInView = props => {
                     <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item>
+                    <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
+                        <Icon name='bell' />
+                        {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)}
+                        {/* <Label color='teal' size='mini' floating>12</Label> */}
+                    </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
                     {/* <Dropdown item icon='settings'>
                         <Dropdown.Menu>
@@ -64,7 +69,8 @@ const LoggedInView = props => {
 
 const mapStateToProps = state => ({
     ...state.common,
-    ...state.dashboard
+    ...state.dashboard,
+    openAlertsCount: state.alert.openAlerts
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -94,7 +100,7 @@ class Header extends React.Component {
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} handleClick={this.handleClick} />
-                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} {...this.props} />
+                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} openAlertsCount={this.props.openAlertsCount} {...this.props} />
             </Menu>
         )
     }
