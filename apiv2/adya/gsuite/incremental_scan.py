@@ -20,8 +20,14 @@ def handle_channel_expiration():
     for row in subscription_list:
         access_time = datetime.datetime.utcnow()
         expire_time = access_time
-        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=86100)):
-            # Unsubscribe and subscribe again
+
+        #If the subscription is not yet expired and expiry is more than 6 hours, dont resubscribe
+        #It will happen in the next 6 hourly check
+        if row.expire_at > access_time and row.expire_at > (access_time + timedelta(seconds=21600)):
+            continue
+
+        #If the subscription is not yet expired and is going to expire in next 6 hours, then first unsubscribe
+        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=21600)):
             unsubscribe_subscription(row)
 
         try:
@@ -140,7 +146,7 @@ def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user
         "address": constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
         "token": datasource.datasource_id,
         "payload": "true",
-        "params": {"ttl": 86100}
+        "params": {"ttl": 21600}
     }
 
     watch_response = reports_service.activities().watch(
@@ -158,8 +164,8 @@ def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user
 
 def subscribe(domain_id, datasource_id):
     db_session = db_connection().get_session()
-    # set up a resubscribe handler that runs every midnight cron(0 0 ? * * *)
-    aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0 ? * * *)",
+    # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
+    aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
                                         aws_utils.get_lambda_name("get",
                                                                 urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
 
