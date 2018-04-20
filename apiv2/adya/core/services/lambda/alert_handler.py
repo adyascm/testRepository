@@ -23,4 +23,4 @@ def get_alert_count(event, context):
     if req_error:
         return req_error
     alerts_count = alert_controller.fetch_alerts_count(req_session.get_auth_token())
-    return req_session.generate_sqlalchemy_response(200, alerts_count)
+    return req_session.generate_response(200, alerts_count)
