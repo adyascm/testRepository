@@ -72,6 +72,7 @@ def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
         countDomainSharedDocs = 0
         countExternalSharedDocs = 0
         countPublicSharedDocs = 0
+        countAnyoneWithLinkSharedDocs = 0
 
         for item in countSharedDocumentsByType:
             if item[0] == constants.DocType.DOMAIN_COUNT:
@@ -80,8 +81,10 @@ def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
                 countExternalSharedDocs = item[1]
             elif item[0] == constants.DocType.PUBLIC_COUNT:
                 countPublicSharedDocs = item[1]
+            elif item[0] == constants.DocType.ANYONE_WITH_LINK_COUNT:
+                countAnyoneWithLinkSharedDocs = item[1]
 
-        countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs
+        countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs
         externalDocsListData = reports_controller.get_widget_data(auth_token,"sharedDocsList", datasource.datasource_id,user_email)
         externalUserListData = reports_controller.get_widget_data(auth_token,"externalUsersList", datasource.datasource_id,user_email)
 
@@ -95,12 +98,13 @@ def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
         data = {
             "countDocuments": countDocuments,
             "countExternalData": countExternalSharedDocs,
-            "countLinkData": countPublicSharedDocs,
+            "countPublicData": countPublicSharedDocs,
             "externalDocs": externalDocs,
             "documentsCountData": externalDocsListData["totalCount"],
             "externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
             "countDomainData": countDomainSharedDocs,
+            "countAnyoneWithLinkData": countAnyoneWithLinkSharedDocs,
             "trialLink": trial_link,
             "restFiles": "...and " + str(restFiles) + " other documents" if restFiles > 0 else "",
             "restUsers": "...and " + str(restUsers) + " other external users" if restUsers > 0 else ""

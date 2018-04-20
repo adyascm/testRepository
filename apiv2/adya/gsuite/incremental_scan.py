@@ -170,7 +170,7 @@ def subscribe(domain_id, datasource_id):
                                                                 urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
 
     # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
-    aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0/60 0 * * ? *)",
+    aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
                                         aws_utils.get_lambda_name("get",
                                                                 urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
     datasource = db_session.query(DataSource).filter(
