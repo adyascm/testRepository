@@ -74,6 +74,7 @@ api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
 
 #alerts
 api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
+api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
 
 
 if __name__ == '__main__':

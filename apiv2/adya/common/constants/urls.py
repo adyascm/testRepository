@@ -41,5 +41,6 @@ POLICIES_PATH = '/common/policies'
 POLICIES_VALIDATE_PATH = '/common/policies/validate'
 
 ALERTS_PATH = '/common/alerts'
+ALERTS_COUNT_PATH = '/common/alerts/count'
 
 ACTION_PATH = '/google/actions'

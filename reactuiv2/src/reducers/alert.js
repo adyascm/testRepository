@@ -1,7 +1,7 @@
 import {
     ALERTS_LOAD_START,
     ALERTS_LOADED,
-    ALERTS_FETCH_OPEN_ALERTS,
+    FETCH_ALERTS_COUNT,
     LOGOUT
 } from '../constants/actionTypes'
 
@@ -24,10 +24,10 @@ export default (state = defaultState, action) => {
                 isLoading: false,
                 alerts: !action.error?action.payload:[]
             }
-        case ALERTS_FETCH_OPEN_ALERTS:
+        case FETCH_ALERTS_COUNT:
             return {
                 ...state,
-                openAlerts: action.openAlertsCount
+                alertsCount: action.alertsCount
             }
         case LOGOUT:
             break

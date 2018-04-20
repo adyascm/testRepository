@@ -300,3 +300,11 @@ functions:
         path: alerts
         method: post
         cors: true
+  
+  get-common-alerts-count:
+    handler: adya.core.services.lambda.alert_handler.get_alert_count
+    events:
+      -http:
+        path: alerts/count
+        method: get
+        cors: true

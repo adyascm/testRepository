@@ -14,14 +14,14 @@ def get_alerts(auth_token):
                                             Alert.datasource_id == DataSource.datasource_id).all()
     return alerts
 
-def fetch_open_alerts(auth_token):
+def fetch_alerts_count(auth_token):
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token, db_session=db_session)
 
-    open_alerts_count = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
+    alerts_count = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
                                                          Alert.datasource_id == DataSource.datasource_id,
                                                          Alert.isOpen == True).count()
-    return open_alerts_count
+    return alerts_count
 
 def create_alerts(auth_token, payload):
     db_session = db_connection().get_session()

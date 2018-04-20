@@ -119,8 +119,8 @@ const Policy = {
 const Alert = {
     getAlert: () =>
         requests.get('/common/alerts'),
-    getViolationCount: (fetchViolationCount) =>
-        requests.get('/common/alerts?fetchViolationCount=' + fetchViolationCount)
+    getAlertsCount: () =>
+        requests.get('/common/alerts/count')
 }   
 
 

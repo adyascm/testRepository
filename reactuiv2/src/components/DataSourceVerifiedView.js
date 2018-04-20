@@ -6,7 +6,7 @@ import {
     GET_ALL_ACTIONS, 
     USERS_PAGE_LOADED, 
     USERS_PAGE_LOAD_START,
-    ALERTS_FETCH_OPEN_ALERTS 
+    FETCH_ALERTS_COUNT 
 } from '../constants/actionTypes';
 import agent from '../utils/agent';
 import common from '../utils/common'
@@ -25,8 +25,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USERS_PAGE_LOAD_START });
         dispatch({ type: USERS_PAGE_LOADED, payload });
     },
-    fetchOpenAlerts: (openAlertsCount) => 
-        dispatch({ type: ALERTS_FETCH_OPEN_ALERTS, openAlertsCount })    
+    fetchAlertsCount: (alertsCount) => 
+        dispatch({ type: FETCH_ALERTS_COUNT, alertsCount })    
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -43,9 +43,9 @@ const DataSourceVerifiedView = ChildComponent => {
             {
                 this.props.loadUsersTreeData(agent.Users.getUsersTree());
             }
-            if (!this.props.openAlerts) {
-                agent.Alert.getViolationCount(true).then(response => {
-                    this.props.fetchOpenAlerts(response)
+            if (!this.props.alertsCount) {
+                agent.Alert.getAlertsCount().then(response => {
+                    this.props.fetchAlertsCount(response)
                 })
             }
         }
