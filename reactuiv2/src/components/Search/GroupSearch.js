@@ -30,8 +30,9 @@ class GroupSearch extends Component {
             isLoading: false,
             value: this.props.defaultValue ? this.props.defaultValue : '',
             results: [],
-            resultsMap: {}
-
+            resultsMap: {},
+            hideSearchMenu: true,
+            showNoResults: false
         }
         // if(!this.props.users.usersTreePayload)
         // {
@@ -69,17 +70,27 @@ class GroupSearch extends Component {
 
         }
         this.setState({
-            value: result.email
+            value: result.email,
+            hideSearchMenu: true,
+            showNoResults: false
         })
     }
 
     handleSearchChange = (e, { value }) => {
         if (value === '') {
             this.props.onsearchEmpty()
-            this.setState({ value })
+            this.setState({ 
+                value: value,
+                results: [],
+                hideSearchMenu: true
+            })
             return
         }
-        this.setState({ isLoading: true, value })
+        this.setState({ 
+            isLoading: true, 
+            value: value,
+            hideSearchMenu: false 
+        })
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
@@ -99,9 +110,20 @@ class GroupSearch extends Component {
             this.setState({
                 isLoading: false,
                 results: results,
-                resultsMap: resultsMap
+                resultsMap: resultsMap,
+                showNoResults: results.length > 0 ? false : true
             })
         }, 1000)
+    }
+
+    handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            this.props.onsearchLoad(this.state.resultsMap)
+            this.setState({
+                hideSearchMenu: true,
+                showNoResults: false
+            })
+        }
     }
 
     render() {
@@ -116,6 +138,9 @@ class GroupSearch extends Component {
                 results={results}
                 value={value}
                 resultRenderer={this.resultRenderer}
+                onKeyPress={this.handleKeyPress}
+                open={!this.state.hideSearchMenu}
+                showNoResults={this.state.showNoResults}
                 // {...this.props}
             />
         )
