@@ -39,9 +39,7 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         resources_query = resources_query.filter(resource_alias.resource_owner_id != selectedUser)
     if resource_type:
         resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
-    #  added check for user_email with exposure type (for e.g : for external user exposure type will be 'ext' but
-    # though we are doing filter on resource exposure so it will bot show public or anywithlink exposures files
-    if exposure_type and not user_emails:
+    if exposure_type:
             resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
     if prefix:
         page_limit = 10
