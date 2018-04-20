@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { SET_DATASOURCES, GET_ALL_ACTIONS, USERS_PAGE_LOADED, USERS_PAGE_LOAD_START } from '../constants/actionTypes';
+import { 
+    SET_DATASOURCES, 
+    GET_ALL_ACTIONS, 
+    USERS_PAGE_LOADED, 
+    USERS_PAGE_LOAD_START,
+    FETCH_ALERTS_COUNT 
+} from '../constants/actionTypes';
 import agent from '../utils/agent';
 import common from '../utils/common'
 
@@ -18,8 +24,9 @@ const mapDispatchToProps = dispatch => ({
     {
         dispatch({ type: USERS_PAGE_LOAD_START });
         dispatch({ type: USERS_PAGE_LOADED, payload });
-    }
-    
+    },
+    fetchAlertsCount: (alertsCount) => 
+        dispatch({ type: FETCH_ALERTS_COUNT, alertsCount })    
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -35,6 +42,11 @@ const DataSourceVerifiedView = ChildComponent => {
             (!this.props.users.isLoading && !this.props.users.usersTreePayload))
             {
                 this.props.loadUsersTreeData(agent.Users.getUsersTree());
+            }
+            if (!this.props.alertsCount) {
+                agent.Alert.getAlertsCount().then(response => {
+                    this.props.fetchAlertsCount(response)
+                })
             }
         }
         render() {

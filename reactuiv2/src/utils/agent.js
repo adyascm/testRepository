@@ -116,5 +116,12 @@ const Policy = {
         requests.put('/common/policies?policyId=' + policyId, policyInfo)
 }
 
+const Alert = {
+    getAlert: () =>
+        requests.get('/common/alerts'),
+    getAlertsCount: () =>
+        requests.get('/common/alerts/count')
+}   
 
-export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, setToken: _token => { token = _token; } };
+
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, setToken: _token => { token = _token; } };

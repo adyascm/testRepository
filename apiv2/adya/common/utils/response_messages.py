@@ -1,6 +1,6 @@
 import logging
-
 import sys
+from adya.common.constants import constants
 
 
 class ResponseMessage():
@@ -24,7 +24,8 @@ class Logger:
 
         def __init__(self):
             self.logger = logging.getLogger()
-            self.logger.addHandler(logging.StreamHandler(sys.stdout))
+            if constants.DEPLOYMENT_ENV == "local":
+                self.logger.addHandler(logging.StreamHandler(sys.stdout))
             self.logger.setLevel(logging.INFO)
 
         def info(self, message):
