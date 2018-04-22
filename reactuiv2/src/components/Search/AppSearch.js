@@ -15,18 +15,18 @@ const mapDispatchToProps = dispatch => ({
 
 class AppSearch extends Component {
 
-    componentWillMount() {
+    // componentWillMount() {
 
-        this.resetComponent(this.props.common.currentView)
-    }
+    //     this.resetComponent(this.props.common.currentView)
+    // }
 
-    resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
+    // resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     render() {
         return (
             <div style={{textAlign: 'left'}}>
-                {this.props.common.currentView === "/users" ? <GroupSearch /> : 
-                    this.props.common.currentView === "/apps" ? <AppsSearch /> : <ResourceSearch />}
+                {this.props.common.currentUrl === "/users" ? <GroupSearch /> : 
+                    this.props.common.currentUrl === "/apps" ? <AppsSearch /> : <ResourceSearch />}
             </div>
         )
     }
