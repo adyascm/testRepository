@@ -223,21 +223,22 @@ class ReactCron extends Component {
 
   var cronArray = [];
   cronArray = cronExp.split(" ")
+  console.log("cronarray ", cronArray)
   {cronArray[1] !== '*'? this.setState({
-    selectedDayOption : {'hour': cronArray[1],'min': cronArray[0]},
+    selectedDayOption : {'hour': cronArray[1],'min': cronArray[0].split('(')[1]},
     selectedPeriod: 'day'}) : null}
     ;
   {cronArray[4] !== '*' && cronArray[4] !== '?'? this.setState({
-    selectedWeekOption: {'day': cronArray[4], 'hour': cronArray[1], 'min': cronArray[0] },
+    selectedWeekOption: {'day': cronArray[4], 'hour': cronArray[1], 'min':  cronArray[0].split('(')[1] },
      selectedPeriod: 'week'
    }) : null
   };
   {cronArray[2] !== '*' && cronArray[2] !== '?'? this.setState({
-    selectedWeekOption: {'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0]},
+    selectedWeekOption: {'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0].split('(')[1]},
     selectedPeriod: 'month'}) : null
   };
   {cronArray[3] !== '*' ? this.setState({
-    selectedWeekOption: {'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min': cronArray[0]},
+    selectedWeekOption: {'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min':  cronArray[0].split('(')[1]},
     selectedPeriod: 'year'}) : null
   };
 
