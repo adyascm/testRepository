@@ -30,7 +30,7 @@ const defaultState = {
     selectedUserItem: undefined,
     userDetailsViewActive: false,
     isActivitiesLoading: false,
-    selectedUserItem: undefined,
+    // selectedUserItem: undefined,
     action: undefined,
     userFilterType: 'EXT',
     hasGroups: false,
@@ -131,7 +131,10 @@ export default (state = defaultState, action) => {
                     }
                 }
             }
-            state.selectedUserItem.resources = rows;
+            if ((state.selectedUserItem.member_type === 'EXT') && !rows.length)
+                state.selectedUserItem = undefined
+            else
+                state.selectedUserItem.resources = rows;
 
             return {
                 ...state,
