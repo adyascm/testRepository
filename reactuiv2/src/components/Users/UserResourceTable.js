@@ -48,8 +48,7 @@ class UserResourceTable extends Component {
                 { text: 'Can Write', value: 'writer' },
                 { text: 'Owner', value: 'owner' },
                 {text: 'Can Comment', value: 'commenter'}
-            ],
-            showMemberType: this.props.showMemberType
+            ]
         }
     }
 
