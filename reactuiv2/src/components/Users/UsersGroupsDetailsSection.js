@@ -46,6 +46,14 @@ class UsersGroupsDetailsSection extends Component {
                 value: 'EXT'
             },
             {
+                text: 'Publicly Shared',
+                value: 'PUBLIC'
+            },
+            {
+              text: 'Anyone With Link Shared',
+              value: 'ANYONEWITHLINK'
+            },
+            {
                 text: 'Domain Shared',
                 value: 'DOMAIN'
             },
@@ -103,6 +111,9 @@ class UsersGroupsDetailsSection extends Component {
 
     render() {
 
+        if (!this.props.selectedUserItem)
+            return null
+
         var resourceLayout = (
             <Container stretched="true">
                 <Grid stretched>
@@ -119,7 +130,7 @@ class UsersGroupsDetailsSection extends Component {
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
-                        <UserResourceTable />
+                        <UserResourceTable showMemberType={this.props.showMemberType} />
                     </Grid.Row>
                 </Grid>
             </Container>
@@ -146,14 +157,14 @@ class UsersGroupsDetailsSection extends Component {
                 { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> }
             ]
 
-            if ((this.props.selectedUserItem["member_type"] !== 'EXT') && 
+            if ((this.props.selectedUserItem["member_type"] !== 'EXT') &&
                 (this.props.selectedUserItem["type"] !== "group"))
                 panes.push(...extraPanes)
             else {
                 panes.pop()
                 panes.push(extraPanes[0])
-            } 
-                
+            }
+
             return (
                 <Segment>
                     {/* <Sticky> */}
