@@ -46,6 +46,14 @@ class UsersGroupsDetailsSection extends Component {
                 value: 'EXT'
             },
             {
+                text: 'Publicly Shared',
+                value: 'PUBLIC'
+            },
+            {
+              text: 'Anyone With Link Shared',
+              value: 'ANYONEWITHLINK'
+            },
+            {
                 text: 'Domain Shared',
                 value: 'DOMAIN'
             },
@@ -146,14 +154,14 @@ class UsersGroupsDetailsSection extends Component {
                 { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> }
             ]
 
-            if ((this.props.selectedUserItem["member_type"] !== 'EXT') && 
+            if ((this.props.selectedUserItem["member_type"] !== 'EXT') &&
                 (this.props.selectedUserItem["type"] !== "group"))
                 panes.push(...extraPanes)
             else {
                 panes.pop()
                 panes.push(extraPanes[0])
-            } 
-                
+            }
+
             return (
                 <Segment>
                     {/* <Sticky> */}
