@@ -7,10 +7,6 @@ const UserDetails = props => {
 
     var quickActions = [
         {
-            text: '',
-            value: ''
-        },
-        {
             text: 'Transfer ownership of all documents owned by \"' + props.selectedUserItem['name'] + '\"',
             value: 'transfer_ownership'
         },
@@ -36,10 +32,6 @@ const UserDetails = props => {
         }];
 
     var quickActionsforExtUser = [
-      {
-          text: '',
-          value: ''
-      },
       {
         text: 'Remove all access to \"' + props.selectedUserItem['name'] + '\"',
         value: 'remove_all_access'
@@ -96,7 +88,7 @@ const UserDetails = props => {
                         </Label.Group>
                     </Item.Description>
                     <Item.Extra extra="true">
-                        <Dropdown placeholder='Quick Actions...' fluid selection options={actionMenu} value='' onChange={(event, data) => props.onQuickAction(data.value)} />
+                        <Dropdown placeholder='Quick Actions...' fluid selection options={actionMenu} value='' onChange={(event, data) => props.onQuickAction(data.value)} selectOnBlur={false} />
                     </Item.Extra>
                 </Item.Content>
             </Item>
