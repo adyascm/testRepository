@@ -231,8 +231,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
 
         Logger().info("Processed drive resources for {} files using email: {}".format(resource_count, user_email))
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
         Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
+        db_session.rollback()
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
 
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
@@ -361,8 +362,9 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
         Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
 
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
         Logger().exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
+        db_session.rollback()
+        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
 
     lastresult =None
 
@@ -454,8 +456,9 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
         messaging.trigger_post_event(urls.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "gsuite")
         Logger().info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
         Logger().exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
+        db_session.rollback()
+        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
 
 def get_group_data(auth_token, domain_id,datasource_id,group_keys):
     processed_group_count =0
@@ -518,8 +521,9 @@ class GroupData():
                 db_connection().commit()
                 
         except Exception as ex:
-            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
             Logger().exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
+            self.db_session.rollback()
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
             return
 
     def get_group_members(self):
@@ -540,6 +544,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
         db_connection().commit()
     except Exception as ex:
         Logger().exception("Exception occurred while updating the scan status for the datasource.")
+        db_session.rollback()
     if rows_updated == 1:
         datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
         if send_message:
@@ -579,7 +584,8 @@ def update_resource_exposure_type(db_session,domain_id,datasource_id):
                                             models.Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type':constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
         db_connection().commit()
     except Exception as ex:
-        Logger().exception()
+        Logger().exception("Exception occurred while updating resource exposure type")
+        db_session.rollback()
 
 def get_all_user_app(auth_token,domain_id,datasource_id,user_email_list):
 

@@ -103,20 +103,22 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
                 public_count = share_type[1]
             elif share_type[0] == constants.ResourceExposureType.DOMAIN:
                 domain_count = share_type[1]
-        data["rows"] = [[constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count], [constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.EXTERNAL_COUNT, external_count], [constants.DocType.DOMAIN_COUNT, domain_count]]
-        data["totalCount"] = public_count + external_count + domain_count
+        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.EXTERNAL_COUNT, external_count],  [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count],   [constants.DocType.DOMAIN_COUNT, domain_count]]
+        data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count
 
     elif widget_id == 'sharedDocsList':
         data = {}
         shared_docs_list_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
+                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
+                     Resource.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK)))
 
         shared_docs_totalcount_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC)))
+                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
+                     Resource.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK)))
 
         if is_service_account_is_enabled and not is_admin:
             shared_docs_list_query = shared_docs_list_query.filter(Resource.resource_owner_id == login_user_email)

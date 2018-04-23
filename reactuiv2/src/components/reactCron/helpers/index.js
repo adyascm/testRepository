@@ -58,7 +58,7 @@ export function getDayOptions() {
     },
     {
       label: 'Monday',
-      value: 0
+      value: 2
     },
     {
       label: 'Tuesday',
