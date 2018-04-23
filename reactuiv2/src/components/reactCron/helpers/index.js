@@ -1,16 +1,6 @@
 export function getPeriodOptions() {
   return [
     {
-      label: 'minute',
-      value: 'minute',
-      prep: ''
-    },
-    {
-      label: 'hour',
-      value: 'hour',
-      prep: 'at'
-    },
-    {
       label: 'day',
       value: 'day',
       prep: 'at'
@@ -36,7 +26,6 @@ export function getPeriodOptions() {
 function getRange(n) {
   return [...Array(n).keys()];
 }
-
 function getRangeOptions(n) {
   return getRange(n).map((v) => {
     return {
@@ -118,14 +107,6 @@ export function getMonthOptions() {
   })
 }
 
-export function getMinuteCron(value) {
-  return '* * ? * * *';
-}
-
-export function getHourCron(value) {
-  return `${value.min} * ? * * *`;
-}
-
 export function getDayCron(value) {
   return `${value.min} ${value.hour} ? * * *`;
 }
@@ -147,10 +128,6 @@ export function getCron(state) {
           selectedWeekOption, selectedMonthOption, selectedYearOption } = state;
 
   switch (selectedPeriod) {
-  case 'minute':
-    return getMinuteCron({});
-  case 'hour':
-    return getHourCron(selectedHourOption);
   case 'day':
     return getDayCron(selectedDayOption);
   case 'week':
