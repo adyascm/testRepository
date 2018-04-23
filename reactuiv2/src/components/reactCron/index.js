@@ -32,20 +32,20 @@ class ReactCron extends Component {
       min: 0
     },
     selectedWeekOption: {
-      day: 5,
-      hour: 3,
-      min: 42
+      day: 1,
+      hour: 0,
+      min: 0
     },
     selectedMonthOption: {
       day: 1,
-      hour: 3,
-      min: 42
+      hour: 0,
+      min: 0
     },
     selectedYearOption: {
       day: 1,
       mon: 1,
-      hour: 3,
-      min: 42
+      hour: 0,
+      min: 0
     },
     periodOptions: Helper.getPeriodOptions(),
     minuteOptions: Helper.getMinuteOptions(),
