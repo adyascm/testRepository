@@ -26,7 +26,8 @@ const mapStateToProps = state => ({
   userPayload: state.users.usersTreePayload,
   userFilterType: state.users.userFilterType,
   userShowHierarchy: state.users.userShowHierarchy,
-  hasGroups: state.users.hasGroups
+  hasGroups: state.users.hasGroups,
+  selectedUserItem: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -71,13 +72,14 @@ class Users extends Component {
 
   componentWillMount() {
     window.scrollTo(0, 0)
+    this.props.selectUserItem(undefined)
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT')  && this.state.showMemberType === 'EXT')
-      this.setState({
-        showMemberType: 'ALL'
-      })
+    // if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT')  && this.state.showMemberType === 'EXT')
+    //   this.setState({
+    //     showMemberType: 'ALL'
+    //   })
 
     if (nextProps.userPayload && nextProps.userPayload.length === 0 && !this.state.usersEmpty) {
       this.props.flagUsersError("There are no users to display", undefined)
@@ -95,7 +97,7 @@ class Users extends Component {
     this.setState({
       showMemberType: data.value
     })
-    this.props.selectUserItem('')
+    this.props.selectUserItem(undefined)
   }
 
 
@@ -146,9 +148,9 @@ class Users extends Component {
               {!this.state.showHierarchy ? flatList : treeView}
             </Grid.Column>
             {
-              this.props.users.selectedUserItem ?
+              this.props.selectedUserItem ?
                 (<Grid.Column width='12'>
-                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem} />
+                  <UsersGroupsDetailsSection showMemberType={this.state.showMemberType} {...this.props.selectedUserItem} />
                 </Grid.Column>) : null
             }
             {/* <Grid.Column width={16 - gridWidth}>

@@ -48,14 +48,16 @@ class UserResourceTable extends Component {
                 { text: 'Can Write', value: 'writer' },
                 { text: 'Owner', value: 'owner' },
                 {text: 'Can Comment', value: 'commenter'}
-            ]
+            ],
+            showMemberType: this.props.showMemberType
         }
     }
 
     componentWillMount() {
         if (this.props.selectedUserItem) {
+            let filterExposureType = (this.state.showMemberType === 'EXT' ? '' : this.props.filterExposureType)
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
+            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
     }
 

@@ -111,6 +111,9 @@ class UsersGroupsDetailsSection extends Component {
 
     render() {
 
+        if (!this.props.selectedUserItem)
+            return null
+
         var resourceLayout = (
             <Container stretched="true">
                 <Grid stretched>
@@ -127,7 +130,7 @@ class UsersGroupsDetailsSection extends Component {
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
-                        <UserResourceTable />
+                        <UserResourceTable showMemberType={this.props.showMemberType} />
                     </Grid.Row>
                 </Grid>
             </Container>
