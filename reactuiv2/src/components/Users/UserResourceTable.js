@@ -55,7 +55,7 @@ class UserResourceTable extends Component {
 
     componentWillMount() {
         if (this.props.selectedUserItem) {
-            let filterExposureType = (this.state.showMemberType === 'EXT' ? '' : this.props.filterExposureType)
+            let filterExposureType = (this.props.selectedUserItem.member_type === 'EXT' ? '' : this.props.filterExposureType)
             this.props.onLoadStart()
             this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["key"]], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit}))
         }
