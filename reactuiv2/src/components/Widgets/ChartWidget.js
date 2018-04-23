@@ -41,7 +41,7 @@ class ChartWidget extends Component {
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />
                 }
                 else {
-                    var color = ['#db4437', '#fbbd08', '#4285f4']
+                    var color = ['#db4437', '#fbbd08', '#e68a00', '#4285f4']
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={color} />
                 }
                 return (
