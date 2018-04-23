@@ -82,16 +82,15 @@ def oauth_callback(oauth_code, scopes,state, error):
             login_user = db_utils.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_serviceaccount_enabled,scope_name, token, db_session=db_session)
-            adya_emails.send_welcome_email(login_user)
+            if login_user:
+                adya_emails.send_welcome_email(login_user)
 
         elif refresh_token:
             login_user.refresh_token = refresh_token
             login_user.authorize_scope_name = scope_name
             login_user.token = token
-
-        #Update the last login time always
-        login_user.last_login_time = datetime.datetime.utcnow()
-        db_connection().commit()
+            login_user.last_login_time = datetime.datetime.utcnow()
+            db_connection().commit()        
     else:
         existing_domain_user = db_session.query(DomainUser).filter(and_(DomainUser.email == login_email, DomainUser.member_type == constants.UserMemberType.INTERNAL)).first()
         if existing_domain_user and is_serviceaccount_enabled:
@@ -105,7 +104,8 @@ def oauth_callback(oauth_code, scopes,state, error):
             login_user = db_utils.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_serviceaccount_enabled,scope_name, token, db_session)
-        adya_emails.send_welcome_email(login_user)
+        if login_user:
+            adya_emails.send_welcome_email(login_user)
 
     redirect_url = urls.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_email, login_user.auth_token)
     return redirect_url

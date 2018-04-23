@@ -47,9 +47,13 @@ def create_user(email, first_name, last_name, domain_id, refresh_token, is_servi
     login_user.last_login_time = creation_time
     login_user.authorize_scope_name = scope_name
     login_user.token = token
-    db_session.add(login_user)
-    db_connection().commit()
-    return login_user
+    try:
+        db_session.add(login_user)
+        db_connection().commit()
+        return login_user
+    except:
+        db_session.rollback()
+        return None
 
 
 def get_datasource(datasource_id, db_session=None):
@@ -65,7 +69,10 @@ def create_domain(db_session, domain_id, domain_name):
     domain["domain_id"] = domain_id
     domain["domain_name"] = domain_name
     domain["creation_time"] = creation_time
-    db_session.execute(Domain.__table__.insert().prefix_with(
-        "IGNORE").values([domain_id, domain_name, creation_time]))
-    db_connection().commit()
+    try:
+        db_session.execute(Domain.__table__.insert().prefix_with(
+            "IGNORE").values([domain_id, domain_name, creation_time]))
+        db_connection().commit()
+    except:
+        db_session.rollback()
     return domain
