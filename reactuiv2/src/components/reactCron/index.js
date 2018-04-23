@@ -26,29 +26,26 @@ class ReactCron extends Component {
   state = {
     cronexp: '',
     loadPrevState: false,
-    selectedPeriod: 'minute',
-    selectedHourOption: {
+    selectedPeriod: 'day',
+    selectedDayOption: {
+      hour: 0,
       min: 0
     },
-    selectedDayOption: {
-      hour: 3,
-      min: 42
-    },
     selectedWeekOption: {
-      day: 5,
-      hour: 3,
-      min: 42
+      day: 1,
+      hour: 0,
+      min: 0
     },
     selectedMonthOption: {
       day: 1,
-      hour: 3,
-      min: 42
+      hour: 0,
+      min: 0
     },
     selectedYearOption: {
       day: 1,
       mon: 1,
-      hour: 3,
-      min: 42
+      hour: 0,
+      min: 0
     },
     periodOptions: Helper.getPeriodOptions(),
     minuteOptions: Helper.getMinuteOptions(),
@@ -64,19 +61,6 @@ class ReactCron extends Component {
         selectedPeriod: event.target.value
       }, this.changeValue);
     }
-  }
-
-  onHourOptionSelect = (key) => {
-    return (event) => {
-      const value = event.target.value;
-      const obj = {};
-      obj[key] = value;
-      const { selectedHourOption } = this.state;
-      const hourOption = Object.assign({}, selectedHourOption, obj);
-      this.setState({
-        selectedHourOption: hourOption
-      }, this.changeValue);
-    };
   }
 
   onDayOptionSelect = (key) => {
@@ -137,20 +121,6 @@ class ReactCron extends Component {
         <option key={`${key}_${i}`} value={o.value}>{o.label}</option>
       );
     }
-  }
-
-  getHourComponent = () => {
-    const { minuteOptions, selectedHourOption } = this.state;
-
-    return (
-      (this.state.selectedPeriod === 'hour') &&
-      <cron-hour-component>
-        <select value={selectedHourOption.min} onChange={this.onHourOptionSelect('min')} className='m-r-xs'>
-          {minuteOptions.map(this.getOptionComponent('minute_option'))}
-        </select>
-        minutes past the hour
-      </cron-hour-component>
-    );
   }
 
   getDayComponent = () => {
@@ -253,11 +223,6 @@ class ReactCron extends Component {
 
   var cronArray = [];
   cronArray = cronExp.split(" ")
-
-  {cronArray[0] !== '*'? this.setState({
-    selectedHourOption : {'min': cronArray[0]} ,
-    selectedPeriod: 'hour' }): null
-  };
   {cronArray[1] !== '*'? this.setState({
     selectedDayOption : {'hour': cronArray[1],'min': cronArray[0]},
     selectedPeriod: 'day'}) : null}
@@ -314,7 +279,6 @@ class ReactCron extends Component {
               })}
             </select>
             {getPeriodPrep()}
-            {this.getHourComponent()}
             {this.getDayComponent()}
             {this.getWeekComponent()}
             {this.getMonthComponent()}
