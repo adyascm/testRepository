@@ -150,7 +150,7 @@ class Users extends Component {
             {
               this.props.selectedUserItem ?
                 (<Grid.Column width='12'>
-                  <UsersGroupsDetailsSection showMemberType={this.state.showMemberType} {...this.props.selectedUserItem} />
+                  <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
                 </Grid.Column>) : null
             }
             {/* <Grid.Column width={16 - gridWidth}>

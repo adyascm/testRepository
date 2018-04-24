@@ -130,7 +130,7 @@ class UsersGroupsDetailsSection extends Component {
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
                         {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
-                        <UserResourceTable showMemberType={this.props.showMemberType} />
+                        <UserResourceTable />
                     </Grid.Row>
                 </Grid>
             </Container>
