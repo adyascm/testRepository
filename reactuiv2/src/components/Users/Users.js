@@ -9,8 +9,7 @@ import Actions from '../actions/Actions'
 
 import {
   USERS_PAGE_UNLOADED,
-  USER_ITEM_SELECTED,
-  FLAG_ERROR_MESSAGE
+  USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
 
 import UsersTree from './UsersTree';
@@ -33,8 +32,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: USERS_PAGE_UNLOADED }),
-  flagUsersError: (error, info) =>
-    dispatch({ type: FLAG_ERROR_MESSAGE, error, info }),
   selectUserItem: (payload) =>
     dispatch({ type: USER_ITEM_SELECTED, payload })
 });
@@ -44,7 +41,6 @@ class Users extends Component {
     super(props);
     this.state = {
       showHierarchy: this.props.userShowHierarchy,
-      usersEmpty: false,
       usersFilter: [
         {
           text: 'External Users',
@@ -73,20 +69,6 @@ class Users extends Component {
   componentWillMount() {
     window.scrollTo(0, 0)
     this.props.selectUserItem(undefined)
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // if (nextProps.selectedUser && (nextProps.selectedUser["member_type"] !== 'EXT')  && this.state.showMemberType === 'EXT')
-    //   this.setState({
-    //     showMemberType: 'ALL'
-    //   })
-
-    if (nextProps.userPayload && nextProps.userPayload.length === 0 && !this.state.usersEmpty) {
-      this.props.flagUsersError("There are no users to display", undefined)
-      this.setState({
-        usersEmpty: true
-      })
-    }
   }
 
   handleContextRef = contextRef => this.setState({
@@ -124,43 +106,55 @@ class Users extends Component {
     let dimmer = (<Dimmer active inverted><Loader inverted content='Loading' /></Dimmer>)
     var flatList = (<UserList showMemberType={this.state.showMemberType} />)
     var treeView = (<UsersTree showMemberType={this.state.showMemberType} />)
-    return (
-      <Container style={containerStyle}>
-        
-        <Grid divided='vertically' stretched>
-          <Grid.Row >
-            <Grid.Column stretched width="5">
-              <Dropdown
-                options={this.state.usersFilter}
-                selection
-                defaultValue={this.state.showMemberType}
-                onChange={this.handleUserFilterChange}
-              />
-            </Grid.Column>
-            <Grid.Column stretched floated='right' width="5">
-              {this.props.hasGroups ? toggleCheckbox : null}
-            </Grid.Column>
-          </Grid.Row>
 
-          <Grid.Row stretched>
-            <Grid.Column stretched width={gridWidth}>
-              {!this.props.userPayload && this.props.isLoading ? dimmer : null}
-              {!this.state.showHierarchy ? flatList : treeView}
-            </Grid.Column>
-            {
-              this.props.selectedUserItem ?
-                (<Grid.Column width='12'>
-                  <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
-                </Grid.Column>) : null
-            }
-            {/* <Grid.Column width={16 - gridWidth}>
-                <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
-              </Grid.Column> */}
-          </Grid.Row>
-        </Grid>
-        <Actions />
-      </Container >
-    )
+    if (this.props.isLoading)
+      return (
+        <Dimmer active inverted><Loader inverted content='Loading' /></Dimmer>
+      )
+    else if (this.props.userPayload)
+      return (
+        <Container style={containerStyle}>
+          
+          <Grid divided='vertically' stretched>
+            <Grid.Row >
+              <Grid.Column stretched width="5">
+                <Dropdown
+                  options={this.state.usersFilter}
+                  selection
+                  defaultValue={this.state.showMemberType}
+                  onChange={this.handleUserFilterChange}
+                />
+              </Grid.Column>
+              <Grid.Column stretched floated='right' width="5">
+                {this.props.hasGroups ? toggleCheckbox : null}
+              </Grid.Column>
+            </Grid.Row>
+
+            <Grid.Row stretched>
+              <Grid.Column stretched width={gridWidth}>
+                {/* {!this.props.userPayload && this.props.isLoading ? dimmer : null} */}
+                {!this.state.showHierarchy ? flatList : treeView}
+              </Grid.Column>
+              {
+                this.props.selectedUserItem ?
+                  (<Grid.Column width='12'>
+                    <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
+                  </Grid.Column>) : null
+              }
+              {/* <Grid.Column width={16 - gridWidth}>
+                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
+                </Grid.Column> */}
+            </Grid.Row>
+          </Grid>
+          <Actions />
+        </Container >
+      )
+    else 
+      return (
+        <div>
+          There are no users to display
+        </div>
+      )
   }
 }
 
