@@ -350,7 +350,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     response = response_messages.ResponseMessage(200, 'Action submitted successfully')
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
-        response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update)
+        response = execute_batch_delete(auth_token, datasource_id, owner, initiated_by, permissions_to_update)
     return response
 
 
