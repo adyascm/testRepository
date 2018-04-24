@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-
 import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
@@ -47,7 +46,15 @@ class ResourcesListTable extends Component {
             filterResourceType: "",
             filterEmailId: "",
             filterParentFolder: "",
-            currentDate: ""
+            currentDate: "",
+            columnHeaderDataNameMap: {
+                "Name": "resource_name",
+                "Type": "resource_type",
+                "Owner": "resource_owner_id",
+                "Parent Folder": "parent_name"
+            },
+            columnNameClicked: undefined,
+            sortOrder: undefined
         }
 
         this.exposureFilterOptions = [
@@ -104,7 +111,8 @@ class ResourcesListTable extends Component {
     }
 
     componentDidUpdate() {
-        this.refs.table.scrollTop = 0
+        if (this.refs.table)
+            this.refs.table.scrollTop = 0
     }
 
     handleClick = (event, rowData) => {
@@ -137,7 +145,6 @@ class ResourcesListTable extends Component {
     }
 
     handleDateChange = (date) => {
-        console.log("type date : ", typeof(date))
         let selectedDate = date?date.format('YYYY-MM-DD HH:MM:SS'):''
         this.setState({
             currentDate: date?date:''
@@ -176,11 +183,36 @@ class ResourcesListTable extends Component {
             this.props.changeFilter(stateKey,'')
     }
 
+    handleColumnSort = (mappedColumnName) => {
+        if (this.state.columnNameClicked !== mappedColumnName) {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
+                                                                 'columnName': mappedColumnName, 'sortType': 'asc' }))
+            this.setState({
+                columnNameClicked: mappedColumnName,
+                sortOrder: 'ascending'
+            })
+        }
+        else {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
+                                                                 'columnName': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc' }))
+            this.setState({
+                sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
+            })
+        }
+    }
+
     render() {
 
         let tableHeaders = this.state.columnHeaders.map(headerName => {
+            let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
             return (
-                <Table.HeaderCell key={headerName}>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={headerName}
+                    sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
+                    onClick={() => this.handleColumnSort(mappedColumnName)} >
+                    {headerName}
+                </Table.HeaderCell>
             )
         })
 

@@ -6,7 +6,7 @@ from adya.common.db import db_utils
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain, DomainUser
 from adya.common.constants import constants
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='', owner_email_id=None, parent_folder=None, selected_date=None):
+def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='', owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None):
     if not auth_token:
         return None
     page_number = page_number if page_number else 0
@@ -31,22 +31,58 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         selectedUser = user_emails[0]
     if selected_date:
         resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
-    if parent_folder:
-        resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
-    if owner_email_id:
-        resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
+    if parent_folder or sort_column_name == 'parent_name':
+        if parent_folder:
+            resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
+        if sort_column_name == 'parent_name':
+            if sort_type == 'desc':
+                resources_query = resources_query.order_by(parent_alias.resource_name.desc())
+            else:
+                resources_query = resources_query.order_by(parent_alias.resource_name.asc())
+    if owner_email_id or sort_column_name == 'resource_owner_id':
+        if owner_email_id:
+            resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
+        if sort_column_name == 'resource_owner_id':
+            if sort_type == 'desc':
+                resources_query = resources_query.order_by(resource_alias.resource_owner_id.desc())
+            else:
+                resources_query = resources_query.order_by(resource_alias.resource_owner_id.asc())
     elif selectedUser:
         resources_query = resources_query.filter(resource_alias.resource_owner_id != selectedUser)
-    if resource_type:
-        resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
+    if resource_type or sort_column_name == 'resource_type':
+        if resource_type:
+            resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
+        if sort_column_name == 'resource_type':
+            if sort_type == 'desc':
+                resources_query = resources_query.order_by(resource_alias.resource_type.desc())
+            else:
+                resources_query = resources_query.order_by(resource_alias.resource_type.asc())
     if exposure_type:
             resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
-    if prefix:
-        page_limit = 10
-        resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
+    if prefix or sort_column_name == 'resource_name':
+        if prefix and sort_column_name == 'resource_name':
+            page_limit = 10
+            if sort_type == 'desc':
+                resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.desc())
+            else:
+                resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.asc())
+        elif prefix:
+            page_limit = 10
+            resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
+        else:
+            if sort_type == 'desc':
+                resources_query = resources_query.order_by(resource_alias.resource_name.desc())
+            else:
+                resources_query = resources_query.order_by(resource_alias.resource_name.asc())
 
     if not is_admin:
         resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
+
+    # if sort_column_name == 'resource_name':
+    #     if sort_type == 'desc':
+    #         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.desc())
+    #     else:
+    #         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.asc())
 
     resources = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids)).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
     result = []

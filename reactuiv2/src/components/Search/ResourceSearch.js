@@ -118,7 +118,7 @@ class ResourceSearch extends Component {
 
     handleKeyPress = (event) => {
         if (event.key === 'Enter') {
-            this.props.onsearchLoad(this.state.results)
+            this.props.onsearchLoad(this.state.results, this.state.value)
             this.setState({
                 hideSearchMenu: true,
                 showNoResults: false
