@@ -63,7 +63,7 @@ class AuditLogTable extends Component {
                 )
             })
         
-        if (this.props.isLoading)
+        if (this.props.isLoadingAuditLog)
             return (
                 <div style={{ height: '200px' }}>
                     <Dimmer active inverted>

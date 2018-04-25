@@ -5,7 +5,7 @@ import {
 } from '../constants/actionTypes';
 
 const defaultState = {
-    isLoading: false,
+    isLoadingAuditLog: false,
     log: undefined
 };
 
@@ -14,12 +14,12 @@ export default (state = defaultState, action) => {
         case AUDIT_LOG_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoadingAuditLog: true
             };
         case AUDIT_LOG_LOADED:
             return {
                 ...state,
-                isLoading: false,
+                isLoadingAuditLog: false,
                 log: action.payload
             };
         case LOGOUT:

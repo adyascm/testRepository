@@ -16,7 +16,7 @@ const defaultState = {
   errorMessage: false,
   reports: undefined,
   getreportError: undefined,
-  isLoading: false,
+  isLoadingReports: false,
   runReportData: undefined
 }
 
@@ -36,7 +36,7 @@ export default (state = defaultState, action) => {
         case REPORTS_PAGE_LOADING:
              return {
                ...state,
-               isLoading: true
+               isLoadingReports: true
              }
         case SET_SCHEDULED_REPORTS:
               var error;
@@ -49,7 +49,7 @@ export default (state = defaultState, action) => {
               return{
                 ...state,
                 reports: action.error?[]:action.payload,
-                isLoading: false,
+                isLoadingReports: false,
                 getreportError: error,
                 errorMessage: action.error
               }

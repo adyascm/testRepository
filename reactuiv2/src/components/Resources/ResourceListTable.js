@@ -244,7 +244,7 @@ class ResourcesListTable extends Component {
             </Dimmer>
         )
 
-        if (this.props.isLoading || resourceData) {
+        if (this.props.isLoadingResources || resourceData) {
             let filterMetadata = { 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
             return (
                 <div>
@@ -292,7 +292,7 @@ class ResourcesListTable extends Component {
                                 {tableRowData}
                             </Table.Body>
                         </Table>
-                        {this.props.isLoading ? dimmer : null}
+                        {this.props.isLoadingResources ? dimmer : null}
                     </div>
                     <div style={{ marginTop: '5px' }} >
                         {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}

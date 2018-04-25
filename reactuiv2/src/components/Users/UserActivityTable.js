@@ -75,7 +75,7 @@ class UserActivityTable extends Component {
                 )
             })
 
-        if (this.props.isActivitiesLoading)
+        if (this.props.isLoadingUserActivities)
             return (
                 <div style={{ height: '200px' }}>
                     <Dimmer active inverted>

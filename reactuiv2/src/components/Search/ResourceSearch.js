@@ -16,8 +16,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLoadStart: () => dispatch({ type: RESOURCES_PAGE_LOAD_START }),
-    onLoad: (payload) => dispatch({ type: RESOURCES_PAGE_LOADED, payload }),
     onsearchLoad: (payload, prefix) => dispatch({ type: RESOURCES_SEARCH_PAYLOAD, payload, prefix }),
     onsearchEmpty: () => dispatch({ type: RESOURCES_SEARCH_EMPTY })
 });

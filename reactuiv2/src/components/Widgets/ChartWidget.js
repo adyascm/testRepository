@@ -32,7 +32,7 @@ class ChartWidget extends Component {
 
     render() {
         if (this.props[this.props.config.id]) {
-            if (this.props[this.props.config.id].isLoaded) {
+            if (this.props[this.props.config.id].isLoadingWidget) {
                 if (!this.props[this.props.config.id].data.totalCount)
                     return null
                 let chart = null

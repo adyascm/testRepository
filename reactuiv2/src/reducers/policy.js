@@ -8,7 +8,7 @@ import {
 
 const defaultState = {
     policyData: undefined,
-    isLoading: false
+    isLoadingPolicy: false
 }
 
 export default (state=defaultState, action) => {
@@ -16,14 +16,14 @@ export default (state=defaultState, action) => {
         case POLICY_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoadingPolicy: true
             }
         case POLICY_LOADED:
             console.log("policy loaded : ", action.payload)
             return {
                 ...state,
                 policyData: !action.error?action.payload:[],
-                isLoading: false
+                isLoadingPolicy: false
             }
         case LOGOUT:
             return {

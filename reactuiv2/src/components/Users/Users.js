@@ -20,8 +20,7 @@ import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown'
 const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser,
-  selectedUser: state.users.selectedUserItem,
-  isLoading: state.users.isLoading,
+  isLoading: state.users.isLoadingUsers,
   userPayload: state.users.usersTreePayload,
   userFilterType: state.users.userFilterType,
   userShowHierarchy: state.users.userShowHierarchy,
@@ -91,7 +90,7 @@ class Users extends Component {
 
     var gridWidth = 16;
 
-    if (this.props.users.selectedUserItem) {
+    if (this.props.selectedUserItem) {
       gridWidth = 4;
     }
 

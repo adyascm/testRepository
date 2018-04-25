@@ -180,7 +180,7 @@ class PolicyItemDetail extends Component {
             return <PolicyCondition policyCondition={condition} index={index} removeFilter={this.removeFilter} />
         })
 
-        if (this.props.isLoading) {
+        if (this.props.isLoadingPolicy) {
             return (
                 <Container style={containerStyle}>
                     <div className="ag-theme-fresh" style={{ height: '200px' }}>

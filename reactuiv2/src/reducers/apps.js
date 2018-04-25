@@ -16,7 +16,9 @@ const defaultState = {
     appPayLoad: undefined,
     appsSearchPayload: undefined,
     appUsers: undefined,
-    isLoading: false,
+    isLoadingApps: false,
+    isLoadingAppUsers: false,
+    isLoadingUserApps: false,
     appDetailsViewActive: false,
     selectedAppItem: undefined,
     appDeleted: false
@@ -27,13 +29,13 @@ export default (state = defaultState, action) => {
         case APPS_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoadingApps: true
             }
         case APPS_PAGE_LOADED:
             let appPayLoad = !action.error?action.payload:[]
             return {
                 ...state,
-                isLoading: false,
+                isLoadingApps: false,
                 appPayLoad: appPayLoad,
                 appsSearchPayload: undefined,
                 appDeleted: false
@@ -53,25 +55,25 @@ export default (state = defaultState, action) => {
         case USER_APPS_LOAD_START:
         return {
             ...state,
-            isLoading: true,
+            isLoadingUserApps: true,
         }
         case USER_APPS_LOADED:
             return {
                 ...state,
-                isLoading:false,
+                isLoadingUserApps: false,
                 userApps: action.payload
             }
         case APP_USERS_LOAD_START:
         return {
             ...state,
-            isLoading: true,
+            isLoadingAppUsers: true,
         }
         case APP_USERS_LOADED:
             if (action.payload.length === 0)
                 state.selectedAppItem = undefined
             return {
                 ...state,
-                isLoading:false,
+                isLoadingAppUsers:false,
                 appUsers: action.payload
             }
         case APPS_SEARCH_PAYLOAD:
