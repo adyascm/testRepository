@@ -11,8 +11,7 @@ import AppDetailsSection from './AppDetailsSection'
 import {
   APPS_PAGE_LOADED,
   APPS_PAGE_UNLOADED,
-  APPS_PAGE_LOAD_START,
-  FLAG_ERROR_MESSAGE
+  APPS_PAGE_LOAD_START
 } from '../../constants/actionTypes';
 
 
@@ -34,17 +33,12 @@ const mapDispatchToProps = dispatch => ({
   onUnload: () =>
     dispatch({ type: APPS_PAGE_UNLOADED }),
   onLoadStart: () =>
-    dispatch({ type: APPS_PAGE_LOAD_START }),
-  flagAppsError: (error, info) => 
-    dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
+    dispatch({ type: APPS_PAGE_LOAD_START })
 });
 
 class Apps extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-        appsEmpty: false
-    }
   }
 
   componentWillMount(){
@@ -54,12 +48,6 @@ class Apps extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.appsPayload && nextProps.appsPayload.length === 0 && !this.state.appsEmpty) {
-      this.props.flagAppsError("There are no apps for user to display", undefined)
-      this.setState({
-        appsEmpty: true
-      })
-    }
     if (nextProps.appDeleted !== this.props.appDeleted) {
       nextProps.onLoadStart()
       nextProps.onLoad(agent.Apps.getapps())
@@ -75,7 +63,7 @@ class Apps extends Component {
 
     var gridWidth = 16;
     
-    if (this.props.apps.selectedAppItem) {
+    if (this.props.selectedAppItem) {
       gridWidth = 4;
     }
 
@@ -88,11 +76,7 @@ class Apps extends Component {
         </Container >
       )
     }
-    else {
-      var appList = (<AppList />)
-      var appDetails = this.props.apps.selectedAppItem ? (<Grid.Column width={16 - gridWidth}>
-                                                              <AppDetailsSection />
-                                                          </Grid.Column>) : ""
+    else if (this.props.appsPayload) {
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
@@ -124,15 +108,24 @@ class Apps extends Component {
             </Grid.Row> */}
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}> 
-                {appList}
+                <AppList />
               </Grid.Column>
-            {appDetails}
+              {this.props.selectedAppItem ? (<Grid.Column width={16 - gridWidth}>
+                                                              <AppDetailsSection />
+                                                          </Grid.Column>) : null}
             </Grid.Row>
           </Grid>
         </Container >
 
       )
     }
+
+    else 
+      return (
+        <div>
+          There are no apps for user to display
+        </div>
+      )
 
   }
 }
