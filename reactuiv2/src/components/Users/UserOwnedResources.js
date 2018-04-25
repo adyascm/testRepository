@@ -114,7 +114,7 @@ class UserOwnedResources extends Component {
                 return null
             })
 
-        if (this.props.isLoading)
+        if (this.props.isLoadingOwnedUsers)
             return (
                 <div style={{ height: '200px' }}>
                     <Dimmer active inverted>

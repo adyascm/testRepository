@@ -35,7 +35,7 @@ class SimpleNumberWidget extends Component {
     render() {
         
         if (this.props[this.props.config.id]) {
-            if (this.props[this.props.config.id].isLoaded) {
+            if (this.props[this.props.config.id].isLoadingWidget) {
                 let data = this.props[this.props.config.id].data
 
                 return (

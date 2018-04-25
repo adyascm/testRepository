@@ -73,7 +73,7 @@ class AppDetailsSection extends Component {
         if (!this.props.selectedAppItem)
             return null;
         else {
-            if(this.props.isLoading)
+            if(this.props.isLoadingAppUsers)
             {
                 return (
                     <div className="ag-theme-fresh" style={{ height: '100px' }}>

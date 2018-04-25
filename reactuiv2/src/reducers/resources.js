@@ -13,12 +13,11 @@ import {
 } from '../constants/actionTypes';
 
 const defaultState = {
-    isLoading: false,
+    isLoadingResources: false,
     resourceTree: undefined,
     rowData: undefined,
     resourceSearchPayload: undefined,
     action: undefined,
-    isLoading: false,
     filterExposureType: 'EXT',
     filterResourceName: '',
     filterResourceType: '',
@@ -34,12 +33,12 @@ export default (state = defaultState, action) => {
         case RESOURCES_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoadingResources: true
             }
         case RESOURCES_PAGE_LOADED:
             return {
                 ...state,
-                isLoading: false,
+                isLoadingResources: false,
                 resourceTree: !action.error ? action.payload : [],
                 rowData: undefined,
                 resourceSearchPayload: undefined
@@ -90,7 +89,7 @@ export default (state = defaultState, action) => {
             state[action.property] = action.value
             return {
                 ...state,
-                isLoading: true
+                isLoadingResources: true
             }
         case LOGOUT:
             return {

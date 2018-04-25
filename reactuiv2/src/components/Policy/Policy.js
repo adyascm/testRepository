@@ -103,7 +103,7 @@ class Policy extends Component {
                 )
             })
 
-        if (this.props.isLoading) {
+        if (this.props.isLoadingPolicy) {
             return (
                 <Container>
                   <Dimmer active inverted>

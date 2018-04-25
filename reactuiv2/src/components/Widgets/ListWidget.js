@@ -32,7 +32,7 @@ class ListWidget extends Component {
     render() {
 
         if (this.props[this.props.config.id]) {
-            if (this.props[this.props.config.id].isLoaded) {
+            if (this.props[this.props.config.id].isLoadingWidget) {
                 const data = this.props[this.props.config.id].data.rows;
                 const count = this.props[this.props.config.id].data.totalCount;
                 const remainingCount = count - data.length
