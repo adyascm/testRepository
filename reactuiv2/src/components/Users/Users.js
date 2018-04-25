@@ -25,7 +25,8 @@ const mapStateToProps = state => ({
   userFilterType: state.users.userFilterType,
   userShowHierarchy: state.users.userShowHierarchy,
   hasGroups: state.users.hasGroups,
-  selectedUserItem: state.users.selectedUserItem
+  selectedUserItem: state.users.selectedUserItem,
+  groupSearchPayload: state.users.groupSearchPayload
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -68,6 +69,13 @@ class Users extends Component {
   componentWillMount() {
     window.scrollTo(0, 0)
     this.props.selectUserItem(undefined)
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.groupSearchPayload !== this.props.groupSearchPayload)
+      this.setState({
+        showMemberType: 'ALL'
+      })
   }
 
   handleContextRef = contextRef => this.setState({
@@ -120,7 +128,7 @@ class Users extends Component {
                 <Dropdown
                   options={this.state.usersFilter}
                   selection
-                  defaultValue={this.state.showMemberType}
+                  value={this.state.showMemberType}
                   onChange={this.handleUserFilterChange}
                 />
               </Grid.Column>
