@@ -1,19 +1,33 @@
 import gutils
 from datetime import datetime, timedelta
+
+from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 
+
 def get_activities_for_user(auth_token, user_email, start_time=None):
+    if auth_token:
+        existing_user = db_utils.get_user_session(auth_token)
+        login_user_email = existing_user.email
+        is_admin = existing_user.is_admin
+        is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
 
-    reports_service = gutils.get_gdrive_reports_service(auth_token, user_email)
-    if not start_time:
-        start_time = datetime.today() - timedelta(days=7)
+        if not is_admin and is_service_account_is_enabled and login_user_email != user_email:
+            return None
 
-    start_time_string = start_time.isoformat("T") + "Z"
+        reports_service = gutils.get_gdrive_reports_service(auth_token, user_email)
+        if not start_time:
+            start_time = datetime.today() - timedelta(days=7)
 
-    results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=100,
-                                                startTime=start_time_string).execute()
-    payload = process_user_activity(user_email, results)
-    return payload
+        start_time_string = start_time.isoformat("T") + "Z"
+
+        results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=100,
+                                                    startTime=start_time_string).execute()
+        payload = process_user_activity(user_email, results)
+        return payload
+    else:
+        Logger().info("get_activities_for_user : auth_token is not present")
+        return None
 
 
 def process_user_activity(user_email, activities):
