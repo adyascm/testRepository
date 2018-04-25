@@ -121,7 +121,7 @@ class UserResourceTable extends Component {
                 )
             })
 
-        if (this.props.isResourcesLoading)
+        if (this.props.isLoadingUserResources)
             return (
                 <div style={{ height: '200px' }}>
                     <Dimmer active inverted>

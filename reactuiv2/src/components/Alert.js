@@ -61,7 +61,7 @@ class Alert extends Component {
                 )
             })
 
-        if (this.props.isLoading)
+        if (this.props.isLoadingAlert)
             return (
                 <div style={{ height: '200px' }}>
                     <Dimmer active inverted>

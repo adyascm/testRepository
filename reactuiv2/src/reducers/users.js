@@ -24,12 +24,14 @@ const defaultState = {
     pageNumber: 0,
     pageLimit: 100,
     exposureType: 'EXT',
-    isLoading: false,
+    isLoadingUsers: false,
+    isLoadingUserResources: false,
+    isLoadingOwnedUsers: false,
+    isLoadingUserActivities: false,
     usersTreePayload: undefined,
     groupSearchPayload: undefined,
     selectedUserItem: undefined,
     userDetailsViewActive: false,
-    isActivitiesLoading: false,
     // selectedUserItem: undefined,
     action: undefined,
     userFilterType: 'EXT',
@@ -43,7 +45,7 @@ export default (state = defaultState, action) => {
         case USERS_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoading: true,
+                isLoadingUsers: true,
                 //usersTreePayload: undefined
             }
         case USERS_PAGE_LOADED:
@@ -57,7 +59,7 @@ export default (state = defaultState, action) => {
             }
             return {
                 ...state,
-                isLoading: false,
+                isLoadingUsers: false,
                 usersTreePayload: usersTreePayload,
                 groupSearchPayload: undefined
             }
@@ -92,19 +94,19 @@ export default (state = defaultState, action) => {
             state.selectedUserItem.ownedResources = undefined;
             return {
                 ...state,
-                isLoading: true
+                isLoadingOwnedUsers: true
             }
         case USERS_OWNED_RESOURCES_LOADED:
             state.selectedUserItem.ownedResources = !action.error?action.payload:[]
             return {
                 ...state,
-                isLoading: false
+                isLoadingOwnedUsers: false
             }
         case USERS_RESOURCE_LOAD_START:
             state.selectedUserItem.resources = undefined;
             return {
                 ...state,
-                isResourcesLoading: true
+                isLoadingUserResources: true
             }
         case USERS_RESOURCE_LOADED:
             var rows = [];
@@ -138,7 +140,7 @@ export default (state = defaultState, action) => {
 
             return {
                 ...state,
-                isResourcesLoading: false,
+                isLoadingUserResources: false,
             }
         case USERS_RESOURCE_ACTION_LOAD:
             return {

@@ -39,11 +39,11 @@ const DataSourceVerifiedView = ChildComponent => {
                 this.props.loadActions(agent.Actions.getAllActions())
             }
             if ((this.props.common.datasources && this.props.common.datasources.length > 0) && 
-            (!this.props.users.isLoading && !this.props.users.usersTreePayload))
+            (!this.props.users.isLoadingUsers && !this.props.users.usersTreePayload))
             {
                 this.props.loadUsersTreeData(agent.Users.getUsersTree());
             }
-            if (!this.props.alertsCount) {
+            if (this.props.alertsCount === undefined) {
                 agent.Alert.getAlertsCount().then(response => {
                     this.props.fetchAlertsCount(response)
                 })

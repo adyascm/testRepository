@@ -7,14 +7,15 @@ import {
 } from '../constants/actionTypes';
 
 const defaultState = {
-  };
+    isLoadingWidget: false
+};
 
 export default (state = defaultState, action) => {
     switch (action.type) {
         case DASHBOARD_PAGE_LOADED:
             return state;
         case DASHBOARD_WIDGET_LOAD_START:
-            state[action.widgetId] = {isLoaded: false};
+            state[action.widgetId] = {isLoadingWidget: false};
             return {
                 ...state
             }
@@ -24,7 +25,7 @@ export default (state = defaultState, action) => {
                 errorPayload = 0
             else 
                 errorPayload = {totalCount:0, rows: []}
-            state[action.widgetId] = {isLoaded: true, data: !action.error?action.payload:errorPayload};
+            state[action.widgetId] = {isLoadingWidget: true, data: !action.error?action.payload:errorPayload};
             return {
                 ...state
             }

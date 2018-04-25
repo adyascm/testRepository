@@ -6,9 +6,10 @@ import {
 } from '../constants/actionTypes'
 
 const defaultState = {
-    isLoading: false,
+    isLoadingAlert: false,
     alerts: undefined,
-    openAlerts: undefined
+    openAlerts: undefined,
+    alertsCount: undefined
 }
 
 export default (state = defaultState, action) => {
@@ -16,12 +17,12 @@ export default (state = defaultState, action) => {
         case ALERTS_LOAD_START:
             return {
                 ...state,
-                isLoading: true
+                isLoadingAlert: true
             }
         case ALERTS_LOADED:
             return {
                 ...state,
-                isLoading: false,
+                isLoadingAlert: false,
                 alerts: !action.error?action.payload:[]
             }
         case FETCH_ALERTS_COUNT:

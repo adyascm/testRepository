@@ -41,7 +41,7 @@ class UserApps extends Component {
     render(){
         let selectedUser = this.props.selectedUser
         let applications =[]
-        if(this.props.isLoading)
+        if(this.props.isLoadingUserApps)
         {
             applications = (
                 <div className="ag-theme-fresh" style={{ height: '100px' }}>

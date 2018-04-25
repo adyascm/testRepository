@@ -133,7 +133,7 @@ class Reports extends Component {
 
   render() {
 
-    if (this.props.isLoading) 
+    if (this.props.isLoadingReports) 
       return (
         <div style={{ height: '200px' }}>
             <Dimmer active inverted>

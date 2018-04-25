@@ -23,7 +23,7 @@ const mapStateToProps = state => ({
   redirectTo: state.dashboard.redirectTo,
   redirectFilter: state.dashboard.filterType,
   appDeleted: state.apps.appDeleted,
-  isLoading: state.apps.isLoading,
+  isLoading: state.apps.isLoadingApps,
   selectedAppItem: state.apps.selectedAppItem
 });
 

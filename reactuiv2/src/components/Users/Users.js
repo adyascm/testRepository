@@ -21,7 +21,7 @@ const mapStateToProps = state => ({
   appName: state.common.appName,
   currentUser: state.common.currentUser,
   selectedUser: state.users.selectedUserItem,
-  isLoading: state.users.isLoading,
+  isLoading: state.users.isLoadingUsers,
   userPayload: state.users.usersTreePayload,
   userFilterType: state.users.userFilterType,
   userShowHierarchy: state.users.userShowHierarchy,
