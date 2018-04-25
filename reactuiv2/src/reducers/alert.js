@@ -8,7 +8,6 @@ import {
 const defaultState = {
     isLoadingAlert: false,
     alerts: undefined,
-    openAlerts: undefined,
     alertsCount: undefined
 }
 
@@ -31,9 +30,10 @@ export default (state = defaultState, action) => {
                 alertsCount: action.alertsCount
             }
         case LOGOUT:
-            break
-    }
-    return {
-        ...defaultState
+            return {
+                ...defaultState
+            }
+        default:
+            return state
     }
 }
