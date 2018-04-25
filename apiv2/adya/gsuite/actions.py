@@ -279,6 +279,7 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
     existing_user = db_session.query(DomainUser).filter(
         and_(DomainUser.datasource_id == datasource_id,
              DomainUser.email == updated_permission['email'])).first()
+
     if not existing_user:
         # Update the exposure type of the permission
         updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
@@ -297,6 +298,10 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
             domainUser.last_name = ""
         db_session.add(domainUser)
         db_connection().commit()
+    else:
+        # case: add permission to external user if that user already exist , than exposure type of permission should also be external
+        if existing_user.member_type == constants.UserMemberType.EXTERNAL:
+            updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
 
     permission = ResourcePermission()
     permission.datasource_id = datasource_id
