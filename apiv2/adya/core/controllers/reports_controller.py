@@ -45,9 +45,10 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if widget_id == 'usersCount':
 
         if is_service_account_is_enabled and not is_admin:
-            user_count_query = db_session.query(ResourcePermission.email).filter( and_(
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids),Resource.resource_owner_id == login_user_email,
-                                                    ResourcePermission.resource_id == Resource.resource_id)).distinct().count()
+            user_count_query = db_session.query(ResourcePermission.email).filter().filter( and_(
+                 ResourcePermission.datasource_id.in_(domain_datasource_ids), Resource.resource_owner_id == login_user_email,
+                                                    ResourcePermission.resource_id == Resource.resource_id,
+                                                    DomainUser.email == ResourcePermission.email)).distinct().count()
         else:
             user_count_query = db_session.query(DomainUser).filter(
                 DomainUser.datasource_id.in_(domain_datasource_ids)).count()
