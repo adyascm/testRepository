@@ -36,12 +36,11 @@ class UserCards extends Component {
     onCardClicked(event, param) {
         this.props.selectUserItem(param.user);
     }
-    
-    componentWillMount() {
-        const { activeIndex } = this.state.activeIndex
+
+    fetchUserDomain = (rows) => {
         var domainDict = {}
-        for(var i in this.props.rows){
-            var row = this.props.rows[i]
+        for(var i in rows){
+            var row = rows[i]
             var email = row['key']
             var domainName = email.substring((email.lastIndexOf('@')+1)).trim()
             if(!(domainName in domainDict)){
@@ -54,6 +53,15 @@ class UserCards extends Component {
             domainDict : domainDict
         })
     }
+    
+    componentWillMount() {
+        this.fetchUserDomain(this.props.rows)
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.rows !== this.props.rows) 
+            this.fetchUserDomain(nextProps.rows)
+    }
 
     createCards(domainName){
         return this.state.domainDict[domainName].map(row =>{
@@ -65,15 +73,15 @@ class UserCards extends Component {
             }
             return ((
                 <Card key={row.key} user={row} onClick={this.onCardClicked.bind(this)} color={this.props.selectedUserItem && this.props.selectedUserItem.key === row.key?'blue':null}>
-                <Card.Content>
-                {image}
-                <Card.Header>
-                {row.name}
-                </Card.Header>
-                <Card.Description>
-                {row.key}
-                </Card.Description>
-                </Card.Content>
+                    <Card.Content>
+                        {image}
+                        <Card.Header>
+                            {row.name}
+                        </Card.Header>
+                        <Card.Description>
+                            {row.key}
+                        </Card.Description>
+                    </Card.Content>
                 </Card>
             ))
         })
@@ -84,24 +92,24 @@ class UserCards extends Component {
         var userDomains = Object.keys(this.state.domainDict).sort().map((domainName, index) => {
             return(
                 <Accordion key={index} fluid>
-                <Accordion.Title style={this.accordionTitleStyle} active={this.state.activeIndex === index} index={index} onClick={this.handleClick}>
-                <Icon name='dropdown' />
-                {domainName}
-                </Accordion.Title>
-                <Accordion.Content active={this.state.activeIndex === index }>
-                <Container>
-                <Card.Group style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
-                {this.createCards(domainName)}
-                </Card.Group>
-                </Container>
-                </Accordion.Content>
+                    <Accordion.Title style={this.accordionTitleStyle} active={this.state.activeIndex === index} index={index} onClick={this.handleClick}>
+                        <Icon name='dropdown' />
+                        {domainName}
+                    </Accordion.Title>
+                    <Accordion.Content active={this.state.activeIndex === index }>
+                        <Container>
+                            <Card.Group style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
+                                {this.createCards(domainName)}
+                            </Card.Group>
+                        </Container>
+                    </Accordion.Content>
                 </Accordion>
             )
         });  
 
         return (
             <div>
-            {userDomains}
+                {userDomains}
             </div>
         )
     }
