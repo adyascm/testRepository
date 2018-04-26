@@ -75,7 +75,7 @@ class App extends Component {
     this.props.onLoad(token ? agent.Auth.current() : null, token);
   }
   render() {
-    if (this.props.appLoaded) {
+    if (this.props.appLoaded && !this.props.redirectTo) {
       return (
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser}/>

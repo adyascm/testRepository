@@ -4,9 +4,7 @@ import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 
 import {
-    APPS_ITEM_SELECTED,
-    APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APPS_ITEM_SELECTED
 } from '../../constants/actionTypes';
 
 
@@ -16,9 +14,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     selectAppItem: (payload) =>
-        dispatch({ type: APPS_ITEM_SELECTED, payload }),
-    appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
-    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
+        dispatch({ type: APPS_ITEM_SELECTED, payload })
 });
 
 
@@ -32,9 +28,7 @@ class AppList extends Component {
     }
 
     onCardClicked(event, param) {
-        this.props.selectAppItem(param.app);
-        this.props.appUsersLoadStart()
-        this.props.appUsersLoaded(agent.Apps.getappusers(param.app.client_id))
+        this.props.selectAppItem(param.app)
     }
 
     render() {
