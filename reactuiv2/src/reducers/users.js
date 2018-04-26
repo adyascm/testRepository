@@ -82,13 +82,13 @@ export default (state = defaultState, action) => {
         case USERS_ACTIVITY_LOAD_START:
             return {
                 ...state,
-                isActivitiesLoading: true
+                isLoadingUserActivities: true
             }
         case USERS_ACTIVITY_LOADED:
             state.selectedUserItem.activities = !action.error ? action.payload : [];
             return {
                 ...state,
-                isActivitiesLoading: false,
+                isLoadingUserActivities: false,
             }
         case USERS_OWNED_RESOURCES_LOAD_START:
             state.selectedUserItem.ownedResources = undefined;
