@@ -69,7 +69,6 @@ class Policy extends Component {
     }
 
     modifyPolicy = (policy) => {
-        console.log("modify policy: ", policy)
         this.setState({
             showPolicyForm: true,
             policyDetails: policy,

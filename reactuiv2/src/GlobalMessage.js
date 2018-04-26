@@ -27,9 +27,9 @@ class GlobalMessage extends Component {
     render() {
 
         if (this.props.errorCount > 0) {
-            let errorMessage = this.props.errorMessage.map((message) => {
+            let errorMessage = this.props.errorMessage.map((message, index) => {
                 return (
-                    <li style={{'textAlign': 'left'}}>{message}</li>
+                    <li key={index} style={{'textAlign': 'left'}}>{message}</li>
                 )
             })
             return (
@@ -42,9 +42,9 @@ class GlobalMessage extends Component {
             )
         }
         if (this.props.warningCount > 0) {
-            let warningMessage = this.props.infoMessage.map((message) => {
+            let warningMessage = this.props.infoMessage.map((message, index) => {
                 return (
-                    <li style={{'textAlign': 'left'}}>{message}</li>
+                    <li key={index} style={{'textAlign': 'left'}}>{message}</li>
                 )
             })
             return (

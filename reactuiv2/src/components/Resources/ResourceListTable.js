@@ -227,7 +227,7 @@ class ResourcesListTable extends Component {
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
                 return (
-                    <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
+                    <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>

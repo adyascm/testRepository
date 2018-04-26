@@ -67,7 +67,7 @@ class ResourceDetailsSection extends Component {
                 {/* <Sticky> */}
                 <Icon name='close' onClick={this.closeDetailsSection} />
                 <ResourceDetails rowData={this.props.rowData} onQuickAction={this.onQuickAction}/>
-                <Tab menu={{ secondary: true, pointing: true }} panes={panes} rowData={this.props.rowData} />
+                <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 {/* </Sticky> */}
             </Segment>
         )

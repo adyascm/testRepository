@@ -54,18 +54,18 @@ class UserActivityTable extends Component {
 
 
     render() {
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
         let tableRowData = null
 
         if (this.props.selectedUserItem.activities)
-            tableRowData = this.props.selectedUserItem.activities.map(rowData => {
+            tableRowData = this.props.selectedUserItem.activities.map((rowData, index) => {
                 return (
-                    <Table.Row>
+                    <Table.Row key={index}>
                         <Table.Cell><DateComponent value={rowData[0]} /></Table.Cell>
                         <Table.Cell>{rowData[1]}</Table.Cell>
                         <Table.Cell>{rowData[2]}</Table.Cell>

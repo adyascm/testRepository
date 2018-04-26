@@ -38,7 +38,8 @@ class PolicyItemDetail extends Component {
             name: "",
             description: "",
             policyId: undefined,
-            showPolicyForm: false
+            showPolicyForm: false,
+            To: ''
         }
     }
 
@@ -177,7 +178,7 @@ class PolicyItemDetail extends Component {
         )
 
         let conditions = this.state.conditions.map((condition, index) => {
-            return <PolicyCondition policyCondition={condition} index={index} removeFilter={this.removeFilter} />
+            return <PolicyCondition key={index} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
         })
 
         if (this.props.isLoadingPolicy) {

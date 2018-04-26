@@ -40,18 +40,18 @@ class Alert extends Component {
     }
 
     render () {  
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
         let tableRowData = null
 
         if (this.props.alerts)
-            tableRowData = this.props.alerts.map(rowData => {
+            tableRowData = this.props.alerts.map((rowData, index) => {
                 return (
-                    <Table.Row>
+                    <Table.Row key={index}>
                         <Table.Cell>{rowData["name"]}</Table.Cell>
                         <Table.Cell>{rowData["created_at"]}</Table.Cell>
                         <Table.Cell>{rowData["severity"]}</Table.Cell>

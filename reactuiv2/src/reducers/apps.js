@@ -41,7 +41,6 @@ export default (state = defaultState, action) => {
                 appDeleted: false
             }
         case APPS_ITEM_SELECTED:
-            console.log("selected app : ", action.payload)
             return {
                 ...state,
                 selectedAppItem: action.payload,

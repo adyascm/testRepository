@@ -96,7 +96,6 @@ class PolicyCondition extends Component {
     }
 
     render() {
-        console.log("props key : ", this.props.counter)
         return (
             <Form.Group key={this.props.counter} widths='equal'>
                 <Form.Field required control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.policyCondition.match_type} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
