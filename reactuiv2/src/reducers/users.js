@@ -71,7 +71,8 @@ export default (state = defaultState, action) => {
         case GROUP_SEARCH_EMPTY:
             return {
                 ...state,
-                groupSearchPayload: undefined
+                groupSearchPayload: undefined,
+                selectedUserItem: undefined
             }
         case USER_ITEM_SELECTED:
             return {

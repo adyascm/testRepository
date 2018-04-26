@@ -119,6 +119,7 @@ class GroupSearch extends Component {
     handleKeyPress = (event) => {
         if (event.key === 'Enter') {
             this.props.onsearchLoad(this.state.resultsMap)
+            this.props.setSelectedUser(undefined)
             this.setState({
                 hideSearchMenu: true,
                 showNoResults: false
