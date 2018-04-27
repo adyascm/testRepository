@@ -60,7 +60,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoadingUserApps: false,
-                userApps: action.payload
+                userApps: action.error ? [] : action.payload
             }
         case APP_USERS_LOAD_START:
         return {
@@ -73,7 +73,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoadingAppUsers:false,
-                appUsers: action.payload
+                appUsers: action.error ? [] : action.payload
             }
         case APPS_SEARCH_PAYLOAD:
             return {
