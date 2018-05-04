@@ -9,11 +9,11 @@ from adya.common.constants import constants
 
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
-    existing_user = db_utils.get_user_session(auth_token)
-    user_domain_id = existing_user.domain_id
-    login_user_email = existing_user.email
-    is_admin = existing_user.is_admin
-    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+    login_user = db_utils.get_user_session(auth_token)
+    user_domain_id = login_user.domain_id
+    login_user_email = login_user.email
+    is_admin = login_user.is_admin
+    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
     
     datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(
         DataSource.domain_id == user_domain_id).all()
@@ -24,18 +24,19 @@ def get_user_group_tree(auth_token):
 
         if is_service_account_is_enabled and not is_admin:
                 extUsers = db_session.query(DomainUser).filter(and_(Resource.resource_owner_id == login_user_email,
+                               ResourcePermission.datasource_id == datasource_id,
                                ResourcePermission.resource_id == Resource.resource_id,
-                               ResourcePermission.email == DomainUser.email,
-                               ResourcePermission.datasource_id == datasource_id)).all()
+                               DomainUser.datasource_id == datasource_id,
+                               ResourcePermission.email == DomainUser.email)).all()
 
                 for extusr in extUsers :
                     extusr.parents = []
                     users_groups[extusr.email] =extusr
 
-                usersData = db_session.query(DomainUser) \
-                                .filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == existing_user.email)).all()
-                usersData[0].parents = []
-                users_groups[usersData[0].email] = usersData[0]
+                loginuser_data = db_session.query(DomainUser) \
+                                .filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == login_user_email)).first()
+                loginuser_data.parents = []
+                users_groups[loginuser_data.email] = loginuser_data
 
                 groupsData = db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).filter(
                     LoginUser.auth_token == auth_token).filter(
