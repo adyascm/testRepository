@@ -27,7 +27,9 @@ def get_user_group_tree(auth_token):
                                ResourcePermission.datasource_id == datasource_id,
                                ResourcePermission.resource_id == Resource.resource_id,
                                DomainUser.datasource_id == datasource_id,
-                               ResourcePermission.email == DomainUser.email)).all()
+                               DomainUser.email == ResourcePermission.email,
+                               DomainUser.member_type == constants.UserMemberType.EXTERNAL
+                               )).all()
 
                 for extusr in extUsers :
                     extusr.parents = []
