@@ -57,8 +57,14 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
                 resources_query = resources_query.order_by(resource_alias.resource_type.desc())
             else:
                 resources_query = resources_query.order_by(resource_alias.resource_type.asc())
-    if exposure_type:
-            resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
+    if exposure_type or sort_column_name == 'exposure_type':
+            if exposure_type:
+                resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
+            else:
+                if sort_type == 'desc':
+                    resources_query = resources_query.order_by(resource_alias.exposure_type.desc())
+                else:
+                    resources_query = resources_query.order_by(resource_alias.exposure_type.asc())
     if prefix or sort_column_name == 'resource_name':
         if prefix and sort_column_name == 'resource_name':
             page_limit = 10

@@ -161,3 +161,12 @@ hr.divider {
       .mob-mar-t{margin-top: 30px;}
     }
     .logo{width:"300px";height:"100%"}
+
+    .ui.search .prompt {
+      border-radius: .28571429rem;
+    }
+
+    .ui.search>.results {
+      max-height: 100px;
+      overflow: auto;
+    }

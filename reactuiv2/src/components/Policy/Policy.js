@@ -5,7 +5,8 @@ import { connect } from 'react-redux'
 import  agent from '../../utils/agent'
 import {
     POLICY_LOAD_START,
-    POLICY_LOADED
+    POLICY_LOADED,
+    USER_ITEM_SELECTED
 } from '../../constants/actionTypes'
 
 const mapStateToProps = state => ({
@@ -13,8 +14,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    policyLoadStart: () =>
+    policyLoadStart: () => {
         dispatch({ type: POLICY_LOAD_START }),
+        dispatch({ type: USER_ITEM_SELECTED, payload: undefined })
+    },
     policyLoaded: (payload) =>
         dispatch({ type: POLICY_LOADED, payload })
 })

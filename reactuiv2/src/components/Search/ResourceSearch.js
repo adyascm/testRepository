@@ -128,7 +128,8 @@ class ResourceSearch extends Component {
         const { isLoading, value, results } = this.state
 
         return (
-            <Search aligned="left"
+            <Search 
+                aligned="left"
                 loading={isLoading}
                 onResultSelect={this.handleResultSelect}
                 onSearchChange={this.handleSearchChange.bind(this)}
@@ -138,7 +139,7 @@ class ResourceSearch extends Component {
                 onKeyPress={this.handleKeyPress}
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
-                fluid
+                fluid={true}
                 // {...this.props} 
             />
         )
