@@ -29,8 +29,14 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
         selectedUser = user_emails[0]
-    if selected_date:
-        resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
+    if selected_date or sort_column_name == 'last_modified_time':
+        if selected_date:
+            resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
+        if sort_column_name == 'last_modified_time':
+            if sort_type == 'desc':
+                resources_query = resources_query.order_by(resource_alias.last_modified_time.desc())
+            else:
+                resources_query = resources_query.order_by(resource_alias.last_modified_time.asc())
     if parent_folder or sort_column_name == 'parent_name':
         if parent_folder:
             resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)

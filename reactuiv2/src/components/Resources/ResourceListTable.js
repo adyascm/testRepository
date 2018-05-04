@@ -56,7 +56,8 @@ class ResourcesListTable extends Component {
                 "Type": "resource_type",
                 "Owner": "resource_owner_id",
                 "Exposure Type": "exposure_type",
-                "Parent Folder": "parent_name"
+                "Parent Folder": "parent_name",
+                "Modified On or Before": "last_modified_time"
             },
             columnNameClicked: undefined,
             sortOrder: undefined
