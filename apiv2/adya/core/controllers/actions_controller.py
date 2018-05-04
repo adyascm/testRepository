@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 
 from adya.common.constants import constants, action_constants, urls
+from adya.common.db import db_utils
 from adya.common.utils import messaging, response_messages
 from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, \
     Resource, DirectoryStructure, DomainUser, DataSource
@@ -335,10 +336,21 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
 
 def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by):
     db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token)
+    login_user_email = login_user.email
+    is_admin = login_user.is_admin
+    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
                                                                             datasource_id,
                                                                             ResourcePermission.email == user_email,
-                                                                            ResourcePermission.permission_type != "owner")).all()
+                                                                            ResourcePermission.permission_type != "owner"))
+
+    if is_service_account_is_enabled and not is_admin:
+        resource_permissions = resource_permissions.filter(and_(Resource.resource_id == ResourcePermission.resource_id ,
+                                                                Resource.resource_owner_id == login_user_email))
+
+    resource_permissions = resource_permissions.all()
+
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
         owner = permission.resource.resource_owner_id
