@@ -7,6 +7,7 @@ import {
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
+    APPS_SEARCH_EMPTY,
     SET_REDIRECT_PROPS,
     UPDATE_APPS_DELETE_FLAG,
     LOGOUT
@@ -79,6 +80,12 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 appsSearchPayload: action.payload
+            }
+        case APPS_SEARCH_EMPTY:
+            return {
+                ...state,
+                appsSearchPayload: undefined,
+                selectedAppItem: undefined
             }
         case SET_REDIRECT_PROPS:
             var states = {};

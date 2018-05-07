@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Search } from 'semantic-ui-react'
+import { Search, Icon } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
@@ -58,7 +58,6 @@ class GroupSearch extends Component {
     handleResultSelect = (e, { result }) => {
         this.props.onsearchLoad(this.state.resultsMap)
         this.props.setSelectedUser(result)
-        console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
@@ -123,6 +122,15 @@ class GroupSearch extends Component {
         }
     }
 
+    clearSearchResult = () => {
+        this.props.onsearchEmpty()
+        this.setState({
+            results: [],
+            value: '',
+            showNoResults: false
+        })
+    }    
+
     render() {
         const { isLoading, value, results } = this.state
         // if(!this.props.users.usersTreePayload)
@@ -140,6 +148,7 @@ class GroupSearch extends Component {
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
                 fluid={true}
+                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} / > : 'search'}
                 // {...this.props}
             />
         )

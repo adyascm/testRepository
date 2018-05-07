@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Search } from 'semantic-ui-react'
+import { Search, Icon } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
@@ -124,6 +124,15 @@ class ResourceSearch extends Component {
         }
     }
 
+    clearSearchResult = () => {
+        this.props.onsearchEmpty()
+        this.setState({
+            results: [],
+            value: '',
+            showNoResults: false
+        })
+    }
+
     render() {
         const { isLoading, value, results } = this.state
 
@@ -140,6 +149,7 @@ class ResourceSearch extends Component {
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
                 fluid={true}
+                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon name='close' link onClick={this.clearSearchResult} /> : 'search'}
                 // {...this.props} 
             />
         )

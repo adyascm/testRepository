@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Search } from 'semantic-ui-react';
+import { Search, Icon } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
@@ -9,7 +9,8 @@ import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
-    APPS_SEARCH_PAYLOAD
+    APPS_SEARCH_PAYLOAD,
+    APPS_SEARCH_EMPTY
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -24,7 +25,9 @@ const mapDispatchToProps = dispatch => ({
     appUsersLoaded: (payload) => 
         dispatch({ type: APP_USERS_LOADED, payload }),
     setAppsSearchResults: (payload) => 
-        dispatch({ type: APPS_SEARCH_PAYLOAD, payload })
+        dispatch({ type: APPS_SEARCH_PAYLOAD, payload }),
+    onSearchEmpty: () =>
+        dispatch({ type: APPS_SEARCH_EMPTY })
 });
 
 class AppsSearch extends Component {
@@ -52,7 +55,7 @@ class AppsSearch extends Component {
 
     handleSearchChange = (e, { value }) => {
         if (value === '') {
-            this.props.setAppsSearchResults(undefined)
+            this.props.onSearchEmpty()
             this.setState({
                 value: value,
                 results: [],
@@ -109,6 +112,15 @@ class AppsSearch extends Component {
         }
     }
 
+    clearSearchResult = () => {
+        this.props.onSearchEmpty()
+        this.setState({
+            results: [],
+            value: '', 
+            showNoResults: false
+        })
+    }
+
     render() {
         return (
             <Search aligned="left"
@@ -121,6 +133,7 @@ class AppsSearch extends Component {
                 onKeyPress={this.handleKeyPress}
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
+                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} /> : 'search'}
             />
         )
     }
