@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Search } from 'semantic-ui-react'
+import { Search, Icon } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
 
@@ -34,10 +34,6 @@ class GroupSearch extends Component {
             hideSearchMenu: true,
             showNoResults: false
         }
-        // if(!this.props.users.usersTreePayload)
-        // {
-        //     this.props.onUsersLoad(agent.Users.getUsersTree());
-        // }
     }
 
     resultRenderer = (r) => {
@@ -62,7 +58,6 @@ class GroupSearch extends Component {
     handleResultSelect = (e, { result }) => {
         this.props.onsearchLoad(this.state.resultsMap)
         this.props.setSelectedUser(result)
-        console.log("search result : ", result)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
           var entityinfovalue = [result.email, result.email]
@@ -119,6 +114,7 @@ class GroupSearch extends Component {
     handleKeyPress = (event) => {
         if (event.key === 'Enter') {
             this.props.onsearchLoad(this.state.resultsMap)
+            this.props.setSelectedUser(undefined)
             this.setState({
                 hideSearchMenu: true,
                 showNoResults: false
@@ -126,12 +122,22 @@ class GroupSearch extends Component {
         }
     }
 
+    clearSearchResult = () => {
+        this.props.onsearchEmpty()
+        this.setState({
+            results: [],
+            value: '',
+            showNoResults: false
+        })
+    }    
+
     render() {
         const { isLoading, value, results } = this.state
         // if(!this.props.users.usersTreePayload)
         //     return null;
         return (
-            <Search aligned="left"
+            <Search 
+                aligned="left"
                 loading={isLoading}
                 onResultSelect={this.handleResultSelect}
                 onSearchChange={this.handleSearchChange.bind(this)}
@@ -141,6 +147,8 @@ class GroupSearch extends Component {
                 onKeyPress={this.handleKeyPress}
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
+                fluid={true}
+                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} / > : 'search'}
                 // {...this.props}
             />
         )

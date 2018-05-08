@@ -76,6 +76,9 @@ api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
 api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
 api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
 
+#trustedDomain
+api.add_resource(domain_handler.TrustedPartners, urls.TRUSTED_PARTNERS)
+
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

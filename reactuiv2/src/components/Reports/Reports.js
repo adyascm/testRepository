@@ -14,6 +14,8 @@ import {
   RUN_SCHEDULED_REPORT,
   REPORTS_PAGE_LOADING,
   DELETE_OLD_SCHEDULED_REPORT,
+  GROUP_SEARCH_EMPTY,
+  RESOURCES_SEARCH_EMPTY,
   FLAG_ERROR_MESSAGE
 } from '../../constants/actionTypes';
 
@@ -38,7 +40,11 @@ const mapStateToProps = state => ({
     loadingReports: () => 
       dispatch({ type: REPORTS_PAGE_LOADING }),
     flagReportsError: (error, info) => 
-      dispatch({ type: FLAG_ERROR_MESSAGE, error, info })
+      dispatch({ type: FLAG_ERROR_MESSAGE, error, info }),
+    clearSearchPayload: () => {
+      dispatch({ type: GROUP_SEARCH_EMPTY }),
+      dispatch({ type: RESOURCES_SEARCH_EMPTY })
+    }
   });
 
 class Reports extends Component {
@@ -84,6 +90,7 @@ class Reports extends Component {
       reportDataForReportId: {}
     })
     this.props.deleteOldRunReportData()
+    this.props.clearSearchPayload()
   }
 
   deleteReport = (reportId) => ev => {

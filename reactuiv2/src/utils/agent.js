@@ -44,7 +44,11 @@ const Setting = {
     deleteDataSource: (dataSource) =>
         requests.del('/common/datasources?datasourceId=' + dataSource.datasource_id),
     pollGSuiteDriveChanges: (dataSource) =>
-        requests.get('/google/scan/polldrivechanges?datasource_id=' + dataSource.datasource_id)
+        requests.get('/google/scan/polldrivechanges?datasource_id=' + dataSource.datasource_id),
+    createTrustedPartners: (partners) =>
+        requests.post('/common/trustedentities', partners),
+    getTrustedPartners: (domain_id) =>
+        requests.get('/common/trustedentities?domainId=' + domain_id)
 };
 
 const Actions = {
@@ -108,7 +112,7 @@ const AuditLog = {
 const Policy = {
     createPolicy: (policyInfo) =>
         requests.post('/common/policies', policyInfo),
-    getPolicy: () => 
+    getPolicy: () =>
         requests.get('/common/policies'),
     deletePolicy: (policyId) =>
         requests.del('/common/policies?policyId=' + policyId),
@@ -121,7 +125,7 @@ const Alert = {
         requests.get('/common/alerts'),
     getAlertsCount: () =>
         requests.get('/common/alerts/count')
-}   
+}
 
 
 export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, setToken: _token => { token = _token; } };

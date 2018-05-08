@@ -75,9 +75,9 @@ class UserOwnedResources extends Component {
     }
 
     render() {
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
@@ -92,13 +92,11 @@ class UserOwnedResources extends Component {
         let tableRowData = null
         
         if (this.props.selectedUserItem.ownedResources)
-            tableRowData = this.props.selectedUserItem.ownedResources.map(rowData => {
+            tableRowData = this.props.selectedUserItem.ownedResources.map((rowData, index) => {
                 if (this.props.selectedUserItem["key"] === rowData["resource_owner_id"])
                     return (
-                        <Table.Row>
-                            <div style={{'word-break': 'break-word'}}>
-                                <Table.Cell width="3">{rowData["resource_name"]}</Table.Cell>
-                            </div>
+                        <Table.Row key={index}>
+                            <Table.Cell width="3" style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
                             {/* <Table.Cell width="6">
                                 {rowData["resource_owner_id"]}
                                 <Icon name='pencil' style={{'cursor': 'pointer'}} onClick={() => this.handleEmailChange(rowData)} />

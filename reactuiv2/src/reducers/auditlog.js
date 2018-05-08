@@ -20,7 +20,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoadingAuditLog: false,
-                log: action.payload
+                log: action.error ? [] : action.payload
             };
         case LOGOUT:
             return {

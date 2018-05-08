@@ -1,24 +1,27 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon, Sticky } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
+import GroupSearch from '../Search/GroupSearch';
 
 import {
     RESOURCES_PAGE_LOADED,
     RESOURCES_PAGE_LOAD_START,
     RESOURCES_TREE_SET_ROW_DATA,
     RESOURCES_PAGINATION_DATA,
-    RESOURCES_FILTER_CHANGE
+    RESOURCES_FILTER_CHANGE,
+    GROUP_SEARCH_EMPTY
 } from '../../constants/actionTypes';
 
 
 const mapStateToProps = state => ({
-    ...state.resources
+    ...state.resources,
+    selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -27,7 +30,8 @@ const mapDispatchToProps = dispatch => ({
     setRowData: (payload) => dispatch({ type: RESOURCES_TREE_SET_ROW_DATA, payload }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: RESOURCES_PAGINATION_DATA, pageNumber, pageLimit }),
     resetPaginationData: (pageNumber, pageLimit) => dispatch({ type: RESOURCES_PAGINATION_DATA, pageNumber, pageLimit }),
-    changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value })
+    changeFilter: (property, value) => dispatch({ type: RESOURCES_FILTER_CHANGE, property, value }),
+    clearGroupSearchPayload: () => dispatch({ type: GROUP_SEARCH_EMPTY })
 });
 
 class ResourcesListTable extends Component {
@@ -51,7 +55,9 @@ class ResourcesListTable extends Component {
                 "Name": "resource_name",
                 "Type": "resource_type",
                 "Owner": "resource_owner_id",
-                "Parent Folder": "parent_name"
+                "Exposure Type": "exposure_type",
+                "Parent Folder": "parent_name",
+                "Modified On or Before": "last_modified_time"
             },
             columnNameClicked: undefined,
             sortOrder: undefined
@@ -69,6 +75,10 @@ class ResourcesListTable extends Component {
             {
               text: 'Anyone With Link Shared',
               value: 'ANYONEWITHLINK'
+            },
+            {
+              text: 'Trusted Domain Shared',
+              value: 'TRUSTED'
             },
             {
                 text: 'Domain Shared',
@@ -92,15 +102,33 @@ class ResourcesListTable extends Component {
 
     componentWillUnmount() {
         this.props.resetPaginationData(0, 100)
+        this.props.clearGroupSearchPayload()
     }
+
+    // componentWillReceiveProps(nextProps) {
+    //     if (nextProps !== this.props) {
+    //         if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
+    //             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
+    //             ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined)) {
+    //             nextProps.onLoadStart()
+    //             nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix }))
+    //         }
+
+    //         if (nextProps.filterResourceType !== this.state.filterResourceType)
+    //             this.setState({
+    //                 filterResourceType: nextProps.filterResourceType
+    //             })
+    //     }
+    // }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.selectedUser !== this.props.selectedUser || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
                 ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined)) {
+                let ownerEmailId = nextProps.selectedUser ? nextProps.selectedUser.email : ''
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc' }))
             }
 
             if (nextProps.filterResourceType !== this.state.filterResourceType)
@@ -184,10 +212,12 @@ class ResourcesListTable extends Component {
     }
 
     handleColumnSort = (mappedColumnName) => {
+        let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
-                                                                 'columnName': mappedColumnName, 'sortType': 'asc' }))
+
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
+                                                                 'sortColumn': mappedColumnName, 'sortType': 'asc' }))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -195,8 +225,9 @@ class ResourcesListTable extends Component {
         }
         else {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
-                                                                 'columnName': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc' }))
+
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix, 
+                                                                 'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc' }))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -227,13 +258,13 @@ class ResourcesListTable extends Component {
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
                 return (
-                    <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'background-color': '#2185d0' } : null}>
-                        <Table.Cell>{rowData["resource_name"]}</Table.Cell>
-                        <Table.Cell width='2'>{rowData["resource_type"]}</Table.Cell>
-                        <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell textAlign='center'>{rowData["exposure_type"]}</Table.Cell>
+                    <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
+                        <Table.Cell width='3' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
+                        <Table.Cell width='3'>{rowData["resource_owner_id"]}</Table.Cell>
+                        <Table.Cell textAlign='center' width='3'>{rowData["exposure_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["parent_name"]}</Table.Cell>
-                        <Table.Cell width='2'><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
+                        <Table.Cell width='3'><IntlProvider locale='en'><FormattedRelative value={rowData["last_modified_time"]} /></IntlProvider ></Table.Cell>
                     </Table.Row>
                 )
             })
@@ -245,28 +276,30 @@ class ResourcesListTable extends Component {
         )
 
         if (this.props.isLoadingResources || resourceData) {
-            let filterMetadata = { 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': this.props.filterEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
+            let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
+            let filterMetadata = { 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
             return (
                 <div>
                     <div ref="table" style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight/1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>
                         <Table celled selectable striped compact='very' sortable>
-                            <Table.Header>
+                            <Table.Header style={{'position': 'sticky', 'top': '50px', 'width': '100%'}}>
                                 <Table.Row>
                                     {tableHeaders}
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
                                 <Table.Row>
-                                    <Table.Cell>
+                                    <Table.Cell width='3'>
                                         <ResourceSearch filterMetadata={filterMetadata} />
                                     </Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell width='3'>
                                         <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : ''} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
-                                    <Table.Cell>
-                                        <Input fluid  placeholder='Filter by email...' icon={this.state.filterEmailId.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEmailId')} /> : ''} value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} />
+                                    <Table.Cell width='3'>
+                                        {/* <Input fluid  placeholder='Filter by email...' icon={this.state.filterEmailId.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEmailId')} /> : ''} value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} /> */}
+                                        <GroupSearch />
                                     </Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell width='3'>
                                         <Dropdown
                                             fluid
                                             options={this.exposureFilterOptions}
@@ -275,12 +308,12 @@ class ResourcesListTable extends Component {
                                             onChange={this.handleExposureTypeChange}
                                         />
                                     </Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell width='3'>
                                         <Input fluid placeholder='Filter by folder...' icon={this.state.filterParentFolder.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterParentFolder')} /> : ''} value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
                                     </Table.Cell>
-                                    <Table.Cell>
+                                    <Table.Cell width='3'>
                                         {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
-                                        <Input>
+                                        <Input fluid placeholder='Filter by Date...'>
                                             <DatePicker
                                                 selected={this.state.currentDate}
                                                 onChange={this.handleDateChange}

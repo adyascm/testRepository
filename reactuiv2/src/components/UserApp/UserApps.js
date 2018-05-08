@@ -57,7 +57,7 @@ class UserApps extends Component {
                 if (application !== undefined) {
 
                     let score = application["score"]
-                    var color = score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow')
+                    var color = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
                     let scopes = application["scopes"].split(',').map((scope,index) => {
                     return (
                     <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
@@ -69,8 +69,8 @@ class UserApps extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical' 
-                                    basic color='red' 
+                                <Button animated='vertical'
+                                    basic color='red'
                                     onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}
                                     disabled={this.props.loading && (this.props.deleteApp === application['display_text']) ? true:false}
                                     loading={this.props.loading && (this.props.deleteApp === application['display_text']) ? true:false}>

@@ -33,14 +33,14 @@ export default (state = defaultState, action) => {
         case RESOURCES_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoadingResources: true
+                isLoadingResources: true,
+                rowData: undefined
             }
         case RESOURCES_PAGE_LOADED:
             return {
                 ...state,
                 isLoadingResources: false,
                 resourceTree: !action.error ? action.payload : [],
-                rowData: undefined,
                 resourceSearchPayload: undefined
             }
         case RESOURCES_PAGINATION_DATA:

@@ -15,7 +15,9 @@ import {
   APPS_PAGE_LOADED,
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
-  SET_REDIRECT_PROPS
+  SET_REDIRECT_PROPS,
+  CREATE_TRUSTED_PARTNER,
+  SET_TRUSTED_PARTNER
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -120,6 +122,26 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: true
       };
+    case CREATE_TRUSTED_PARTNER:
+      return {
+        ...state,
+        partner : action.error?[]:action.payload,
+        errorMessage: action.error
+      };
+    case SET_TRUSTED_PARTNER:
+          var error;
+          if(action.error === undefined){
+            error = false
+          }
+          else {
+            error = true
+          }
+          return{
+            ...state,
+            trustedPartners: action.error?[]:action.payload,
+            getrtrustedPartnersError: error,
+            errorMessage: action.error
+          } ;
     // case USERS_PAGE_LOADED:
     //   return {
     //     ...state,

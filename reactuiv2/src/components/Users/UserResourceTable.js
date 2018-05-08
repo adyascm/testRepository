@@ -86,9 +86,9 @@ class UserResourceTable extends Component {
     }
 
     render() {
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
@@ -103,12 +103,12 @@ class UserResourceTable extends Component {
         let tableRowData = null
 
         if (this.props.selectedUserItem.resources)
-            tableRowData = this.props.selectedUserItem.resources.map(rowData => {
+            tableRowData = this.props.selectedUserItem.resources.map((rowData, index) => {
                 return (
-                    <Table.Row>
-                        <div style={{'word-break': 'break-word'}}>
-                            <Table.Cell width='5'>{rowData["resource_name"]}</Table.Cell>
-                        </div>
+                    <Table.Row key={index}>
+                        {/* <div style={{'word-break': 'break-word'}}> */}
+                        <Table.Cell width='5' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
+                        {/* </div> */}
                         <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
                             {/* {rowData["myPermission"]} */}

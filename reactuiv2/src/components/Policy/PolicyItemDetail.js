@@ -14,11 +14,14 @@ import {
     POLICY_LOADED
 } from '../../constants/actionTypes';
 
+import GroupSearch from '../Search/GroupSearch'
+
 
 const mapStateToProps = state => ({
     ...state.policy,
     datasources: state.common.datasources,
-    currentUser: state.common.currentUser
+    currentUser: state.common.currentUser,
+    selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -38,7 +41,8 @@ class PolicyItemDetail extends Component {
             name: "",
             description: "",
             policyId: undefined,
-            showPolicyForm: false
+            showPolicyForm: false,
+            To: ''
         }
     }
 
@@ -52,10 +56,26 @@ class PolicyItemDetail extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.showPolicyForm !== this.state.showPolicyForm)
-            this.setState({
-                showPolicyForm: nextProps.showPolicyForm
-            })
+        if (nextProps.showPolicyForm !== this.state.showPolicyForm) {
+            if (nextProps.showPolicyForm && !nextProps.policyDetails) {
+                this.setState({
+                    triggerType: "PERMISSION_CHANGE",
+                    conditions: [{ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" }],
+                    actions: [],
+                    name: "",
+                    description: "",
+                    policyId: undefined,
+                    To: '',
+                    disableEmailField: true,
+                    showPolicyForm: nextProps.showPolicyForm
+                })
+            }
+            else
+                this.setState({
+                    showPolicyForm: nextProps.showPolicyForm
+                }) 
+        }
+
         if (nextProps.policyDetails && (nextProps.policyDetails !== this.props.policyDetails)) {
             let allActions = nextProps.policyDetails.actions
             if (allActions.length > 0) {
@@ -74,6 +94,25 @@ class PolicyItemDetail extends Component {
                 conditions: nextProps.policyDetails.conditions,
                 actions: allActions,
                 policyId: nextProps.policyDetails.policy_id
+            })
+        }
+
+        if (nextProps.selectedUser && (nextProps.selectedUser !== this.props.selectedUser)) {
+            let emailAction = {
+                action_type: 'SEND_EMAIL',
+                config: {
+                    to: nextProps.selectedUser.email
+                }
+            }
+            let action = this.state.actions
+            action.push(emailAction)
+            this.setState({
+                actions: action
+            })
+        }
+        else if (!nextProps.selectedUser) {
+            this.setState({
+                actions: []
             })
         }
     }
@@ -171,13 +210,14 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field required control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event, 'To')} onBlur={this.updateEmailAction} />
+                {/* <Form.Field required control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event, 'To')} onBlur={this.updateEmailAction} /> */}
                 {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
+                <Form.Field><GroupSearch defaultValue={this.state.To} /></Form.Field>
             </Form.Group>
         )
 
         let conditions = this.state.conditions.map((condition, index) => {
-            return <PolicyCondition policyCondition={condition} index={index} removeFilter={this.removeFilter} />
+            return <PolicyCondition key={index} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
         })
 
         if (this.props.isLoadingPolicy) {

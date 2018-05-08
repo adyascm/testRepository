@@ -4,9 +4,7 @@ import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 
 import {
-    APPS_ITEM_SELECTED,
-    APP_USERS_LOAD_START,
-    APP_USERS_LOADED
+    APPS_ITEM_SELECTED
 } from '../../constants/actionTypes';
 
 
@@ -16,9 +14,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     selectAppItem: (payload) =>
-        dispatch({ type: APPS_ITEM_SELECTED, payload }),
-    appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
-    appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload})
+        dispatch({ type: APPS_ITEM_SELECTED, payload })
 });
 
 
@@ -32,9 +28,7 @@ class AppList extends Component {
     }
 
     onCardClicked(event, param) {
-        this.props.selectAppItem(param.app);
-        this.props.appUsersLoadStart()
-        this.props.appUsersLoaded(agent.Apps.getappusers(param.app.client_id))
+        this.props.selectAppItem(param.app)
     }
 
     render() {
@@ -44,7 +38,7 @@ class AppList extends Component {
 
             if (this.props.appsSearchPayload)
                 searchData = this.props.appsSearchPayload
-            else 
+            else
                 searchData = this.props.appPayLoad
 
             for(let appkey in searchData)
@@ -52,8 +46,8 @@ class AppList extends Component {
                 var app = searchData[appkey]
                 var appName = app.display_text;
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
-                var color = app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow')
-                
+                var color = app.score < 1 ? 'grey' : (app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow'))
+
                 appCards.push(<Card key={appkey} color={color}  app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>
                     <Card.Content>
                         {image}

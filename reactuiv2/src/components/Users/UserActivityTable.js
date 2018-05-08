@@ -16,8 +16,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLoadStart: (payload) =>
-        dispatch({ type: USERS_ACTIVITY_LOAD_START, payload }),
+    onLoadStart: () =>
+        dispatch({ type: USERS_ACTIVITY_LOAD_START }),
     onLoad: (payload) =>
         dispatch({ type: USERS_ACTIVITY_LOADED, payload })
 });
@@ -39,14 +39,14 @@ class UserActivityTable extends Component {
 
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.activities) {
-            this.props.onLoadStart(this.props.selectedUserItem["key"])
+            this.props.onLoadStart()
             this.props.onLoad(agent.Activity.getActivitiesForUser(this.props.selectedUserItem["key"]))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.activities) {
-            nextProps.onLoadStart(nextProps.selectedUserItem["key"])
+            nextProps.onLoadStart()
             nextProps.onLoad(agent.Activity.getActivitiesForUser(nextProps.selectedUserItem["key"]))
         }
     }
@@ -54,18 +54,18 @@ class UserActivityTable extends Component {
 
 
     render() {
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
         let tableRowData = null
 
         if (this.props.selectedUserItem.activities)
-            tableRowData = this.props.selectedUserItem.activities.map(rowData => {
+            tableRowData = this.props.selectedUserItem.activities.map((rowData, index) => {
                 return (
-                    <Table.Row>
+                    <Table.Row key={index}>
                         <Table.Cell><DateComponent value={rowData[0]} /></Table.Cell>
                         <Table.Cell>{rowData[1]}</Table.Cell>
                         <Table.Cell>{rowData[2]}</Table.Cell>

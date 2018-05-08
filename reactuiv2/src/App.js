@@ -9,7 +9,7 @@ import Header from './components/Header.js'
 import Dashboard from './components/Dashboard.js'
 import Login from './components/Login.js'
 import NewLogin from './components/NewLogin'
-import ManageDataSources from './components/ManageDataSources.js'
+import ManageDataSources from './components/Setting/ManageDataSources.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
@@ -75,7 +75,7 @@ class App extends Component {
     this.props.onLoad(token ? agent.Auth.current() : null, token);
   }
   render() {
-    if (this.props.appLoaded) {
+    if (this.props.appLoaded && !this.props.redirectTo) {
       return (
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser}/>

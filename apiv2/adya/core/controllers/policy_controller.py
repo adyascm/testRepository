@@ -3,13 +3,11 @@ import uuid
 
 from sqlalchemy import and_, or_
 
-from adya.common.constants import constants
+from adya.common.constants import constants, urls
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import ResponseMessage
-from adya.core.controllers import domain_controller
-from adya.gsuite import scan
 from adya.common.db.connection import db_connection
-from adya.common.db.models import Policy, LoginUser, PolicyCondition, PolicyAction, DataSource
+from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSource
 from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
@@ -134,21 +132,21 @@ def validate(auth_token, datasource_id, payload):
             Logger().info("No policies found for permission change trigger, ignoring...")
             return
         for policy in policies:
-            validate_policy(db_session, datasource_id, policy, resource, new_permissions)
+            validate_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions)
         return
     return
 
 
-def validate_policy(db_session, datasource_id, policy, resource, new_permissions):
+def validate_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
             is_violated = is_violated & check_value_violation(policy_condition, resource["resource_name"])
-        elif policy_match_type == constants.PolicyMatchType.DOCUMENT_OWNER:
+        elif policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_OWNER:
             is_violated = is_violated & check_value_violation(policy_condition, resource["resource_owner_id"])
-        elif policy_match_type == constants.PolicyMatchType.DOCUMENT_EXPOSURE:
+        elif policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_EXPOSURE:
             is_violated = is_violated & check_value_violation(policy_condition, resource["exposure_type"])
-        elif policy_match_type == constants.PolicyMatchType.PERMISSION_EMAIL:
+        elif policy_condition.match_type == constants.PolicyMatchType.PERMISSION_EMAIL:
             is_permission_violated = 0
             for permission in new_permissions:
                 is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission["email"])
@@ -159,15 +157,17 @@ def validate_policy(db_session, datasource_id, policy, resource, new_permissions
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
-                #aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
-                adya_emails.send_policy_violate_email(to_address, policy, resource)
+                # TODO: add proper email template
+                aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
+                # adya_emails.send_policy_violate_email(to_address, policy, resource)
         payload = {}
         payload["datasource_id"] = datasource_id
         payload["name"] = policy["name"]
         payload["policy_id"] = policy["policy_id"]
-        messaging.trigger_post_event(urls.ALERTS_PATH, payload)
+        messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
+
 def check_value_violation(policy_condition, value):
     if (policy_condition.match_condition == constants.PolicyConditionMatch.EQUAL and policy_condition.match_value == value) or \
             (policy_condition.match_condition == constants.PolicyConditionMatch.NOTEQUAL and policy_condition.match_value != value):

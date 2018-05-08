@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
 import { Link } from 'react-router-dom'
-import common from '../utils/common'
+import common from '../../utils/common'
 
 
 
@@ -37,7 +37,7 @@ const DataSourceItem = props => {
             progressBar = (<Progress size='small' precision='0' percent={percent} success />);
             pollIcon = <Button style={{margin:"5px"}} circular basic icon='refresh' onClick={onPollChanges(datasource)}/>;
         }
-            
+
 
         var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         if (datasource.is_dummy_datasource)

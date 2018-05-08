@@ -223,7 +223,6 @@ class ReactCron extends Component {
 
   var cronArray = [];
   cronArray = cronExp.split(" ")
-  console.log("cronarray ", cronArray)
   {cronArray[1] !== '*'? this.setState({
     selectedDayOption : {'hour': cronArray[1],'min': cronArray[0].split('(')[1]},
     selectedPeriod: 'day'}) : null}

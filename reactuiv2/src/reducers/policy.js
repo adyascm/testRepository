@@ -19,7 +19,6 @@ export default (state=defaultState, action) => {
                 isLoadingPolicy: true
             }
         case POLICY_LOADED:
-            console.log("policy loaded : ", action.payload)
             return {
                 ...state,
                 policyData: !action.error?action.payload:[],

@@ -45,10 +45,14 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if widget_id == 'usersCount':
 
         if is_service_account_is_enabled and not is_admin:
-            user_count_query = db_session.query(ResourcePermission.email).filter().filter( and_(
+            user_count_query = db_session.query(ResourcePermission.email).filter( and_(
                  ResourcePermission.datasource_id.in_(domain_datasource_ids), Resource.resource_owner_id == login_user_email,
                                                     ResourcePermission.resource_id == Resource.resource_id,
-                                                    DomainUser.email == ResourcePermission.email)).distinct().count()
+                                                    DomainUser.email == ResourcePermission.email,
+                                                    DomainUser.datasource_id.in_(domain_datasource_ids),
+                                                    DomainUser.member_type == constants.UserMemberType.EXTERNAL)).distinct().count()
+            # add 1 for loggin user
+            user_count_query += 1
         else:
             user_count_query = db_session.query(DomainUser).filter(
                 DomainUser.datasource_id.in_(domain_datasource_ids)).count()
@@ -104,7 +108,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
                 public_count = share_type[1]
             elif share_type[0] == constants.ResourceExposureType.DOMAIN:
                 domain_count = share_type[1]
-        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.EXTERNAL_COUNT, external_count],  [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count],   [constants.DocType.DOMAIN_COUNT, domain_count]]
+
+        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count], [constants.DocType.EXTERNAL_COUNT, external_count], [constants.DocType.DOMAIN_COUNT, domain_count]]
         data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count
 
     elif widget_id == 'sharedDocsList':

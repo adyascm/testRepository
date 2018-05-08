@@ -26,11 +26,12 @@ class AuditLogTable extends Component {
 
         this.state = {
             columnHeaders: [
+                "Id",
                 "Time",
                 "Action Name",
                 "Performed On",
-                "Type",
-                "Parameters"
+                "Status",
+                "Message"
             ]
         }
     }
@@ -42,23 +43,24 @@ class AuditLogTable extends Component {
     }    
 
     render() {
-        let tableHeaders = this.state.columnHeaders.map(headerName => {
+        let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
-                <Table.HeaderCell>{headerName}</Table.HeaderCell>
+                <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
         })
 
         let tableRowData = null
         
         if (this.props.log)
-            tableRowData = this.props.log.map(rowData => {
+            tableRowData = this.props.log.map((rowData, index) => {
                 return (
-                    <Table.Row>
+                    <Table.Row key={index}>
+                        <Table.Cell>{rowData["log_id"]}</Table.Cell>
                         <Table.Cell><DateComponent value={rowData["timestamp"]} /></Table.Cell>
                         <Table.Cell>{rowData["action_name"]}</Table.Cell>
                         <Table.Cell>{rowData["affected_entity"]}</Table.Cell>
-                        <Table.Cell>{rowData["affected_entity_type"]}</Table.Cell>
-                        <Table.Cell>{rowData["parameters"]}</Table.Cell>
+                        <Table.Cell>{rowData["status"]}</Table.Cell>
+                        <Table.Cell>{rowData["message"]}</Table.Cell>
                     </Table.Row>
                 )
             })

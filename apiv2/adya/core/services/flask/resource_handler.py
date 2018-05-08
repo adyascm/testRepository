@@ -45,7 +45,7 @@ class GetResources(Resource):
         parent_folder = payload.get("parentFolder")
         selected_date = payload.get("selectedDate")
         search_prefix = payload.get("prefix")
-        sort_column_name = payload.get("columnName")
+        sort_column_name = payload.get("sortColumn")
         sort_type = payload.get("sortType")
         resource_list = resource_controller.get_resources(auth_token,page_number,page_size, user_emails, exposure_type, resource_type, search_prefix, owner_email_id, parent_folder, selected_date, sort_column_name, sort_type)
         return req_session.generate_sqlalchemy_response(200, resource_list)

@@ -109,7 +109,7 @@ class DomainUser(Base):
     user_id = Column(String(260))
     photo_url = Column(Text)
     aliases = Column(Text)
-    member_type = Column(String(6))
+    member_type = Column(String(16))
     customer_id = Column(String(255))
 
 
@@ -241,6 +241,8 @@ class AuditLog(Base):
     affected_entity = Column(String(255))
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
+    status = Column(String(50))
+    message = Column(String(500))
 
 
 class Application(Base):
@@ -334,3 +336,12 @@ class PolicyAction(Base):
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
                          'policy.datasource_id', 'policy.policy_id']),
     )
+
+
+class TrustedEntities(Base):
+    __tablename__ = "trusted_entities"
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trusted_domains = Column(Text)
+    trusted_apps = Column(Text)

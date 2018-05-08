@@ -55,6 +55,13 @@ class ReportForm extends Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.selectedUserItem && (nextProps.selectedUserItem !== this.props.selectedUserItem)) {
+      if (this.state.finalReportObj['selected_entity_type'] !== 'user')
+        this.onChangeReportInput('receivers', nextProps.selectedUserItem.email)
+    }
+  }
+
 
   submit = () => {
 
@@ -217,9 +224,10 @@ class ReportForm extends Component {
                   label='Report Type' options={reportOptions} placeholder='Report Type'
                   defaultValue={this.handleMultipleOptions('report_type')} />
 
-                <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}
+                {/* <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}
                   label='Email To' placeholder='Email To' control={Input}
-                  defaultValue={this.props.reportsMap['receivers']} />
+                  defaultValue={this.props.reportsMap['receivers']} /> */}
+                <Form.Field><label>Email To</label><GroupSearch defaultValue={this.props.reportsMap['receivers']} /></Form.Field>
               </div>
 
             </div>

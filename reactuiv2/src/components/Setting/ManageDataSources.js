@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import '../App.css';
+import '../../App.css';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
-import agent from '../utils/agent';
-import authenticate from '../utils/oauth';
-import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
+import agent from '../../utils/agent';
+import authenticate from '../../utils/oauth';
+import { Card, Button, Container, Header, Divider,  Grid, Menu, Segment } from 'semantic-ui-react'
 
 
 import {
@@ -17,8 +17,9 @@ import {
   DATASOURCE_LOAD_END,
   ASYNC_END,
   SET_REDIRECT_PROPS
-} from '../constants/actionTypes';
+} from '../../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
+import WhitelistItem from './WhitelistItem';
 
 const mapStateToProps = state => ({
   ...state.auth,
@@ -59,7 +60,7 @@ const mapDispatchToProps = dispatch => ({
 class ManageDataSources extends Component {
   constructor() {
     super();
-
+    this.state = { activeItem: 'datasources' }
     this.handleClick = this.handleClick.bind(this);
     this.onPollChanges = this.onPollChanges.bind(this);
 
@@ -110,6 +111,11 @@ class ManageDataSources extends Component {
     agent.Setting.pollGSuiteDriveChanges(datasource);
   }
 
+  handleItemClick = (e, { name }) => {
+    this.setState({ activeItem: name })
+
+  }
+
   render() {
     if (!this.props.common.datasources || !this.props.common.datasources.length) {
       var header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
@@ -124,12 +130,12 @@ class ManageDataSources extends Component {
         {
           header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
           detail = (<Container>
-            Thank you for installing Adya at your organisation. <br /> 
+            Thank you for installing Adya at your organisation. <br />
             We need to do a one-time setup by scanning your GSuite account to collect necessary metadata.
             </Container>);
           buttonText = "Start Scan";
         }
-        
+
       return (
         <Container>
           <Card.Group>
@@ -160,17 +166,34 @@ class ManageDataSources extends Component {
         )
       }
       return (
-        <Container>
-          <Card.Group>
-            {
-              this.props.common.datasources && this.props.common.datasources.map(ds => {
-                return (
-                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
-                )
-              })
-            }
-          </Card.Group>
-        </Container>
+        <Grid>
+        <Grid.Column width={4}>
+          <Menu fluid vertical tabular>
+            <Menu.Item name='datasources' active={this.state.activeItem === 'datasources'} onClick={this.handleItemClick} />
+            <Menu.Item name='whitelist' active={this.state.activeItem === 'whitelist'} onClick={this.handleItemClick} />
+          </Menu>
+        </Grid.Column>
+
+        <Grid.Column stretched width={12}>
+          {this.state.activeItem === 'datasources'?
+            <Container>
+              <Card.Group>
+                {
+                  this.props.common.datasources && this.props.common.datasources.map(ds => {
+                    return (
+                      <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+                    )
+                  })
+                }
+              </Card.Group>
+            </Container>
+         :
+           <WhitelistItem  />
+
+          }
+        </Grid.Column>
+      </Grid>
+
       )
     }
   }

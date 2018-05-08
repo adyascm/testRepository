@@ -51,7 +51,7 @@ const ResourcePermissions = props => {
                 //     </Grid.Row>
                 // )
                 return (
-                    <Table.Row>
+                    <Table.Row key={index}>
                         <Table.Cell>
                             <Button animated='vertical' basic color='red' onClick={(event) => props.onRemovePermission(event, permission)}>
                                 <Button.Content hidden>Remove</Button.Content>

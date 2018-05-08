@@ -92,13 +92,15 @@ class Actions extends Component {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    successMessage: resp['message']
+                    successMessage: resp['message'],
+                    logId:resp['id']
                 });
-            }, errorMsg => {
+            }, errorRes => {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    errorMessage: errorMsg
+                    errorMessage: errorRes['message'],
+                    logId:errorRes['id']
                 });
             });
 
@@ -111,13 +113,15 @@ class Actions extends Component {
                     this.setState({
                         ...this.state,
                         inProgress: false,
-                        successMessage: resp['message']
+                        successMessage: resp['message'],
+                        logId:resp['id']
                     });
-                }, errorMsg => {
+                }, errorRes => {
                     this.setState({
                         ...this.state,
                         inProgress: false,
-                        errorMessage: errorMsg
+                        errorMessage: errorRes['message'],
+                        logId:errorRes['id']
                     });
                 });
             }).catch(error => {
@@ -135,12 +139,13 @@ class Actions extends Component {
             .then(resp => {
                 success(resp)
             }).catch(err => {
-                var message = err.message;
+                let resp
+                resp = err
                 if(err.response.body)
                 {
-                    message = err.response.body.message
+                    resp = err.response.body
                 }
-                error(message)
+                error(resp)
             })
     }
     onUpdateParameters = key => e => {
@@ -175,7 +180,8 @@ class Actions extends Component {
         this.setState({
             ...nextProps.action,
             successMessage: undefined,
-            errorMessage: undefined
+            errorMessage: undefined,
+            logId:undefined
         })
     }
 
@@ -199,23 +205,28 @@ class Actions extends Component {
                 readOnly={!field.editable} required={field.editable !== 0 ? true : false} />)
         });
         let message = (<div></div>)
+        let logmsg = (<div></div>)
         let submitAction = this.takeAction;
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
         let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit'  />);
         if (this.state.successMessage) {
+            if(this.state.logId){
+                logmsg = (<a href="/auditlog">(Log:{this.state.logId})</a>)
+            }
             message = (<Message
                 success
-                content={this.state.successMessage}
-            />)
+            >{this.state.successMessage} {logmsg}</Message>)
             submitAction = this.onCloseAction;
             cancelButton = (<div></div>)
             submitButton = (<Button positive content='Close' />);
         }
         else if (this.state.errorMessage) {
+            if(this.state.logId){
+                logmsg = (<a>(Log:{this.state.logId})</a>)
+            }
             message = (<Message
                 error
-                content={this.state.errorMessage}
-            />)
+            >{this.state.errorMessage} {logmsg}</Message>)
             submitAction = this.onCloseAction;
             cancelButton = (<div></div>)
             submitButton = (<Button positive content='Close' />);
