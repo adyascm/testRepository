@@ -3,7 +3,7 @@ import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-reac
 import { RESOURCES_ACTION_CANCEL, RESOURCES_PAGE_LOAD_START, RESOURCES_PAGE_LOADED,
      USERS_RESOURCE_ACTION_CANCEL, USERS_PAGE_LOAD_START, USERS_PAGE_LOADED, USERS_OWNED_RESOURCES_LOAD_START, USERS_OWNED_RESOURCES_LOADED,
      USERS_RESOURCE_LOAD_START, USERS_RESOURCE_LOADED,
-     LOGIN_SUCCESS, FLAG_ERROR_MESSAGE } from '../../constants/actionTypes';
+     LOGIN_SUCCESS, FLAG_ERROR_MESSAGE, APPS_ACTION_CANCEL, APPS_PAGE_LOAD_START, APPS_PAGE_LOADED } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
 import authenticate from '../../utils/oauth';
@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
     ...state.resources,
     logged_in_user: state.common.currentUser,
     all_actions_list: state.common.all_actions_list,
-    action: state.resources.action || state.users.action,
+    action: state.resources.action || state.users.action || state.apps.action,
     selectedUser: state.users.selectedUserItem,
     datasources: state.common.datasources
 })
@@ -21,10 +21,14 @@ const mapDispatchToProps = dispatch => ({
     onCancelAction: () => {
         dispatch({ type: RESOURCES_ACTION_CANCEL })
         dispatch({ type: USERS_RESOURCE_ACTION_CANCEL })
+        dispatch({ type: APPS_ACTION_CANCEL })
     },
-    onCloseAction: (usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload) => {
+    onCloseAction: (usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload, appsPayload) => {
         dispatch({ type: RESOURCES_ACTION_CANCEL })
         dispatch({ type: USERS_RESOURCE_ACTION_CANCEL })
+        dispatch({ type: APPS_ACTION_CANCEL })
+        dispatch({ type: APPS_PAGE_LOAD_START });
+        dispatch({ type: APPS_PAGE_LOADED, payload: appsPayload });
         dispatch({ type: USERS_PAGE_LOAD_START });
         dispatch({ type: USERS_PAGE_LOADED, payload: usersPayload });
         if(userOwnedResources)
@@ -172,8 +176,9 @@ class Actions extends Component {
         }
         
         var resourcesPayload = agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
+        var appsPayload = agent.Apps.getapps()
 
-        this.props.onCloseAction(usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload);
+        this.props.onCloseAction(usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload, appsPayload);
     }
 
     componentWillReceiveProps(nextProps) {

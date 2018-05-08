@@ -12,9 +12,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    alertsLoadingStart: () => 
+    alertsLoadingStart: () =>
         dispatch({ type: ALERTS_LOAD_START }),
-    alertsLoaded: (payload) => 
+    alertsLoaded: (payload) =>
         dispatch({ type: ALERTS_LOADED, payload })
 })
 
@@ -39,7 +39,7 @@ class Alert extends Component {
         this.props.alertsLoaded(agent.Alert.getAlert())
     }
 
-    render () {  
+    render () {
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
                 <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
@@ -48,7 +48,7 @@ class Alert extends Component {
 
         let tableRowData = null
 
-        if (this.props.alerts)
+        if (this.props.alerts && this.props.alerts.length)
             tableRowData = this.props.alerts.map((rowData, index) => {
                 return (
                     <Table.Row key={index}>
@@ -69,23 +69,29 @@ class Alert extends Component {
                     </Dimmer>
                 </div>
             )
-
-        return (
-            <div>
+        else if (tableRowData)
+            return (
                 <div>
-                    <Table celled selectable striped compact='very'>
-                        <Table.Header>
-                            <Table.Row>
-                                {tableHeaders}
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            {tableRowData}
-                        </Table.Body>
-                    </Table>
+                    <div>
+                        <Table celled selectable striped compact='very'>
+                            <Table.Header>
+                                <Table.Row>
+                                    {tableHeaders}
+                                </Table.Row>
+                            </Table.Header>
+                            <Table.Body>
+                                {tableRowData}
+                            </Table.Body>
+                        </Table>
+                    </div>
                 </div>
-            </div>
-        )
+            )
+        else
+            return (
+                <div>
+                    No alerts to display
+                </div>
+            )
     }
 }
 

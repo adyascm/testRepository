@@ -7,7 +7,9 @@ import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
-    UPDATE_APPS_DELETE_FLAG
+    UPDATE_APPS_DELETE_FLAG,
+    APPS_ACTION_LOAD,
+    APPS_ACTION_CANCEL
 } from '../../constants/actionTypes';
 import { Loader, Dimmer } from 'semantic-ui-react'
 
@@ -21,7 +23,8 @@ const mapDispatchToProps = dispatch => ({
     closingDetailsSection: (payload) => dispatch({type:APPS_ITEM_SELECTED,payload}),
     appUsersLoadStart: () => dispatch({type:APP_USERS_LOAD_START}),
     appUsersLoaded: (payload) => dispatch({type:APP_USERS_LOADED,payload}),
-    setAppsDeleteFlag: (payload) => dispatch({ type: UPDATE_APPS_DELETE_FLAG, payload })
+    setAppsDeleteFlag: (payload) => dispatch({ type: UPDATE_APPS_DELETE_FLAG, payload }),
+    removeUserFromApp: (payload, userEmail, clientId) => dispatch({ type: APPS_ACTION_LOAD, actionType: payload, email: userEmail, clientId: clientId })
 })
 
 class AppDetailsSection extends Component {
@@ -41,18 +44,7 @@ class AppDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,app,userEmail) {
-        this.setState({
-            isLoading: true,
-            deleteUser: userEmail
-        })
-        agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
-            app = undefined;
-            this.setState({
-                isLoading: false,
-                deleteUser: undefined
-            })
-            this.props.setAppsDeleteFlag(true)
-        })
+        this.props.removeUserFromApp("remove_user_from_app", userEmail, app.client_id)
     }
 
     componentWillMount() {
@@ -92,9 +84,7 @@ class AppDetailsSection extends Component {
                             <Grid.Column width={2}>
                                 <Button animated='vertical' 
                                         basic color='red' 
-                                        onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}
-                                        disabled={this.state.isLoading && (this.state.deleteUser === user.email)?true:false} 
-                                        loading={this.state.isLoading && (this.state.deleteUser === user.email)?true:false}>
+                                        onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />

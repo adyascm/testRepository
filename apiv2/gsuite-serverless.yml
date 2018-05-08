@@ -173,14 +173,6 @@ functions:
           method: post
           cors: true
 
-  delete-google-scan-usersapp:
-    handler: adya.gsuite.services.lambda.scan_handler.revoke_user_app_access
-    events:
-      - http:
-          path: scan/usersapp
-          method: delete
-          cors: true
-
   post-google-scan-groupmembers:
     handler: adya.gsuite.services.lambda.scan_handler.get_group_members
     events:

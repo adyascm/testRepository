@@ -140,6 +140,12 @@ def get_actions():
                                                {"key": "resource_owner_id", "label": "Owner of file", "editable": 0},
                                                {"key": "user_type", "label": "User Type", "editable": 0}], False)
 
+    removeUserForApp = instantiate_action("GSUITE", action_constants.ActionNames.REMOVE_USER_FROM_APP,
+                                            "Uninstall app",
+                                            "Uninstall app for user",
+                                            [{"key": "client_id", "label": "Client Id", "editable": 0, "hidden": 1},
+                                            {"key": "user_email", "label": "For user", "editable": 0}], True)
+
     actions = [transferOwnershipAction,
                changeOwnerOfFileAction,
                deletePermissionForUserAction,
@@ -153,7 +159,8 @@ def get_actions():
                removeUserFromGroup,
                addUserToGroup,
                addPermissionForFile,
-               notifyUserForCleanUp
+               notifyUserForCleanUp,
+               removeUserForApp
                ]
 
     return actions
@@ -515,6 +522,13 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
+
+    # Uninstalling an app for a user
+    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
+        user_email = action_parameters['user_email']
+        client_id = action_parameters['client_id']
+        response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id)
+
     return response_msg
 
 def validate_action_parameters(action_config, action_parameters):
@@ -607,8 +621,8 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
                 and_(Application.datasource_id == datasource_id, Application.client_id == client_id)).delete()
 
         db_connection().commit()
-        return True
+        return response_messages.ResponseMessage(200, "Action completed successfully")
     except Exception as ex:
         Logger().exception("Exception occurred while deleting app for datasource_id: " + str(
             datasource_id) + " and user_email: " + str(user_email))
-        return False
+        return response_messages.ResponseMessage(400, "Action failed")

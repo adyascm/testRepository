@@ -140,19 +140,3 @@ class GetUserApp(Resource):
 
         scan.get_all_user_app(req_session.get_auth_token(), domain_id,datasource_id, user_email_list)
         return req_session.generate_response(202)
-    
-    def delete(self):
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId',"userEmail","clientId"])
-        if req_error:
-            return req_error
-
-        datasource_id = req_session.get_req_param('dataSourceId')
-        user_email = req_session.get_req_param('userEmail')
-        client_id = req_session.get_req_param('clientId')
-        response = actions_controller.revoke_user_app_access(req_session.get_auth_token(), datasource_id,user_email,client_id)
-        if response:
-            return req_session.generate_response(202, "Action submitted successfully")
-        else:
-            return req_session.generate_response(400, 'Action Failed')

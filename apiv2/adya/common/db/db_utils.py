@@ -76,3 +76,14 @@ def create_domain(db_session, domain_id, domain_name):
     except:
         db_session.rollback()
     return domain
+
+def get_model_values(type, value):
+    mapped_values = {}
+    for item in type.__dict__.iteritems():
+      field_name = item[0]
+      field_type = item[1]
+      is_column = isinstance(field_type, InstrumentedAttribute)
+      if is_column:
+        mapped_values[field_name] = getattr(value, field_name)
+
+    return mapped_values

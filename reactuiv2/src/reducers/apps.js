@@ -7,6 +7,8 @@ import {
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
+    APPS_ACTION_CANCEL,
+    APPS_ACTION_LOAD,
     APPS_SEARCH_EMPTY,
     SET_REDIRECT_PROPS,
     UPDATE_APPS_DELETE_FLAG,
@@ -22,9 +24,10 @@ const defaultState = {
     isLoadingUserApps: false,
     appDetailsViewActive: false,
     selectedAppItem: undefined,
-    appDeleted: false
+    appDeleted: false,
+    action: undefined
   };
-  
+
 export default (state = defaultState, action) => {
     switch (action.type) {
         case APPS_PAGE_LOAD_START:
@@ -39,7 +42,8 @@ export default (state = defaultState, action) => {
                 isLoadingApps: false,
                 appPayLoad: appPayLoad,
                 appsSearchPayload: undefined,
-                appDeleted: false
+                appDeleted: false,
+                selectedAppItem: undefined
             }
         case APPS_ITEM_SELECTED:
             return {
@@ -87,6 +91,23 @@ export default (state = defaultState, action) => {
                 appsSearchPayload: undefined,
                 selectedAppItem: undefined
             }
+<<<<<<< HEAD
+=======
+        case APPS_ACTION_LOAD:
+            return {
+                ...state,
+                action: {
+                    key: action.actionType,
+                    user_email: action.email,
+                    client_id: action.clientId
+                }
+            }
+        case APPS_ACTION_CANCEL:
+            return {
+                ...state,
+                action: undefined
+            }
+>>>>>>> ced1fcd6cba72a6b74c3059ce2b743770abe769e
         case SET_REDIRECT_PROPS:
             var states = {};
             if (action.reducerStates) {

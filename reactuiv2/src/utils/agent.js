@@ -76,9 +76,6 @@ const Users = {
 
 const Apps = {
     getapps: () => requests.get('/common/getappsdata'),
-    revokeAppAccess: (datasourceId, clientId,userEmail) =>
-        requests.del('/google/scan/usersapp?dataSourceId=' +datasourceId+
-                "&userEmail="+ userEmail + "&clientId="+clientId ),
     getuserapps: (userEmail) => requests.get('/common/getappsdata?userEmail=' + userEmail),
     getappusers: (clientId) => requests.get('/common/getappsdata?clientId=' + clientId),
 }
