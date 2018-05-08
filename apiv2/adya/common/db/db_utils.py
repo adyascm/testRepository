@@ -1,3 +1,5 @@
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+
 from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource
 from adya.common.db.connection import db_connection
 from adya.common.constants import constants
