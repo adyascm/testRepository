@@ -522,14 +522,14 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-        return response_msg
-        
+
     # Uninstalling an app for a user
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
         user_email = action_parameters['user_email']
         client_id = action_parameters['client_id']
-        return revoke_user_app_access(auth_token, datasource_id, user_email, client_id)
+        response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id)
 
+    return response_msg
 
 def validate_action_parameters(action_config, action_parameters):
     config_params = action_config.parameters
