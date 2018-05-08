@@ -34,7 +34,6 @@ api.add_resource(scan_handler.DriveResources, urls.SCAN_RESOURCES)
 api.add_resource(scan_handler.GetDomainuser, urls.SCAN_DOMAIN_USERS)
 api.add_resource(scan_handler.GetDomainGroups, urls.SCAN_DOMAIN_GROUPS)
 api.add_resource(scan_handler.GetGroupMembers, urls.SCAN_GROUP_MEMBERS)
-api.add_resource(scan_handler.GetUserApp, urls.SCAN_USERS_APP)
 
 api.add_resource(domain_handler.datasource, urls.GET_DATASOURCE_PATH)
 api.add_resource(domain_handler.asyncdatasourcedelete, urls.ASYNC_DELETE_DATASOURCE_PATH)

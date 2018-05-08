@@ -6,6 +6,7 @@ import { Container, Dimmer, Loader, Grid, Radio } from 'semantic-ui-react';
 import agent from '../../utils/agent';
 
 import AppList from './AppList';
+import Actions from '../actions/Actions'
 import AppDetailsSection from './AppDetailsSection'
 
 import {
@@ -114,6 +115,7 @@ class Apps extends Component {
                                                               <AppDetailsSection />
                                                           </Grid.Column>) : null}
             </Grid.Row>
+            <Actions />
           </Grid>
         </Container >
 

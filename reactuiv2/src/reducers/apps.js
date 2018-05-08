@@ -7,6 +7,8 @@ import {
     APP_USERS_LOAD_START,
     APP_USERS_LOADED,
     APPS_SEARCH_PAYLOAD,
+    APPS_ACTION_CANCEL,
+    APPS_ACTION_LOAD,
     APPS_SEARCH_EMPTY,
     SET_REDIRECT_PROPS,
     UPDATE_APPS_DELETE_FLAG,
@@ -22,7 +24,8 @@ const defaultState = {
     isLoadingUserApps: false,
     appDetailsViewActive: false,
     selectedAppItem: undefined,
-    appDeleted: false
+    appDeleted: false,
+    action: undefined
   };
   
 export default (state = defaultState, action) => {
@@ -39,7 +42,8 @@ export default (state = defaultState, action) => {
                 isLoadingApps: false,
                 appPayLoad: appPayLoad,
                 appsSearchPayload: undefined,
-                appDeleted: false
+                appDeleted: false,
+                selectedAppItem: undefined
             }
         case APPS_ITEM_SELECTED:
             return {
@@ -86,6 +90,20 @@ export default (state = defaultState, action) => {
                 ...state,
                 appsSearchPayload: undefined,
                 selectedAppItem: undefined
+            }
+        case APPS_ACTION_LOAD:
+            return {
+                ...state,
+                action: {
+                    key: action.actionType,
+                    user_email: action.email,
+                    client_id: action.clientId
+                }
+            }
+        case APPS_ACTION_CANCEL:
+            return {
+                ...state,
+                action: undefined
             }
         case SET_REDIRECT_PROPS:
             var states = {};

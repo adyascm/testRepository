@@ -13,7 +13,6 @@ SCAN_PARENTS = "/google/scan/parents"
 SCAN_DOMAIN_USERS = "/google/scan/domainusers"
 SCAN_DOMAIN_GROUPS = "/google/scan/domaingroups"
 SCAN_GROUP_MEMBERS = "/google/scan/groupmembers"
-SCAN_USERS_APP = '/google/scan/usersapp'
 
 SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH = '/google/scan/subscribenotifications'
 SUBSCRIBE_GDRIVE_ACTIVITY_NOTIFICATIONS_PATH = '/google/scan/subscribeactivitynotifications'

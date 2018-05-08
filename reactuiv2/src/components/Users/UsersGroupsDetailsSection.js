@@ -14,7 +14,8 @@ import {
     USER_ITEM_SELECTED,
     USERS_RESOURCE_ACTION_LOAD,
     USERS_RESOURCE_FILTER_CHANGE,
-    USERS_GROUP_ACTION_LOAD
+    USERS_GROUP_ACTION_LOAD,
+    APPS_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -28,7 +29,9 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType }),
     changeFilter: (property, value) => dispatch({ type: USERS_RESOURCE_FILTER_CHANGE, property, value }),
     userGroupAction : (actionType, groupId) =>
-        dispatch({type: USERS_GROUP_ACTION_LOAD, actionType, groupId})
+        dispatch({type: USERS_GROUP_ACTION_LOAD, actionType, groupId}),
+    removeUserFromApp: (payload, userEmail, clientId) => 
+        dispatch({ type: APPS_ACTION_LOAD, actionType: payload, email: userEmail, clientId: clientId })
 })
 
 class UsersGroupsDetailsSection extends Component {
@@ -96,17 +99,7 @@ class UsersGroupsDetailsSection extends Component {
     }
 
     handleAppAccessRevokeClick(event,app,userEmail) {
-        this.setState({
-            isLoading: true,
-            deleteApp: app["display_text"]
-        })
-        agent.Apps.revokeAppAccess(app.datasource_id, app.client_id,userEmail).then(resp =>{
-            app=undefined;
-            this.setState({
-                isLoading: false,
-                deleteApp: undefined
-            })
-        })
+        this.props.removeUserFromApp("remove_user_from_app", userEmail, app.client_id)
     }
 
     render() {
