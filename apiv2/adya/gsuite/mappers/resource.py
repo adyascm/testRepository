@@ -1,11 +1,16 @@
+from adya.common.constants import constants
+from adya.common.db.connection import db_connection
 from adya.gsuite import gutils
-from adya.common.db.models import Resource, ResourcePermission, DomainUser
+from adya.common.db.models import Resource, ResourcePermission, DomainUser, DataSource
+
 
 class GsuiteResource:
     def __init__(self, datasource_id, payload):
         self._datasource_id = datasource_id
         self._payload = payload
         self._external_users = []
+        self._resource = None
+        self.parse()
 
     def parse(self):
         self._resource = Resource()
@@ -36,7 +41,7 @@ class GsuiteResource:
         self._resource.permissions = []
         if permissions_payload:
             for payload in permissions_payload:
-                permission = GsuitePermission(datasource_id, self._resource.resource_id, self._resource.resource_owner_id, payload)
+                permission = GsuitePermission(self._datasource_id, self._resource.resource_id, self._resource.resource_owner_id, payload)
                 permission_model = permission.get_model()
                 if not permission_model:
                     continue
@@ -62,6 +67,7 @@ class GsuitePermission:
         self._resource_owner = resource_owner
         self._payload = payload
         self._external_user = None
+        self._permission = None
         self.parse()
 
     def parse(self):
@@ -73,7 +79,7 @@ class GsuitePermission:
         self._permission.datasource_id = self._datasource_id
         self._permission.resource_id = self._resource_id
         self._permission.permission_id = permission_id
-        self._permission.permission_type = permission['role']
+        self._permission.permission_type = self._payload.get['role']
         expiration_time = self._payload.get('expirationTime')
         if expiration_time:
             self._permission.expiration_time = expiration_time[:-1]
@@ -85,8 +91,9 @@ class GsuitePermission:
 
         permission_exposure = constants.ResourceExposureType.PRIVATE
         if email_address:
+            db_session = db_connection().get_session()
+            domain_id = db_session.query(DataSource.domain_id).filter(DataSource.datasource_id == self._datasource_id).first()
             if gutils.check_if_external_user(db_session, domain_id,email_address):
-
                 permission_exposure = constants.ResourceExposureType.EXTERNAL
                 self.set_external_user(email_address, display_name)
             elif not email_address == self._resource_owner:
