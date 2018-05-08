@@ -17,6 +17,11 @@ class ActionNames(Enum):
     ADD_PERMISSION_FOR_A_FILE = "add_permission_for_a_File"
     NOTIFY_USER_FOR_CLEANUP = "notify_user_for_clean_up"
 
+class ActionStatus(Enum):
+    STARTED = 'STARTED'
+    SUCCESS = 'SUCCESS'
+    FAILED = 'FAILED'
+
 
 
 

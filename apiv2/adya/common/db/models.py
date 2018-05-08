@@ -241,6 +241,8 @@ class AuditLog(Base):
     affected_entity = Column(String(255))
     affected_entity_type = Column(String(100))
     timestamp = Column(DateTime)
+    status = Column(String(50))
+    message = Column(String(500))
 
 
 class Application(Base):
