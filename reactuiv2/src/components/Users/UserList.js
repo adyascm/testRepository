@@ -26,7 +26,12 @@ class UserList extends Component {
         super(props);
         this.state = {
             rows: undefined,
-            displaySearchData: false
+            displaySearchData: false,
+            usersFilter: {
+                'EXT': 'external',
+                'DOMAIN': 'internal',
+                'ALL': ''
+            }
         }
     }
 
@@ -117,8 +122,15 @@ class UserList extends Component {
     }
 
     render() {
-        if (this.state.rows) {
+        if (this.state.rows && this.state.rows.length) {
            return  <UserCards rows={this.state.rows} />
+        }
+        else if (this.state.rows && !this.state.rows.length) {
+            return (
+                <div style={{'text-align': 'center'}}>
+                    No {this.state.usersFilter[this.props.showMemberType]} users to display
+                </div>
+            )
         }
         else {
             this.setTreeRows();

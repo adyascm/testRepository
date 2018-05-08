@@ -77,7 +77,7 @@ class Apps extends Component {
         </Container >
       )
     }
-    else if (this.props.appsPayload) {
+    else if (this.props.appsPayload && this.props.appsPayload.length) {
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
@@ -125,7 +125,7 @@ class Apps extends Component {
     else 
       return (
         <div>
-          There are no apps for user to display
+          No apps to display
         </div>
       )
 
