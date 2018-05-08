@@ -215,6 +215,7 @@ class ResourcesListTable extends Component {
         let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
+
             this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
                                                                  'sortColumn': mappedColumnName, 'sortType': 'asc' }))
             this.setState({
@@ -224,6 +225,7 @@ class ResourcesListTable extends Component {
         }
         else {
             this.props.onLoadStart()
+
             this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
                                                                  'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc' }))
             this.setState({
