@@ -92,8 +92,8 @@ class GsuitePermission:
         permission_exposure = constants.ResourceExposureType.PRIVATE
         if email_address:
             db_session = db_connection().get_session()
-            domain_id = db_session.query(DataSource.domain_id).filter(DataSource.datasource_id == self._datasource_id).first()
-            if gutils.check_if_external_user(db_session, domain_id,email_address):
+            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == self._datasource_id).first()
+            if gutils.check_if_external_user(db_session, datasource.domain_id,email_address):
                 permission_exposure = constants.ResourceExposureType.EXTERNAL
                 self.set_external_user(email_address, display_name)
             elif not email_address == self._resource_owner:
