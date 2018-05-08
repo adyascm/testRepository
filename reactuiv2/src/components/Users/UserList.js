@@ -127,7 +127,7 @@ class UserList extends Component {
         }
         else if (this.state.rows && !this.state.rows.length) {
             return (
-                <div style={{'text-align': 'center'}}>
+                <div style={{'textAlign': 'center'}}>
                     No {this.state.usersFilter[this.props.showMemberType]} users to display
                 </div>
             )
