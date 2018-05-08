@@ -47,4 +47,4 @@ ALERTS_COUNT_PATH = '/common/alerts/count'
 
 ACTION_PATH = '/google/actions'
 
-TRUSTED_PARTNERS = '/common/trustedentities'
+TRUSTED_ENTITIES = '/common/trustedentities'

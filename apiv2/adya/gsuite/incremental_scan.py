@@ -288,3 +288,15 @@ def gdrive_periodic_changes_poll(datasource_id=None):
                                                   "X-Goog-Channel-ID": row.channel_id,
                                                   'X-Goog-Resource-State': "change"})
     return
+
+
+def unsubscribed_all_the_previous_subscription(datasource_id):
+    db_session = db_connection().get_session()
+    subscriptions = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
+                                                                          datasource_id).all()
+
+    for subscription in subscriptions:
+        Logger().info("unsubscribed_all_the_previous_subscription : subscription")
+        unsubscribe_subscription(subscription)
+
+    Logger.info("unsubscribed all the channel for datasource - {} ".format(datasource_id))

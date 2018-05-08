@@ -77,7 +77,7 @@ api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
 api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
 
 #trustedDomain
-api.add_resource(domain_handler.TrustedPartners, urls.TRUSTED_PARTNERS)
+api.add_resource(domain_handler.TrustedEntities, urls.TRUSTED_ENTITIES)
 
 
 if __name__ == '__main__':

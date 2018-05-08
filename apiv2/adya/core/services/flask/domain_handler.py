@@ -46,15 +46,15 @@ class asyncdatasourcedelete(Resource):
         return req_session.generate_response(200)
 
 
-class TrustedPartners(Resource):
+class TrustedEntities(Resource):
     def post(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request()
         if req_error:
             return req_error
 
-        trusted_partners = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
-        return req_session.generate_sqlalchemy_response(201, trusted_partners)
+        trusted_entities = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
+        return req_session.generate_sqlalchemy_response(201, trusted_entities)
 
     def get(self):
         req_session = RequestSession(request)
@@ -62,8 +62,8 @@ class TrustedPartners(Resource):
         if req_error:
             return req_error
 
-        trusted_partners = domain_controller.get_all_trusted_entities(req_session.get_req_param("domainId"))
-        return req_session.generate_sqlalchemy_response(200, trusted_partners)
+        trusted_entities = domain_controller.get_all_trusted_entities(req_session.get_req_param("domainId"))
+        return req_session.generate_sqlalchemy_response(200, trusted_entities)
 
 
     

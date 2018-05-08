@@ -7,8 +7,8 @@ import 'react-tagsinput/react-tagsinput.css'
 
 
 import {
-  CREATE_TRUSTED_PARTNER,
-  SET_TRUSTED_PARTNER
+  CREATE_TRUSTED_ENTITIES,
+  SET_TRUSTED_ENTITIES
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -16,11 +16,11 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addTrustedPartners: (trustedPartners) => {
-    dispatch({ type: CREATE_TRUSTED_PARTNER, payload: agent.Setting.createTrustedPartners(trustedPartners) })
+  addTrustedEntities: (trustedEntities) => {
+    dispatch({ type: CREATE_TRUSTED_ENTITIES, payload: agent.Setting.createTrustedEntities(trustedEntities) })
   },
-  setTrustedPartners: (trustedPartners) =>
-    dispatch({ type: SET_TRUSTED_PARTNER, payload: trustedPartners }),
+  setTrustedEntities: (trustedEntities) =>
+    dispatch({ type: SET_TRUSTED_ENTITIES, payload: trustedEntities }),
 
 });
 
@@ -29,7 +29,7 @@ class WhitelistItem extends Component {
   constructor(props) {
       super(props);
       this.state = {
-        trustedPartnerMap: {
+        trustedEntitiesMap: {
           'trusted_domains' : [],
           'trusted_apps': []
         }
@@ -37,34 +37,34 @@ class WhitelistItem extends Component {
   }
 
   componentWillMount(){
-    this.props.setTrustedPartners(agent.Setting.getTrustedPartners(this.props.currentUser['domain_id']))
+    this.props.setTrustedEntities(agent.Setting.getTrustedEntities(this.props.currentUser['domain_id']))
 
   }
 
   componentWillReceiveProps(nextProps){
-     if(nextProps.trustedPartners && Object.keys(nextProps.trustedPartners).length > 0){
+     if(nextProps.trustedEntities && Object.keys(nextProps.trustedEntities).length > 0){
        this.setState({
-         trustedPartnerMap: nextProps.trustedPartners
+         trustedEntitiesMap: nextProps.trustedEntities
        })
      }
 
   }
 
   handleSubmit = () => {
-    var input = this.state.trustedPartnerMap
+    var input = this.state.trustedEntitiesMap
     input['domain_id'] = this.props.currentUser['domain_id']
-    this.props.addTrustedPartners(input)
+    this.props.addTrustedEntities(input)
 
   }
 
 
   handlechange = (key, value) => {
     var currentstate = {}
-    currentstate = this.state.trustedPartnerMap
+    currentstate = this.state.trustedEntitiesMap
 
      currentstate[key] = value
      this.setState({
-       trustedPartnerMap: currentstate
+       trustedEntitiesMap: currentstate
      })
 
   }
@@ -73,19 +73,19 @@ class WhitelistItem extends Component {
     return(
       <div>
           <div style={{'marginBottom':'3%'}}>
-                <TagsInput value={this.state.trustedPartnerMap['trusted_domains'].length !== 0 ? this.state.trustedPartnerMap['trusted_domains'] : []}
+                <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}
                   onChange={(e) => this.handlechange('trusted_domains', e)}
                   inputProps={{placeholder:"Add Domain"}}
                   />
           </div>
           <div style={{'marginBottom':'3%'}}>
-                <TagsInput value={this.state.trustedPartnerMap['trusted_apps'].length !== 0 ?
-                    this.state.trustedPartnerMap['trusted_apps'] : []}
+                <TagsInput value={this.state.trustedEntitiesMap['trusted_apps'].length !== 0 ?
+                    this.state.trustedEntitiesMap['trusted_apps'] : []}
                     onChange={(e) => this.handlechange('trusted_apps', e)}
                    inputProps={{placeholder:"Add Apps"}}
                   />
       </div>
-          <Button basic color='green' type='reset' onClick={this.handleSubmit}>Save</Button>  
+          <Button basic color='green' type='reset' onClick={this.handleSubmit}>Save</Button>
       </div>
 
 

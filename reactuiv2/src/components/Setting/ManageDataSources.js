@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 import agent from '../../utils/agent';
 import authenticate from '../../utils/oauth';
-import { Card, Button, Container, Header, Divider,  Grid, Menu, Segment } from 'semantic-ui-react'
+import { Card, Button, Container, Header, Divider} from 'semantic-ui-react'
 
 
 import {
@@ -19,7 +19,6 @@ import {
   SET_REDIRECT_PROPS
 } from '../../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
-import WhitelistItem from './WhitelistItem';
 
 const mapStateToProps = state => ({
   ...state.auth,
@@ -60,7 +59,6 @@ const mapDispatchToProps = dispatch => ({
 class ManageDataSources extends Component {
   constructor() {
     super();
-    this.state = { activeItem: 'datasources' }
     this.handleClick = this.handleClick.bind(this);
     this.onPollChanges = this.onPollChanges.bind(this);
 
@@ -109,11 +107,6 @@ class ManageDataSources extends Component {
 
   onPollChanges = (datasource) => {
     agent.Setting.pollGSuiteDriveChanges(datasource);
-  }
-
-  handleItemClick = (e, { name }) => {
-    this.setState({ activeItem: name })
-
   }
 
   render() {
@@ -166,34 +159,17 @@ class ManageDataSources extends Component {
         )
       }
       return (
-        <Grid>
-        <Grid.Column width={4}>
-          <Menu fluid vertical tabular>
-            <Menu.Item name='datasources' active={this.state.activeItem === 'datasources'} onClick={this.handleItemClick} />
-            <Menu.Item name='whitelist' active={this.state.activeItem === 'whitelist'} onClick={this.handleItemClick} />
-          </Menu>
-        </Grid.Column>
-
-        <Grid.Column stretched width={12}>
-          {this.state.activeItem === 'datasources'?
-            <Container>
-              <Card.Group>
-                {
-                  this.props.common.datasources && this.props.common.datasources.map(ds => {
-                    return (
-                      <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
-                    )
-                  })
-                }
-              </Card.Group>
-            </Container>
-         :
-           <WhitelistItem  />
-
-          }
-        </Grid.Column>
-      </Grid>
-
+        <Container>
+          <Card.Group>
+            {
+              this.props.common.datasources && this.props.common.datasources.map(ds => {
+                return (
+                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+                )
+              })
+            }
+          </Card.Group>
+        </Container>
       )
     }
   }

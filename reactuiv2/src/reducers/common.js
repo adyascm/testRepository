@@ -16,8 +16,8 @@ import {
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
   SET_REDIRECT_PROPS,
-  CREATE_TRUSTED_PARTNER,
-  SET_TRUSTED_PARTNER
+  CREATE_TRUSTED_ENTITIES,
+  SET_TRUSTED_ENTITIES
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -122,13 +122,13 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: true
       };
-    case CREATE_TRUSTED_PARTNER:
+    case CREATE_TRUSTED_ENTITIES:
       return {
         ...state,
-        partner : action.error?[]:action.payload,
+        entitiy : action.error?[]:action.payload,
         errorMessage: action.error
       };
-    case SET_TRUSTED_PARTNER:
+    case SET_TRUSTED_ENTITIES:
           var error;
           if(action.error === undefined){
             error = false
@@ -138,8 +138,7 @@ export default (state = defaultState, action) => {
           }
           return{
             ...state,
-            trustedPartners: action.error?[]:action.payload,
-            getrtrustedPartnersError: error,
+            trustedEntities: action.error?[]:action.payload,
             errorMessage: action.error
           } ;
     // case USERS_PAGE_LOADED:

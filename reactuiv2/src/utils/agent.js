@@ -45,9 +45,9 @@ const Setting = {
         requests.del('/common/datasources?datasourceId=' + dataSource.datasource_id),
     pollGSuiteDriveChanges: (dataSource) =>
         requests.get('/google/scan/polldrivechanges?datasource_id=' + dataSource.datasource_id),
-    createTrustedPartners: (partners) =>
-        requests.post('/common/trustedentities', partners),
-    getTrustedPartners: (domain_id) =>
+    createTrustedEntities: (entities) =>
+        requests.post('/common/trustedentities', entities),
+    getTrustedEntities: (domain_id) =>
         requests.get('/common/trustedentities?domainId=' + domain_id)
 };
 
