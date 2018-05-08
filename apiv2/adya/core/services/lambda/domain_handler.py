@@ -40,3 +40,27 @@ def async_datasource_delete(event, context):
     
     domain_controller.async_delete_datasource(req_session.get_auth_token(), req_session.get_req_param("datasourceId"))
     return req_session.generate_response(200)
+
+
+def post_trusted_entities(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+
+    try:
+        trusted_entities = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
+    except Exception as ex:
+        return req_session.generate_error_response(400, ex.message)
+    return req_session.generate_sqlalchemy_response(200, trusted_entities)
+
+
+def get_trusted_entities(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True, ["domainId"])
+    if req_error:
+        return req_error
+
+    trusted_entities = domain_controller.get_all_trusted_entities(req_session.get_req_param("domainId"))
+    return req_session.generate_sqlalchemy_response(200, trusted_entities)
+
