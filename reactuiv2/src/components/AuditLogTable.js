@@ -94,7 +94,7 @@ class AuditLogTable extends Component {
             else 
                 return (
                     <div style={{ 'textAlign': 'center' }}>
-                        Audit Log not available for user 
+                        No logs to display
                     </div>
                 )
         }        
