@@ -79,7 +79,7 @@ class GsuitePermission:
         self._permission.datasource_id = self._datasource_id
         self._permission.resource_id = self._resource_id
         self._permission.permission_id = permission_id
-        self._permission.permission_type = self._payload.get['role']
+        self._permission.permission_type = self._payload.get('role')
         expiration_time = self._payload.get('expirationTime')
         if expiration_time:
             self._permission.expiration_time = expiration_time[:-1]
