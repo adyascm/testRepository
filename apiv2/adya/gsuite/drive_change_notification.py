@@ -116,14 +116,82 @@ def handle_change(drive_service, datasource_id, email, file_id):
                 format(results['owners'][0]['emailAddress'], email))
             return
 
-        resourcedata = {}
-        resourcedata["resources"] = [results]
-        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-        query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
-                        'userEmail': email, 'is_incremental_scan': 1}
-        messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
+        # resourcedata = {}
+        # resourcedata["resources"] = [results]
+        # datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        # query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
+        #                 'userEmail': email, 'is_incremental_scan': 1}
+        # messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
+        update_resource(datasource.domain_id, datasource_id, email, resourcedata)
 
     except Exception as e:
         Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
             datasource_id, email, file_id, e))
+
+
+def update_resource(domain_id, datasource_id, user_email, updated_resource):
+    try:
+        Logger().info( "Initiating the incremental update of drive resource using email: {}".format(user_email))
+        is_new_resource = 0
+        gsuite_resource = GsuiteResource(datasource_id, updated_resource)
+        db_resource = gsuite_resource.get_model()
+        external_users = gsuite_resource.get_external_users()
+        db_session = db_connection().get_session()
+        count = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id ==
+            db_resource.resource_id)).update(db_utils.get_model_values(Resource, db_resource))
+        if count < 1:
+            #Resource does not exist, so insert
+            is_new_resource = 1
+            db_session.execute(Resource.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(Resource, db_resource)))
+
+        new_permissions_map = {}
+        for new_permission in db_resource.permissions:
+            new_permissions_map[new_permission.permission_id] = new_permission
+
+        #Update resource permissions
+        existing_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
+            ResourcePermission.resource_id == db_resource.resource_id)).all()
+        for existing_permission in existing_permissions:
+            if existing_permission.permission_id in new_permissions_map:
+                #Update the permission
+                db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id, ResourcePermission.resource_id ==
+                    db_resource.resource_id, ResourcePermission.permission_id == existing_permission.permission_id))
+                    .update(db_utils.get_model_values(ResourcePermission, new_permissions_map[existing_permission.permission_id]))
+                new_permissions_map.pop(existing_permission.permission_id, None)
+            else:
+                #Delete the permission
+                db_session.delete(existing_permission)
+
+
+        #Now add all the other new permissions
+        for new_permission in new_permissions_map.values():
+            db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(ResourcePermission, new_permission))
+
+        #Update external users
+        if len(external_users)>0:
+            external_users_values = []
+            for external_user in external_users:
+                external_users_values.append(db_utils.get_model_values(DomainUser, external_user))
+            db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_users_values))
+
+        db_connection().commit()
+
+        if is_new_resource == 1:
+            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True, False)
+            update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True, False)
+
+        messaging.send_push_notification("adya-"+datasource_id, 
+                json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
+
+        #Trigger the policy validation now
+        payload = {}
+        payload["old_permissions"] = json.dumps(existing_permissions, cls=alchemy_encoder())
+        payload["resource"] = updated_resource
+        payload["new_permissions"] = db_resource.permissions
+        policy_params = {'dataSourceId': datasource_id}
+        messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
+
+    except Exception as ex:
+        Logger().exception("Exception occurred while processing incremental update for drive resource using email: {}".format(user_email))
+        db_session.rollback()
 
