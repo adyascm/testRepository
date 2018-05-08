@@ -91,8 +91,6 @@ export default (state = defaultState, action) => {
                 appsSearchPayload: undefined,
                 selectedAppItem: undefined
             }
-<<<<<<< HEAD
-=======
         case APPS_ACTION_LOAD:
             return {
                 ...state,
@@ -107,7 +105,6 @@ export default (state = defaultState, action) => {
                 ...state,
                 action: undefined
             }
->>>>>>> ced1fcd6cba72a6b74c3059ce2b743770abe769e
         case SET_REDIRECT_PROPS:
             var states = {};
             if (action.reducerStates) {
