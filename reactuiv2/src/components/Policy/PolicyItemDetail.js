@@ -42,7 +42,8 @@ class PolicyItemDetail extends Component {
             description: "",
             policyId: undefined,
             showPolicyForm: false,
-            To: ''
+            To: '',
+            isActive: true
         }
     }
 
@@ -67,13 +68,14 @@ class PolicyItemDetail extends Component {
                     policyId: undefined,
                     To: '',
                     disableEmailField: true,
-                    showPolicyForm: nextProps.showPolicyForm
+                    showPolicyForm: nextProps.showPolicyForm,
+                    isActive: true
                 })
             }
             else
                 this.setState({
                     showPolicyForm: nextProps.showPolicyForm
-                }) 
+                })
         }
 
         if (nextProps.policyDetails && (nextProps.policyDetails !== this.props.policyDetails)) {
@@ -88,6 +90,7 @@ class PolicyItemDetail extends Component {
                 })
             }
             this.setState({
+                isActive: nextProps.policyDetails.is_active,
                 name: nextProps.policyDetails.name,
                 description: nextProps.policyDetails.description,
                 triggerType: nextProps.policyDetails.trigger_type,
@@ -178,6 +181,12 @@ class PolicyItemDetail extends Component {
             })
     }
 
+    handlePolicyActiveType = (event, data) => {
+      this.setState({
+        isActive: data.checked
+      })
+    }
+
     submitPolicyModalForm = () => {
         let policyInfo = {
             "datasource_id": this.props.datasources[0]["datasource_id"],
@@ -186,7 +195,8 @@ class PolicyItemDetail extends Component {
             "created_by": this.props.currentUser["email"],
             "trigger_type": this.state.triggerType,
             "conditions": this.state.conditions,
-            "actions": this.state.actions
+            "actions": this.state.actions,
+            "is_active": this.state.isActive
         }
 
         this.props.policyLoadStart()
@@ -241,8 +251,12 @@ class PolicyItemDetail extends Component {
                         <Form onSubmit={this.submitPolicyModalForm} >
                             <Segment.Group>
                                 <Segment>
+                                  <Form.Field>
+                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data, 'is_active')} label='IsActive' width={2}
+                                    />
+                                  </Form.Field>
                                     <Form.Group widths='equal'>
-                                        <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />
+                                        <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data)} />
                                         <Form.Field required control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'description')} />
                                     </Form.Group>
                                     <Header as='h4' color='green'>TYPE</Header>
@@ -253,7 +267,7 @@ class PolicyItemDetail extends Component {
                                     {conditions}
                                     <div style={{ 'textAlign': 'center' }}>
                                         <Button basic color='green' onClick={this.addPolicyCondition}>Add Condition</Button>
-                                    </div>                                
+                                    </div>
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>

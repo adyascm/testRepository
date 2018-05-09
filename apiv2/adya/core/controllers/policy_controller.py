@@ -60,6 +60,7 @@ def create_policy(auth_token, payload):
         policy.description = payload["description"]
         policy.trigger_type = payload["trigger_type"]
         policy.created_by = payload["created_by"]
+        policy.is_active = payload["is_active"]
         db_session.add(policy)
 
         # inserting data into policy conditions table
@@ -127,7 +128,8 @@ def validate(auth_token, datasource_id, payload):
         Logger().info("Permissions changed for this document, validate policy conditions now...")
         db_session = db_connection().get_session()
         policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
-                                                        Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
+                                                        Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE,
+                                                        Policy.is_active == True)).all()
         if not policies or len(policies) < 1:
             Logger().info("No policies found for permission change trigger, ignoring...")
             return
