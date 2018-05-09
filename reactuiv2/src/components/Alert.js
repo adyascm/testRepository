@@ -6,6 +6,7 @@ import {
     ALERTS_LOAD_START,
     ALERTS_LOADED
 } from '../constants/actionTypes'
+import DateComponent from './DateComponent';
 
 const mapStateToProps = state => ({
     ...state.alert
@@ -53,10 +54,10 @@ class Alert extends Component {
                 return (
                     <Table.Row key={index}>
                         <Table.Cell>{rowData["name"]}</Table.Cell>
-                        <Table.Cell>{rowData["created_at"]}</Table.Cell>
+                        <Table.Cell><DateComponent value={rowData["created_at"]} /></Table.Cell>
                         <Table.Cell>{rowData["severity"]}</Table.Cell>
                         <Table.Cell>{rowData["number_of_violations"]}</Table.Cell>
-                        <Table.Cell>{rowData["last_updated"]}</Table.Cell>
+                        <Table.Cell><DateComponent value={rowData["last_updated"]} /></Table.Cell>
                     </Table.Row>
                 )
             })
