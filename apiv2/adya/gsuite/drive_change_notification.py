@@ -137,19 +137,11 @@ def handle_change(drive_service, datasource_id, email, file_id):
 def update_resource(datasource_id, user_email, updated_resource):
     try:
         Logger().info( "Initiating the incremental update of drive resource using email: {}".format(user_email))
-        db_session = db_connection().get_session()
         is_new_resource = 0
-
-        existing_permissions = db_session.query(ResourcePermission).filter(
-            and_(ResourcePermission.datasource_id == datasource_id,
-                 ResourcePermission.resource_id == updated_resource['id'])).all()
-
-        existing_permissions_dump = json.dumps(existing_permissions, cls=alchemy_encoder())
-
         gsuite_resource = GsuiteResource(datasource_id, updated_resource)
         db_resource = gsuite_resource.get_model()
         external_users = gsuite_resource.get_external_users()
-
+        db_session = db_connection().get_session()
         count = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id ==
             db_resource.resource_id)).update(db_utils.get_model_values(Resource, db_resource))
         if count < 1:
@@ -162,7 +154,10 @@ def update_resource(datasource_id, user_email, updated_resource):
             new_permissions_map[new_permission.permission_id] = new_permission
 
         #Update resource permissions
+        existing_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
+            ResourcePermission.resource_id == db_resource.resource_id)).all()
 
+        existing_permissions_dump = json.dumps(existing_permissions, cls=alchemy_encoder())
         for existing_permission in existing_permissions:
             if existing_permission.permission_id in new_permissions_map:
                 #Update the permission
