@@ -100,7 +100,7 @@ def update_policy(auth_token, policy_id, payload):
 
 def validate(auth_token, datasource_id, payload):
     old_permissions = json.loads(payload["old_permissions"])
-    new_permissions = payload["new_permissions"]
+    new_permissions = json.loads(payload["new_permissions"])
     old_permissions_map = {}
     for permission in old_permissions:
         old_permissions_map[permission["email"]] = permission
