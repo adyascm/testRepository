@@ -252,11 +252,11 @@ class PolicyItemDetail extends Component {
                             <Segment.Group>
                                 <Segment>
                                   <Form.Field>
-                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data, 'is_active')} label='IsActive' width={2}
+                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
                                     />
                                   </Form.Field>
                                     <Form.Group widths='equal'>
-                                        <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data)} />
+                                        <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />
                                         <Form.Field required control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'description')} />
                                     </Form.Group>
                                     <Header as='h4' color='green'>TYPE</Header>
