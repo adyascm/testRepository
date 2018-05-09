@@ -105,7 +105,7 @@ def validate(auth_token, datasource_id, payload):
     for permission in old_permissions:
         old_permissions_map[permission["email"]] = permission
 
-    resource = payload["resource"]
+    resource = json.loads(payload["resource"])
     has_permission_changed = False
     for new_permission in new_permissions:
         new_permission_email = new_permission["email"]

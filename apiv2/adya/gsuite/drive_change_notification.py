@@ -191,7 +191,7 @@ def update_resource(datasource_id, user_email, updated_resource):
         #Trigger the policy validation now
         payload = {}
         payload["old_permissions"] = json.dumps(existing_permissions, cls=alchemy_encoder())
-        payload["resource"] = updated_resource
+        payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
         payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
         policy_params = {'dataSourceId': datasource_id}
         messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
