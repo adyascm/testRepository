@@ -59,7 +59,7 @@ const LoggedInView = props => {
 const mapStateToProps = state => ({
     ...state.common,
     ...state.dashboard,
-    openAlertsCount: state.alert.openAlerts
+    openAlertsCount: state.alert.alertsCount
 });
 
 const mapDispatchToProps = dispatch => ({
