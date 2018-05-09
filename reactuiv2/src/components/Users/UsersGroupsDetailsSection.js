@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Tab, Segment, Icon, Grid, Dropdown, Container } from 'semantic-ui-react';
 import UserDetails from './UserDetails';
-import UserResource from './UserResource';
+//import UserResource from './UserResource';
 import UserResourceTable from './UserResourceTable'
 //import UserActivity from './UserActivity';
 import UserActivityTable from './UserActivityTable'
