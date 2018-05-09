@@ -105,7 +105,7 @@ def validate(auth_token, datasource_id, payload):
     for permission in old_permissions:
         old_permissions_map[permission["email"]] = permission
 
-    resource = payload["resource"]
+    resource = json.loads(payload["resource"])
     has_permission_changed = False
     for new_permission in new_permissions:
         new_permission_email = new_permission["email"]
@@ -138,6 +138,8 @@ def validate(auth_token, datasource_id, payload):
 
 
 def validate_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
+    Logger().info("validating policy")
+    Logger().info("validate_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
@@ -152,18 +154,21 @@ def validate_policy(db_session, auth_token, datasource_id, policy, resource, new
                 is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission["email"])
             is_violated = is_violated & is_permission_violated
 
+    Logger().info("validate_policy : is_violated - {}".format(is_violated))
+
     if is_violated:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
                 # TODO: add proper email template
+                Logger().info("validate_policy : send email")
                 aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
                 # adya_emails.send_policy_violate_email(to_address, policy, resource)
         payload = {}
         payload["datasource_id"] = datasource_id
-        payload["name"] = policy["name"]
-        payload["policy_id"] = policy["policy_id"]
+        payload["name"] = policy.name
+        payload["policy_id"] = policy.policy_id
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
