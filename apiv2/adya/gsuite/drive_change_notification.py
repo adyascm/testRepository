@@ -162,6 +162,7 @@ def update_resource(datasource_id, user_email, updated_resource):
                 db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id, ResourcePermission.resource_id ==
                     db_resource.resource_id, ResourcePermission.permission_id == existing_permission.permission_id))\
                     .update(db_utils.get_model_values(ResourcePermission, new_permissions_map[existing_permission.permission_id]))
+
                 new_permissions_map.pop(existing_permission.permission_id, None)
             else:
                 #Delete the permission
@@ -194,6 +195,7 @@ def update_resource(datasource_id, user_email, updated_resource):
         payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
         payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
         policy_params = {'dataSourceId': datasource_id}
+        Logger().info("update_resource : payload : {}".format(payload))
         messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
 
     except Exception as ex:
