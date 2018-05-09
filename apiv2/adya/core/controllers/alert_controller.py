@@ -40,7 +40,7 @@ def create_alerts(auth_token, payload):
         alert.payload = None
         
         db_session.add(alert)
-        db_connection.commit()
+        db_connection().commit()
         return alert        
 
     return ResponseMessage(400, 'Bad Request')
