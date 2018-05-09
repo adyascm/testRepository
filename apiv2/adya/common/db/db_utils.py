@@ -1,4 +1,5 @@
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.orm.collections import InstrumentedList, InstrumentedDict
 
 from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource
 from adya.common.db.connection import db_connection
@@ -31,7 +32,8 @@ def get_login_user_from_email(email, db_session=None):
     return db_session.query(LoginUser).filter(LoginUser.email == email).first()
 
 
-def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled, scope_name, token, db_session=None):
+def create_user(email, first_name, last_name, domain_id, refresh_token, is_serviceaccount_enabled, scope_name, token,
+                db_session=None):
     if not db_session:
         db_session = db_connection().get_session()
     creation_time = datetime.datetime.utcnow()
@@ -79,13 +81,17 @@ def create_domain(db_session, domain_id, domain_name):
         db_session.rollback()
     return domain
 
+
 def get_model_values(type, value):
     mapped_values = {}
     for item in type.__dict__.iteritems():
-      field_name = item[0]
-      field_type = item[1]
-      is_column = isinstance(field_type, InstrumentedAttribute)
-      if is_column:
-        mapped_values[field_name] = getattr(value, field_name)
+        field_name = item[0]
+        field_type = item[1]
+        is_column = isinstance(field_type, InstrumentedAttribute)
+        if is_column:
+            field_value = getattr(value, field_name)
+            is_foreign = isinstance(field_value, InstrumentedList) or isinstance(field_value, InstrumentedDict)
+            if not is_foreign:
+                mapped_values[field_name] = field_value
 
     return mapped_values
