@@ -21,7 +21,6 @@ import {
 const defaultState = {
   appName: 'Adya',
   viewChangeCounter: 0,
-  //currentView: '/login',
   currentUrl: '/login',
   token: undefined,
   currentUser: undefined,
@@ -39,8 +38,7 @@ export default (state = defaultState, action) => {
         ...state,
         token: action.token || null,
         appLoaded: true,
-        currentUser: action.error ? null : action.payload,
-        //currentView: ""
+        currentUser: action.error ? null : action.payload
       };
     case REDIRECT:
       return { ...state, redirectTo: null };
@@ -120,21 +118,6 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: true
       };
-    // case USERS_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/users"
-    //   };
-    // case RESOURCES_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/resources"
-    //   };
-    // case APPS_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/apps"
-    //   };
     case SET_REDIRECT_PROPS:
       var states = {};
       if (action.reducerStates) {

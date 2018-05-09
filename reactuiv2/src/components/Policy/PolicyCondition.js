@@ -75,17 +75,6 @@ class PolicyCondition extends Component {
         })
     }
 
-    // handleKeyPress = (event) => {
-    //     if (event.key === 'Enter') {
-    //         let appliedFilter = {
-    //             "match_type": this.state.filterType,
-    //             "match_condition": this.state.filterCondition,
-    //             "match_value": this.state.filterValue
-    //         }
-    //         this.props.setPolicyFilter('policyConditions', appliedFilter)
-    //     }
-    // }
-
     updateFilterValueChange = () => {
         let appliedFilter = {
             "match_type": this.state.policyCondition.match_type,
