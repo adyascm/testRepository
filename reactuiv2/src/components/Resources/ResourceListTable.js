@@ -101,22 +101,6 @@ class ResourcesListTable extends Component {
         this.props.clearGroupSearchPayload()
     }
 
-    // componentWillReceiveProps(nextProps) {
-    //     if (nextProps !== this.props) {
-    //         if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
-    //             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterEmailId !== this.props.filterEmailId || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
-    //             ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined)) {
-    //             nextProps.onLoadStart()
-    //             nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': nextProps.filterEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix }))
-    //         }
-
-    //         if (nextProps.filterResourceType !== this.state.filterResourceType)
-    //             this.setState({
-    //                 filterResourceType: nextProps.filterResourceType
-    //             })
-    //     }
-    // }
-
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
@@ -154,12 +138,6 @@ class ResourcesListTable extends Component {
         this.setState({
             filterResourceType: event.target.value
         });
-    }
-
-    handleEmailIdChange = (event) => {
-        this.setState({
-            filterEmailId: event.target.value
-        })
     }
 
     handleParentFolderChange = (event) => {
@@ -290,7 +268,6 @@ class ResourcesListTable extends Component {
                                         <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : ''} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
-                                        {/* <Input fluid  placeholder='Filter by email...' icon={this.state.filterEmailId.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEmailId')} /> : ''} value={this.state.filterEmailId} onChange={this.handleEmailIdChange} onKeyPress={(event) => this.handleKeyPress(event,"filterEmailId",this.state.filterEmailId)} /> */}
                                         <GroupSearch />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
@@ -306,7 +283,6 @@ class ResourcesListTable extends Component {
                                         <Input fluid placeholder='Filter by folder...' icon={this.state.filterParentFolder.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterParentFolder')} /> : ''} value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
-                                        {/* <Input as={datePicker} fluid placeholder='Filter by date...' /> */}
                                         <Input fluid placeholder='Filter by Date...'>
                                             <DatePicker
                                                 selected={this.state.currentDate}

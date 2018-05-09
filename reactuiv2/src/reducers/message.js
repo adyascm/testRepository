@@ -50,7 +50,6 @@ export default (state = defaultState, action) => {
             }
 
         case SCAN_INCREMENTAL_UPDATE_RECEIVED:
-            //var updateMessage = JSON.parse(action.payload);
             var msg = "File has been changed, please refresh the app to see the latest changes...";
             if (!state.warningCount ||
                 state.infoMessage.indexOf(msg) < 0) {

@@ -95,12 +95,6 @@ export default (state = defaultState, action) => {
             return {
                 ...defaultState
             }
-
-        // case RESOURCES_TREE_CELL_EXPANDED:
-        //     return {
-        //         ...state,
-        //         cellExpanded: action.payload
-        //     }
         case SET_REDIRECT_PROPS:
             var states = {};
             if (action.reducerStates) {

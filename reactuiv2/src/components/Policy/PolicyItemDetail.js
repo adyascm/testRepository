@@ -250,7 +250,6 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='yellow'>CONDITIONS</Header>
-                                    {/* <PolicyCondition /> */}
                                     {conditions}
                                     <div style={{ 'textAlign': 'center' }}>
                                         <Button basic color='green' onClick={this.addPolicyCondition}>Add Condition</Button>

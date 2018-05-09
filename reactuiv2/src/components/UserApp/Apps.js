@@ -56,7 +56,6 @@ class Apps extends Component {
   }
   
   render() {
-    //const { contextRef } = this.state
     let containerStyle = {
       height: "100%",
       textAlign: "left"
@@ -81,32 +80,6 @@ class Apps extends Component {
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
-            {/* <Grid.Row >
-              <Grid.Column stretched width="5">
-                <Radio name='radioGroup'
-                  label='Show all apps'
-                  value={0}
-                  checked={this.state.scopeExposure === 0}
-                  onChange={this.onCheckBoxChecked}
-                />
-              </Grid.Column>
-              <Grid.Column stretched width="5">
-                <Radio name='radioGroup'
-                  label='Show readonly scope apps'
-                  value={1}
-                  checked={this.state.scopeExposure === 1}
-                  onChange={this.onCheckBoxChecked}
-                />
-              </Grid.Column>
-              <Grid.Column stretched width="5">
-                <Radio name='radioGroup'
-                  label='Show full scope apps'
-                  value={2}
-                  checked={this.state.scopeExposure === 2}
-                  onChange={this.onCheckBoxChecked}
-                />
-              </Grid.Column>
-            </Grid.Row> */}
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}> 
                 <AppList />

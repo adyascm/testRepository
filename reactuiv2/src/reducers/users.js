@@ -32,7 +32,6 @@ const defaultState = {
     groupSearchPayload: undefined,
     selectedUserItem: undefined,
     userDetailsViewActive: false,
-    // selectedUserItem: undefined,
     action: undefined,
     userFilterType: 'EXT',
     hasGroups: false,
@@ -45,8 +44,7 @@ export default (state = defaultState, action) => {
         case USERS_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoadingUsers: true,
-                //usersTreePayload: undefined
+                isLoadingUsers: true
             }
         case USERS_PAGE_LOADED:
             let usersTreePayload = !action.error?action.payload:[]

@@ -3,10 +3,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
 
-// import ResourcesList from './ResourcesList';
 import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
-//import TestResourcesList from './TestResourcesList';
 import ResourcesListTable from './ResourceListTable'
 
 import {  RESOURCES_FILTER_CHANGE,
@@ -26,46 +24,6 @@ const mapDispatchToProps = dispatch => ({
 
 
 class Resources extends Component {
-  constructor(props) {
-    super(props);
-
-    // this.handleExposureTypeChange = this.handleExposureTypeChange.bind(this);
-    // this.handleResourceTypeChange = this.handleResourceTypeChange.bind(this);
-    // this.handleKeyPress = this.handleKeyPress.bind(this);
-
-    // this.exposureFilterOptions = [
-    //     {text: 'Externally Shared',
-    //      value: 'EXT'},
-    //     {text: 'Domain Shared',
-    //      value: 'DOMAIN'},
-    //     {text: 'Internally Shared',
-    //      value: 'INT'},
-    //      {text: 'All Files',
-    //      value: 'ALL'}
-    //   ]
-
-    //   this.state = {
-    //     filterResourceType: "",
-    //   }
-  }
-
-  // handleExposureTypeChange(event,data) {
-  //   let value = data.value === 'ALL'?'':data.value
-  //   if (value !== this.props.filterExposureType)
-  //     this.props.changeFilter("filterExposureType", value);
-  // }
-
-  // handleResourceTypeChange(event) {
-  //   this.setState({
-  //     filterResourceType: event.target.value
-  //   });
-  // }
-
-  // handleKeyPress(event) {
-  //   if (event.key === 'Enter') {
-  //     this.props.changeFilter("filterResourceType", this.state.filterResourceType);
-  //   }
-  // }
 
   componentWillMount() {
     window.scrollTo(0, 0)
@@ -90,28 +48,9 @@ class Resources extends Component {
     return (
       <Container fluid style={containerStyle}>
         <Grid divided='vertically' stretched >
-          {/* <Grid.Row >
-            <Grid.Column stretched width="5">
-              <Dropdown
-                options={this.exposureFilterOptions}
-                selection
-                onChange={this.handleExposureTypeChange}
-                value={this.props.filterExposureType === ''?'ALL':this.props.filterExposureType}
-              />
-            </Grid.Column>
-            <Grid.Column stretched width="5">
-              <Form>
-                <Form.Field>
-                  <input placeholder='Filter by File type ...' value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={this.handleKeyPress} />
-                </Form.Field>
-              </Form>
-            </Grid.Column>
-          </Grid.Row> */}
           <Grid.Row stretched>
             <Grid.Column stretched width={gridWidth}>
               <ResourcesListTable />
-              {/* <ResourcesList gridWidth={gridWidth} /> */}
-              {/* <TestResourcesList /> */}
             </Grid.Column>
             {
               this.props.rowData?

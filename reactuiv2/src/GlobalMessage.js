@@ -35,7 +35,6 @@ class GlobalMessage extends Component {
             return (
                 <Container>
                     <Message negative fluid={true} size='mini' style={{marginTop: '-25px', marginBottom: '20px'}} onDismiss={this.handleDismiss}>
-                        {/* <li>{this.props.errorMessage[0]}</li> */}
                         {errorMessage}
                     </Message>
                 </Container>
@@ -50,7 +49,6 @@ class GlobalMessage extends Component {
             return (
                 <Container>
                     <Message warning fluid={true} size='mini' style={{marginTop: '-25px', marginBottom: '20px'}} onDismiss={this.handleDismiss}>
-                        {/* {this.props.infoMessage[0]} */}
                         {warningMessage}
                     </Message>
                 </Container>

@@ -139,7 +139,6 @@ class Users extends Component {
 
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}>
-                {/* {!this.props.userPayload && this.props.isLoading ? dimmer : null} */}
                 {!this.state.showHierarchy ? flatList : treeView}
               </Grid.Column>
               {
@@ -148,9 +147,6 @@ class Users extends Component {
                     <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
                   </Grid.Column>) : null
               }
-              {/* <Grid.Column width={16 - gridWidth}>
-                  <UsersGroupsDetailsSection {...this.props.users.selectedUserItem}/>
-                </Grid.Column> */}
             </Grid.Row>
           </Grid>
           <Actions />

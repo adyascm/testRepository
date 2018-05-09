@@ -37,14 +37,6 @@ class GroupSearch extends Component {
     }
 
     resultRenderer = (r) => {
-        //var image = null;
-        // var image;
-        //         if (r.photo_url) {
-        //             image = <Image inline avatar src={r.photo_url} floated='left'></Image>
-        //         } else {
-        //             image = <Image inline floated='left'><Label style={{ fontSize: '1.2rem' }} circular >{r.name.charAt(0)}</Label></Image>
-        //         }
-
         return (
             <div>
                 {/* {image} */}
@@ -97,7 +89,6 @@ class GroupSearch extends Component {
             for (let index = 0; index < keys.length; index++) {
                 let row = this.props.users.usersTreePayload[keys[index]]
                 if (keys[index].match(re)) {
-                    //row.name = row.first_name + " " + row.last_name
                     results.push(row);
                     resultsMap[keys[index]] = row
                 }
@@ -133,8 +124,6 @@ class GroupSearch extends Component {
 
     render() {
         const { isLoading, value, results } = this.state
-        // if(!this.props.users.usersTreePayload)
-        //     return null;
         return (
             <Search 
                 aligned="left"
@@ -149,7 +138,6 @@ class GroupSearch extends Component {
                 showNoResults={this.state.showNoResults}
                 fluid={true}
                 icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} / > : 'search'}
-                // {...this.props}
             />
         )
     }

@@ -130,8 +130,6 @@ class Policy extends Component {
                     </Card.Content>
                     </Card>
                 </Card.Group>
-                {/* {!this.state.showPolicyForm?null:(<PolicyItemDetail showPolicyForm={this.state.showPolicyForm} policyDetails={this.state.policyDetails} 
-                    closePolicyModalForm={this.closePolicyModalForm} submitPolicyModalForm={this.submitPolicyModalForm} />)} */}
                 <PolicyItemDetail policyDetails={this.state.policyDetails} showPolicyForm={this.state.showPolicyForm} 
                     closePolicyModalForm={this.closePolicyModalForm} />
             </div>

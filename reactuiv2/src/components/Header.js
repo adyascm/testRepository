@@ -22,9 +22,6 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
-        // var disableAppsItem = (props["userAppAccess"] && props["userAppAccess"]["data"] && props["userAppAccess"]["data"]["totalCount"]>0)?false:true
-        // var disableUserItem = (props["usersCount"] && props["usersCount"]["data"]>0)?false:true
-        // var disableResourceItem = (props["filesCount"] && props["filesCount"]["data"]>0)?false:true
         return (
             <Container fluid>
                 <Menu.Item header>
@@ -48,16 +45,8 @@ const LoggedInView = props => {
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
                         {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)}
-                        {/* <Label color='teal' size='mini' floating>12</Label> */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
-                    {/* <Dropdown item icon='settings'>
-                        <Dropdown.Menu>
-                            <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown> */}
                     <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
