@@ -156,6 +156,7 @@ def update_resource(datasource_id, user_email, updated_resource):
         #Update resource permissions
         existing_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
             ResourcePermission.resource_id == db_resource.resource_id)).all()
+        existing_permissions_dump = json.dumps(existing_permissions, cls=alchemy_encoder())
         for existing_permission in existing_permissions:
             if existing_permission.permission_id in new_permissions_map:
                 #Update the permission
@@ -191,7 +192,7 @@ def update_resource(datasource_id, user_email, updated_resource):
 
         #Trigger the policy validation now
         payload = {}
-        payload["old_permissions"] = json.dumps(existing_permissions, cls=alchemy_encoder())
+        payload["old_permissions"] = existing_permissions_dump
         payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
         payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
         policy_params = {'dataSourceId': datasource_id}
