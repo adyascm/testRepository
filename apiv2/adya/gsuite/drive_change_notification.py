@@ -1,14 +1,20 @@
 import datetime
+import json
 
 import requests
+from sqlalchemy import and_
 
 from adya.common.constants import urls
 from adya.common.constants.constants import get_url_from_path
+from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
-from adya.common.db.models import PushNotificationsSubscription, LoginUser, DataSource
+from adya.common.db.models import PushNotificationsSubscription, LoginUser, DataSource, Resource, ResourcePermission, \
+    DomainUser, alchemy_encoder
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
 from adya.gsuite import gutils
+from adya.gsuite.mappers.resource import GsuiteResource
+from adya.gsuite.scan import update_and_get_count
 
 
 def process_notifications(notification_type, datasource_id, channel_id):
@@ -97,7 +103,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
 
 
 def handle_change(drive_service, datasource_id, email, file_id):
-    db_session = db_connection().get_session()
     try:
         results = drive_service.files() \
             .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
@@ -122,14 +127,14 @@ def handle_change(drive_service, datasource_id, email, file_id):
         # query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
         #                 'userEmail': email, 'is_incremental_scan': 1}
         # messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
-        update_resource(datasource.domain_id, datasource_id, email, resourcedata)
+        update_resource(datasource_id, email, results)
 
     except Exception as e:
         Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
             datasource_id, email, file_id, e))
 
 
-def update_resource(domain_id, datasource_id, user_email, updated_resource):
+def update_resource(datasource_id, user_email, updated_resource):
     try:
         Logger().info( "Initiating the incremental update of drive resource using email: {}".format(user_email))
         is_new_resource = 0
@@ -155,7 +160,7 @@ def update_resource(domain_id, datasource_id, user_email, updated_resource):
             if existing_permission.permission_id in new_permissions_map:
                 #Update the permission
                 db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id, ResourcePermission.resource_id ==
-                    db_resource.resource_id, ResourcePermission.permission_id == existing_permission.permission_id))
+                    db_resource.resource_id, ResourcePermission.permission_id == existing_permission.permission_id))\
                     .update(db_utils.get_model_values(ResourcePermission, new_permissions_map[existing_permission.permission_id]))
                 new_permissions_map.pop(existing_permission.permission_id, None)
             else:
@@ -165,7 +170,7 @@ def update_resource(domain_id, datasource_id, user_email, updated_resource):
 
         #Now add all the other new permissions
         for new_permission in new_permissions_map.values():
-            db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(ResourcePermission, new_permission))
+            db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(ResourcePermission, new_permission)))
 
         #Update external users
         if len(external_users)>0:
@@ -177,11 +182,11 @@ def update_resource(domain_id, datasource_id, user_email, updated_resource):
         db_connection().commit()
 
         if is_new_resource == 1:
-            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True, False)
-            update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True, False)
+            update_and_get_count(datasource_id, DataSource.processed_file_count, 1, True, False)
+            update_and_get_count(datasource_id, DataSource.total_file_count, 1, True, False)
 
         messaging.send_push_notification("adya-"+datasource_id, 
-                json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
+                json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": updated_resource}))
 
         #Trigger the policy validation now
         payload = {}
