@@ -1,3 +1,4 @@
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.collections import InstrumentedList, InstrumentedDict
 
@@ -90,7 +91,7 @@ def get_model_values(type, value):
         is_column = isinstance(field_type, InstrumentedAttribute)
         if is_column:
             field_value = getattr(value, field_name)
-            is_foreign = isinstance(field_value, InstrumentedList) or isinstance(field_value, InstrumentedDict)
+            is_foreign = isinstance(field_value, InstrumentedList) or isinstance(field_value, InstrumentedDict) or isinstance(field_value.__class__, DeclarativeMeta)
             if not is_foreign:
                 mapped_values[field_name] = field_value
 
