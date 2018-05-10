@@ -227,7 +227,7 @@ class Actions extends Component {
         }
         else if (this.state.errorMessage) {
             if(this.state.logId){
-                logmsg = (<a>(Log:{this.state.logId})</a>)
+                logmsg = (<a href="/auditlog">(Log:{this.state.logId})</a>)
             }
             message = (<Message
                 error
