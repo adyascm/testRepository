@@ -1,7 +1,7 @@
 import React from 'react'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux';
-import { LOGOUT, SET_REDIRECT_PROPS } from '../constants/actionTypes';
+import { LOGOUT, SET_REDIRECT_PROPS, RESET_ALERTS_COUNT } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon, Label } from 'semantic-ui-react'
@@ -44,7 +44,8 @@ const LoggedInView = props => {
                     </Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
-                        {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)}
+                        {!props.openAlertsCount ? null : <Label color='red' floating>{props.openAlertsCount}</Label>}
+                        {/* {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)} */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
                     <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
@@ -65,7 +66,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onClickLogout: () => dispatch({ type: LOGOUT }),
     onMenuItemClick: (url) =>
-        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url }),
+    resetAlertsCount: () =>
+        dispatch({ type: RESET_ALERTS_COUNT })
 });
 
 class Header extends React.Component {
@@ -79,6 +82,8 @@ class Header extends React.Component {
         this.props.onMenuItemClick(menuItem)
         this.props.history.push(menuItem)
 
+        if (menuItem === '/alerts')
+            this.props.resetAlertsCount()
     }
 
     componentWillMount() {
