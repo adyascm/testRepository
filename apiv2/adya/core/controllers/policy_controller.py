@@ -12,6 +12,7 @@ from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
 from adya.common.email_templates import adya_emails
+from adya.core.controllers.alert_controller import delete_alert_for_a_policy
 
 
 def get_policies(auth_token):
@@ -91,12 +92,16 @@ def create_policy(auth_token, payload):
 
 
 def update_policy(auth_token, policy_id, payload):
-    delete_response = delete_policy(policy_id)
-    if delete_response:
-        policy = create_policy(auth_token, payload)
-        return policy
+    delete_alert_response = delete_alert_for_a_policy(policy_id)
+    if delete_alert_response:
+        delete_response = delete_policy(policy_id)
+        if delete_response:
+            policy = create_policy(auth_token, payload)
+            return policy
+        else:
+            return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
     else:
-        return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
+        return ResponseMessage(400, " Bad Request - failed in deleting the alert! ")
     
 
 def validate(auth_token, datasource_id, payload):

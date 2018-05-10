@@ -1,7 +1,7 @@
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.db.models import Alert, DataSource
-from adya.common.utils.response_messages import ResponseMessage
+from adya.common.utils.response_messages import ResponseMessage, Logger
 import uuid
 import datetime
 
@@ -44,3 +44,14 @@ def create_alerts(auth_token, payload):
         return alert        
 
     return ResponseMessage(400, 'Bad Request')
+
+
+def delete_alert_for_a_policy(policy_id):
+    db_session = db_connection().get_session()
+    delete_response = None
+    if policy_id:
+        Logger().info("delete alert for policy id: {}".format(policy_id))
+        delete_response = db_session.query(Alert).filter(Alert.policy_id == policy_id).delete()
+
+    return delete_response
+
