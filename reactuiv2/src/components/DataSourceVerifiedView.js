@@ -53,7 +53,7 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.datasources) {
                 return null;
             }
-            else if (this.props.common.datasources.length < 1 || common.DataSourceUtils.getScanStatus(this.props.common.datasources[0]) != 'success') {
+            else if (this.props.common.datasources.length < 1) {
                 return (
                     <Redirect to="/datasources" />
                 );
