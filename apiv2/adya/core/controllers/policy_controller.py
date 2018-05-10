@@ -44,10 +44,6 @@ def delete_policy(policy_id):
         db_session.delete(existing_policy)
         db_connection().commit()
 
-        return existing_policy
-    else:
-        return ResponseMessage(400, "Bad Request - Policy not found")
-
 
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
@@ -92,16 +88,11 @@ def create_policy(auth_token, payload):
 
 
 def update_policy(auth_token, policy_id, payload):
-    delete_alert_response = delete_alert_for_a_policy(policy_id)
-    if delete_alert_response:
-        delete_response = delete_policy(policy_id)
-        if delete_response:
-            policy = create_policy(auth_token, payload)
-            return policy
-        else:
-            return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
-    else:
-        return ResponseMessage(400, " Bad Request - failed in deleting the alert! ")
+    delete_alert_for_a_policy(policy_id)
+    delete_policy(policy_id)
+    policy = create_policy(auth_token, payload)
+    Logger().info("update_policy :  policy {}".format(policy))
+    return policy
     
 
 def validate(auth_token, datasource_id, payload):

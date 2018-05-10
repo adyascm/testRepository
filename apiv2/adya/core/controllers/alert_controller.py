@@ -47,11 +47,11 @@ def create_alerts(auth_token, payload):
 
 
 def delete_alert_for_a_policy(policy_id):
-    db_session = db_connection().get_session()
     delete_response = None
     if policy_id:
+        db_session = db_connection().get_session()
         Logger().info("delete alert for policy id: {}".format(policy_id))
         delete_response = db_session.query(Alert).filter(Alert.policy_id == policy_id).delete()
-
+        db_connection().commit()
     return delete_response
 
