@@ -90,7 +90,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
 
 ## processing resource data for fileIds
 def process_resource_data(auth_token, domain_id, datasource_id, user_email, resourcedata, is_incremental_scan=0):
-
+    db_session = None
     try:
         Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
         resources = resourcedata["resources"]
