@@ -71,7 +71,7 @@ class WhitelistItem extends Component {
 
   render(){
     return(
-      <div>
+      <Container>
           <div style={{'marginBottom':'3%'}}>
                 <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}
                   onChange={(e) => this.handlechange('trusted_domains', e)}
@@ -86,7 +86,7 @@ class WhitelistItem extends Component {
                   />
       </div>
           <Button basic color='green' type='reset' onClick={this.handleSubmit}>Save</Button>
-      </div>
+      </Container>
 
 
     )

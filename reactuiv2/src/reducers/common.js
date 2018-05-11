@@ -32,6 +32,9 @@ const defaultState = {
   datasources: undefined,
   all_actions_list: undefined,
   datasourceLoading: false,
+  entitiy: undefined,
+  trustedEntities: undefined
+
 };
 
 export default (state = defaultState, action) => {
