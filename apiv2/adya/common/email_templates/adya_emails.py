@@ -48,12 +48,13 @@ def send_gdrive_scan_completed_email(datasource):
         session = db_connection().get_session()
         all_users = session.query(LoginUser).filter(and_(LoginUser.domain_id == datasource.domain_id, LoginUser.is_enabled == True)).all()
         auth_token = all_users[0].auth_token
+        login_user = all_users[0].first_name
         if len(all_users) < 1:
             Logger().info("No user to send an email to, so aborting...")
             return
 
         template_name = "gdrive_scan_completed"
-        template_parameters=get_gdrive_scan_summary(datasource,auth_token,None)
+        template_parameters=get_gdrive_scan_summary(datasource,login_user,auth_token,None)
         rendered_html = get_rendered_html(template_name, template_parameters)
 
         user_list = [user.email for user in all_users]
@@ -63,7 +64,7 @@ def send_gdrive_scan_completed_email(datasource):
         Logger().exception("Exception occurred sending gdrive scan completed email")
 
 
-def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
+def get_gdrive_scan_summary(datasource,loginUser,auth_token=None,user_email=None):
     try:
         if not datasource:
             return "Invalid datasource! Aborting..."
@@ -84,30 +85,49 @@ def get_gdrive_scan_summary(datasource,auth_token=None,user_email=None):
             elif item[0] == constants.DocType.ANYONE_WITH_LINK_COUNT:
                 countAnyoneWithLinkSharedDocs = item[1]
 
-        countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs
+        #countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs
         externalDocsListData = reports_controller.get_widget_data(auth_token,"sharedDocsList", datasource.datasource_id,user_email)
         externalUserListData = reports_controller.get_widget_data(auth_token,"externalUsersList", datasource.datasource_id,user_email)
+        filesCount = reports_controller.get_widget_data(auth_token, "filesCount", datasource.datasource_id, user_email)
+        folderCount = reports_controller.get_widget_data(auth_token, "foldersCount", datasource.datasource_id, user_email)
+        apps = reports_controller.get_widget_data(auth_token, "userAppAccess", datasource.datasource_id, user_email)
+        internalUserExposed = reports_controller.get_widget_data(auth_token, "internalUserList", datasource.datasource_id, user_email)
 
         trial_link = constants.UI_HOST
 
         externalDocs = convert_list_pystache_format("name", externalDocsListData["rows"])
-        externalUsers = convert_list_pystache_format("name", externalUserListData["rows"])
-        restFiles = externalDocsListData["totalCount"] - len(externalDocsListData["rows"])
-        restUsers = externalUserListData["totalCount"] - len(externalUserListData["rows"])
+        #externalUsers = convert_list_pystache_format("name", externalUserListData["rows"])
+        #restFiles = externalDocsListData["totalCount"] - len(externalDocsListData["rows"])
+        #restUsers = externalUserListData["totalCount"] - len(externalUserListData["rows"])
+
+        domainId = datasource.domain_id
+        usersCount = datasource.total_user_count
+        groupsCount = datasource.total_group_count
+        appsCount = apps["totalCount"]
+        highRiskAppsCount = apps["rows"]["High Risk"]
 
         data = {
-            "countDocuments": countDocuments,
-            "countExternalData": countExternalSharedDocs,
+            "domainId": domainId,
+            #"countDocuments": countDocuments,
+            #"countExternalData": countExternalSharedDocs,
             "countPublicData": countPublicSharedDocs,
             "externalDocs": externalDocs,
-            "documentsCountData": externalDocsListData["totalCount"],
-            "externalUsers": externalUsers,
+            #"documentsCountData": externalDocsListData["totalCount"],
+            #"externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
             "countDomainData": countDomainSharedDocs,
             "countAnyoneWithLinkData": countAnyoneWithLinkSharedDocs,
-            "trialLink": trial_link,
-            "restFiles": "...and " + str(restFiles) + " other documents" if restFiles > 0 else "",
-            "restUsers": "...and " + str(restUsers) + " other external users" if restUsers > 0 else ""
+            "filesCount": filesCount,
+            "folderCount": folderCount,
+            "usersCount": usersCount,
+            "groupsCount": groupsCount,
+            "appsCount": appsCount,
+            "highRiskAppsCount": highRiskAppsCount,
+            "internalUserExposed": internalUserExposed["totalCount"],
+            #"trialLink": trial_link,
+            "loginUser": login_user,
+            #"restFiles": "...and " + str(restFiles) + " other documents" if restFiles > 0 else "",
+            #"restUsers": "...and " + str(restUsers) + " other external users" if restUsers > 0 else ""
         }
 
         return data
@@ -140,4 +160,20 @@ def send_clean_files_email(datasource_id,user_email):
         return True
     except Exception as e:
         Logger().exception("Exception occurred sending clean files email")
+        return False
+
+def send_policy_violate_email(user_email,policy,resource):
+    try:
+        template_name = "policy_violation"
+        template_parameters = {
+            "policy_name": policy.name,
+            "document_name": resource["resource_name"],
+            "modifying_user": resource["last_modifying_user_email"]
+        }
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "Policy Violated"
+        aws_utils.send_email([user_email], email_subject, rendered_html)
+        return True
+    except Exception as e:
+        Logger.exception("Exception occured while sending policy violation email")
         return False
