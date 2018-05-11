@@ -45,7 +45,7 @@ class UsersTree extends Component {
             {
                 headerName: "Groups",
                 field: "name",
-                sort: "asc",
+                suppressSorting:true,
                 cellStyle: { textAlign: "left" },
                 //cellRenderer: "agGroupCellRenderer"
                 cellRendererFramework: UserGroupCell,
@@ -57,6 +57,7 @@ class UsersTree extends Component {
             {
                 headerName: "Email",
                 field: "key",
+                sort: "asc",
                 cellStyle: { textAlign: "left" },
                 cellRenderer: "agTextCellRenderer",
                 width: document.body.clientWidth/4
@@ -233,6 +234,8 @@ class UsersTree extends Component {
                         columnDefs={this.state.columnDefs}
                         rowData={this.state.rows}
                         enableFilter={true}
+                        enableSorting={true}
+                        sortingOrder={['asc']}
                         onGridReady={this.onGridReady.bind(this)}
                         gridOptions={this.gridOptions}
                     />
