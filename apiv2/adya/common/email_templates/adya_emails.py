@@ -95,7 +95,6 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
 
         trial_link = constants.UI_HOST
 
-        externalDocs = convert_list_pystache_format("name", externalDocsListData["rows"])
         #externalUsers = convert_list_pystache_format("name", externalUserListData["rows"])
         #restFiles = externalDocsListData["totalCount"] - len(externalDocsListData["rows"])
         #restUsers = externalUserListData["totalCount"] - len(externalUserListData["rows"])
@@ -111,7 +110,7 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
             #"countDocuments": countDocuments,
             #"countExternalData": countExternalSharedDocs,
             "countPublicData": countPublicSharedDocs,
-            "externalDocs": externalDocs,
+            "externalDocs": externalDocsListData['totalCount'],
             #"documentsCountData": externalDocsListData["totalCount"],
             #"externalUsers": externalUsers,
             "countExternalUsersData": externalUserListData["totalCount"],
@@ -177,3 +176,5 @@ def send_policy_violate_email(user_email,policy,resource):
     except Exception as e:
         Logger.exception("Exception occured while sending policy violation email")
         return False
+
+
