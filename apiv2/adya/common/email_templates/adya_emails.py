@@ -42,6 +42,7 @@ def send_welcome_email(login_user):
 
 def send_gdrive_scan_completed_email(auth_token, datasource):
     try:
+        Logger().info("send_gdrive_scan_completed_email : authtoken : {} , datasource : {}".format(auth_token, datasource))
         if not datasource:
             return "Invalid datasource! Aborting..."
 
@@ -51,21 +52,24 @@ def send_gdrive_scan_completed_email(auth_token, datasource):
         if not login_user:
             Logger().info("No user to send an email to, so aborting...")
             return
-
+        Logger().info("send_gdrive_scan_completed_email: login_user : {}".format(login_user))
         template_name = "gdrive_scan_completed"
         template_parameters=get_gdrive_scan_summary(datasource,login_user_first_name,auth_token,None)
         rendered_html = get_rendered_html(template_name, template_parameters)
 
+        Logger().info("send_gdrive_scan_completed_email: query for admin users")
         # only to get admin users
         all_admin_user_for_a_domain = session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id,
                                                                            DomainUser.is_admin == True)).all()
 
+        Logger().info("send_gdrive_scan_completed_email:  admin users : {}".format(all_admin_user_for_a_domain) )
         user_list = set()
         if all_admin_user_for_a_domain:
             for user in all_admin_user_for_a_domain:
                 user_list.add(user.email)
-
         user_list.add(login_user.email)
+        Logger().info("send_gdrive_scan_completed_email : user email list : {}".format(user_list))
+
         email_subject="Your gdrive scan has completed!"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:

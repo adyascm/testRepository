@@ -553,6 +553,7 @@ def update_and_get_count(datasource_id, column_name, column_value, auth_token=No
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
             if send_email:
+                Logger().info("update_and_get_count: send email")
                 adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
 
             if constants.DEPLOYMENT_ENV != "local":
