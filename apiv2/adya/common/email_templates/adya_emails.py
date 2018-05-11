@@ -48,13 +48,13 @@ def send_gdrive_scan_completed_email(datasource):
         session = db_connection().get_session()
         all_users = session.query(LoginUser).filter(and_(LoginUser.domain_id == datasource.domain_id, LoginUser.is_enabled == True)).all()
         auth_token = all_users[0].auth_token
-        login_user = all_users[0].first_name
+        login_user_first_name = all_users[0].first_name
         if len(all_users) < 1:
             Logger().info("No user to send an email to, so aborting...")
             return
 
         template_name = "gdrive_scan_completed"
-        template_parameters=get_gdrive_scan_summary(datasource,login_user,auth_token,None)
+        template_parameters=get_gdrive_scan_summary(datasource,login_user_first_name,auth_token,None)
         rendered_html = get_rendered_html(template_name, template_parameters)
 
         user_list = [user.email for user in all_users]
@@ -64,7 +64,7 @@ def send_gdrive_scan_completed_email(datasource):
         Logger().exception("Exception occurred sending gdrive scan completed email")
 
 
-def get_gdrive_scan_summary(datasource,loginUser,auth_token=None,user_email=None):
+def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,user_email=None):
     try:
         if not datasource:
             return "Invalid datasource! Aborting..."
@@ -125,7 +125,7 @@ def get_gdrive_scan_summary(datasource,loginUser,auth_token=None,user_email=None
             "highRiskAppsCount": highRiskAppsCount,
             "internalUserExposed": internalUserExposed["totalCount"],
             #"trialLink": trial_link,
-            "loginUser": login_user,
+            "loginUser": login_user_first_name,
             #"restFiles": "...and " + str(restFiles) + " other documents" if restFiles > 0 else "",
             #"restUsers": "...and " + str(restUsers) + " other external users" if restUsers > 0 else ""
         }
