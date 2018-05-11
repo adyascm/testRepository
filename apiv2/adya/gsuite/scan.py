@@ -60,7 +60,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
             
             Logger().info("Received drive resources for {} files using email: {} next_page_token: {}".format(file_count, user_email, next_page_token))
 
-            update_and_get_count(datasource_id, DataSource.total_file_count, file_count, True)
+            update_and_get_count(datasource_id, DataSource.total_file_count, file_count, auth_token, True)
 
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'userEmail': (user_email  if user_email else domain_id)}
             sentfile_count =0
@@ -80,16 +80,16 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.file_scan_status, 1, True)
+                update_and_get_count(datasource_id, DataSource.file_scan_status, 1, auth_token, True)
                 break
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, auth_token, True)
         Logger().exception("Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
                          format(user_email, next_page_token))
 
 
 ## processing resource data for fileIds
-def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is_incremental_scan=0):
+def process_resource_data(auth_token, domain_id, datasource_id, user_email, resourcedata, is_incremental_scan=0):
 
     try:
         Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
@@ -213,9 +213,9 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
         db_connection().commit()
 
         if is_new_resource == 1:
-            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, True)
+            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, auth_token, True)
             if is_incremental_scan ==1:
-                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, True, False)
+                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, auth_token, True, False)
 
         if is_incremental_scan == 1:
             messaging.send_push_notification("adya-"+datasource_id, 
@@ -233,7 +233,7 @@ def process_resource_data(domain_id, datasource_id, user_email, resourcedata, is
     except Exception as ex:
         Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
         db_session.rollback()
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, True)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, auth_token, True)
 
 
 def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list, domain_id, datasource_id, session):
@@ -244,7 +244,7 @@ def get_permission_for_fileId(auth_token,user_email, batch_request_file_id_list,
         url = url +"&userEmail=" + user_email
     utils.post_call_with_authorization_header(session,url,auth_token,requestdata).result()
     processed_file_count = len(batch_request_file_id_list)
-    update_and_get_count(datasource_id, DataSource.processed_file_count, processed_file_count, True)
+    update_and_get_count(datasource_id, DataSource.processed_file_count, processed_file_count, auth_token, True)
 
 
 def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
@@ -254,7 +254,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
     if user_email:
         resources_data = db_session.query(Resource.resource_id).distinct(Resource.resource_id)\
                                .filter(and_(Resource.datasource_id == datasource_id,Resource.resource_id != constants.ROOT)).all()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,1)
+        update_and_get_count(datasource_id, DataSource.user_count_for_parent, 1, auth_token)
         useremail_resources_map[user_email] = []
         for data in resources_data:
             useremail_resources_map[user_email].append(data.resource_id)
@@ -267,7 +267,7 @@ def get_parent_for_user(auth_token, domain_id, datasource_id,user_email):
                                ResourcePermission.email.in_(alluserquery))).all()
         unique_email_id_count = db_session.query(ResourcePermission.email).distinct(ResourcePermission.email)\
                           .filter(and_(ResourcePermission.datasource_id == datasource_id,ResourcePermission.email.in_(alluserquery))).count()
-        update_and_get_count(datasource_id,DataSource.user_count_for_parent,unique_email_id_count)
+        update_and_get_count(datasource_id, DataSource.user_count_for_parent, unique_email_id_count, auth_token)
         for resource_map in queried_data:
             if not resource_map.email in useremail_resources_map:
                 useremail_resources_map[resource_map.email] =[]
@@ -300,7 +300,7 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
             user_count = len(results["users"])
             Logger().info("Received {} google directory users for domain_id: {} using next_page_token: {}".format(user_count, domain_id, next_page_token))
             # no need to send user count to ui , so passing send_message flag as false
-            update_and_get_count(datasource_id, DataSource.total_user_count, user_count, False)
+            update_and_get_count(datasource_id, DataSource.total_user_count, user_count, auth_token, False)
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id }
             messaging.trigger_post_event(urls.SCAN_DOMAIN_USERS, auth_token, query_params, data, "gsuite")
             next_page_token = results.get('nextPageToken')
@@ -312,10 +312,10 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.user_scan_status, 1, True)
+                update_and_get_count(datasource_id, DataSource.user_scan_status, 1, auth_token, True)
                 break
         except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
+            update_and_get_count(datasource_id, DataSource.user_scan_status, 2, auth_token, True)
             Logger().exception("Exception occurred while getting google directory users for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
             break
 
@@ -357,14 +357,14 @@ def processUsers(auth_token,users_data, datasource_id, domain_id):
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_connection().commit()
-        update_and_get_count(datasource_id, DataSource.processed_user_count, user_count, True)
+        update_and_get_count(datasource_id, DataSource.processed_user_count, user_count, auth_token, True)
 
         Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
 
     except Exception as ex:
         Logger().exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
         db_session.rollback()
-        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, True)
+        update_and_get_count(datasource_id, DataSource.user_scan_status, 2, auth_token, True)
 
     lastresult =None
 
@@ -402,8 +402,8 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
 
             group_count = len(results["groups"])
             Logger().info("Received {} google directory groups for domain_id: {} using next_page_token: {}".format(group_count, domain_id, next_page_token))
-            
-            update_and_get_count(datasource_id, DataSource.total_group_count, group_count, True)
+
+            update_and_get_count(datasource_id, DataSource.total_group_count, group_count, auth_token, True)
             data = {"groupsResponseData": results["groups"]}
 
             query_params = {"domainId": domain_id, "dataSourceId": datasource_id}
@@ -417,10 +417,10 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
                     break
             else:
                 #Set the scan - fetch status as complete
-                update_and_get_count(datasource_id, DataSource.group_scan_status, 1, True)
+                update_and_get_count(datasource_id, DataSource.group_scan_status, 1, auth_token, True)
                 break
         except Exception as ex:
-            update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
+            update_and_get_count(datasource_id, DataSource.group_scan_status, 2, auth_token, True)
             Logger().exception("Exception occurred while getting google directory groups for domain_id: {} next_page_token: {}".format(domain_id, next_page_token))
             break
 
@@ -458,7 +458,7 @@ def processGroups(groups_data, datasource_id, domain_id, auth_token):
     except Exception as ex:
         Logger().exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
         db_session.rollback()
-        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, True)
+        update_and_get_count(datasource_id, DataSource.group_scan_status, 2, auth_token, True)
 
 def get_group_data(auth_token, domain_id,datasource_id,group_keys):
     processed_group_count =0
@@ -485,12 +485,12 @@ class GroupData():
         group_key = self.group_keys[request_id - 1]
         
         if exception :
-            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, self.auth_token, True)
             Logger().exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
             return
         
         try:
-            update_and_get_count(self.datasource_id, DataSource.processed_group_count, 1, True)
+            update_and_get_count(self.datasource_id, DataSource.processed_group_count, 1, self.auth_token, True)
             if response.get('members'):
                 is_external = False
                 for group_data in response['members']:
@@ -523,7 +523,7 @@ class GroupData():
         except Exception as ex:
             Logger().exception("Exception occurred while processing google directory group members for domain_id: {} group_key: {}".format(self.domain_id, group_key))
             self.db_session.rollback()
-            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, True)
+            update_and_get_count(self.datasource_id, DataSource.group_scan_status, 2, self.auth_token, True)
             return
 
     def get_group_members(self):
@@ -535,7 +535,7 @@ class GroupData():
         batch.execute()
 
 
-def update_and_get_count(datasource_id, column_name, column_value, send_message=False, send_email=True):
+def update_and_get_count(datasource_id, column_name, column_value, auth_token=None, send_message=False, send_email=True):
     db_session = db_connection().get_session()
     rows_updated = 0
     try:
@@ -553,7 +553,7 @@ def update_and_get_count(datasource_id, column_name, column_value, send_message=
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
             update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
             if send_email:
-                adya_emails.send_gdrive_scan_completed_email(datasource)
+                adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
 
             if constants.DEPLOYMENT_ENV != "local":
                 query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}

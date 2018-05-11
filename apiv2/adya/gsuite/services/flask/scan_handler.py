@@ -39,7 +39,7 @@ class DriveResources(Resource):
             return req_error
         is_incremental_scan = req_session.get_req_param('is_incremental_scan')
         is_incremental_scan = 0 if is_incremental_scan is None else is_incremental_scan
-        scan.process_resource_data(req_session.get_req_param(
+        scan.process_resource_data(req_session.get_auth_token(), req_session.get_req_param(
             'domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('userEmail'), req_session.get_body(), is_incremental_scan)
         return req_session.generate_response(202)
 
