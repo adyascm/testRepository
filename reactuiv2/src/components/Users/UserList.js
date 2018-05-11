@@ -19,6 +19,15 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USER_ITEM_SELECTED, payload })
 });
 
+const comparator = (obj1,obj2,sortingParam) => {
+        let fname_1 = obj1[sortingParam].toUpperCase()
+        let fname_2 = obj2[sortingParam].toUpperCase()
+        if(fname_1 < fname_2)
+            return -1
+        else if(fname_1>fname_2) 
+            return 1
+        return 0       
+}
 
 
 class UserList extends Component {
@@ -39,6 +48,7 @@ class UserList extends Component {
         if (this.props.usersTreePayload) {
             let rows = []
             let keys = Object.keys(this.props.usersTreePayload)
+            let sorted_rows = []
 
             for (let index = 0; index < keys.length; index++) {
                 let rowItem = this.props.usersTreePayload[keys[index]]
@@ -67,15 +77,20 @@ class UserList extends Component {
                 }
                 rows.push(rowItem)
             }
+            
+            sorted_rows = rows.sort((a,b) => {
+                return comparator(a,b,'first_name')
+            })
+            
             this.setState({
-                rows: rows
+                rows: sorted_rows
             })
         }
     }
     componentWillReceiveProps(nextProps) {
         if (nextProps.groupSearchPayload && (!this.state.displaySearchData ||  
             (nextProps.showMemberType !== this.state.showMemberType))) {
-            let rows = []
+            let rows = [],sorted_rows = []
             let keys = Object.keys(nextProps.groupSearchPayload)
 
             for (let index = 0; index < keys.length; index++) {
@@ -105,8 +120,13 @@ class UserList extends Component {
                 }
                 rows.push(rowItem)
             }
+
+            sorted_rows = rows.sort((a,b) => {
+                return comparator(a,b,'first_name')
+            })
+
             this.setState({
-                rows: rows,
+                rows: sorted_rows,
                 displaySearchData: true,
                 showMemberType: nextProps.showMemberType
             })

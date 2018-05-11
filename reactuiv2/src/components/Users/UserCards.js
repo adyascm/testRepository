@@ -38,9 +38,8 @@ class UserCards extends Component {
     }
 
     fetchUserDomain = (rows) => {
-        var domainDict = {}
-        for(var i in rows){
-            var row = rows[i]
+        let domainDict = {}
+        rows.forEach(row => {
             var email = row['key']
             var domainName = email.substring((email.lastIndexOf('@')+1)).trim()
             if(!(domainName in domainDict)){
@@ -48,7 +47,8 @@ class UserCards extends Component {
             } else{
                 domainDict[domainName].push(row)
             }
-        }
+        });
+
         this.setState({
             domainDict : domainDict
         })
