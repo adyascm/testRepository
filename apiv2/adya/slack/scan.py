@@ -16,8 +16,6 @@ def start_slack_scan(auth_token, datasource_id, domain_id):
     Logger().info(
         "Received the request to start a slack scan for domain_id: {} datasource_id:{} ".format(
             domain_id, datasource_id))
-    db_session = db_connection().get_session()
-
     query_params = {"dataSourceId": datasource_id, "domainId": domain_id}
 
     messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
