@@ -75,18 +75,9 @@ class PolicyCondition extends Component {
         })
     }
 
-    updateFilterValueChange = () => {
-        let appliedFilter = {
-            "match_type": this.state.policyCondition.match_type,
-            "match_condition": this.state.policyCondition.match_condition,
-            "match_value": this.state.policyCondition.match_value
-        }
-        this.props.setPolicyFilter('policyConditions', appliedFilter)
-    }
-
     render() {
         return (
-            <Form.Group key={this.props.counter} widths='equal'>
+            <Form.Group widths='equal'>
                 <Form.Field required control={Select} label='Type' options={this.state.filterTypeOptions} value={this.state.policyCondition.match_type} placeholder='Select a filter...' onChange={this.handleFilterTypeChange} />
                 <Form.Field required control={Select} label='Match' options={this.state.filterConditionOptions} value={this.state.policyCondition.match_condition} placeholder='Select a match...' onChange={this.handleFilterConditionChange} />
                 <Form.Field required control={Input} label='Value' placeholder='Specify a value' value={this.state.policyCondition.match_value} onChange={this.handleFilterValueChange}  />

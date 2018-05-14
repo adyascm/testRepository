@@ -86,7 +86,13 @@ class PolicyItemDetail extends Component {
                 let disableEmailField = false
                 this.setState({
                     To: emailConfig.to,
-                    disableEmailField: disableEmailField
+                    disableEmailField: disableEmailField,
+                    actions: [{
+                        action_type: 'SEND_EMAIL',
+                        config: {
+                            to: emailConfig.to
+                        }
+                    }]
                 })
             }
             this.setState({
@@ -95,7 +101,7 @@ class PolicyItemDetail extends Component {
                 description: nextProps.policyDetails.description,
                 triggerType: nextProps.policyDetails.trigger_type,
                 conditions: nextProps.policyDetails.conditions,
-                actions: allActions,
+                //actions: allActions,
                 policyId: nextProps.policyDetails.policy_id
             })
         }
@@ -107,30 +113,28 @@ class PolicyItemDetail extends Component {
                     to: nextProps.selectedUser.email
                 }
             }
-            let action = this.state.actions
+            let action = []
             action.push(emailAction)
             this.setState({
                 actions: action
             })
         }
-        else if (!nextProps.selectedUser) {
-            this.setState({
-                actions: []
-            })
-        }
+        // else if (!nextProps.selectedUser) {
+        //     this.setState({
+        //         actions: []
+        //     })
+        // }
     }
 
     addPolicyCondition = () => {
-        let conditions = this.state.conditions;
-        conditions.push({ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" })
-        this.setState({
-            conditions: conditions
-        })
+        this.setState(prevState => ({
+            conditions: [...prevState.conditions, { match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" }]
+        }))
     }
 
     removeFilter = (key) => {
-        let conditions = this.state.conditions;
-        conditions.splice(key, 1)
+        let conditions = [...this.state.conditions]
+        conditions.splice(key,1)
         this.setState({
             conditions: conditions
         })
