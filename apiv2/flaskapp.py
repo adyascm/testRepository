@@ -9,6 +9,7 @@ from adya.common.constants import urls
 from adya.core.services.flask import auth_handler, domain_handler, directory_handler, reports_handler, resource_handler, actions_handler, auditlog_handler, policy_handler, alert_handler
 from adya.gsuite.services.flask import oauth_handler, scan_handler, incremental_scan_handler, activities_handler
 from adya.gsuite.services.flask import action_handler
+from adya.slack.services.flask import slack_scan_handler, slack_oauth_handler
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -21,7 +22,6 @@ api = Api(app)
 #Add all routes here
 
 ## routes releated to google Oauth2
-
 api.add_resource(oauth_handler.google_oauth_request, urls.GOOGLE_OAUTH_LOGIN)
 api.add_resource(oauth_handler.google_oauth_callback, urls.GOOGLE_OAUTHCALLBACK_PATH)
 
@@ -75,6 +75,17 @@ api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
 #alerts
 api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
 api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
+
+
+
+#slack
+api.add_resource(slack_oauth_handler.slack_oauth_request, urls.SLACK_OAUTH_LOGIN)
+api.add_resource(slack_oauth_handler.slack_oauth_callback, urls.SLACK_OAUTHCALLBACK_PATH)
+
+#slack scan
+api.add_resource(slack_scan_handler.SlackScan, urls.SCAN_SLACK_START)
+api.add_resource(slack_scan_handler.SlackUsers, urls.SCAN_SLACK_USERS)
+api.add_resource(slack_scan_handler.SlackChannels, urls.SCAN_SLACK_CHANNELS)
 
 
 if __name__ == '__main__':
