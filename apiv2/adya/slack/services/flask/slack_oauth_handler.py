@@ -1,8 +1,7 @@
 from flask_restful import Resource, request
 
 from adya.common.utils.request_session import RequestSession
-
-from apiv2.adya.slack import auth
+from adya.slack import auth
 
 
 class slack_oauth_request(Resource):

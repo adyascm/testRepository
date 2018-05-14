@@ -12,15 +12,26 @@ from adya.gsuite.gutils import check_if_external_user
 from adya.slack import slack_utils
 
 
-def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None):
+def start_slack_scan(auth_token, datasource_id, domain_id):
+    Logger().info(
+        "Received the request to start a slack scan for domain_id: {} datasource_id:{} ".format(
+            domain_id, datasource_id))
+    db_session = db_connection().get_session()
 
+    query_params = {"dataSourceId": datasource_id, "domainId": domain_id}
+
+    messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
+    messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
+
+
+def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None):
     try:
         slack_client = slack_utils.get_slack_client(auth_token)
         user_list = slack_client.api_call(
-                          "users.list",
-                           limit=150,
-                           cursor = next_cursor_token
-                        )
+            "users.list",
+            limit=150,
+            cursor=next_cursor_token
+        )
 
         Logger().info("list of users :  - {}".format(user_list))
         member_list = user_list['members']
@@ -47,10 +58,10 @@ def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None
     except Exception as ex:
         Logger().exception(
             "Exception occurred while getting data for slack users using next_cursor_token: {}".
-            format(next_cursor_token))
+                format(next_cursor_token))
 
 
-def process_slack_users(datasource_id , domain_id, memebersdata):
+def process_slack_users(datasource_id, domain_id, memebersdata):
     try:
         db_session = db_connection().get_session()
         user = DomainUser()
@@ -82,10 +93,10 @@ def process_slack_users(datasource_id , domain_id, memebersdata):
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
     try:
         slack_client = slack_utils.get_slack_client(auth_token)
-        public_channels= slack_client.api_call("channels.list",
-                                                    limit = 150,
-                                                    cursor = next_cursor_token
-                                                    )
+        public_channels = slack_client.api_call("channels.list",
+                                                limit=150,
+                                                cursor=next_cursor_token
+                                                )
         channel_list = public_channels['channels']
         if not next_cursor_token:
             # this api call is being made only for the first time
@@ -122,11 +133,10 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
     except Exception as ex:
         Logger().exception(
             "Exception occurred while getting data for slack channels using next_cursor_token: {}".
-            format(next_cursor_token))
+                format(next_cursor_token))
 
 
 def process_slack_channels(datasource_id, channel_data):
-
     try:
         groups = DomainGroup()
         channel_list = channel_data["channels"]
@@ -137,7 +147,6 @@ def process_slack_channels(datasource_id, channel_data):
             groups.name = channel['name']
             groups.direct_members_count = channel['num_members']
             groups.include_all_user = channel['is_general']
-
 
         db_session = db_connection().get_session()
         db_session.add(groups)
@@ -161,8 +170,8 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
         # TODO: RECONCILIATION
         messaging.trigger_post_event(urls.SCAN_SLACK_FILES, auth_token, query_params, files, "slack")
 
-        if page_number< total_number_of_page:
-            page_number = page_number+1
+        if page_number < total_number_of_page:
+            page_number = page_number + 1
             query_params = {"dataSourceId": datasource_id, "nextPageNumber": page_number}
             messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
 
@@ -188,7 +197,8 @@ def process_slack_files(datasource_id, file_list):
             resource.creation_time = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
             resource.web_content_link = file['url_private_download']
             resource.web_view_link = file['url_private']
-            resource.parent_id = file['channels']  #giving channel id as parent  TODO: channels will be list ; group can also be possible
+            resource.parent_id = file[
+                'channels']  # giving channel id as parent  TODO: channels will be list ; group can also be possible
 
             shared_id_list = []
             # files shared in various ways
@@ -206,7 +216,7 @@ def process_slack_files(datasource_id, file_list):
                     resourcePermission = ResourcePermission()
                     resourcePermission.datasource_id = datasource_id
                     resourcePermission.resource_id = file['name']
-                    resourcePermission.email = shared_id #adding id
+                    resourcePermission.email = shared_id  # adding id
 
         db_session = db_connection().get_session()
         db_session.add(resource)
@@ -214,8 +224,3 @@ def process_slack_files(datasource_id, file_list):
 
     except Exception as ex:
         Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
-
-
-
-
-
