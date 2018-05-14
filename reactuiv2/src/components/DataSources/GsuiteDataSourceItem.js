@@ -2,11 +2,11 @@ import React from 'react';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
 import { Link } from 'react-router-dom'
-import common from '../utils/common'
+import common from '../../utils/common'
 
 
 
-const DataSourceItem = props => {
+const GsuiteDataSourceItem = props => {
     const datasource = props.item;
     const deleteDatasource = (datasource) => ev => {
         ev.preventDefault();
@@ -85,4 +85,4 @@ const DataSourceItem = props => {
     }
 };
 
-export default DataSourceItem;
+export default GsuiteDataSourceItem;

@@ -7,9 +7,9 @@ import {
     USERS_PAGE_LOADED, 
     USERS_PAGE_LOAD_START,
     FETCH_ALERTS_COUNT 
-} from '../constants/actionTypes';
-import agent from '../utils/agent';
-import common from '../utils/common'
+} from '../../constants/actionTypes';
+import agent from '../../utils/agent';
+import common from '../../utils/common'
 
 const mapStateToProps = state => ({
     ...state

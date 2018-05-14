@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import '../App.css';
+import '../../App.css';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
-import agent from '../utils/agent';
-import authenticate from '../utils/oauth';
+import agent from '../../utils/agent';
+import authenticate from '../../utils/oauth';
 import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
 
 
@@ -17,8 +17,9 @@ import {
   DATASOURCE_LOAD_END,
   ASYNC_END,
   SET_REDIRECT_PROPS
-} from '../constants/actionTypes';
-import DataSourceItem from './DataSourceItem';
+} from '../../constants/actionTypes';
+import GsuiteDataSourceItem from './GsuiteDataSourceItem';
+import SlackDataSourceItem from './SlackDataSourceItem'
 
 const mapStateToProps = state => ({
   ...state.auth,
@@ -165,7 +166,7 @@ class ManageDataSources extends Component {
             {
               this.props.common.datasources && this.props.common.datasources.map(ds => {
                 return (
-                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+                  <GsuiteDataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
                 )
               })
             }
