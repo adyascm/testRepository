@@ -185,8 +185,8 @@ def update_resource(datasource_id, user_email, updated_resource):
         db_connection().commit()
 
         if is_new_resource == 1:
-            update_and_get_count(datasource_id, DataSource.processed_file_count, 1, True, False)
-            update_and_get_count(datasource_id, DataSource.total_file_count, 1, True, False)
+            update_and_get_count(datasource_id, DataSource.processed_file_count, 1, None, True, False)
+            update_and_get_count(datasource_id, DataSource.total_file_count, 1, None, True, False)
 
         messaging.send_push_notification("adya-"+datasource_id, 
                 json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": updated_resource}))
