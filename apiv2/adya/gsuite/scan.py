@@ -543,11 +543,11 @@ def scan_complete_processing(db_session, datasource_id, auth_token):
     Logger().info("Send email after scan complete")
     adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
 
-    if constants.DEPLOYMENT_ENV != "local":
-        query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
-        Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
-        messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
-                                        query_params, {}, "gsuite")
+    #Subscribe for push notifications
+    query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
+    Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
+    messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
+                                    query_params, {}, "gsuite")
 
 # since due to external group(group having external user) we need to mark the resource exposure type as External
 def update_resource_exposure_type(db_session,domain_id,datasource_id):
