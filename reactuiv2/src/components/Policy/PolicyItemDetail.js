@@ -119,11 +119,6 @@ class PolicyItemDetail extends Component {
                 actions: action
             })
         }
-        // else if (!nextProps.selectedUser) {
-        //     this.setState({
-        //         actions: []
-        //     })
-        // }
     }
 
     addPolicyCondition = () => {
@@ -231,7 +226,7 @@ class PolicyItemDetail extends Component {
         )
 
         let conditions = this.state.conditions.map((condition, index) => {
-            return <PolicyCondition key={index} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
+            return <PolicyCondition key={Math.random()} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
         })
 
         if (this.props.isLoadingPolicy) {
