@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 import agent from '../../utils/agent';
-import authenticate from '../../utils/oauth';
+import oauth from '../../utils/oauth';
 import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
 
 
@@ -33,8 +33,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setDataSources: (datasources) =>
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
-  addDataSource: (name, isdummy = false) => {
-    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name, "isDummyDatasource": isdummy }) })
+  addDataSource: (name, datasource_type, isdummy = false) => {
+    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name, "isDummyDatasource": isdummy, "datasource_type": datasource_type }) })
   },
   onDeleteDataSource: (datasource) => {
     dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
@@ -63,22 +63,26 @@ class ManageDataSources extends Component {
     this.handleClick = this.handleClick.bind(this);
     this.onPollChanges = this.onPollChanges.bind(this);
 
-    this.addNewDatasource = (datasourceName) => {
+    this.addNewDatasource = (datasourceName, datasorceType) => {
         if (datasourceName === 'GSUITE') {
             this.props.onDataSourceLoad()
             if (this.props.currentUser.is_serviceaccount_enabled) {
-                this.props.addDataSource("GSuite")
+                this.props.addDataSource("GSuite", "GSUITE")
             } else {
-                authenticate("drive_scan_scope").then(data => {
-                this.props.addDataSource("GSuite")
+                oauth.authenticateGsuite("drive_scan_scope").then(data => {
+                this.props.addDataSource("GSuite", "GSUITE")
                 }).catch(({ errors }) => {
                 this.props.onDataSourceLoadError(errors)
                 this.props.displayErrorMessage(errors)
                 });
             }
         }
-        else {
-            //make api call for slack 
+        else if(datasourceName === 'SLACK'){
+            //make api call for slack
+            oauth.authenticateSlack().then(data => {
+            this.props.addDataSource("Slack", "SLACK")
+            })
+
         }
     };
 
@@ -123,17 +127,17 @@ class ManageDataSources extends Component {
 
     let connectors = {
       "GSUITE":
-        <GsuiteDataSourceItem key={1} item={{ datasource_type: "GSUITE" }} serviceAccount={this.props.currentUser.is_serviceaccount_enabled} onAdd={() => this.addNewDatasource("GSUITE")} onAddDummy={this.addDummyDatasource} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+        <GsuiteDataSourceItem key={1} item={{ datasource_type: "GSUITE" }} serviceAccount={this.props.currentUser.is_serviceaccount_enabled} onAdd={() => this.addNewDatasource("GSUITE", "GSUITE")} onAddDummy={this.addDummyDatasource} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
       ,
       "SLACK":
-        <SlackDataSourceItem key={2} item={{ datasource_type: "SLACK" }} onAdd={() => this.addNewDatasource("SLACK")} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+        <SlackDataSourceItem key={2} item={{ datasource_type: "SLACK" }} onAdd={() => this.addNewDatasource("SLACK", "SLACK")} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
     }
 
     let ds = this.props.common.datasources && this.props.common.datasources.map(ds => {
       if (ds.datasource_type === "GSUITE") {
         delete connectors["GSUITE"];
         return (
-          <GsuiteDataSourceItem key={ds["creation_time"]} item={ds} inProgress={this.props.inProgress} onAdd={() => this.addNewDatasource("GSUITE")} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
+          <GsuiteDataSourceItem key={ds["creation_time"]} item={ds} inProgress={this.props.inProgress} onAdd={() => this.addNewDatasource("GSUITE", "SLACK")} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
         )
       }
     });

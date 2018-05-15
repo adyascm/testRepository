@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from 'react-router-dom'
 import { connect } from 'react-redux';
-import authenticate from '../utils/oauth';
+import oauth from '../utils/oauth';
 import { Dimmer, Loader } from 'semantic-ui-react'
 import {
     LOGIN_ERROR,
@@ -35,18 +35,18 @@ class NewLogin extends Component {
         this.signInGoogle = () => ev => {
             ev.preventDefault();
             this.props.onLoginStart()
-            authenticate("login_scope").then(data => {
+            oauth.authenticateGsuite("login_scope").then(data => {
                 this.props.onSignInComplete(data)
             }).catch(({ errors }) => {
                 console.log("login error : ", errors['Failed'])
                 this.props.onSignInError(errors)
             });
-        };        
+        };
     }
 
     componentWillUnmount() {
         this.props.onUnload();
-        
+
     }
 
     render() {
