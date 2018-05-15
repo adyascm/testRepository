@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import and_, or_
 
-from adya.common.constants import constants, urls
+from adya.common.constants import constants, urls, default_policies
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import ResponseMessage
 from adya.common.db.connection import db_connection
@@ -179,3 +179,11 @@ def check_value_violation(policy_condition, value):
         return 1
     return 0
 
+def create_default_policies(auth_token, datasource_id):
+    login_user = db_utils.get_user_session(auth_token).email    
+    for policy in default_policies.default_policies:
+        policy['datasource_id'] = datasource_id
+        policy["actions"][0]["config"]["to"] = login_user
+        policy["created_by"] = login_user
+        create_policy(auth_token, policy)
+    return
