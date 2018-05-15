@@ -1,0 +1,5 @@
+default_policies = [
+{"datasource_id":"","name":"system_shared_externally","description":"This policy will generate an alert if any document is shared with external users","created_by":"","trigger_type":"PERMISSION_CHANGE","conditions":[{"match_type":"DOCUMENT_EXPOSURE","match_condition":"equal","match_value":"EXT"}],"actions":[{"action_type":"SEND_EMAIL","config":{"to":""}}],"is_active":False},
+{"datasource_id":"","name":"system_shared_public","description":"This policy will generate an alert if any document is shared publicly","created_by":"","trigger_type":"PERMISSION_CHANGE","conditions":[{"match_type":"DOCUMENT_EXPOSURE","match_condition":"equal","match_value":"PUBLIC"}],"actions":[{"action_type":"SEND_EMAIL","config":{"to":""}}],"is_active":False},
+{"datasource_id":"","name":"system_shared_domain","description":"This policy will generate an alert if any document is shared with everyone in a domain","created_by":"","trigger_type":"PERMISSION_CHANGE","conditions":[{"match_type":"DOCUMENT_EXPOSURE","match_condition":"equal","match_value":"DOMAIN"}],"actions":[{"action_type":"SEND_EMAIL","config":{"to":""}}],"is_active":False}
+]

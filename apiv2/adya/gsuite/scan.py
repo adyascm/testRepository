@@ -96,24 +96,6 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
         resources = resourcedata["resources"]
         resourceList = []
         db_session = db_connection().get_session()
-
-        existing_permissions = []
-        is_new_resource = 1
-        #If it is called from incremental scan, check if the resource already exist
-        if is_incremental_scan and len(resources) == 1:
-            file_id = resources[0]["id"]
-            Logger().info( "Incremental scan processing request, checking if file - {} exist".format(file_id))
-            existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).first()
-            if existing_resource:
-                is_new_resource = 0
-                existing_permissions = json.dumps(existing_resource.permissions, cls=alchemy_encoder())
-                Logger().info( "Resource exist, so deleting the existing permissions and resource, and add again")
-                db_session.query(ResourcePermission).filter(and_(ResourcePermission.resource_id == file_id,
-                                                                ResourcePermission.datasource_id == datasource_id)).delete()
-                db_session.query(Resource).filter(
-                    and_(Resource.resource_id == file_id, Resource.datasource_id == datasource_id)).delete()
-                db_connection().commit()
-
         data_for_permission_table =[]
         data_for_parent_table =[]
         external_user_map = {}
@@ -212,23 +194,7 @@ def process_resource_data(auth_token, domain_id, datasource_id, user_email, reso
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()
 
-        if is_new_resource == 1:
-            update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, auth_token, True)
-            if is_incremental_scan ==1:
-                update_and_get_count(datasource_id, DataSource.total_file_count, resource_count, auth_token, True, False)
-
-        if is_incremental_scan == 1:
-            messaging.send_push_notification("adya-"+datasource_id, 
-                json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": resourceList[0]}))
-
-            #Trigger the policy validation now
-            payload = {}
-            payload["old_permissions"] = existing_permissions
-            payload["resource"] = resourceList[0]
-            payload["new_permissions"] = data_for_permission_table
-            policy_params = {'dataSourceId': datasource_id}
-            messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
-
+        update_and_get_count(datasource_id, DataSource.processed_file_count, resource_count, auth_token, True)
         Logger().info("Processed drive resources for {} files using email: {}".format(resource_count, user_email))
     except Exception as ex:
         Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
@@ -550,17 +516,7 @@ def update_and_get_count(datasource_id, column_name, column_value, auth_token=No
         if send_message:
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
         if get_scan_status(datasource) == 1:
-            messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
-            update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
-            if send_email:
-                Logger().info("update_and_get_count: send email")
-                adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
-
-            if constants.DEPLOYMENT_ENV != "local":
-                query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
-                Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
-                messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
-                                             query_params, {}, "gsuite")
+            scan_complete_processing(db_session, datasource_id, auth_token)
 
 def get_scan_status(datasource):
     if datasource.file_scan_status > 10000 or datasource.user_scan_status > 1 or datasource.group_scan_status > 1:
@@ -572,6 +528,26 @@ def get_scan_status(datasource):
     if (datasource.file_scan_status >= file_status and datasource.total_file_count == datasource.processed_file_count) and (datasource.user_scan_status == 1 and datasource.total_user_count == datasource.processed_user_count) and (datasource.group_scan_status == 1 and datasource.total_group_count == datasource.processed_group_count):
         return 1 #Complete
     return 0 #In Progress
+
+def scan_complete_processing(db_session, datasource_id, auth_token):
+    rows_updated = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.processed_parent_permission_count == 0)). \
+            update({DataSource.processed_parent_permission_count: DataSource.processed_parent_permission_count + 1})
+    if not rows_updated == 1:
+        return
+    datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+    print json.dumps(datasource, cls=alchemy_encoder())
+    messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
+    update_resource_exposure_type(db_session,datasource.domain_id,datasource_id)
+    query_params = {'dataSourceId': datasource_id}
+    messaging.trigger_post_event(urls.CREATE_DEFAULT_POLICES_PATH, auth_token, query_params, {})
+    Logger().info("Send email after scan complete")
+    adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
+
+    if constants.DEPLOYMENT_ENV != "local":
+        query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id}
+        Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(datasource.domain_id, datasource_id))
+        messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
+                                        query_params, {}, "gsuite")
 
 # since due to external group(group having external user) we need to mark the resource exposure type as External
 def update_resource_exposure_type(db_session,domain_id,datasource_id):
