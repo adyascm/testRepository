@@ -337,3 +337,12 @@ class PolicyAction(Base):
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
                          'policy.datasource_id', 'policy.policy_id']),
     )
+
+
+class DatasourceCredentials(Base):
+    __tablename__ = 'datasource_credentials'
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    credentials = Column(Text)
+    created_user = Column(String(320))
+

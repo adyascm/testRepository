@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import datetime
@@ -5,17 +6,20 @@ import datetime
 from adya.common.constants import urls
 from adya.common.db.connection import db_connection
 
-from adya.common.db.models import LoginUser, DataSource
+from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials
 from slackclient import SlackClient
 
 from adya.common.utils import messaging
 
 
-def get_slack_client(authtoken):
+def get_slack_client(datasource_id):
     db_session = db_connection().get_session()
-    login_user_info = db_session.query(LoginUser).filter(LoginUser.auth_token == authtoken).first()
+    datasource_credentials = db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id)\
+        .first()
 
-    access_token = login_user_info.token
+    credentials = json.loads(datasource_credentials.credentials)
+
+    access_token = credentials['token']
 
     sc = SlackClient(access_token)
 

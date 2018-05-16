@@ -33,11 +33,12 @@ class SlackUsers(Resource):
     def get(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(
-            True, ['dataSourceId'], ['nextCursor'])
+            True, ['dataSourceId','domainId'], ['nextCursor'])
         if req_error:
             return req_error
 
         scan.get_slack_users(req_session.get_auth_token(),
+                           req_session.get_req_param('domainId'),
                            req_session.get_req_param('dataSourceId'),
                            req_session.get_req_param('nextCursor'))
 

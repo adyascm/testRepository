@@ -45,8 +45,8 @@ function authenticateGsuite(scope) {
     return listenForCredentials(popup);
   }
 
-function authenticateSlack() {
-      var url = API_ROOT + "/slack/oauthlogin";
+function authenticateSlack(scope) {
+      var url = API_ROOT + "/slack/oauthlogin?scope=" + scope;
       let popup = openPopup(url, "_blank");
       return listenForCredentials(popup);
     }
