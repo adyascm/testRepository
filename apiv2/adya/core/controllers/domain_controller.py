@@ -54,13 +54,16 @@ def create_datasource(auth_token, payload):
         else:
             datasource.is_serviceaccount_enabled = existing_user.is_serviceaccount_enabled
 
-        is_admin_user = gutils.check_if_user_isamdin(
+        admin_response = gutils.check_if_user_isadmin(
             auth_token, existing_user.email, db_session)
+        is_admin_user = False
 
         #If service account is enabled, non admin cannot create a data source
-        if(datasource.is_serviceaccount_enabled and not is_admin_user):
+        if(datasource.is_serviceaccount_enabled and admin_response):
             raise Exception(
-                "Action not allowed, please contact your administrator...")
+                 admin_response + " Action not allowed.")  
+        if not admin_response:
+            is_admin_user = True
 
         if not is_admin_user:
             datasource.user_scan_status = 1
