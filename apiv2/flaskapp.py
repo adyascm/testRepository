@@ -86,6 +86,7 @@ api.add_resource(slack_oauth_handler.slack_oauth_callback, urls.SLACK_OAUTHCALLB
 api.add_resource(slack_scan_handler.SlackScan, urls.SCAN_SLACK_START)
 api.add_resource(slack_scan_handler.SlackUsers, urls.SCAN_SLACK_USERS)
 api.add_resource(slack_scan_handler.SlackChannels, urls.SCAN_SLACK_CHANNELS)
+api.add_resource(slack_scan_handler.SlackFiles, urls.SCAN_SLACK_FILES)
 
 
 if __name__ == '__main__':

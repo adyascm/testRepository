@@ -23,6 +23,7 @@ def start_slack_scan(auth_token, datasource_id, domain_id):
 
     messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
     messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
+    messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
 
 
 def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None):
@@ -53,7 +54,6 @@ def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None
         # making new call
         if next_cursor_token:
             query_params["nextCursor"] = next_cursor_token
-            get_and_update_scan_count(datasource_id, DataSource.total_user_count, total_memeber_count, auth_token, True)
             messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
         else:
             get_and_update_scan_count(datasource_id, DataSource.user_scan_status, 1, auth_token, True)
@@ -66,8 +66,8 @@ def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None
 
 
 def process_slack_users(datasource_id, domain_id, memebersdata):
+    db_session = db_connection().get_session()
     try:
-        db_session = db_connection().get_session()
         members_data = memebersdata["users"]
         user_list = []
         channels_count = 0
@@ -98,6 +98,7 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_user_count, channels_count, None, True)
     except Exception as ex:
+        db_session.rollback()
         # get_and_update_scan_count(datasource_id, DataSource.total_group_count, 0, None, True)
         Logger().exception("Exception occurred while processing data for slack users ex: {}".format(ex))
 
@@ -137,7 +138,6 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
         next_cursor_token_for_public_channel = public_channels['response_metadata']['next_cursor']
         if next_cursor_token_for_public_channel:
             query_params = {"dataSourceId": datasource_id, "nextCursor": next_cursor_token}
-            get_and_update_scan_count(datasource_id, DataSource.total_group_count, total_channel_count, auth_token, True)
             messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
 
         else:
@@ -154,9 +154,8 @@ def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
 
 
 def process_slack_channels(datasource_id, channel_data):
+    db_session = db_connection().get_session()
     try:
-
-
         group_list = []
         channel_list = channel_data["channels"]
         channel_count = 0
@@ -172,13 +171,14 @@ def process_slack_channels(datasource_id, channel_data):
             group['include_all_user'] = channel['is_general'] if 'is_general' in channel_list else None
             group_list.append(group)
 
-        db_session = db_connection().get_session()
+
         db_session.bulk_insert_mappings(DomainGroup, group_list)
 
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_group_count, channel_count, None, True)
 
     except Exception as ex:
+        db_session.rollback()
         Logger().exception("Exception occurred while processing data for slack channels using ex : {}".format(ex))
 
 
@@ -188,10 +188,13 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
         file_list = slack_client.api_call("files.list", page=page_number_token)
 
         files = file_list['files']
+        total_file_count = len(files)
         page_number = file_list['paging']['page']
         total_number_of_page = file_list['paging']['pages']
 
         query_params = {'dataSourceId': datasource_id}
+        get_and_update_scan_count(datasource_id, DataSource.total_file_count, total_file_count, auth_token, True)
+
         # adding channels to db
         # TODO: RECONCILIATION
         messaging.trigger_post_event(urls.SCAN_SLACK_FILES, auth_token, query_params, files, "slack")
@@ -202,8 +205,7 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
             messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
 
         else:
-            # TODO: update count or signal of ending of file scan
-
+            get_and_update_scan_count(datasource_id, DataSource.file_scan_status, 1, auth_token, True)
             print "update the values"
 
     except Exception as ex:
@@ -211,20 +213,25 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
 
 
 def process_slack_files(datasource_id, file_list):
+    db_session = db_connection().get_session()
     try:
-        resource = Resource()
+        resource_list = []
+        resource_perms_list = []
+        resource_count = 0
         for file in file_list:
-            resource.datasource_id = datasource_id
-            resource.resource_id = file['F3CEP2KFZ']
-            resource.resource_name = file['name']
-            resource.resource_type = file['filetype']
-            resource.resource_size = file['size']
-            resource.resource_owner_id = file['user']
-            resource.creation_time = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
-            resource.web_content_link = file['url_private_download']
-            resource.web_view_link = file['url_private']
-            resource.parent_id = file[
-                'channels']  # giving channel id as parent  TODO: channels will be list ; group can also be possible
+            resource_count = resource_count+1
+            resource = {}
+            resource['datasource_id'] = datasource_id
+            resource['resource_id'] = file['id']
+            resource['resource_name'] = file['name']
+            resource['resource_type'] = file['filetype']
+            resource['resource_size'] = file['size']
+            resource['resource_owner_id'] = file['user']
+            resource['creation_time'] = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
+            resource['web_content_link'] = file['url_private_download'] if 'url_private_download' in file else None
+            resource['web_view_link'] = file['url_private'] if 'url_private' in file else None
+            resource['parent_id'] = ','.join(file['channels'])
+            # giving channel id as parent  TODO: channels will be list ; group can also be possible
 
             shared_id_list = []
             # files shared in various ways
@@ -237,19 +244,29 @@ def process_slack_files(datasource_id, file_list):
 
             # TODO : Permissions for all fields
             # permissions processing
+
             for shared_list in shared_id_list:
                 for shared_id in shared_list:
-                    resourcePermission = ResourcePermission()
-                    resourcePermission.datasource_id = datasource_id
-                    resourcePermission.resource_id = file['name']
-                    resourcePermission.email = shared_id  # adding id
+                    resource_permission = {}
+                    resource_permission['datasource_id'] = datasource_id
+                    resource_permission['resource_id'] = file['id']
+                    resource_permission['email'] = shared_id  # adding id
+                    resource_permission['exposure_type'] = constants.ResourceExposureType.INTERNAL
+                    resource_permission['permission_id'] = 'shared' #TODO give proper permission id
+                    resource_perms_list.append(resource_permission)
 
-        db_session = db_connection().get_session()
-        db_session.add(resource)
+            resource_list.append(resource)
+
+
+        db_session.bulk_insert_mappings(Resource, resource_list)
+        db_session.bulk_insert_mappings(ResourcePermission, resource_perms_list)
         db_connection().commit()
+        get_and_update_scan_count(datasource_id, DataSource.processed_file_count, resource_count, None, True)
 
     except Exception as ex:
+        db_session.rollback()
         Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
+        get_and_update_scan_count(datasource_id, DataSource.file_scan_status, 10001, None, True)
 
 
 def get_and_update_scan_count(datasource_id, column_name, column_value, auth_token=None, send_message=False):
