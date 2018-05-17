@@ -3,12 +3,11 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Card, Container } from 'semantic-ui-react'
 
-
-
 import {
   DASHBOARD_PAGE_LOADED,
   DASHBOARD_PAGE_UNLOADED
 } from '../constants/actionTypes';
+
 import SimpleNumberWidget from './Widgets/SimpleNumberWidget';
 import ListWidget from './Widgets/ListWidget';
 import ChartWidget from './Widgets/ChartWidget';
@@ -44,14 +43,6 @@ class Dashboard extends Component {
       { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'EXT'}}},
       {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'DOMAIN'}}}
     ];
-  }
-
-  componentDidMount() {
-    // var index = 0;
-    // for(index = 0; index < this.widgetConfigs.length; index++)
-    // {
-    //   this.props.onLoad(this.widgetConfigs[index].id, agent.Dashboard.getWidgetData(this.widgetConfigs[index].id));
-    // }
   }
 
   componentWillMount() {

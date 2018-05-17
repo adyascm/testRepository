@@ -45,7 +45,6 @@ class UserOwnedResources extends Component {
 
     componentWillMount() {
         if (this.props.selectedUserItem) {
-            // this.props.setPaginationData(0,100)
             this.props.onLoadStart()
             this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["key"] }))    
         }
@@ -97,10 +96,6 @@ class UserOwnedResources extends Component {
                     return (
                         <Table.Row key={index}>
                             <Table.Cell width="3" style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
-                            {/* <Table.Cell width="6">
-                                {rowData["resource_owner_id"]}
-                                <Icon name='pencil' style={{'cursor': 'pointer'}} onClick={() => this.handleEmailChange(rowData)} />
-                            </Table.Cell> */}
                             <Table.Cell width="3">{rowData["resource_type"]}</Table.Cell>
                             <Table.Cell width="2">{rowData["exposure_type"]}</Table.Cell>
                             <Table.Cell textAlign='center' width="4">

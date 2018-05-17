@@ -103,7 +103,7 @@ def update_permissions_action(event, context):
         status_code = 500
         log_status = action_constants.ActionStatus.FAILED
         if len(permissions) == len(exceptions):
-            status_message = "Action failed - {}".format(exceptions[0]))
+            status_message = "Action failed - {}".format(exceptions[0])
         else:
             status_message = "Action partially executed"
     log_id = req_session.get_req_param('log_id')

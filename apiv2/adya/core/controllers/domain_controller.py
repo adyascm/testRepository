@@ -13,7 +13,9 @@ from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, \
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
-    Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities
+    Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
+    Alert
+
 from adya.gsuite import gutils
 
 
@@ -56,13 +58,17 @@ def create_datasource(auth_token, payload):
         else:
             datasource.is_serviceaccount_enabled = existing_user.is_serviceaccount_enabled
 
-        is_admin_user = gutils.check_if_user_isamdin(
+        admin_response = gutils.check_if_user_isadmin(
             auth_token, existing_user.email, db_session)
+        is_admin_user = False
 
-        # If service account is enabled, non admin cannot create a data source
-        if (datasource.is_serviceaccount_enabled and not is_admin_user):
+
+        #If service account is enabled, non admin cannot create a data source
+        if(datasource.is_serviceaccount_enabled and admin_response):
             raise Exception(
-                "Action not allowed, please contact your administrator...")
+                 admin_response + " Action not allowed.")  
+        if not admin_response:
+            is_admin_user = True
 
         if not is_admin_user:
             datasource.user_scan_status = 1
@@ -114,15 +120,14 @@ def async_delete_datasource(auth_token, datasource_id):
                                                                datasource_id).delete(synchronize_session=False)
         db_session.query(DomainUser).filter(
             DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(
-            synchronize_session=False)
-        # Delete Policies
-        db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(
-            synchronize_session=False)
-        db_session.query(PolicyCondition).filter(
-            PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session=False)
-        db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(
-            synchronize_session=False)
+
+        db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
+        # Delete Alert
+        db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
+        #Delete Policies
+        db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+        db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+        db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
         Logger().info("Datasource deleted successfully")

@@ -42,7 +42,8 @@ class PolicyItemDetail extends Component {
             description: "",
             policyId: undefined,
             showPolicyForm: false,
-            To: ''
+            To: '',
+            isActive: true
         }
     }
 
@@ -67,13 +68,14 @@ class PolicyItemDetail extends Component {
                     policyId: undefined,
                     To: '',
                     disableEmailField: true,
-                    showPolicyForm: nextProps.showPolicyForm
+                    showPolicyForm: nextProps.showPolicyForm,
+                    isActive: true
                 })
             }
             else
                 this.setState({
                     showPolicyForm: nextProps.showPolicyForm
-                }) 
+                })
         }
 
         if (nextProps.policyDetails && (nextProps.policyDetails !== this.props.policyDetails)) {
@@ -84,15 +86,22 @@ class PolicyItemDetail extends Component {
                 let disableEmailField = false
                 this.setState({
                     To: emailConfig.to,
-                    disableEmailField: disableEmailField
+                    disableEmailField: disableEmailField,
+                    actions: [{
+                        action_type: 'SEND_EMAIL',
+                        config: {
+                            to: emailConfig.to
+                        }
+                    }]
                 })
             }
             this.setState({
+                isActive: nextProps.policyDetails.is_active,
                 name: nextProps.policyDetails.name,
                 description: nextProps.policyDetails.description,
                 triggerType: nextProps.policyDetails.trigger_type,
                 conditions: nextProps.policyDetails.conditions,
-                actions: allActions,
+                //actions: allActions,
                 policyId: nextProps.policyDetails.policy_id
             })
         }
@@ -104,30 +113,23 @@ class PolicyItemDetail extends Component {
                     to: nextProps.selectedUser.email
                 }
             }
-            let action = this.state.actions
+            let action = []
             action.push(emailAction)
             this.setState({
                 actions: action
             })
         }
-        else if (!nextProps.selectedUser) {
-            this.setState({
-                actions: []
-            })
-        }
     }
 
     addPolicyCondition = () => {
-        let conditions = this.state.conditions;
-        conditions.push({ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" })
-        this.setState({
-            conditions: conditions
-        })
+        this.setState(prevState => ({
+            conditions: [...prevState.conditions, { match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" }]
+        }))
     }
 
     removeFilter = (key) => {
-        let conditions = this.state.conditions;
-        conditions.splice(key, 1)
+        let conditions = [...this.state.conditions]
+        conditions.splice(key,1)
         this.setState({
             conditions: conditions
         })
@@ -178,6 +180,12 @@ class PolicyItemDetail extends Component {
             })
     }
 
+    handlePolicyActiveType = (event, data) => {
+      this.setState({
+        isActive: data.checked
+      })
+    }
+
     submitPolicyModalForm = () => {
         let policyInfo = {
             "datasource_id": this.props.datasources[0]["datasource_id"],
@@ -186,7 +194,8 @@ class PolicyItemDetail extends Component {
             "created_by": this.props.currentUser["email"],
             "trigger_type": this.state.triggerType,
             "conditions": this.state.conditions,
-            "actions": this.state.actions
+            "actions": this.state.actions,
+            "is_active": this.state.isActive
         }
 
         this.props.policyLoadStart()
@@ -217,7 +226,7 @@ class PolicyItemDetail extends Component {
         )
 
         let conditions = this.state.conditions.map((condition, index) => {
-            return <PolicyCondition key={index} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
+            return <PolicyCondition key={Math.random()} policyCondition={condition} index={index} removeFilter={this.removeFilter} />
         })
 
         if (this.props.isLoadingPolicy) {
@@ -241,6 +250,10 @@ class PolicyItemDetail extends Component {
                         <Form onSubmit={this.submitPolicyModalForm} >
                             <Segment.Group>
                                 <Segment>
+                                  <Form.Field>
+                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
+                                    />
+                                  </Form.Field>
                                     <Form.Group widths='equal'>
                                         <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />
                                         <Form.Field required control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'description')} />
@@ -250,11 +263,10 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='yellow'>CONDITIONS</Header>
-                                    {/* <PolicyCondition /> */}
                                     {conditions}
                                     <div style={{ 'textAlign': 'center' }}>
                                         <Button basic color='green' onClick={this.addPolicyCondition}>Add Condition</Button>
-                                    </div>                                
+                                    </div>
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>

@@ -18,7 +18,6 @@ import Policy from './components/Policy/Policy.js'
 import Alert from './components/Alert'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/DataSourceVerifiedView'
-//import AuditLog from './components/AuditLog'
 import AuditLogTable from './components/AuditLogTable'
 import GlobalMessage from './GlobalMessage';
 

@@ -527,7 +527,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
         user_email = action_parameters['user_email']
         client_id = action_parameters['client_id']
-        response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id)
+        response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id, log_entry)
 
     return response_msg
 
@@ -600,7 +600,7 @@ def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_
     db_connection().commit()
     return audit_log
 
-def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
+def revoke_user_app_access(auth_token, datasource_id, user_email, client_id, log_entry):
     try:
         directory_service = gutils.get_directory_service(auth_token)
         directory_service.tokens().delete(userKey=user_email, clientId=client_id).execute()
@@ -620,9 +620,14 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, client_id):
             db_session.query(Application).filter(
                 and_(Application.datasource_id == datasource_id, Application.client_id == client_id)).delete()
 
-        db_connection().commit()
-        return response_messages.ResponseMessage(200, "Action completed successfully")
+        log_entry.status = action_constants.ActionStatus.SUCCESS
+        status_message = "Action completed successfully"
+        log_entry.message = status_message
+        return response_messages.ResponseMessage(200, status_message)
     except Exception as ex:
         Logger().exception("Exception occurred while deleting app for datasource_id: " + str(
             datasource_id) + " and user_email: " + str(user_email))
-        return response_messages.ResponseMessage(400, "Action failed")
+        log_entry.status = action_constants.ActionStatus.FAILED
+        status_message = "Action failed"   
+        log_entry.message = status_message 
+        return response_messages.ResponseMessage(400, status_message)

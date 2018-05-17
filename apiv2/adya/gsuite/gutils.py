@@ -126,14 +126,15 @@ def check_if_serviceaccount_enabled(emailid):
     return False
 
 
-def check_if_user_isamdin(auth_token, user_email=None, db_session = None):
+def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
     try:
         directory_service = get_directory_service(auth_token, user_email, db_session)
         users = directory_service.users().get(userKey=user_email).execute()
-        return True
+        return ""
     except Exception as ex:
+        ex_msg = json.loads(ex.content)["error"]["message"]
         Logger().exception("Exception occurred while checking if user is admin")
-    return False
+        return ex_msg
 
 
 def check_if_external_user(db_session, domain_id, email):

@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy import and_, or_
 
-from adya.common.constants import constants, urls
+from adya.common.constants import constants, urls, default_policies
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import ResponseMessage
 from adya.common.db.connection import db_connection
@@ -12,6 +12,7 @@ from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
 from adya.common.email_templates import adya_emails
+from adya.core.controllers.alert_controller import delete_alert_for_a_policy
 
 
 def get_policies(auth_token):
@@ -43,10 +44,6 @@ def delete_policy(policy_id):
         db_session.delete(existing_policy)
         db_connection().commit()
 
-        return existing_policy
-    else:
-        return ResponseMessage(400, "Bad Request - Policy not found")
-
 
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
@@ -60,6 +57,7 @@ def create_policy(auth_token, payload):
         policy.description = payload["description"]
         policy.trigger_type = payload["trigger_type"]
         policy.created_by = payload["created_by"]
+        policy.is_active = payload["is_active"]
         db_session.add(policy)
 
         # inserting data into policy conditions table
@@ -90,22 +88,21 @@ def create_policy(auth_token, payload):
 
 
 def update_policy(auth_token, policy_id, payload):
-    delete_response = delete_policy(policy_id)
-    if delete_response:
-        policy = create_policy(auth_token, payload)
-        return policy
-    else:
-        return ResponseMessage(400, "Bad Request - policy does not exist. update failed! ")
+    delete_alert_for_a_policy(policy_id)
+    delete_policy(policy_id)
+    policy = create_policy(auth_token, payload)
+    Logger().info("update_policy :  policy {}".format(policy))
+    return policy
     
 
 def validate(auth_token, datasource_id, payload):
     old_permissions = json.loads(payload["old_permissions"])
-    new_permissions = payload["new_permissions"]
+    new_permissions = json.loads(payload["new_permissions"])
     old_permissions_map = {}
     for permission in old_permissions:
         old_permissions_map[permission["email"]] = permission
 
-    resource = payload["resource"]
+    resource = json.loads(payload["resource"])
     has_permission_changed = False
     for new_permission in new_permissions:
         new_permission_email = new_permission["email"]
@@ -127,7 +124,8 @@ def validate(auth_token, datasource_id, payload):
         Logger().info("Permissions changed for this document, validate policy conditions now...")
         db_session = db_connection().get_session()
         policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
-                                                        Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE)).all()
+                                                        Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE,
+                                                        Policy.is_active == True)).all()
         if not policies or len(policies) < 1:
             Logger().info("No policies found for permission change trigger, ignoring...")
             return
@@ -138,6 +136,8 @@ def validate(auth_token, datasource_id, payload):
 
 
 def validate_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
+    Logger().info("validating policy")
+    Logger().info("validate_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
@@ -152,18 +152,21 @@ def validate_policy(db_session, auth_token, datasource_id, policy, resource, new
                 is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission["email"])
             is_violated = is_violated & is_permission_violated
 
+    Logger().info("validate_policy : is_violated - {}".format(is_violated))
+
     if is_violated:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
                 # TODO: add proper email template
+                Logger().info("validate_policy : send email")
                 aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
                 # adya_emails.send_policy_violate_email(to_address, policy, resource)
         payload = {}
         payload["datasource_id"] = datasource_id
-        payload["name"] = policy["name"]
-        payload["policy_id"] = policy["policy_id"]
+        payload["name"] = policy.name
+        payload["policy_id"] = policy.policy_id
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
@@ -176,3 +179,11 @@ def check_value_violation(policy_condition, value):
         return 1
     return 0
 
+def create_default_policies(auth_token, datasource_id):
+    login_user = db_utils.get_user_session(auth_token).email    
+    for policy in default_policies.default_policies:
+        policy['datasource_id'] = datasource_id
+        policy["actions"][0]["config"]["to"] = login_user
+        policy["created_by"] = login_user
+        create_policy(auth_token, policy)
+    return

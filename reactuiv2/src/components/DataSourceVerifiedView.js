@@ -32,7 +32,6 @@ const mapDispatchToProps = dispatch => ({
 const DataSourceVerifiedView = ChildComponent => {
     class DataSourceVerifiedViewInner extends Component {
         componentWillMount() {
-            //this.props.common.datasources = [];
             if (!this.props.common.datasources)
                 this.props.setDataSources(agent.Setting.getDataSources());
             if (!this.props.common.all_actions_list) {
@@ -54,7 +53,7 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.datasources) {
                 return null;
             }
-            else if (this.props.common.datasources.length < 1 || common.DataSourceUtils.getScanStatus(this.props.common.datasources[0]) != 'success') {
+            else if (this.props.common.datasources.length < 1) {
                 return (
                     <Redirect to="/datasources" />
                 );

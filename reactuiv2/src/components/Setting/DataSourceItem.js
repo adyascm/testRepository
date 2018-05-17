@@ -52,7 +52,6 @@ const DataSourceItem = props => {
                     {datasourceImage}
                     <Card.Header textAlign='right'>
                         {datasource.display_name}
-                        {/* {syncStatus} */}
                         {pollIcon}
                     </Card.Header>
                     <Card.Meta textAlign='right'>
@@ -77,7 +76,6 @@ const DataSourceItem = props => {
                 </Card.Content>
                 <Card.Content extra>
                     <div className='ui buttons'>
-                        {/* <Button basic color='green' onClick={onScanButtonClick}>Scan</Button> */}
                         <Button basic color='red' loading={datasource.isDeleting} onClick={deleteDatasource(datasource)}>Delete</Button>
                         {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={() => props.handleClick()} >Go To Dashboard</Button>) : null}
                     </div>

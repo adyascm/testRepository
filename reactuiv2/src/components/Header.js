@@ -1,7 +1,7 @@
 import React from 'react'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux';
-import { LOGOUT, SET_REDIRECT_PROPS } from '../constants/actionTypes';
+import { LOGOUT, SET_REDIRECT_PROPS, RESET_ALERTS_COUNT } from '../constants/actionTypes';
 import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon, Label } from 'semantic-ui-react'
@@ -22,9 +22,6 @@ const LoggedOutView = props => {
 
 const LoggedInView = props => {
     if (props.currentUser) {
-        // var disableAppsItem = (props["userAppAccess"] && props["userAppAccess"]["data"] && props["userAppAccess"]["data"]["totalCount"]>0)?false:true
-        // var disableUserItem = (props["usersCount"] && props["usersCount"]["data"]>0)?false:true
-        // var disableResourceItem = (props["filesCount"] && props["filesCount"]["data"]>0)?false:true
         return (
             <Container fluid>
                 <Menu.Item header>
@@ -47,17 +44,10 @@ const LoggedInView = props => {
                     </Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
-                        {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)}
-                        {/* <Label color='teal' size='mini' floating>12</Label> */}
+                        {!props.openAlertsCount ? null : <Label color='red' floating>{props.openAlertsCount}</Label>}
+                        {/* {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)} */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
-                    {/* <Dropdown item icon='settings'>
-                        <Dropdown.Menu>
-                            <Dropdown.Item as={Link} to="/reports" onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/auditlog" onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/datasources" onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} >Manage Datasources</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown> */}
                     <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
@@ -70,13 +60,15 @@ const LoggedInView = props => {
 const mapStateToProps = state => ({
     ...state.common,
     ...state.dashboard,
-    openAlertsCount: state.alert.openAlerts
+    openAlertsCount: state.alert.alertsCount
 });
 
 const mapDispatchToProps = dispatch => ({
     onClickLogout: () => dispatch({ type: LOGOUT }),
     onMenuItemClick: (url) =>
-        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
+        dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url }),
+    resetAlertsCount: () =>
+        dispatch({ type: RESET_ALERTS_COUNT })
 });
 
 class Header extends React.Component {
@@ -90,6 +82,8 @@ class Header extends React.Component {
         this.props.onMenuItemClick(menuItem)
         this.props.history.push(menuItem)
 
+        if (menuItem === '/alerts')
+            this.props.resetAlertsCount()
     }
 
     componentWillMount() {

@@ -170,3 +170,8 @@ hr.divider {
       max-height: 100px;
       overflow: auto;
     }
+
+    .ui.floating.label {
+      top: .7em;
+      left: 80%;
+    }

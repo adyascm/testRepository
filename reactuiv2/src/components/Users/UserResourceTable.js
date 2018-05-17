@@ -106,16 +106,12 @@ class UserResourceTable extends Component {
             tableRowData = this.props.selectedUserItem.resources.map((rowData, index) => {
                 return (
                     <Table.Row key={index}>
-                        {/* <div style={{'word-break': 'break-word'}}> */}
                         <Table.Cell width='5' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
-                        {/* </div> */}
                         <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
-                            {/* {rowData["myPermission"]} */}
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event,data) => this.onPermissionChange(event,rowData,data.value)} />
                         </Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
-                        {/* <Table.Cell>{rowData["web_view_link"]}</Table.Cell> */}
                         <Table.Cell><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
                     </Table.Row>
                 )

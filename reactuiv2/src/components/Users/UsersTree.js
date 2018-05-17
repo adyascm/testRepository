@@ -29,6 +29,11 @@ class UsersTree extends Component {
             rows: undefined,
             showMemberType: props.showMemberType,
             displaySearchData: false,
+            usersFilter: {
+                'EXT': 'external',
+                'DOMAIN': 'internal',
+                'ALL': ''
+            },
             columnDefs: [{
                 headerName: "Type",
                 field: "type",
@@ -40,7 +45,7 @@ class UsersTree extends Component {
             {
                 headerName: "Groups",
                 field: "name",
-                sort: "asc",
+                suppressSorting:true,
                 cellStyle: { textAlign: "left" },
                 //cellRenderer: "agGroupCellRenderer"
                 cellRendererFramework: UserGroupCell,
@@ -52,6 +57,7 @@ class UsersTree extends Component {
             {
                 headerName: "Email",
                 field: "key",
+                sort: "asc",
                 cellStyle: { textAlign: "left" },
                 cellRenderer: "agTextCellRenderer",
                 width: document.body.clientWidth/4
@@ -219,19 +225,29 @@ class UsersTree extends Component {
         if(!this.state.rows){
             this.setTreeRows();
         }
-        return (
-            <div className="ag-theme-fresh" style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
-                <AgGridReact
-                    id="myGrid" 
-                    domLayout="autoHeight"
-                    columnDefs={this.state.columnDefs}
-                    rowData={this.state.rows}
-                    enableFilter={true}
-                    onGridReady={this.onGridReady.bind(this)}
-                    gridOptions={this.gridOptions}
-                />
-            </div>
-        )
+        else if (this.state.rows && this.state.rows.length)
+            return (
+                <div className="ag-theme-fresh" style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
+                    <AgGridReact
+                        id="myGrid" 
+                        domLayout="autoHeight"
+                        columnDefs={this.state.columnDefs}
+                        rowData={this.state.rows}
+                        enableFilter={true}
+                        enableSorting={true}
+                        sortingOrder={['asc']}
+                        onGridReady={this.onGridReady.bind(this)}
+                        gridOptions={this.gridOptions}
+                    />
+                </div>
+            )
+        else 
+            return (
+                <div style={{'textAlign': 'center'}}>
+                    No {this.state.usersFilter[this.props.showMemberType]} users to display
+                </div>
+            )
+        return null
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(UsersTree);

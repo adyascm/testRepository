@@ -2,6 +2,7 @@ import {
     ALERTS_LOAD_START,
     ALERTS_LOADED,
     FETCH_ALERTS_COUNT,
+    RESET_ALERTS_COUNT,
     LOGOUT
 } from '../constants/actionTypes'
 
@@ -28,6 +29,11 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 alertsCount: action.alertsCount
+            }
+        case RESET_ALERTS_COUNT:
+            return {
+                ...state,
+                alertsCount: undefined
             }
         case LOGOUT:
             return {

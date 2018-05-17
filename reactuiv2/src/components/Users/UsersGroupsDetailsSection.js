@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import { Tab, Segment, Icon, Grid, Dropdown, Container } from 'semantic-ui-react';
 import UserDetails from './UserDetails';
-import UserResource from './UserResource';
 import UserResourceTable from './UserResourceTable'
-//import UserActivity from './UserActivity';
 import UserActivityTable from './UserActivityTable'
 import UserApps from '../UserApp/UserApps';
 import UserOwnedResources from './UserOwnedResources'
@@ -122,7 +120,6 @@ class UsersGroupsDetailsSection extends Component {
 
                     </Grid.Row>
                     <Grid.Row stretched style={{ marginLeft: '5px', marginRight: '5px' }}>
-                        {/* <UserResource filterExposureType={this.props.filterExposureType}/> */}
                         <UserResourceTable />
                     </Grid.Row>
                 </Grid>
@@ -160,12 +157,10 @@ class UsersGroupsDetailsSection extends Component {
 
             return (
                 <Segment>
-                    {/* <Sticky> */}
                     <Icon name='close' onClick={this.closeDetailsSection} />
                     <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}
                       onQuickAction={this.onQuickAction} onUserGroupAction={this.onUserGroupAction}/>
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
-                    {/* </Sticky> */}
                 </Segment>
             )
         }
