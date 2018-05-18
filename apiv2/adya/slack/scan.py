@@ -3,7 +3,8 @@ from datetime import datetime
 
 from sqlalchemy import and_
 
-from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder
+from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder, \
+    Application
 
 from adya.common.db.connection import db_connection
 
@@ -69,12 +70,15 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
     try:
         members_data = memebersdata["users"]
         user_list = []
+        app_list = []
         channels_count = 0
         for member in members_data:
             channels_count = channels_count + 1
             user = {}
-            if member['deleted'] or member['is_bot']:
+            if member['deleted']:
                 continue
+            if member['is_bot']:
+                app_list = process_apps(datasource_id, member, app_list)
             profile_info = member['profile']
             user['datasource_id'] = datasource_id
             if 'email' in profile_info:
@@ -97,12 +101,25 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
 
             user_list.append(user)
         db_session.bulk_insert_mappings(DomainUser, user_list)
+        db_session.bulk_insert_mappings(Application, app_list)
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_user_count, channels_count, None, True)
     except Exception as ex:
         db_session.rollback()
         # get_and_update_scan_count(datasource_id, DataSource.total_group_count, 0, None, True)
         Logger().exception("Exception occurred while processing data for slack users ex: {}".format(ex))
+
+def process_apps(datasource_id, member, app_list):
+    # user app association is not required because all userss of a team can have access to that app.
+    app = {}
+    app["datasource_id"] = datasource_id
+    profile = member['profile']
+    app["client_id"] = profile['bot_id']
+    app["display_text"] = profile["real_name"]
+    app["scopes"] = "users:read"
+
+    app_list.append(app)
+    return app_list
 
 
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
