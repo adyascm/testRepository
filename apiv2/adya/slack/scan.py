@@ -81,9 +81,12 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
                 user['email'] = profile_info['email']
             else:
                 continue
-            user['first_name'] = profile_info['first_name'] if 'first_name' in profile_info else None
-            user['last_name'] = profile_info['last_name'] if 'last_name' in profile_info else None
-            user['full_name'] = profile_info['real_name'] if 'real_name' in profile_info else None
+
+            full_name = profile_info['real_name']
+            name_list = full_name.split(" ")
+            user['first_name'] = name_list[0]
+            user['last_name'] = name_list[1] if len(name_list) > 1 else None
+            user['full_name'] = full_name
             user['user_id'] = member['id']
             user['is_admin'] = member['is_admin']
             user['creation_time'] = datetime.fromtimestamp(member['updated']).strftime("%Y-%m-%d %H:%M:%S")
