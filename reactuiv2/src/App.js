@@ -9,7 +9,7 @@ import Header from './components/Header.js'
 import Dashboard from './components/Dashboard.js'
 import Login from './components/Login.js'
 import NewLogin from './components/NewLogin'
-import ManageDataSources from './components/DataSources/ManageDataSources.js'
+import ManageDataSources from './components/Setting/ManageDataSources.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
 import Users from './components/Users/Users.js'
@@ -17,7 +17,7 @@ import Apps from './components/UserApp/Apps.js'
 import Policy from './components/Policy/Policy.js'
 import Alert from './components/Alert'
 import SecuredView from './components/SecuredView'
-import DataSourceVerifiedView from './components/DataSources/DataSourceVerifiedView'
+import DataSourceVerifiedView from './components/Setting/DataSourceVerifiedView'
 import AuditLogTable from './components/AuditLogTable'
 import GlobalMessage from './GlobalMessage';
 
@@ -87,7 +87,7 @@ class App extends Component {
               <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
               <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
               <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
-              <Route path="/datasources" component={SecuredView(Setting)} />
+              <Route path="/datasources" component={SecuredView(ManageDataSources)} />
               <Route path="/auditlog" component={SecuredView(DataSourceVerifiedView(AuditLogTable))} />
               <Route path="/apps" component={SecuredView(DataSourceVerifiedView(Apps))} />
               <Route path="/policies" component={SecuredView(DataSourceVerifiedView(Policy))} />
