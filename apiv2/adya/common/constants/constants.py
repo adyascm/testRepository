@@ -32,7 +32,7 @@ class ResourceExposureType(Enum):
     EXTERNAL = "EXT"
     PUBLIC = "PUBLIC"
     ANYONEWITHLINK = 'ANYONEWITHLINK'
-    TRUSTED = 'TRUSTED'
+    TRUSTED = 'TRUST'
 
 
 class PermissionType(Enum):
@@ -43,7 +43,7 @@ class PermissionType(Enum):
 class UserMemberType(Enum):
     INTERNAL = "INT"
     EXTERNAL = "EXT"
-    TRUSTED = 'TRUSTED'
+    TRUSTED = 'TRUST'
 
 
 class GroupMemberType(Enum):
