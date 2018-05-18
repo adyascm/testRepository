@@ -131,7 +131,7 @@ class SlackDataSourceItem extends Component {
               <Card.Content extra>
                   <div className='ui buttons'>
                       <Button basic color='red' loading={datasource.isDeleting} onClick={this.deleteDataSource(datasource)}>Delete</Button>
-                      {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={() => this.handleClick()} >Go To Dashboard</Button>) : null}
+                      {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
                   </div>
               </Card.Content>
           </Card>

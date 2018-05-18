@@ -3,7 +3,7 @@ import uuid
 
 import datetime
 
-from adya.common.constants import urls
+from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
 
 from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials
@@ -59,3 +59,11 @@ def create_datasource(auth_token, db_session, existing_user, payload):
                    }
     messaging.trigger_post_event(urls.SCAN_SLACK_START, auth_token, query_params, {}, "slack")
     return datasource
+
+
+def get_resource_exposure_type(permission_exposure, resource_exposure):
+    if permission_exposure == constants.ResourceExposureType.DOMAIN and not (resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK ):
+        resource_exposure = constants.ResourceExposureType.DOMAIN
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK or resource_exposure == constants.ResourceExposureType.DOMAIN):
+        resource_exposure = constants.ResourceExposureType.INTERNAL
+    return resource_exposure
