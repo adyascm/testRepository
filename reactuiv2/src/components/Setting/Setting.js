@@ -20,14 +20,20 @@ class Setting extends Component {
 
  render(){
   return (
-    <Grid>
-      <Grid.Column width={4}>
-        <Menu fluid vertical tabular>
-          <Menu.Item name='datasources' active={this.state.activeItem === 'datasources'} onClick={this.handleItemClick} />
-          <Menu.Item name='whitelist' active={this.state.activeItem === 'whitelist'} onClick={this.handleItemClick} />
+    <Grid style={{ height: '100%' }}>
+      <Grid.Column width={3}>
+        <Menu vertical pointing fluid>
+          <Menu.Item name='datasources' active={this.state.activeItem === 'datasources'} onClick={this.handleItemClick} >
+          <Header as='h4'>Connectors</Header>
+          <p>Manage connections to your SaaS Apps</p>
+          </Menu.Item>
+          <Menu.Item name='whitelist' active={this.state.activeItem === 'whitelist'} onClick={this.handleItemClick} >
+          <Header as='h4'>Trusted Domains and Apps</Header>
+          <p>Set your trusted domains and apps</p>
+          </Menu.Item>
         </Menu>
       </Grid.Column>
-      <Grid.Column stretched width={12}>
+       <Grid.Column stretched width={13}>
         {this.state.activeItem === 'datasources'?
           <ManageDataSources {...this.props} />
        :

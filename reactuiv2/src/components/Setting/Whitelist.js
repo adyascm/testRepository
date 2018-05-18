@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Button, Checkbox, Form, Dropdown, Container } from 'semantic-ui-react'
+import { Button, Form, Header, Container } from 'semantic-ui-react'
 import agent from '../../utils/agent';
 import TagsInput from 'react-tagsinput';
 import 'react-tagsinput/react-tagsinput.css'
@@ -72,17 +72,18 @@ class WhitelistItem extends Component {
   render(){
     return(
       <Container>
+        <Header >Trusted domains and apps</Header>
           <div style={{'marginBottom':'3%'}}>
                 <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}
                   onChange={(e) => this.handlechange('trusted_domains', e)}
-                  inputProps={{placeholder:"Add Domain"}}
+                  inputProps={{placeholder:"domains..."}} addOnBlur={true}
                   />
           </div>
           <div style={{'marginBottom':'3%'}}>
                 <TagsInput value={this.state.trustedEntitiesMap['trusted_apps'].length !== 0 ?
                     this.state.trustedEntitiesMap['trusted_apps'] : []}
                     onChange={(e) => this.handlechange('trusted_apps', e)}
-                   inputProps={{placeholder:"Add Apps"}}
+                   inputProps={{placeholder:"apps..."}} addOnBlur={true}
                   />
       </div>
           <Button basic color='green' type='reset' onClick={this.handleSubmit}>Save</Button>
