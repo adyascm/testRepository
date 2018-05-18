@@ -32,6 +32,11 @@ const mapDispatchToProps = dispatch => ({
 class NewLogin extends Component {
     constructor() {
         super();
+
+        this.state = {
+            chkbox:false
+        }
+
         this.signInGoogle = () => ev => {
             ev.preventDefault();
             this.props.onLoginStart()
@@ -42,6 +47,11 @@ class NewLogin extends Component {
                 this.props.onSignInError(errors)
             });
         };
+        this.enableGoogleSignIn = () => ev => {
+            this.setState({
+                chkbox : !this.state.chkbox
+            })
+        }
     }
 
     componentWillUnmount() {
@@ -51,6 +61,14 @@ class NewLogin extends Component {
 
     render() {
         if (!this.props.currentUser) {
+            let divStyle = {}
+            if (!this.state.chkbox){
+                divStyle = {
+                    "pointerEvents":"none",
+                    "cursor":"default"
+                }
+            }
+
             return (
                     <div className="app-adya-wrap ">
                         <div className="clearfix"></div>
@@ -61,7 +79,9 @@ class NewLogin extends Component {
                             <div className="box-bg text-center bg-grey">
                             <img src="/images/logo.png" width="200px" height="100%"/>
                             <h1 className="orange-color">Manage and secure your SaaS Apps</h1>
-                            <div className="text-center scan-button p-b-30" onClick={this.signInGoogle()}>
+                            <input type="checkbox" style={{"marginRight":"10px"}} defaultChecked={this.state.chkbox} onChange={this.enableGoogleSignIn()} />
+                            <p style={{"color":"gray","fontSize":"12pt","display":"inline"}}>I agree to <a href="https://www.adya.io/terms-of-service-agreement/" target="_blank">Terms Of Service </a>and <a href="https://www.adya.io/privacy-policy/" target="_blank">Privacy Policy</a></p>
+                            <div className="text-center scan-button p-b-30" style={divStyle}  onClick={this.signInGoogle()}>
                                 <a className="btn-wrap btn-wrap-header orange-color font-white" target="_blank" style={{"cursor":"pointer"}}><img src="/images/Google.png" /></a>
                                 {this.props.inProgress?
                                     <Dimmer active inverted>
@@ -70,7 +90,6 @@ class NewLogin extends Component {
                                 }
                             </div>
                             <p><a href="https://www.adya.io/resources/" target="_blank" style={{"color":"#333"}}>Click here for installation instructions</a></p>
-                            <p><a href="https://www.adya.io/privacy-policy/" target="_blank" style={{"color":"gray","font-size":"12pt"}}>Privacy Policy</a></p>
                             </div>
                             </div>
                             </div>

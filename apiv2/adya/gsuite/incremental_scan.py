@@ -94,7 +94,7 @@ def handle_channel_expiration():
     return "Subscription renewal completed"
 
 
-def _subscribe_for_user(db_session, auth_token, datasource, email):
+def _subscribe_for_user(db_session, auth_token, datasource, email, is_local_deployment):
     channel_id = str(uuid.uuid4())
     access_time = datetime.datetime.utcnow()
     expire_time = access_time
@@ -116,13 +116,14 @@ def _subscribe_for_user(db_session, auth_token, datasource, email):
         response = drive_service.changes().getStartPageToken().execute()
         start_token = response.get('startPageToken')
 
-        watch_response = drive_service.changes().watch(pageToken=start_token, restrictToMyDrive='true',
-                                                       body=body).execute()
-        Logger().info(" watch_response for a user :  {} ".format(watch_response))
+        if not is_local_deployment:
+            watch_response = drive_service.changes().watch(pageToken=start_token, restrictToMyDrive='true',
+                                                        body=body).execute()
+            Logger().info(" watch_response for a user :  {} ".format(watch_response))
 
-        expire_time = access_time + timedelta(seconds=86100)
-        resource_id = watch_response['resourceId']
-        resource_uri = watch_response['resourceUri']
+            expire_time = access_time + timedelta(seconds=86100)
+            resource_id = watch_response['resourceId']
+            resource_uri = watch_response['resourceUri']
         notification_type = TypeOfPushNotificationCallback.DRIVE_CHANGE
 
     except Exception as ex:
@@ -163,16 +164,20 @@ def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user
 
 
 def subscribe(domain_id, datasource_id):
-    db_session = db_connection().get_session()
-    # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
-    aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
-                                        aws_utils.get_lambda_name("get",
-                                                                urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+    is_local_deployment - constants.DEPLOYMENT_ENV == "local"
 
-    # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
-    aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
-                                        aws_utils.get_lambda_name("get",
-                                                                urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
+    if not is_local_deployment:
+        # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
+        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
+                                            aws_utils.get_lambda_name("get",
+                                                                    urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
+
+        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
+                                            aws_utils.get_lambda_name("get",
+                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
+
+    db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
     db_session.query(PushNotificationsSubscription).filter(
@@ -183,21 +188,22 @@ def subscribe(domain_id, datasource_id):
     login_user = db_session.query(LoginUser).filter(
         LoginUser.domain_id == datasource.domain_id).first()
 
-    #Try subscribing for activity notifications
-    try:
-        _subscribe_for_drive_activity(db_session, login_user, datasource, login_user.email)
-    except:
-        Logger().exception("Failed to subscribe for drive activity notifications")
+    if not is_local_deployment:
+        #Try subscribing for activity notifications
+        try:
+            _subscribe_for_drive_activity(db_session, login_user, datasource, login_user.email)
+        except:
+            Logger().exception("Failed to subscribe for drive activity notifications")
 
     #Try subscribing for drive change notifications
     if datasource.is_serviceaccount_enabled:
         domain_users = db_session.query(DomainUser).filter(
             and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == 'INT')).all()
         for user in domain_users:
-            _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email)
+            _subscribe_for_user(db_session, login_user.auth_token, datasource, user.email, is_local_deployment)
     else:
         Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
-        _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email)
+        _subscribe_for_user(db_session, login_user.auth_token, datasource, login_user.email, is_local_deployment)
 
     datasource.is_push_notifications_enabled = True
     db_connection().commit()
@@ -288,3 +294,15 @@ def gdrive_periodic_changes_poll(datasource_id=None):
                                                   "X-Goog-Channel-ID": row.channel_id,
                                                   'X-Goog-Resource-State': "change"})
     return
+
+
+def unsubscribed_all_the_previous_subscription(datasource_id):
+    db_session = db_connection().get_session()
+    subscriptions = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
+                                                                          datasource_id).all()
+
+    for subscription in subscriptions:
+        Logger().info("unsubscribed_all_the_previous_subscription : subscription")
+        unsubscribe_subscription(subscription)
+
+    Logger.info("unsubscribed all the channel for datasource - {} ".format(datasource_id))

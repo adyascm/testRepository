@@ -53,6 +53,10 @@ class Users extends Component {
         {
           text: 'All Users',
           value: 'ALL'
+        },
+        {
+          text: 'Trusted Users',
+          value: 'TRUSTED'
         }
       ],
       showMemberType: this.props.userFilterType
@@ -121,7 +125,7 @@ class Users extends Component {
     else if (this.props.userPayload)
       return (
         <Container style={containerStyle}>
-          
+
           <Grid divided='vertically' stretched>
             <Grid.Row >
               <Grid.Column stretched width="5">
@@ -152,7 +156,7 @@ class Users extends Component {
           <Actions />
         </Container >
       )
-    else 
+    else
       return (
         <div>
           There are no users to display

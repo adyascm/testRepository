@@ -346,3 +346,11 @@ class DatasourceCredentials(Base):
     credentials = Column(Text)
     created_user = Column(String(320))
 
+
+class TrustedEntities(Base):
+    __tablename__ = "trusted_entities"
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trusted_domains = Column(Text)
+    trusted_apps = Column(Text)

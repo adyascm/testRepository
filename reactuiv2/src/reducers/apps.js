@@ -27,7 +27,7 @@ const defaultState = {
     appDeleted: false,
     action: undefined
   };
-  
+
 export default (state = defaultState, action) => {
     switch (action.type) {
         case APPS_PAGE_LOAD_START:

@@ -87,7 +87,7 @@ class App extends Component {
               <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
               <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
               <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
-              <Route path="/datasources" component={SecuredView(ManageDataSources)} />
+              <Route path="/datasources" component={SecuredView(Setting)} />
               <Route path="/auditlog" component={SecuredView(DataSourceVerifiedView(AuditLogTable))} />
               <Route path="/apps" component={SecuredView(DataSourceVerifiedView(Apps))} />
               <Route path="/policies" component={SecuredView(DataSourceVerifiedView(Policy))} />

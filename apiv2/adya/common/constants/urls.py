@@ -41,11 +41,14 @@ GET_AUDITLOG_PATH = '/common/getauditlog'
 
 POLICIES_PATH = '/common/policies'
 POLICIES_VALIDATE_PATH = '/common/policies/validate'
+CREATE_DEFAULT_POLICES_PATH ='/common/policies/default'
 
 ALERTS_PATH = '/common/alerts'
 ALERTS_COUNT_PATH = '/common/alerts/count'
 
 ACTION_PATH = '/google/actions'
+
+TRUSTED_ENTITIES = '/common/trustedentities'
 
 # slack
 SLACK_OAUTH_LOGIN = '/slack/oauthlogin'
@@ -53,7 +56,7 @@ SLACK_OAUTHCALLBACK_PATH = "/slack/oauthcallback"
 
 SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 
-# slack scan
+
 SCAN_SLACK_START = "/slack/scan/start"
 SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'

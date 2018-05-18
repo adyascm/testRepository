@@ -291,6 +291,14 @@ functions:
           path: policies/validate
           method: post
           cors: true
+
+  post-default-policies-create:
+    handler: adya.core.services.lambda.policy_handler.create_default_policies
+    events:
+      - http:
+          path: policies/default
+          method: post
+          cors: true        
   
   get-common-alerts:
     handler: adya.core.services.lambda.alert_handler.get_alert
@@ -313,5 +321,21 @@ functions:
     events:
       - http:
           path: alerts/count
+          method: get
+          cors: true
+
+  post-common-trustedentities:
+    handler: adya.core.services.lambda.domain_handler.post_trusted_entities
+    events:
+      - http:
+          path: trustedentities
+          method: post
+          cors: true
+
+  get-common-trustedentities:
+    handler: adya.core.services.lambda.domain_handler.get_trusted_entities
+    events:
+      - http:
+          path: trustedentities
           method: get
           cors: true

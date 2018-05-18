@@ -71,10 +71,14 @@ api.add_resource(auditlog_handler.get_audit_log, urls.GET_AUDITLOG_PATH)
 #policies
 api.add_resource(policy_handler.Policy, urls.POLICIES_PATH)
 api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
+api.add_resource(policy_handler.DefaultPoliciesCreator, urls.CREATE_DEFAULT_POLICES_PATH)
 
 #alerts
 api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
 api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
+
+#trustedDomain
+api.add_resource(domain_handler.TrustedEntities, urls.TRUSTED_ENTITIES)
 
 
 
