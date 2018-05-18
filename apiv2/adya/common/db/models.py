@@ -337,3 +337,12 @@ class PolicyAction(Base):
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
                          'policy.datasource_id', 'policy.policy_id']),
     )
+
+
+class TrustedEntities(Base):
+    __tablename__ = "trusted_entities"
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trusted_domains = Column(Text)
+    trusted_apps = Column(Text)

@@ -323,3 +323,19 @@ functions:
           path: alerts/count
           method: get
           cors: true
+
+  post-common-trustedentities:
+    handler: adya.core.services.lambda.domain_handler.post_trusted_entities
+    events:
+      - http:
+          path: trustedentities
+          method: post
+          cors: true
+
+  get-common-trustedentities:
+    handler: adya.core.services.lambda.domain_handler.get_trusted_entities
+    events:
+      - http:
+          path: trustedentities
+          method: get
+          cors: true

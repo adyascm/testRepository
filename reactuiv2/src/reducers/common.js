@@ -15,7 +15,9 @@ import {
   APPS_PAGE_LOADED,
   DATASOURCE_LOAD_START,
   DATASOURCE_LOAD_END,
-  SET_REDIRECT_PROPS
+  SET_REDIRECT_PROPS,
+  CREATE_TRUSTED_ENTITIES,
+  SET_TRUSTED_ENTITIES
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -29,6 +31,9 @@ const defaultState = {
   datasources: undefined,
   all_actions_list: undefined,
   datasourceLoading: false,
+  entitiy: undefined,
+  trustedEntities: undefined
+
 };
 
 export default (state = defaultState, action) => {
@@ -118,6 +123,40 @@ export default (state = defaultState, action) => {
         ...state,
         datasourceLoading: true
       };
+    case CREATE_TRUSTED_ENTITIES:
+      return {
+        ...state,
+        entitiy : action.error?[]:action.payload,
+        errorMessage: action.error
+      };
+    case SET_TRUSTED_ENTITIES:
+          var error;
+          if(action.error === undefined){
+            error = false
+          }
+          else {
+            error = true
+          }
+          return{
+            ...state,
+            trustedEntities: action.error?[]:action.payload,
+            errorMessage: action.error
+          } ;
+    // case USERS_PAGE_LOADED:
+    //   return {
+    //     ...state,
+    //     currentView: "/users"
+    //   };
+    // case RESOURCES_PAGE_LOADED:
+    //   return {
+    //     ...state,
+    //     currentView: "/resources"
+    //   };
+    // case APPS_PAGE_LOADED:
+    //   return {
+    //     ...state,
+    //     currentView: "/apps"
+    //   };
     case SET_REDIRECT_PROPS:
       var states = {};
       if (action.reducerStates) {

@@ -601,13 +601,8 @@ class GetAllUserAppAndScope():
                 association_table["user_email"] = user_email
                 association_table["datasource_id"] = self.datasource_id
                 self.applicationassociations.append(association_table)
-                max_score = 0
                 scopes = app["scopes"]
-                for scope in scopes:
-                    if scope in gutils.GOOGLE_API_SCOPES:
-                        score = gutils.GOOGLE_API_SCOPES[scope]['score']
-                        if score > max_score:
-                            max_score = score
+                max_score = gutils.get_app_score(scopes)
                 #sum_squares = sum([ x**2 for x in scores ])
                 #application.score = math.sqrt( sum_squares / len(scores) )
                 application.score = max_score

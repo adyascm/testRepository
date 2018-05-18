@@ -23,6 +23,11 @@ class ActionStatus(Enum):
     SUCCESS = 'SUCCESS'
     FAILED = 'FAILED'
 
+class ActionStatus(Enum):
+    STARTED = 'STARTED'
+    SUCCESS = 'SUCCESS'
+    FAILED = 'FAILED'
+
 
 
 

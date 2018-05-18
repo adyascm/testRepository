@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import '../App.css';
+import '../../App.css';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
-import agent from '../utils/agent';
-import authenticate from '../utils/oauth';
-import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
+import agent from '../../utils/agent';
+import authenticate from '../../utils/oauth';
+import { Card, Button, Container, Header, Divider} from 'semantic-ui-react'
 
 
 import {
@@ -17,7 +17,7 @@ import {
   DATASOURCE_LOAD_END,
   ASYNC_END,
   SET_REDIRECT_PROPS
-} from '../constants/actionTypes';
+} from '../../constants/actionTypes';
 import DataSourceItem from './DataSourceItem';
 
 const mapStateToProps = state => ({
@@ -59,7 +59,6 @@ const mapDispatchToProps = dispatch => ({
 class ManageDataSources extends Component {
   constructor() {
     super();
-
     this.handleClick = this.handleClick.bind(this);
     this.onPollChanges = this.onPollChanges.bind(this);
 
@@ -124,12 +123,12 @@ class ManageDataSources extends Component {
         {
           header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
           detail = (<Container>
-            Thank you for installing Adya at your organisation. <br /> 
+            Thank you for installing Adya at your organisation. <br />
             We need to do a one-time setup by scanning your GSuite account to collect necessary metadata.
             </Container>);
           buttonText = "Start Scan";
         }
-        
+
       return (
         <Container>
           <Card.Group>

@@ -160,3 +160,14 @@ def get_resource_exposure_type(permission_exposure, highest_exposure):
     elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
         highest_exposure = constants.ResourceExposureType.INTERNAL
     return highest_exposure
+
+
+def get_app_score(scopes):
+    max_score = 0
+    for scope in scopes:
+        if scope in GOOGLE_API_SCOPES:
+            score = GOOGLE_API_SCOPES[scope]['score']
+            if score > max_score:
+                max_score = score
+
+    return max_score

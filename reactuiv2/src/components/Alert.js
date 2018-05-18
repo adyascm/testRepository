@@ -13,9 +13,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    alertsLoadingStart: () => 
+    alertsLoadingStart: () =>
         dispatch({ type: ALERTS_LOAD_START }),
-    alertsLoaded: (payload) => 
+    alertsLoaded: (payload) =>
         dispatch({ type: ALERTS_LOADED, payload })
 })
 
@@ -40,7 +40,7 @@ class Alert extends Component {
         this.props.alertsLoaded(agent.Alert.getAlert())
     }
 
-    render () {  
+    render () {
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
                 <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
@@ -87,7 +87,7 @@ class Alert extends Component {
                     </div>
                 </div>
             )
-        else 
+        else
             return (
                 <div>
                     No alerts to display

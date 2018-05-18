@@ -77,6 +77,9 @@ api.add_resource(policy_handler.DefaultPoliciesCreator, urls.CREATE_DEFAULT_POLI
 api.add_resource(alert_handler.Alert, urls.ALERTS_PATH)
 api.add_resource(alert_handler.AlertsCount, urls.ALERTS_COUNT_PATH)
 
+#trustedDomain
+api.add_resource(domain_handler.TrustedEntities, urls.TRUSTED_ENTITIES)
+
 
 
 #slack
