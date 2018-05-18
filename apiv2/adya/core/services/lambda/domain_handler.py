@@ -48,10 +48,7 @@ def post_trusted_entities(event, context):
     if req_error:
         return req_error
 
-    try:
-        trusted_entities = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
-    except Exception as ex:
-        return req_session.generate_error_response(400, ex.message)
+    trusted_entities = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
     return req_session.generate_sqlalchemy_response(200, trusted_entities)
 
 

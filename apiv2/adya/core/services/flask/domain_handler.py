@@ -54,7 +54,7 @@ class TrustedEntities(Resource):
             return req_error
 
         trusted_entities = domain_controller.create_trusted_entities_for_a_domain(req_session.get_auth_token(), req_session.get_body())
-        return req_session.generate_sqlalchemy_response(201, trusted_entities)
+        return req_session.generate_sqlalchemy_response(200, trusted_entities)
 
     def get(self):
         req_session = RequestSession(request)
