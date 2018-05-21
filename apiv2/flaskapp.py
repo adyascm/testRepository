@@ -7,6 +7,7 @@ import db_config
 from adya.common.constants import urls
 
 from adya.core.services.flask import auth_handler, domain_handler, directory_handler, reports_handler, resource_handler, actions_handler, auditlog_handler, policy_handler, alert_handler
+from adya.gsuite import drive_change_notification
 from adya.gsuite.services.flask import oauth_handler, scan_handler, incremental_scan_handler, activities_handler
 from adya.gsuite.services.flask import action_handler
 from adya.slack.services.flask import slack_scan_handler, slack_oauth_handler
@@ -43,10 +44,9 @@ api.add_resource(directory_handler.UserGroupTree, urls.GET_USER_GROUP_TREE_PATH)
 api.add_resource(directory_handler.UserApps, urls.GET_APPS)
 
 # incremental scan
-api.add_resource(incremental_scan_handler.subscribe,
-                 urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
-api.add_resource(incremental_scan_handler.PollChanges,
-                 urls.GDRIVE_PERIODIC_CHANGES_POLL)
+api.add_resource(incremental_scan_handler.subscribe, urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
+api.add_resource(incremental_scan_handler.PollChanges, urls.GDRIVE_PERIODIC_CHANGES_POLL)
+api.add_resource(incremental_scan_handler.process_notifications, urls.PROCESS_DRIVE_NOTIFICATIONS_PATH)
 
 # get file resource data
 api.add_resource(resource_handler.GetResources, urls.GET_RESOURCE_TREE_PATH)
