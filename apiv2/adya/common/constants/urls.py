@@ -24,6 +24,7 @@ GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 GET_ACTIVITIES_FOR_USER_PATH = '/google/getactivitiesforuser'
 
+GET_USERS_LIST_PATH = "/common/users"
 GET_USER_GROUP_TREE_PATH = "/common/getusergrouptree"
 GET_APPS = "/common/getappsdata"
 GET_RESOURCE_TREE_PATH = "/common/getresourcetree"

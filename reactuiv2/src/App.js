@@ -12,7 +12,7 @@ import NewLogin from './components/NewLogin'
 import ManageDataSources from './components/Setting/ManageDataSources.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
-import Users from './components/Users/Users.js'
+import UserListNew from './components/Users/UserListNew.js'
 import Apps from './components/UserApp/Apps.js'
 import Policy from './components/Policy/Policy.js'
 import Alert from './components/Alert'
@@ -84,7 +84,8 @@ class App extends Component {
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
               <Route exact path="/login" component={NewLogin} />
               <Route exact path="/" component={SecuredView(DataSourceVerifiedView(Dashboard))} />
-              <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} />
+              {/* <Route path="/users" component={SecuredView(DataSourceVerifiedView(Users))} /> */}
+              <Route path="/users" component={SecuredView(DataSourceVerifiedView(UserListNew))} />
               <Route path="/resources" component={SecuredView(DataSourceVerifiedView(Resources))} />
               <Route path="/reports" component={SecuredView(DataSourceVerifiedView(Reports))} />
               <Route path="/datasources" component={SecuredView(ManageDataSources)} />

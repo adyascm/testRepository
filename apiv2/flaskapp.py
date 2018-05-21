@@ -39,6 +39,7 @@ api.add_resource(scan_handler.GetUserApp, urls.SCAN_USERS_APP)
 api.add_resource(domain_handler.datasource, urls.GET_DATASOURCE_PATH)
 api.add_resource(domain_handler.asyncdatasourcedelete, urls.ASYNC_DELETE_DATASOURCE_PATH)
 ## get user group tree
+api.add_resource(directory_handler.UsersList, urls.GET_USERS_LIST_PATH)
 api.add_resource(directory_handler.UserGroupTree, urls.GET_USER_GROUP_TREE_PATH)
 api.add_resource(directory_handler.UserApps, urls.GET_APPS)
 

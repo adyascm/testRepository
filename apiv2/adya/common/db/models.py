@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float, and_
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 from datetime import date, datetime
@@ -111,6 +111,9 @@ class DomainUser(Base):
     aliases = Column(Text)
     member_type = Column(String(6))
     customer_id = Column(String(255))
+    
+    groups = relationship("DomainGroup", secondary="domain_directory_structure", primaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DomainUser.email==DirectoryStructure.member_email)", 
+    secondaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DirectoryStructure.parent_email==DomainGroup.email)")
 
 
 class Resource(Base):

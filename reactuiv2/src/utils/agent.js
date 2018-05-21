@@ -70,6 +70,8 @@ const Dashboard = {
 }
 
 const Users = {
+    getUsersList: () =>
+        requests.get('/common/users'),
     getUsersTree: () =>
         requests.get('/common/getusergrouptree')
 }
