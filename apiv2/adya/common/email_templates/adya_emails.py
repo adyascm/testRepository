@@ -1,7 +1,7 @@
 from adya.common.constants import constants
 from adya.common.utils import aws_utils, utils
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, DomainUser, Resource, DataSource
+from adya.common.db.models import LoginUser, DomainUser, Resource, DataSource, ResourcePermission
 from adya.core.controllers import reports_controller
 from sqlalchemy import or_, and_
 import pystache
@@ -171,13 +171,28 @@ def send_clean_files_email(datasource_id,user_email):
         Logger().exception("Exception occurred sending clean files email")
         return False
 
-def send_policy_violate_email(user_email,policy,resource):
+def send_policy_violate_email(user_email,policy,resource,new_permissions):
     try:
+        db_session = db_connection.get_session()
+        resource_owner = db_session.query(DomainUser).filter(resource.datasource_id == DomainUser.datasource_id, DomainUser.email == resource.resource_owner_id)
         template_name = "policy_violation"
+        permissions_map = {
+            "owner": "Owner",
+            "writer": "Can Write",
+            "reader": "Can Read"
+        }
+        permissions = []
+        for permission in new_permissions:
+            user_name = permission.email
+            permission_str = user_name + " " + permissions_map[permission.permission_type]
+            permissions.append(permission_str)
+
         template_parameters = {
             "policy_name": policy.name,
             "document_name": resource["resource_name"],
-            "modifying_user": resource["last_modifying_user_email"]
+            "modifying_user": resource["last_modifying_user_email"],
+            "owner_name": resource_owner.first_name,
+            "permissions": permissions
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "Policy Violated"
