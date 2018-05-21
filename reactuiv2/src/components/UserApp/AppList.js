@@ -44,7 +44,7 @@ class AppList extends Component {
             for(let appkey in searchData)
             {
                 var app = searchData[appkey]
-                var appName = app.display_text;
+                var appName = app.display_text.length > 25 ? app.display_text.slice(0,25) : app.display_text
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 var color = app.score < 1 ? 'grey' : (app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow'))
 
