@@ -48,7 +48,7 @@ class SlackDataSourceItem extends Component {
       super();
       this.addNewDatasource = (datasourceName, datasorceType) => ev => {
           ev.preventDefault();
-              oauth.authenticateSlack("slack_read_scopes").then(data => {
+              oauth.authenticateSlack("slack_read_scopes", this.props.token).then(data => {
                   this.props.setDataSources(agent.Setting.getDataSources());
               }).catch(({ errors }) => {
                 this.props.onDataSourceLoadError()
