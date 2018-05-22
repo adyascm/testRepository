@@ -104,7 +104,7 @@ class GsuiteDataSourceItem extends Component {
             }
 
 
-            var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
+            var datasourceImage = <Image floated='left' size='mini' src='/images/google_logo.png' />
             if (datasource.is_dummy_datasource)
                 datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
             return (

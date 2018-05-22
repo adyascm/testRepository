@@ -95,7 +95,7 @@ class SlackDataSourceItem extends Component {
           statusText = "Scan is complete."
           progressBar = (<Progress size='small' precision='0' percent={percent} success />);
       }
-
+      var datasourceImage = <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
       return (
           <Card fluid >
               <Dimmer active={datasource.isDeleting} inverted>
@@ -140,8 +140,6 @@ class SlackDataSourceItem extends Component {
 
     }
     else{
-
-        var datasourceImage = <Image floated='left' size='small' src='/images/GSuite.png' />
         var header = (<Header>Adya for Slack </Header>);
         var detail = (<Container>
             Learn more about Adya for slack <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
