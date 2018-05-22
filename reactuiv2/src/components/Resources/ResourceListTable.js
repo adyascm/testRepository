@@ -244,11 +244,11 @@ class ResourcesListTable extends Component {
             tableRowData = resourceData.map(rowData => {
                 var dsImage = null;
                 if (rowData.datasource_id) {
-                    dsImage = <Image inline floated='right' size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
+                    dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
                 }
                 return (
                     <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell >{dsImage}</Table.Cell>
+                        <Table.Cell textAlign='center' >{dsImage}</Table.Cell>
                         <Table.Cell width='3' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_owner_id"]}</Table.Cell>
