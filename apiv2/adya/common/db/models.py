@@ -257,6 +257,7 @@ class Application(Base):
     anonymous = Column(Boolean, default=True)
     scopes = Column(Text)
     score = Column(Float)
+    timestamp = Column(DateTime)
 
 
 class ApplicationUserAssociation(Base):

@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder, \
-    Application
+    Application, ApplicationUserAssociation, DirectoryStructure
 
 from adya.common.db.connection import db_connection
 
@@ -25,6 +25,7 @@ def start_slack_scan(auth_token, datasource_id, domain_id):
     messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
     messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
     messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
+    messaging.trigger_get_event(urls.SCAN_SLACK_APPS, auth_token, query_params, "slack")
 
 
 def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None):
@@ -75,10 +76,8 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
         for member in members_data:
             channels_count = channels_count + 1
             user = {}
-            if member['deleted']:
+            if member['deleted'] or member['is_bot']:
                 continue
-            if member['is_bot']:
-                app_list = process_apps(datasource_id, member, app_list)
             profile_info = member['profile']
             user['datasource_id'] = datasource_id
             if 'email' in profile_info:
@@ -101,25 +100,12 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
 
             user_list.append(user)
         db_session.bulk_insert_mappings(DomainUser, user_list)
-        db_session.bulk_insert_mappings(Application, app_list)
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_user_count, channels_count, None, True)
     except Exception as ex:
         db_session.rollback()
         # get_and_update_scan_count(datasource_id, DataSource.total_group_count, 0, None, True)
         Logger().exception("Exception occurred while processing data for slack users ex: {}".format(ex))
-
-def process_apps(datasource_id, member, app_list):
-    # user app association is not required because all userss of a team can have access to that app.
-    app = {}
-    app["datasource_id"] = datasource_id
-    profile = member['profile']
-    app["client_id"] = profile['bot_id']
-    app["display_text"] = profile["real_name"]
-    app["scopes"] = "users:read"
-
-    app_list.append(app)
-    return app_list
 
 
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
@@ -176,11 +162,13 @@ def process_slack_channels(datasource_id, channel_data):
     db_session = db_connection().get_session()
     try:
         group_list = []
+        domain_directory_list = []
         channel_list = channel_data["channels"]
         channel_count = 0
         for channel in channel_list:
             channel_count = channel_count + 1
             group = {}
+
             group['datasource_id'] = datasource_id
             # TODO: Field that should store whether channel is private for public
             group['group_id'] = channel['id']
@@ -190,7 +178,21 @@ def process_slack_channels(datasource_id, channel_data):
             group['include_all_user'] = channel['is_general'] if 'is_general' in channel_list else None
             group_list.append(group)
 
+            creator = channel["creator"]
+            group_members = channel["members"]
+            for member in group_members:
+                domain_directory_struct = {}
+                domain_directory_struct['datasource_id'] = datasource_id
+                domain_directory_struct['parent_email'] = channel['id']
+                domain_directory_struct['member_email'] = member
+                domain_directory_struct['member_id'] = member
+                domain_directory_struct['member_role'] = "ADMIN" if creator == member else "MEMBER"
+                domain_directory_struct["member_type"] = "USER"
+
+                domain_directory_list.append(domain_directory_struct)
+
         db_session.bulk_insert_mappings(DomainGroup, group_list)
+        db_session.bulk_insert_mappings(DirectoryStructure, domain_directory_list)
 
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_group_count, channel_count, None, True)
@@ -279,7 +281,8 @@ def process_slack_files(datasource_id, file_list):
             highest_permission_exposure = constants.ResourceExposureType.DOMAIN if shared_in_channel else (
                 constants.ResourceExposureType.INTERNAL if shared_in_private_group else constants.ResourceExposureType.PRIVATE)
 
-            resource_exposure_type = slack_utils.get_resource_exposure_type(highest_permission_exposure, resource_exposure_type)
+            resource_exposure_type = slack_utils.get_resource_exposure_type(highest_permission_exposure,
+                                                                            resource_exposure_type)
 
             resource['exposure_type'] = resource_exposure_type
             resource_list.append(resource)
@@ -309,6 +312,117 @@ def get_resource_permission_map(datasource_id, file, shared_id_list, permission_
     return resource_perms_list
 
 
+def get_slack_apps(auth_token, datasource_id, page=None, change_type=None):
+    try:
+        slack_client = slack_utils.get_slack_client(datasource_id)
+        apps = slack_client.api_call("team.integrationLogs",
+                                     limit=150,
+                                     page=page,
+                                     change_type=slack_utils.AppChangedTypes.REMOVED if (
+                                         change_type == slack_utils.AppChangedTypes.REMOVED)
+                                     else slack_utils.AppChangedTypes.ADDED
+                                     )
+
+        apps_list = apps["logs"]
+        total_apps_count = len(apps_list)
+        sentapp_count = 0
+
+        query_params = {'dataSourceId': datasource_id}
+        if change_type == slack_utils.AppChangedTypes.REMOVED:
+            query_params['change_type'] = slack_utils.AppChangedTypes.REMOVED
+        else:
+            query_params['change_type'] = slack_utils.AppChangedTypes.ADDED
+
+        while sentapp_count < total_apps_count:
+            appsdata = {}
+            appsdata["apps"] = apps_list[sentapp_count:sentapp_count + 30]
+            messaging.trigger_post_event(urls.SCAN_SLACK_APPS, auth_token, query_params, appsdata, "slack")
+            sentapp_count += 30
+
+        paging = apps["paging"]
+        total_pages = paging["pages"]
+        current_page_number = paging["page"]
+        if total_pages > current_page_number:
+            query_params["page"] = current_page_number + 1
+            messaging.trigger_get_event(urls.SCAN_SLACK_APPS, auth_token, query_params, "slack")
+
+        elif change_type != slack_utils.AppChangedTypes.REMOVED:
+            query_params["change_type"] = slack_utils.AppChangedTypes.REMOVED
+            messaging.trigger_get_event(urls.SCAN_SLACK_APPS, auth_token, query_params, "slack")
+
+    except Exception as ex:
+        Logger().exception(
+            "Exception occurred while getting data for slack apps using page: {}".
+                format(page))
+
+
+def slack_process_apps(datasource_id, change_type, apps_data):
+    db_session = db_connection().get_session()
+    try:
+        apps_list = apps_data["apps"]
+        if change_type == slack_utils.AppChangedTypes.ADDED:
+            for app in apps_list:
+                id = app["app_id"] if "app_id" in app else app["service_id"]
+                timestamp = datetime.strptime(datetime.fromtimestamp(int(app["date"])).strftime('%Y-%m-%d %H:%M:%S'),
+                                              '%Y-%m-%d %H:%M:%S')
+                scopes = app["scope"] if "scope" in app else None
+
+                user_id = app["user_id"]
+
+                existing_app = db_session.query(Application).filter(
+                    and_(Application.datasource_id == datasource_id, Application.client_id == id)).first()
+
+                if existing_app:
+                    update_app = db_session.query(Application).filter(
+                        and_(Application.datasource_id == datasource_id, Application.client_id ==
+                             id, Application.timestamp < timestamp)).update({Application.timestamp: timestamp,
+                                                                             Application.scopes: scopes},
+                                                                            synchronize_session='fetch')
+
+                    if update_app:
+                        db_session.query(ApplicationUserAssociation).filter(
+                            and_(ApplicationUserAssociation.datasource_id == datasource_id,
+                                 ApplicationUserAssociation.client_id ==
+                                 id)).update({ApplicationUserAssociation.user_email: user_id},
+                                             synchronize_session='fetch')
+
+                else:
+                    app_obj = Application()
+                    app_obj.datasource_id = datasource_id
+                    app_obj.client_id = id
+                    app_obj.display_text = app["app_type"] if "app_type" in app else app["service_type"]
+                    app_obj.scopes = scopes
+                    app_obj.timestamp = timestamp
+                    db_session.add(app_obj)
+                    db_connection().commit()
+
+                    user_app_obj = ApplicationUserAssociation()
+                    user_app_obj.client_id = id
+                    user_app_obj.datasource_id = datasource_id
+                    user_app_obj.user_email = user_id
+                    db_session.add(user_app_obj)
+                    db_connection().commit()
+
+        elif change_type == slack_utils.AppChangedTypes.REMOVED:
+            for app in apps_list:
+                timestamp = datetime.strptime(datetime.fromtimestamp(int(app["date"])).strftime('%Y-%m-%d %H:%M:%S'),
+                                              '%Y-%m-%d %H:%M:%S')
+                app = db_session.query(Application).filter(and_(Application.datasource_id == datasource_id,
+                                                                Application.timestamp < timestamp)).first()
+                if app:
+                    db_session.query(ApplicationUserAssociation).filter(
+                        and_(ApplicationUserAssociation.datasource_id == datasource_id,
+                             ApplicationUserAssociation.client_id == app.client_id)).delete(synchronize_session=False)
+
+                    db_session.delete(app)
+
+        db_connection().commit()
+
+    except Exception as ex:
+        db_session.rollback()
+        Logger().exception("Exception occurred while processing data for slack apps using ex : {}".format(ex))
+
+
 def get_and_update_scan_count(datasource_id, column_name, column_value, auth_token=None, send_message=False):
     db_session = db_connection().get_session()
     rows_updated = 0
@@ -335,8 +449,18 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 ResourcePermission.datasource_id == datasource_id).all()
 
             for permission in resource_permissions:
-                permission.email = channel_id_and_name_map[permission.email] if permission.email in channel_id_and_name_map \
-                                                                    else permission.email
+                permission.email = channel_id_and_name_map[
+                    permission.email] if permission.email in channel_id_and_name_map \
+                    else permission.email
+
+            domain_directory_struct = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id)
+            for member in domain_directory_struct:
+                member_id = member.member_id
+                existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                                DomainUser.user_id == member_id)).first()
+
+                if not existing_member:
+                    db_session.delete(member)
 
             db_connection().commit()
 

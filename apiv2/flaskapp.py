@@ -93,6 +93,7 @@ api.add_resource(slack_scan_handler.SlackScan, urls.SCAN_SLACK_START)
 api.add_resource(slack_scan_handler.SlackUsers, urls.SCAN_SLACK_USERS)
 api.add_resource(slack_scan_handler.SlackChannels, urls.SCAN_SLACK_CHANNELS)
 api.add_resource(slack_scan_handler.SlackFiles, urls.SCAN_SLACK_FILES)
+api.add_resource(slack_scan_handler.SlackApps, urls.SCAN_SLACK_APPS)
 
 
 if __name__ == '__main__':

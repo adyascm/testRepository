@@ -7,11 +7,11 @@ from adya.slack import auth
 class slack_oauth_request(Resource):
     def get(self):
         req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(False, [], ['scope'])
+        req_error = req_session.validate_authorized_request(False, ['authtoken'], ['scope'])
         if req_error:
             return req_error
 
-        url = auth.request_oauth(req_session.get_req_param('scope'))
+        url = auth.request_oauth(req_session.get_req_param('scope'), req_session.get_req_param('authtoken'))
         return req_session.generate_redirect_response(url)
 
 

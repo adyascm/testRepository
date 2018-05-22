@@ -63,3 +63,4 @@ SCAN_SLACK_START = "/slack/scan/start"
 SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
 SCAN_SLACK_FILES = '/slack/scan/resources'
+SCAN_SLACK_APPS = '/slack/scan/apps'

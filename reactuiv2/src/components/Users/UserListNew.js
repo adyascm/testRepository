@@ -103,19 +103,20 @@ class UserListNew extends Component {
                 if (rowData.photo_url) {
                     avatarImage = <Image inline floated='right' size='mini' src={rowData.photo_url} circular></Image>
                 } else {
-                    avatarImage = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0)}</Label></Image>
+                    avatarImage = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0).toUpperCase()}</Label></Image>
                 }
                 var dsImage = null;
                 if (rowData.datasource_id) {
-                    dsImage = <Image inline floated='right' size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
+                    dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
                 }
+                
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell width='1'>{avatarImage}</Table.Cell>
                         <Table.Cell >{rowData["full_name"]}</Table.Cell>
                         <Table.Cell >{rowData["email"]}</Table.Cell>
-                        <Table.Cell >{dsImage}</Table.Cell>
-                        <Table.Cell >{rowData["is_admin"]}</Table.Cell>
+                        <Table.Cell textAlign="center">{dsImage}</Table.Cell>
+                        <Table.Cell textAlign="center">{rowData["is_admin"] ? <Icon name="checkmark" /> : null}</Table.Cell>
                         <Table.Cell >{rowData["member_type"]}</Table.Cell>
                     </Table.Row>
                 )

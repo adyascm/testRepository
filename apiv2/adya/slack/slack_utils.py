@@ -3,6 +3,8 @@ import uuid
 
 import datetime
 
+from enum import Enum
+
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
 
@@ -67,3 +69,8 @@ def get_resource_exposure_type(permission_exposure, resource_exposure):
     elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK or resource_exposure == constants.ResourceExposureType.DOMAIN):
         resource_exposure = constants.ResourceExposureType.INTERNAL
     return resource_exposure
+
+
+class AppChangedTypes(Enum):
+    ADDED = "added"
+    REMOVED = "removed"

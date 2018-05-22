@@ -7,7 +7,7 @@ import slackclient
 
 from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
-from adya.common.db.models import DataSource, DatasourceCredentials
+from adya.common.db.models import DataSource, DatasourceCredentials, LoginUser
 from adya.common.utils import messaging
 from adya.slack import client_credentials
 
@@ -16,17 +16,17 @@ from adya.common.constants import scopeconstants, constants
 from adya.common.constants import urls
 
 
-def request_oauth(scope):
+def request_oauth(scope, auth_token):
     client_id = client_credentials.client_id
     # try with this client id -  "25151185463.342451215601" (I created slack app for trial)
     scopes = scopeconstants.SLACK_READ_SCOPE
     if scope:
         scopes = scopeconstants.SLACK_SCOPE_DICT[scope]
     return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}&state={2}".\
-                        format(scopes, client_id, scope)
+                        format(scopes, client_id, auth_token)
 
 
-def oauth_callback(auth_code, scope):
+def oauth_callback(auth_code, auth_token):
     auth_code = auth_code
 
     # An empty string is a valid token for this request
@@ -42,6 +42,7 @@ def oauth_callback(auth_code, scope):
     print auth_response
 
     access_token = auth_response['access_token']
+    scopes = auth_response['scope']
 
     # getting the user profile information
     sc = SlackClient(access_token)
@@ -54,7 +55,7 @@ def oauth_callback(auth_code, scope):
     user_email = profile_info['profile']['email']
 
     db_session = db_connection().get_session()
-    login_user = db_utils.get_login_user_from_email(user_email, db_session)
+    login_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     datasource_id = str(uuid.uuid4())
     datasource = DataSource()
     datasource.domain_id = login_user.domain_id
@@ -74,7 +75,7 @@ def oauth_callback(auth_code, scope):
 
     datasource_credentials = DatasourceCredentials()
     datasource_credentials.datasource_id = datasource.datasource_id
-    datasource_credentials.credentials = json.dumps({'domain_id': login_user.domain_id, 'authorize_scope_name': scope, 'token': access_token})
+    datasource_credentials.credentials = json.dumps({'domain_id': login_user.domain_id, 'authorize_scope_name': scopes, 'token': access_token})
     datasource_credentials.created_user = user_email
     db_session.add(datasource_credentials)
     db_connection().commit()
