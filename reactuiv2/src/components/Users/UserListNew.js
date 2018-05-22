@@ -72,6 +72,10 @@ class UserListNew extends Component {
         this.props.onLoad(agent.Users.getUsersList())
     }
 
+    handleRowClick = (event, rowData) => {
+        this.props.selectUserItem(rowData)
+    }
+
     render() {
         
         let tableHeaders = this.state.columnHeaders.map(headerName => {
@@ -91,25 +95,26 @@ class UserListNew extends Component {
         if (usersData)
             tableRowData = usersData.map(rowData => {
                 var avatarImage = null;
-            if (rowData.photo_url) {
-                avatarImage = <Image inline floated='right' size='mini' src={rowData.photo_url} circular></Image>
-            } else {
-                avatarImage = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0)}</Label></Image>
-            }
-            var dsImage = null;
-            if (rowData.datasource_id) {
-                dsImage = <Image inline floated='right' size='mini' src={dsMap[rowData.datasource_id].logo} circular></Image>
-            }
-                return (
-                    <Table.Row key={rowData['email']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell width='1'>{avatarImage}</Table.Cell>
-                        <Table.Cell >{rowData["full_name"]}</Table.Cell>
-                        <Table.Cell >{rowData["email"]}</Table.Cell>
-                        <Table.Cell >{dsImage}</Table.Cell>
-                        <Table.Cell >{rowData["is_admin"]}</Table.Cell>
-                        <Table.Cell >{rowData["member_type"]}</Table.Cell>
-                    </Table.Row>
-                )
+                rowData.full_name = rowData.first_name + " " + rowData.last_name
+                if (rowData.photo_url) {
+                    avatarImage = <Image inline floated='right' size='mini' src={rowData.photo_url} circular></Image>
+                } else {
+                    avatarImage = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0)}</Label></Image>
+                }
+                var dsImage = null;
+                if (rowData.datasource_id) {
+                    dsImage = <Image inline floated='right' size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
+                }
+                    return (
+                        <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
+                            <Table.Cell width='1'>{avatarImage}</Table.Cell>
+                            <Table.Cell >{rowData["full_name"]}</Table.Cell>
+                            <Table.Cell >{rowData["email"]}</Table.Cell>
+                            <Table.Cell >{dsImage}</Table.Cell>
+                            <Table.Cell >{rowData["is_admin"]}</Table.Cell>
+                            <Table.Cell >{rowData["member_type"]}</Table.Cell>
+                        </Table.Row>
+                    )
             })
 
         let dimmer = (
