@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from 'react-router-dom'
 import { connect } from 'react-redux';
-import authenticate from '../utils/oauth';
+import oauth from '../utils/oauth';
 import { Segment, Header, Button, Grid, Image, Divider, Loader, Dimmer, Icon } from 'semantic-ui-react';
 import {
     LOGIN_ERROR,
@@ -36,7 +36,7 @@ class Login extends Component {
         this.signInGoogle = () => ev => {
             ev.preventDefault();
             this.props.onLoginStart()
-            authenticate("login_scope").then(data => {
+            oauth.authenticateGsuite("login_scope").then(data => {
                 this.props.onSignInComplete(data)
             }).catch(({ errors }) => {
                 console.log("login error : ", errors['Failed'])
@@ -59,7 +59,7 @@ class Login extends Component {
             image: "/images/working_with_apps.gif",
             desc: "Review all the installed apps"
         }];
-        
+
     }
 
     componentWillMount(){
@@ -71,7 +71,7 @@ class Login extends Component {
     }
     componentWillUnmount() {
         this.props.onUnload();
-        
+
     }
 
     changeThumbnail(that){
@@ -82,7 +82,7 @@ class Login extends Component {
                 counter: next
             });
         }
-        
+
     }
     runner(that) {
         this.changeThumbnail(that);
@@ -107,7 +107,7 @@ class Login extends Component {
                                     </Header>
                                         <Image size='large' src={this.state.currentThumbnail.image} />
                                         <Header as='h5' color='green' textAlign='center'>
-                                            {this.state.currentThumbnail.desc}    
+                                            {this.state.currentThumbnail.desc}
                                     </Header>
                                     <a target='_blank' href='https://www.adya.io/resources/'>Learn more</a>
                                     </Grid.Column > */}
@@ -115,14 +115,14 @@ class Login extends Component {
                                         <Image verticalAlign='middle' size='medium' src='/images/AdyaLogo.png' />
                                         <h2 textAlign='center' style={{'marginTop': '-5px', 'color':'#f78851'}}>
                                             Manage and secure your SaaS Apps
-                                        </h2>  
+                                        </h2>
                                         {/* <Button compact basic onClick={this.signInGoogle()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false} >
                                             <Button.Content>
                                                 <Image src='/images/Google.png' />
                                             </Button.Content>
                                         </Button> */}
                                         <div onClick={this.props.inProgress || this.props.errorMessage ? null : this.signInGoogle()} style={{'cursor': 'pointer'}}>
-                                            {this.props.inProgress? 
+                                            {this.props.inProgress?
                                                 (<Dimmer active inverted>
                                                     <Loader inverted />
                                                 </Dimmer>) : null}
@@ -141,9 +141,9 @@ class Login extends Component {
                                                     </Button>
                                                     <Button.Or />
                                                 <Button content='SignIn with Microsoft' color='twitter' disabled icon='windows' onClick={this.signInGoogle()} />
-                                            </Button.Group> 
+                                            </Button.Group>
                                         </Segment> */}
-                                    </Grid.Column >              
+                                    </Grid.Column >
                                 </Grid>
                             </Segment>
                         </Grid.Column>

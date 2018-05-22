@@ -24,6 +24,7 @@ GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 GET_ACTIVITIES_FOR_USER_PATH = '/google/getactivitiesforuser'
 
+GET_USERS_LIST_PATH = "/common/users"
 GET_USER_GROUP_TREE_PATH = "/common/getusergrouptree"
 GET_APPS = "/common/getappsdata"
 GET_RESOURCE_TREE_PATH = "/common/getresourcetree"
@@ -41,11 +42,14 @@ GET_AUDITLOG_PATH = '/common/getauditlog'
 
 POLICIES_PATH = '/common/policies'
 POLICIES_VALIDATE_PATH = '/common/policies/validate'
+CREATE_DEFAULT_POLICES_PATH ='/common/policies/default'
 
 ALERTS_PATH = '/common/alerts'
 ALERTS_COUNT_PATH = '/common/alerts/count'
 
 ACTION_PATH = '/google/actions'
+
+TRUSTED_ENTITIES = '/common/trustedentities'
 
 # slack
 SLACK_OAUTH_LOGIN = '/slack/oauthlogin'
@@ -53,8 +57,8 @@ SLACK_OAUTHCALLBACK_PATH = "/slack/oauthcallback"
 
 SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 
-# slack scan
+
 SCAN_SLACK_START = "/slack/scan/start"
 SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
-SCAN_SLACK_FILES = '/slack/scan/files'
+SCAN_SLACK_FILES = '/slack/scan/resources'

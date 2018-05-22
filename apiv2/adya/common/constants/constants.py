@@ -32,6 +32,7 @@ class ResourceExposureType(Enum):
     EXTERNAL = "EXT"
     PUBLIC = "PUBLIC"
     ANYONEWITHLINK = 'ANYONEWITHLINK'
+    TRUSTED = 'TRUST'
 
 
 class PermissionType(Enum):
@@ -42,6 +43,7 @@ class PermissionType(Enum):
 class UserMemberType(Enum):
     INTERNAL = "INT"
     EXTERNAL = "EXT"
+    TRUSTED = 'TRUST'
 
 
 class GroupMemberType(Enum):
@@ -85,6 +87,7 @@ class DocType(Enum):
     EXTERNAL_COUNT = 'Shared with users outside company'
     DOMAIN_COUNT = 'Shared across company'
     ANYONE_WITH_LINK_COUNT = 'Shared public link'
+    TRUSTED = 'Shared with trusted domain'
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
@@ -120,3 +123,7 @@ permission_priority = {
 class TypeOfPushNotificationCallback(Enum):
     DRIVE_CHANGE = 'DRIVE_CHANGE'
     ACTIVITY_CHANGE = 'ACTIVITY_CHANGE'
+
+class ConnectorTypes(Enum):
+    GSUITE = "GSUITE"
+    SLACK = "SLACK"

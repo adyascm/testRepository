@@ -7,6 +7,20 @@ from adya.common.db import db_utils
 from adya.common.utils import utils
 from adya.common.constants import constants
 
+def get_users_list(auth_token):
+    db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token)
+    user_domain_id = login_user.domain_id
+    login_user_email = login_user.email
+    is_admin = login_user.is_admin
+    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
+    
+    datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
+    domain_datasource_ids = [r for r, in datasource_ids]
+    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).all()
+    return users
+
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)

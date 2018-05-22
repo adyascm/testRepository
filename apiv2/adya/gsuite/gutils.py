@@ -1,16 +1,23 @@
+import csv
+import uuid
+
+import datetime
 from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
 import json
 import requests
+from sqlalchemy import Boolean
 
-from adya.common.constants import constants
+from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, Domain
+from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainGroup, DomainUser
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants import constants
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
 import os
 import httplib2
+
+from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
@@ -126,14 +133,15 @@ def check_if_serviceaccount_enabled(emailid):
     return False
 
 
-def check_if_user_isamdin(auth_token, user_email=None, db_session = None):
+def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
     try:
         directory_service = get_directory_service(auth_token, user_email, db_session)
         users = directory_service.users().get(userKey=user_email).execute()
-        return True
+        return ""
     except Exception as ex:
+        ex_msg = json.loads(ex.content)["error"]["message"]
         Logger().exception("Exception occurred while checking if user is admin")
-    return False
+        return ex_msg
 
 
 def check_if_external_user(db_session, domain_id, email):
@@ -159,3 +167,15 @@ def get_resource_exposure_type(permission_exposure, highest_exposure):
     elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
         highest_exposure = constants.ResourceExposureType.INTERNAL
     return highest_exposure
+
+
+
+def get_app_score(scopes):
+    max_score = 0
+    for scope in scopes:
+        if scope in GOOGLE_API_SCOPES:
+            score = GOOGLE_API_SCOPES[scope]['score']
+            if score > max_score:
+                max_score = score
+
+    return max_score

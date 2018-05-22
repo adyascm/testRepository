@@ -108,6 +108,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
                 public_count = share_type[1]
             elif share_type[0] == constants.ResourceExposureType.DOMAIN:
                 domain_count = share_type[1]
+
         data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count], [constants.DocType.EXTERNAL_COUNT, external_count], [constants.DocType.DOMAIN_COUNT, domain_count]]
         data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count
 

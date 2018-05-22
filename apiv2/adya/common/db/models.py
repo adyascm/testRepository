@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float
+from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float, and_
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import relationship
 from datetime import date, datetime
@@ -111,6 +111,9 @@ class DomainUser(Base):
     aliases = Column(Text)
     member_type = Column(String(6))
     customer_id = Column(String(255))
+    
+    groups = relationship("DomainGroup", secondary="domain_directory_structure", primaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DomainUser.email==DirectoryStructure.member_email)", 
+    secondaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DirectoryStructure.parent_email==DomainGroup.email)")
 
 
 class Resource(Base):
@@ -337,3 +340,20 @@ class PolicyAction(Base):
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
                          'policy.datasource_id', 'policy.policy_id']),
     )
+
+
+class DatasourceCredentials(Base):
+    __tablename__ = 'datasource_credentials'
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    credentials = Column(Text)
+    created_user = Column(String(320))
+
+
+class TrustedEntities(Base):
+    __tablename__ = "trusted_entities"
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trusted_domains = Column(Text)
+    trusted_apps = Column(Text)

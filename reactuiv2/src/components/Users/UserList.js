@@ -72,6 +72,10 @@ class UserList extends Component {
                     if (rowItem.member_type !== 'INT')
                         continue
                 }
+                else if (this.state.showMemberType === 'TRUSTED' || this.props.showMemberType === 'TRUSTED') {
+                  if (rowItem.member_type !== 'TRUSTED')
+                    continue
+                }
                 if (rowItem.type === "group") {
                     continue;
                 }
@@ -88,7 +92,7 @@ class UserList extends Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        if (nextProps.groupSearchPayload && (!this.state.displaySearchData ||  
+        if (nextProps.groupSearchPayload && (!this.state.displaySearchData ||
             (nextProps.showMemberType !== this.state.showMemberType))) {
             let rows = [],sorted_rows = []
             let keys = Object.keys(nextProps.groupSearchPayload)
@@ -155,7 +159,7 @@ class UserList extends Component {
         else {
             this.setTreeRows();
         }
-        
+
         return null
     }
 }
