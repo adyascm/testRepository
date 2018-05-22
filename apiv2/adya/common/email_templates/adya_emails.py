@@ -195,7 +195,7 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
             "permissions": permissions
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "Policy Violated"
+        email_subject = "A policy on Adya platform is violated - " + policy.name
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:

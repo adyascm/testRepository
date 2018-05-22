@@ -136,8 +136,7 @@ def validate(auth_token, datasource_id, payload):
 
 
 def validate_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
-    Logger().info("validating policy")
-    Logger().info("validate_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
+    Logger().info("validating_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME:
@@ -151,8 +150,6 @@ def validate_policy(db_session, auth_token, datasource_id, policy, resource, new
             for permission in new_permissions:
                 is_permission_violated = is_permission_violated | check_value_violation(policy_condition, permission["email"])
             is_violated = is_violated & is_permission_violated
-
-    Logger().info("validate_policy : is_violated - {}".format(is_violated))
 
     if is_violated:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
@@ -183,7 +180,8 @@ def create_default_policies(auth_token, datasource_id):
     login_user = db_utils.get_user_session(auth_token).email    
     for policy in default_policies.default_policies:
         policy['datasource_id'] = datasource_id
-        policy["actions"][0]["config"]["to"] = login_user
+        if len(policy["actions"]) > 0:
+            policy["actions"][0]["config"]["to"] = login_user
         policy["created_by"] = login_user
         create_policy(auth_token, policy)
     return
