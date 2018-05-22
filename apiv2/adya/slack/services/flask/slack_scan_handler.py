@@ -94,3 +94,30 @@ class SlackFiles(Resource):
                            req_session.get_req_param('nextPageNumber'))
 
         return req_session.generate_response(202)
+
+
+class SlackApps(Resource):
+    def post(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId'],['change_type'])
+        if req_error:
+            return req_error
+
+        scan.slack_process_apps(req_session.get_req_param('dataSourceId'), req_session.get_req_param('change_type'),
+                                req_session.get_body())
+        return req_session.generate_response(202)
+
+    def get(self):
+        req_session = RequestSession(request)
+        req_error = req_session.validate_authorized_request(
+            True, ['dataSourceId'], ['page','change_type'])
+        if req_error:
+            return req_error
+
+        scan.get_slack_apps(req_session.get_auth_token(),
+                           req_session.get_req_param('dataSourceId'),
+                           req_session.get_req_param('page'),
+                            req_session.get_req_param('change_type'))
+
+        return req_session.generate_response(202)

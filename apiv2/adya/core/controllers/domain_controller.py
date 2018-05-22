@@ -14,7 +14,7 @@ from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, \
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
     Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
-    Alert
+    Alert, DatasourceCredentials
 
 from adya.gsuite import gutils
 
@@ -128,6 +128,8 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
         db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
         db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+
+        db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
         Logger().info("Datasource deleted successfully")
