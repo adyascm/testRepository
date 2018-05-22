@@ -2,6 +2,7 @@ import {
     USERS_PAGE_LOADED,
     USERS_PAGE_LOAD_START,
     USERS_LIST_PAGE_LOADED,
+    USERS_DOMAIN_STATS_LOADED,
     USER_ITEM_SELECTED,
     USERS_ACTIVITY_LOAD_START,
     USERS_ACTIVITY_LOADED,
@@ -61,6 +62,11 @@ export default (state = defaultState, action) => {
                 isLoadingUsers: false,
                 usersTreePayload: usersTreePayload,
                 groupSearchPayload: undefined
+            }
+        case USERS_DOMAIN_STATS_LOADED:
+            return {
+                ...state,
+                userStats: !action.error?action.payload:[],
             }
         case USERS_LIST_PAGE_LOADED:
             return {

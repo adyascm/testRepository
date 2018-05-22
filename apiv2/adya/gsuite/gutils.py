@@ -110,12 +110,6 @@ def get_file_type_from_mimetype(mime_type):
     return type
 
 
-def get_domain_name_from_email(email):
-    index_of_strudel_from_last = len(email) - email.index('@')
-    domain_name = email[-index_of_strudel_from_last + 1:]
-    return domain_name
-
-
 def get_oauth_service(credentials):
     service = discovery.build('oauth2', 'v2', credentials=credentials)
     return service
