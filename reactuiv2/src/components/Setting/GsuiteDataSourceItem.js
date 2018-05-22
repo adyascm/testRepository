@@ -179,7 +179,7 @@ class GsuiteDataSourceItem extends Component {
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
-                            <Button basic color='green' disabled={this.newDataSourceName !== "" ? true : false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>{buttonText}</Button>
+                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>{buttonText}</Button>
                         </div>
                     </Card.Content>
                 </Card>

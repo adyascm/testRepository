@@ -79,12 +79,12 @@ class ManageDataSources extends Component {
     let moreConnectors = null;
     if (disconnectedSources.length > 0) {
       moreConnectors = (
-        <Container>
+        <div>
           <Divider horizontal>Available Connectors</Divider>
           <Card.Group itemsPerRow='1'>
             {disconnectedSources}
           </Card.Group>
-        </Container>);
+        </div>);
     }
     return (
       <Container>

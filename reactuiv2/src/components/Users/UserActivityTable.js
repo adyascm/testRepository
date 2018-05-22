@@ -40,14 +40,14 @@ class UserActivityTable extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem && !this.props.selectedUserItem.activities) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Activity.getActivitiesForUser(this.props.selectedUserItem["key"]))
+            this.props.onLoad(agent.Activity.getActivitiesForUser(this.props.selectedUserItem["email"]))
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.selectedUserItem["key"] !== nextProps.selectedUserItem["key"] && !nextProps.selectedUserItem.activities) {
+        if (this.props.selectedUserItem["email"] !== nextProps.selectedUserItem["email"] && !nextProps.selectedUserItem.activities) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Activity.getActivitiesForUser(nextProps.selectedUserItem["key"]))
+            nextProps.onLoad(agent.Activity.getActivitiesForUser(nextProps.selectedUserItem["email"]))
         }
     }
 

@@ -7,33 +7,33 @@ const UserDetails = props => {
 
     var quickActions = [
         {
-            text: 'Transfer ownership of all documents owned by \"' + props.selectedUserItem['name'] + '\"',
+            text: 'Transfer ownership of all documents owned by \"' + props.selectedUserItem['full_name'] + '\"',
             value: 'transfer_ownership'
         },
         {
-            text: 'Remove access from outside the company for all documents owned by \"' + props.selectedUserItem['name'] + '\"',
+            text: 'Remove access from outside the company for all documents owned by \"' + props.selectedUserItem['full_name'] + '\"',
             value: 'remove_external_access'
         },
         {
-            text: 'Remove access to everyone for all documents owned by \"' + props.selectedUserItem['name'] + '\"',
+            text: 'Remove access to everyone for all documents owned by \"' + props.selectedUserItem['full_name'] + '\"',
             value: 'make_all_files_private'
         },
         {
-          text: 'Remove access to \"' + props.selectedUserItem['name'] + '\" for any documents owned by others',
+          text: 'Remove access to \"' + props.selectedUserItem['full_name'] + '\" for any documents owned by others',
           value: 'remove_all_access'
         },
         {
-            text: 'Get weekly report of all activities for \"' + props.selectedUserItem['name'] + '\"',
+            text: 'Get weekly report of all activities for \"' + props.selectedUserItem['full_name'] + '\"',
             value: 'watch_all_action_for_user'
         },
         {
-            text: 'Send mail to \"' + props.selectedUserItem['name'] + '\" to audit documents',
+            text: 'Send mail to \"' + props.selectedUserItem['full_name'] + '\" to audit documents',
             value: 'notify_user_for_clean_up'   
         }];
 
     var quickActionsforExtUser = [
       {
-        text: 'Remove all access to \"' + props.selectedUserItem['name'] + '\"',
+        text: 'Remove all access to \"' + props.selectedUserItem['full_name'] + '\"',
         value: 'remove_all_access'
       }
 
@@ -41,11 +41,11 @@ const UserDetails = props => {
 
 
     var parentGroups = []
-    for (let index = 0; index < props.selectedUserItem.parents.length; index++) {
-        let parentKey = props.selectedUserItem.parents[index];
+    for (let index = 0; index < props.selectedUserItem.groups.length; index++) {
+        let parentKey = props.selectedUserItem.groups[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>
-                {props.usersTreePayload && props.usersTreePayload[parentKey] && props.usersTreePayload[parentKey].name}
+                {parentKey.name}
                 <Icon name='close' onClick= {() => props.onUserGroupAction('remove_user_from_group', parentKey)}/>
             </Label>
         ))
@@ -62,7 +62,7 @@ const UserDetails = props => {
     if (props.selectedUserItem.photo_url) {
         image = <Item.Image inline floated='right' size='mini' src={props.selectedUserItem.photo_url} circular></Item.Image>
     } else {
-        image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} circular >{props.selectedUserItem.name && props.selectedUserItem.name.charAt(0)}</Label></Item.Image>
+        image = <Item.Image floated='right' size='tiny' ><Label style={{ fontSize: '2rem' }} circular >{props.selectedUserItem.first_name && props.selectedUserItem.first_name.charAt(0)}</Label></Item.Image>
     }
 
     var actionMenu = props.selectedUserItem.member_type === 'EXT' ? quickActionsforExtUser : quickActions
@@ -72,10 +72,10 @@ const UserDetails = props => {
                 {image}
                 <Item.Content >
                     <Item.Header >
-                        {props.selectedUserItem.name}
+                        {props.selectedUserItem.full_name}
                     </Item.Header>
                     <Item.Meta >
-                        {props.selectedUserItem.key}
+                        {props.selectedUserItem.email}
                     </Item.Meta>
                     <Item.Description>
                         <Header size="tiny" floated="left">Member of </Header>

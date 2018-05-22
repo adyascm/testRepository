@@ -74,10 +74,23 @@ export default (state = defaultState, action) => {
     case LOGIN_PAGE_UNLOADED:
       return { ...state, viewChangeCounter: state.viewChangeCounter + 1 };
     case SET_DATASOURCES:
+      var dsList = action.error ? null : action.payload;
+      var map = {};
+      if (dsList) {
+        for (var index in dsList) {
+          let ds = dsList[index];
+          if (ds.datasource_type == "GSUITE")
+            ds.logo = "/images/google_logo.png";
+          else if (ds.datasource_type == "SLACK")
+            ds.logo = "/images/slack_logo.png";
+          map[ds.datasource_id] = ds;
+        }
+      }
       return {
         ...state,
         datasourceLoading: false,
-        datasources: action.error ? null : action.payload,
+        datasources: dsList,
+        datasourcesMap: map,
         currentUrl: !action.payload.length ? "/datasources" : window.location.pathname
       };
     case SCAN_UPDATE_RECEIVED:
@@ -126,22 +139,22 @@ export default (state = defaultState, action) => {
     case CREATE_TRUSTED_ENTITIES:
       return {
         ...state,
-        entitiy : action.error?[]:action.payload,
+        entitiy: action.error ? [] : action.payload,
         errorMessage: action.error
       };
     case SET_TRUSTED_ENTITIES:
-          var error;
-          if(action.error === undefined){
-            error = false
-          }
-          else {
-            error = true
-          }
-          return{
-            ...state,
-            trustedEntities: action.error?[]:action.payload,
-            errorMessage: action.error
-          } ;
+      var error;
+      if (action.error === undefined) {
+        error = false
+      }
+      else {
+        error = true
+      }
+      return {
+        ...state,
+        trustedEntities: action.error ? [] : action.payload,
+        errorMessage: action.error
+      };
     // case USERS_PAGE_LOADED:
     //   return {
     //     ...state,
