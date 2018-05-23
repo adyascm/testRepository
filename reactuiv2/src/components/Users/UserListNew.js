@@ -98,6 +98,10 @@ class UserListNew extends Component {
         this.props.changeFilter(filterType, data.value)
     }
 
+    clearFilter = (event, filterType) => {
+        this.props.changeFilter(filterType, '');
+    }
+
     render() {
 
         let tableHeaders = this.state.columnHeaders.map(headerName => {
@@ -165,10 +169,10 @@ class UserListNew extends Component {
                                         <Table.Row>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by name..." value={this.props.nameColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "nameColumnFilterValue")} />
+                                                <Input fluid placeholder="Filter by name..." icon={this.props.nameColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event,'nameColumnFilterValue')} /> : null} value={this.props.nameColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "nameColumnFilterValue")}/>
                                             </Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by email..." value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
+                                                <Input fluid placeholder="Filter by email..." icon={this.props.emailColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'emailColumnFilterValue')} /> : null} value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
                                             </Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
