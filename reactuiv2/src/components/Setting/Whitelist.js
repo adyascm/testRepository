@@ -72,7 +72,7 @@ class WhitelistItem extends Component {
   render(){
     return(
       <Container>
-        <Header >Trusted domains and apps</Header>
+        <Header >Trusted Domains and Apps</Header>
           <div style={{'marginBottom':'3%'}}>
                 <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}
                   onChange={(e) => this.handlechange('trusted_domains', e)}

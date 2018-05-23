@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header, Container, Divider } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
 import common from '../../utils/common'
 import agent from '../../utils/agent';
 import oauth from '../../utils/oauth';
@@ -19,6 +19,7 @@ import {
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
+    ...state
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -167,13 +168,12 @@ class GsuiteDataSourceItem extends Component {
             }
 
             return (
-                <Card fluid>
+                <Card>
                     <Card.Content>
                         <Header>Adya for GSuite </Header>
-                        <Image floated='left' size='mini' src='/images/google_logo.png' />
+                        
                         <Card.Description>
-                            {/* {header}
-                                    <Divider /> */}
+                            <Image floated='left' size='mini' src='/images/google_logo.png' />
                             {detail}
                         </Card.Description>
                     </Card.Content>
@@ -188,4 +188,4 @@ class GsuiteDataSourceItem extends Component {
     }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(GsuiteDataSourceItem);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(GsuiteDataSourceItem));

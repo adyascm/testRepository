@@ -101,9 +101,9 @@ class UserListNew extends Component {
                 var avatarImage = null;
                 rowData.full_name = rowData.first_name + " " + rowData.last_name
                 if (rowData.photo_url) {
-                    avatarImage = <Image inline floated='right' size='mini' src={rowData.photo_url} circular></Image>
+                    avatarImage = <Image inline size='mini' src={rowData.photo_url} circular></Image>
                 } else {
-                    avatarImage = <Image floated='right' size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0).toUpperCase()}</Label></Image>
+                    avatarImage = <Image size='tiny' ><Label style={{ fontSize: '1.5rem' }} circular >{rowData.first_name.charAt(0).toUpperCase()}</Label></Image>
                 }
                 var dsImage = null;
                 if (rowData.datasource_id) {

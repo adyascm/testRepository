@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Card, Image, Dimmer, Loader, Progress, Label, Header, Container, Divider } from 'semantic-ui-react'
 import { IntlProvider, FormattedDate } from 'react-intl'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
 import common from '../../utils/common'
 import agent from '../../utils/agent';
 import oauth from '../../utils/oauth';
@@ -151,7 +151,6 @@ class SlackDataSourceItem extends Component {
                     {header}
                     <Card.Description>
                         <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
-
                         {detail}
                     </Card.Description>
                 </Card.Content>
@@ -166,4 +165,4 @@ class SlackDataSourceItem extends Component {
   }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SlackDataSourceItem);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SlackDataSourceItem));

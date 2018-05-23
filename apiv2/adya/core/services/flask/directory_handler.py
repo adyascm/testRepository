@@ -10,7 +10,7 @@ class UserStats(Resource):
         if req_error:
             return req_error
         stats = directory_controller.get_user_stats(req_session.get_auth_token())
-        return req_session.generate_response(200, stats)
+        return req_session.generate_sqlalchemy_response(200, stats)
 
 class UsersList(Resource):
     def get(self):
