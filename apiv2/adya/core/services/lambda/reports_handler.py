@@ -1,4 +1,6 @@
 import json
+
+from adya.common.constants import urls
 from adya.core.controllers import reports_controller, directory_controller, resource_controller, domain_controller
 from adya.common.utils import aws_utils
 from adya.common.utils.request_session import RequestSession
@@ -113,7 +115,7 @@ def post_scheduled_report(event, context):
     cron_expression = report.frequency
     report_id = report.report_id
     payload = {'report_id': report_id}
-    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', urls.GET_SCHEDULED_REPORT_PATH)
 
     aws_utils.create_cloudwatch_event(report_id, cron_expression, function_name, payload)
 
@@ -131,7 +133,7 @@ def modify_scheduled_report(event, context):
     report_id = update_record['report_id']
     frequency = update_record['frequency']
     payload = {'report_id': report_id}
-    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', urls.GET_SCHEDULED_REPORT_PATH)
     aws_utils.create_cloudwatch_event(report_id, frequency, function_name, payload)
     return req_session.generate_sqlalchemy_response(201, update_record)
 
@@ -144,7 +146,7 @@ def delete_scheduled_report(event, context):
     deleted_report = reports_controller.delete_report(req_session.get_auth_token(),
                                                       req_session.get_req_param('reportId'))
 
-    function_name = aws_utils.get_lambda_name('get', 'executescheduledreport')
+    function_name = aws_utils.get_lambda_name('get', urls.GET_SCHEDULED_REPORT_PATH)
     aws_utils.delete_cloudwatch_event(deleted_report.report_id, function_name)
     return req_session.generate_response(200)
 
