@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Search, Icon } from 'semantic-ui-react'
 
 import { connect } from 'react-redux';
+import agent from '../../utils/agent';
 
 import {
     GROUP_SEARCH_PAYLOAD,
@@ -30,7 +31,7 @@ class GroupSearch extends Component {
             isLoading: false,
             value: this.props.defaultValue ? this.props.defaultValue : '',
             results: [],
-            resultsMap: {},
+            //resultsMap: {},
             hideSearchMenu: true,
             showNoResults: false
         }
@@ -48,7 +49,7 @@ class GroupSearch extends Component {
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
     handleResultSelect = (e, { result }) => {
-        this.props.onsearchLoad(this.state.resultsMap)
+        //this.props.onsearchLoad(this.state.resultsMap)
         this.props.setSelectedUser(result)
         if (this.props.onChangeReportInput) {
           var entityinfokey = ["selected_entity",  "selected_entity_name"]
@@ -81,30 +82,19 @@ class GroupSearch extends Component {
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
-            const re = new RegExp(this.state.value, 'i')
-
-            var results = [];
-            var resultsMap = {}
-            var keys = Object.keys(this.props.users.usersTreePayload)
-            for (let index = 0; index < keys.length; index++) {
-                let row = this.props.users.usersTreePayload[keys[index]]
-                if (keys[index].match(re)) {
-                    results.push(row);
-                    resultsMap[keys[index]] = row
-                }
-            }
-            this.setState({
-                isLoading: false,
-                results: results,
-                resultsMap: resultsMap,
-                showNoResults: results.length > 0 ? false : true
-            })
+            agent.Users.getUsersList("", this.state.value, "").then(res => {
+                this.setState({
+                    isLoading: false,
+                    results: res,
+                    showNoResults: res.length > 0 ? false : true
+                });
+            });
         }, 1000)
     }
 
     handleKeyPress = (event) => {
         if (event.key === 'Enter') {
-            this.props.onsearchLoad(this.state.resultsMap)
+            //this.props.onsearchLoad(this.state.resultsMap)
             this.props.setSelectedUser(undefined)
             this.setState({
                 hideSearchMenu: true,
@@ -137,7 +127,7 @@ class GroupSearch extends Component {
                 open={!this.state.hideSearchMenu}
                 showNoResults={this.state.showNoResults}
                 fluid={true}
-                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} / > : 'search'}
+                icon={(this.state.results.length > 0 || this.state.showNoResults) ? <Icon link name='close' onClick={this.clearSearchResult} /> : 'search'}
             />
         )
     }

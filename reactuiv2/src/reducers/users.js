@@ -39,9 +39,9 @@ const defaultState = {
     userFilterType: 'EXT',
     hasGroups: false,
     filterExposureType: 'EXT',
-    filterUserName: '',
-    filterUserEmail: '',
-    filterUserType: 'EXT'
+    nameColumnFilterValue: "", 
+    emailColumnFilterValue: "", 
+    typeColumnFilterValue: "EXT"
 }
 
 

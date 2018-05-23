@@ -52,41 +52,41 @@ class UserListNew extends Component {
             },
             columnNameClicked: undefined,
             sortOrder: undefined,
-            nameFilterValue: '',
-            emailFilterValue: '',
-            typeFilterValue: 'EXT'
+            nameColumnFilterValue: this.props.nameColumnFilterValue,
+            emailColumnFilterValue: this.props.emailColumnFilterValue,
+            typeColumnFilterValue: this.props.typeColumnFilterValue
         }
 
         this.exposureFilterOptions = [
             {
-                text: 'External Users',
+                text: 'All',
+                value: ''
+            },
+            {
+                text: 'External',
                 value: 'EXT'
             },
             {
-                text: 'Internal Users',
+                text: 'Internal',
                 value: 'INT'
             },
             {
-                text: 'Trusted Domain Users',
+                text: 'Trusted',
                 value: 'TRUST'
-            },
-            {
-                text: 'All Users',
-                value: 'ALL'
             }
         ]
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList(this.props.filterUserName, this.props.filterUserEmail, this.props.filterUserType))
+        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.filterUserName !== this.props.filterUserName || nextProps.filterUserEmail !== this.props.filterUserEmail ||
-            nextProps.filterUserType !== this.props.filterUserType) {
+        if (nextProps.nameColumnFilterValue !== this.props.nameColumnFilterValue || nextProps.emailColumnFilterValue !== this.props.emailColumnFilterValue ||
+            nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(nextProps.filterUserName, nextProps.filterUserEmail, nextProps.filterUserType))
+            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue))
         }
     }
 
@@ -94,35 +94,8 @@ class UserListNew extends Component {
         this.props.selectUserItem(rowData)
     }
 
-    handleNameChange = (event, data) => {
-        if (!data.value.length)
-            this.props.changeFilter('filterUserName', '')
-        this.setState({
-            nameFilterValue: data.value
-        })
-    }
-
-    handleEmailChange = (event, data) => {
-        if (!data.value.length)
-            this.props.changeFilter('filterUserEmail', '')
-        this.setState({
-            emailFilterValue: data.value
-        })
-    }
-
-    handleTypeChange = (event, data) => {
-        let userType = data.value
-        if (data.value === 'ALL')
-            userType = ''
-        this.props.changeFilter('filterUserType', userType)
-        this.setState({
-            typeFilterValue: data.value
-        })
-    }
-
-    handleKeyPress = (event, filterType) => {
-        if (event.key === 'Enter')
-            this.props.changeFilter(filterType, event.target.value)
+    handleColumnFilterChange = (event, data, filterType) => {
+        this.props.changeFilter(filterType, data.value)
     }
 
     render() {
@@ -157,7 +130,7 @@ class UserListNew extends Component {
                 
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell width='1'>{avatarImage}</Table.Cell>
+                        <Table.Cell textAlign="center" >{avatarImage}</Table.Cell>
                         <Table.Cell >{rowData["full_name"]}</Table.Cell>
                         <Table.Cell >{rowData["email"]}</Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
@@ -192,10 +165,10 @@ class UserListNew extends Component {
                                         <Table.Row>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by name..." value={this.state.nameFilterValue} onChange={this.handleNameChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserName')} />
+                                                <Input fluid placeholder="Filter by name..." value={this.props.nameColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "nameColumnFilterValue")} />
                                             </Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by email..." value={this.state.emailFilterValue} onChange={this.handleEmailChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserEmail')} />
+                                                <Input fluid placeholder="Filter by email..." value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
                                             </Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
@@ -204,8 +177,8 @@ class UserListNew extends Component {
                                                     fluid
                                                     options={this.exposureFilterOptions}
                                                     selection
-                                                    value={this.state.typeFilterValue}
-                                                    onChange={this.handleTypeChange}
+                                                    value={this.props.typeColumnFilterValue}
+                                                    onChange={(event, data) => this.handleColumnFilterChange(event, data, "typeColumnFilterValue")}
                                                 />
                                             </Table.Cell>
                                         </Table.Row>
