@@ -265,7 +265,7 @@ def get_reports(auth_token):
             "report_id": report.report_id,
             "name": report.name,
             "description": report.description,
-            "frequency": report.frequency[5:len(report.frequency) - 1],
+            "frequency": report.frequency,
             "receivers": report.receivers,
             "creation_time": report.creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_trigger_time": last_trigger_time,

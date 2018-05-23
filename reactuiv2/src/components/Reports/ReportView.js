@@ -12,13 +12,14 @@ const ReportView = props => {
     if (reports != undefined && !props.getReportError) {
       var keys = Object.keys(reports)
       var reportCard = []
-      
+
       for (let index=0; index<keys.length; index++) {
         let reportDetail = reports[keys[index]]
         var interval ='';
         var quartzstr = '';
         if(reportDetail.frequency !== undefined){
-          var quartzli = cronQuartz.getQuartz(reportDetail.frequency);
+          var reportsFrequency = (reportDetail.frequency.split("("))[1].split(")")[0]
+          var quartzli = cronQuartz.getQuartz(reportsFrequency);
 
           if(quartzli[0][5] && quartzli[0][5] !== '*' && quartzli[0][5] !== '?'){
             quartzli[0][5] = quartzli[0][5] -2
