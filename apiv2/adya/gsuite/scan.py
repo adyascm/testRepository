@@ -259,7 +259,7 @@ def getDomainUsers(datasource_id, auth_token, domain_id, next_page_token):
     starttime = time.time()
     while True:
         try:
-            results = directory_service.users().list(customer='my_customer', maxResults=500, pageToken=next_page_token,
+            results = directory_service.users().list(customer='my_customer', maxResults=50, pageToken=next_page_token,
                                                      orderBy='email').execute()
 
             data = {"usersResponseData": results["users"]}
@@ -358,7 +358,7 @@ def getDomainGroups(datasource_id, auth_token, domain_id, next_page_token):
     starttime = time.time()
     while True:
         try:
-            results = directory_service.groups().list(customer='my_customer', maxResults=500,
+            results = directory_service.groups().list(customer='my_customer', maxResults=50,
                                                       pageToken=next_page_token).execute()
 
             if not "groups" in results:
@@ -430,8 +430,8 @@ def get_group_data(auth_token, domain_id,datasource_id,group_keys):
     processed_group_count =0
     total_no_of_group = len(group_keys)
     while processed_group_count <= total_no_of_group:
-        hundred_group = group_keys[processed_group_count:processed_group_count+100]
-        processed_group_count +=100
+        hundred_group = group_keys[processed_group_count:processed_group_count+50]
+        processed_group_count +=50
         group_class = GroupData(auth_token, domain_id,datasource_id,hundred_group)
         group_class.get_group_members()
 

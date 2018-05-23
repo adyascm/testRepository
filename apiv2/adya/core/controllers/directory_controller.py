@@ -62,7 +62,7 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None):
     domain_datasource_ids = [r for r, in datasource_ids]
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     if user_name:
-        users_query = users_query.filter(DomainUser.full_name.ilike("%" + user_name + "%"))
+        users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%"))
     if user_email:
         users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%"))
     if user_type:
