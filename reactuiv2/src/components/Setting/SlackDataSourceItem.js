@@ -150,7 +150,7 @@ class SlackDataSourceItem extends Component {
                 <Card.Content>
                     {header}
                     <Card.Description>
-                        <Image floated='left' size='mini' src='/images/slack_logo128x128.png' />
+                        <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
 
                         {detail}
                     </Card.Description>
