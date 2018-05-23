@@ -72,7 +72,7 @@ class UserListNew extends Component {
             },
             {
                 text: 'All Users',
-                value: ''
+                value: 'ALL'
             }
         ]
     }
@@ -111,7 +111,10 @@ class UserListNew extends Component {
     }
 
     handleTypeChange = (event, data) => {
-        this.props.changeFilter('filterUserType', data.value)
+        let userType = data.value
+        if (data.value === 'ALL')
+            userType = ''
+        this.props.changeFilter('filterUserType', userType)
         this.setState({
             typeFilterValue: data.value
         })
