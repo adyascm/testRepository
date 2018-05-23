@@ -10,17 +10,17 @@ function listenForCredentials (popup, resolve, reject) {
       return new Promise((resolve, reject) => {
         listenForCredentials(popup, resolve, reject);
       });
-  
+
     } else {
       let email,token,error;
-  
+
       try {
         let params = (new URL(popup.location)).searchParams;
         email =params.get("email");
         token =params.get("authtoken");
         error =params.get("error");
       } catch (err) {}
-  
+
       if (email && token) {
         popup.close();
         agent.setToken(token);
@@ -39,8 +39,16 @@ function listenForCredentials (popup, resolve, reject) {
     }
   }
 
-  export default function authenticate(scope) {
+function authenticateGsuite(scope) {
     var url = API_ROOT + "/google/oauthlogin?scope=" + scope;
     let popup = openPopup(url, "_blank");
     return listenForCredentials(popup);
   }
+
+function authenticateSlack(scope, authtoken) {
+      var url = API_ROOT + "/slack/oauthlogin?scope=" + scope + "&authtoken="+ authtoken;
+      let popup = openPopup(url, "_blank");
+      return listenForCredentials(popup);
+    }
+
+export default {authenticateGsuite, authenticateSlack}

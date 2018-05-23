@@ -24,6 +24,8 @@ GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 GET_ACTIVITIES_FOR_USER_PATH = '/google/getactivitiesforuser'
 
+GET_USERS_LIST_PATH = "/common/users"
+GET_USERS_STATS_PATH = "/common/users/stats"
 GET_USER_GROUP_TREE_PATH = "/common/getusergrouptree"
 GET_APPS = "/common/getappsdata"
 GET_RESOURCE_TREE_PATH = "/common/getresourcetree"
@@ -60,4 +62,5 @@ SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 SCAN_SLACK_START = "/slack/scan/start"
 SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
-SCAN_SLACK_FILES = '/slack/scan/files'
+SCAN_SLACK_FILES = '/slack/scan/resources'
+SCAN_SLACK_APPS = '/slack/scan/apps'

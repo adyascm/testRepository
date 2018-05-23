@@ -7,9 +7,9 @@ import {
     USERS_PAGE_LOADED, 
     USERS_PAGE_LOAD_START,
     FETCH_ALERTS_COUNT 
-} from '../constants/actionTypes';
-import agent from '../utils/agent';
-import common from '../utils/common'
+} from '../../constants/actionTypes';
+import agent from '../../utils/agent';
+import common from '../../utils/common'
 
 const mapStateToProps = state => ({
     ...state
@@ -37,11 +37,11 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.all_actions_list) {
                 this.props.loadActions(agent.Actions.getAllActions())
             }
-            if ((this.props.common.datasources && this.props.common.datasources.length > 0) && 
-            (!this.props.users.isLoadingUsers && !this.props.users.usersTreePayload))
-            {
-                this.props.loadUsersTreeData(agent.Users.getUsersTree());
-            }
+            // if ((this.props.common.datasources && this.props.common.datasources.length > 0) && 
+            // (!this.props.users.isLoadingUsers && !this.props.users.usersTreePayload))
+            // {
+            //     this.props.loadUsersTreeData(agent.Users.getUsersTree());
+            // }
             if ((this.props.common.datasources && this.props.common.datasources.length > 0) &&
                 (this.props.alert.alertsCount === undefined)) {
                 agent.Alert.getAlertsCount().then(response => {

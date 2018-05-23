@@ -7,6 +7,62 @@ from adya.common.db import db_utils
 from adya.common.utils import utils
 from adya.common.constants import constants
 
+def get_user_stats(auth_token):
+    db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token)
+    user_domain_id = login_user.domain_id
+    login_user_email = login_user.email
+    is_admin = login_user.is_admin
+    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
+    
+    datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
+    domain_datasource_ids = [r for r, in datasource_ids]
+    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).all()
+
+    stats = {}
+    domain_stats = {}
+    admin_stats = {"Admin": 0, "Non-Admin": 0}
+    exposure_stats = {"Internal": 0, "External": 0, "Trusted": 0}
+    for user in users:
+        domain_name = utils.get_domain_name_from_email(user.email)
+        if domain_name in domain_stats:
+            domain_stats[domain_name] = domain_stats[domain_name] + 1
+        else:
+            domain_stats[domain_name] = 1
+
+        if user.is_admin == 1:
+            admin_stats["Admin"] = admin_stats["Admin"] + 1
+        else:
+            admin_stats["Non-Admin"] = admin_stats["Non-Admin"] + 1
+
+        if user.member_type == constants.UserMemberType.INTERNAL:
+            exposure_stats["Internal"] = exposure_stats["Internal"] + 1
+        elif user.member_type == constants.UserMemberType.EXTERNAL:
+            exposure_stats["External"] = exposure_stats["External"] + 1
+        elif user.member_type == constants.UserMemberType.TRUSTED:
+            exposure_stats["Trusted"] = exposure_stats["Trusted"] + 1
+        
+    stats["Domains"] = domain_stats
+    stats["Privileges"] = admin_stats
+    stats["Access"] = exposure_stats
+    return stats
+
+
+def get_users_list(auth_token):
+    db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token)
+    user_domain_id = login_user.domain_id
+    login_user_email = login_user.email
+    is_admin = login_user.is_admin
+    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
+    
+    datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
+    domain_datasource_ids = [r for r, in datasource_ids]
+    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).all()
+    return users
+
 def get_user_group_tree(auth_token):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)

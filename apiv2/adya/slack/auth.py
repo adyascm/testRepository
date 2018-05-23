@@ -1,22 +1,32 @@
+import json
+import uuid
+
+import datetime
 from slackclient import SlackClient
 import slackclient
 
 from adya.common.db import db_utils
+from adya.common.db.connection import db_connection
+from adya.common.db.models import DataSource, DatasourceCredentials, LoginUser
+from adya.common.utils import messaging
 from adya.slack import client_credentials
 
-from adya.common.constants import scopeconstants
+from adya.common.constants import scopeconstants, constants
 
 from adya.common.constants import urls
 
 
-def request_oauth():
+def request_oauth(scope, auth_token):
     client_id = client_credentials.client_id
     # try with this client id -  "25151185463.342451215601" (I created slack app for trial)
     scopes = scopeconstants.SLACK_READ_SCOPE
-    return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}".format(scopes, client_id)
+    if scope:
+        scopes = scopeconstants.SLACK_SCOPE_DICT[scope]
+    return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}&state={2}".\
+                        format(scopes, client_id, auth_token)
 
 
-def oauth_callback(auth_code):
+def oauth_callback(auth_code, auth_token):
     auth_code = auth_code
 
     # An empty string is a valid token for this request
@@ -32,6 +42,7 @@ def oauth_callback(auth_code):
     print auth_response
 
     access_token = auth_response['access_token']
+    scopes = auth_response['scope']
 
     # getting the user profile information
     sc = SlackClient(access_token)
@@ -41,12 +52,36 @@ def oauth_callback(auth_code):
         redirect_url = urls.OAUTH_STATUS_URL + "/error?error={}".format("Credentials not found.")
         return redirect_url
 
-    domain_id = profile_info['profile']['email']  # adding login email ad domain id TODO:change needed
+    user_email = profile_info['profile']['email']
 
-    # inserting table into login_user table TODO: beforehand domain info should be there in domain table (foreign key constraint)
-    db_utils.create_user(profile_info['profile']['email'], profile_info['profile']['first_name'],
-                         profile_info['profile']['last_name'],
-                         domain_id, None, None, profile_info['headers']['X-OAuth-Scopes'], access_token)
+    db_session = db_connection().get_session()
+    login_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    datasource_id = str(uuid.uuid4())
+    datasource = DataSource()
+    datasource.domain_id = login_user.domain_id
+    datasource.datasource_id = datasource_id
+    datasource.display_name = constants.ConnectorTypes.SLACK
 
-    redirect_url = urls.OAUTH_STATUS_URL + "/success"  # this is temporary just to check wether redirect is working or not TODO : give proper rediect url
+    datasource.creation_time = datetime.datetime.utcnow()
+    datasource.datasource_type = constants.ConnectorTypes.SLACK
+
+
+    db_session.add(datasource)
+    db_connection().commit()
+
+    query_params = {"domainId": datasource.domain_id,
+                    "dataSourceId": datasource.datasource_id,
+                    }
+
+    datasource_credentials = DatasourceCredentials()
+    datasource_credentials.datasource_id = datasource.datasource_id
+    datasource_credentials.credentials = json.dumps({'domain_id': login_user.domain_id, 'authorize_scope_name': scopes, 'token': access_token})
+    datasource_credentials.created_user = user_email
+    db_session.add(datasource_credentials)
+    db_connection().commit()
+
+    messaging.trigger_post_event(urls.SCAN_SLACK_START, login_user.auth_token, query_params, {}, "slack")
+
+
+    redirect_url = urls.OAUTH_STATUS_URL + "/success?email={}&authtoken={}".format(login_user.domain_id, login_user.auth_token)  # this is temporary just to check wether redirect is working or not TODO : give proper rediect url
     return redirect_url

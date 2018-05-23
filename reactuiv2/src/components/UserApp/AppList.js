@@ -9,7 +9,8 @@ import {
 
 
 const mapStateToProps = state => ({
-    ...state.apps
+    ...state.apps,
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -32,7 +33,7 @@ class AppList extends Component {
     }
 
     render() {
-        var appCards =[]
+        var appCards = []
         if (this.props.appPayLoad) {
             var searchData;
 
@@ -40,15 +41,14 @@ class AppList extends Component {
                 searchData = this.props.appsSearchPayload
             else
                 searchData = this.props.appPayLoad
-
-            for(let appkey in searchData)
-            {
+            let dsMap = this.props.datasourcesMap;
+            for (let appkey in searchData) {
                 var app = searchData[appkey]
                 var appName = app.display_text.length > 25 ? app.display_text.slice(0,25) : app.display_text
                 var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 var color = app.score < 1 ? 'grey' : (app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow'))
 
-                appCards.push(<Card key={appkey} color={color}  app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>
+                appCards.push(<Card key={appkey} color={color} app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>
                     <Card.Content>
                         {image}
                         <Card.Header>

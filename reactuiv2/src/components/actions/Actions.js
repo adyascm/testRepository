@@ -6,7 +6,7 @@ import { RESOURCES_ACTION_CANCEL, RESOURCES_PAGE_LOAD_START, RESOURCES_PAGE_LOAD
      LOGIN_SUCCESS, FLAG_ERROR_MESSAGE, APPS_ACTION_CANCEL, APPS_PAGE_LOAD_START, APPS_PAGE_LOADED } from '../../constants/actionTypes';
 import { connect } from 'react-redux';
 import agent from '../../utils/agent'
-import authenticate from '../../utils/oauth';
+import oauth from '../../utils/oauth';
 
 const mapStateToProps = state => ({
     ...state.resources,
@@ -111,7 +111,7 @@ class Actions extends Component {
 
 
         } else {
-            authenticate("drive_action_scope").then(res => {
+            oauth.authenticateGsuite("drive_action_scope").then(res => {
                 //this.props.onIncrementalAuthComplete(res);
                 this.executeAction(this.build_action_payload(), resp => {
                     this.setState({
@@ -168,13 +168,13 @@ class Actions extends Component {
             if(this.props.selectedUser.ownedResources)
             {
                 userOwnedResources = agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUser["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUser["key"] });
-            
+
             }if(this.props.selectedUser.resources)
             {
-                userAccessibleResources = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUser["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});    
+                userAccessibleResources = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUser["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});
             }
         }
-        
+
         var resourcesPayload = agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
         var appsPayload = agent.Apps.getapps()
 
