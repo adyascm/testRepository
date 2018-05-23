@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon, Sticky } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon, Sticky, Image } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
@@ -21,6 +21,7 @@ import {
 
 const mapStateToProps = state => ({
     ...state.resources,
+    ...state.common,
     selectedUser: state.users.selectedUserItem
 });
 
@@ -40,6 +41,7 @@ class ResourcesListTable extends Component {
 
         this.state = {
             columnHeaders: [
+                "Source",
                 "Name",
                 "Type",
                 "Owner",
@@ -52,6 +54,7 @@ class ResourcesListTable extends Component {
             filterParentFolder: "",
             currentDate: "",
             columnHeaderDataNameMap: {
+                "Source": "datasource_id",
                 "Name": "resource_name",
                 "Type": "resource_type",
                 "Owner": "resource_owner_id",
@@ -227,7 +230,11 @@ class ResourcesListTable extends Component {
 
         let tableRowData = null
         let resourceData = null
-
+        let dsMap = this.props.datasourcesMap;
+        let sourceFilterOptions = [{"text":"All", "value":"ALL"}];
+        for(var ii=0; ii< this.props.datasources.length; ii++){
+            sourceFilterOptions.push({"text":this.props.datasources[ii].datasource_type, "value":this.props.datasources[ii].datasource_id});
+        }
         if (this.props.resourceSearchPayload)
             resourceData = this.props.resourceSearchPayload
         else if (this.props.resourceTree)
@@ -235,8 +242,13 @@ class ResourcesListTable extends Component {
 
         if (resourceData)
             tableRowData = resourceData.map(rowData => {
+                var dsImage = null;
+                if (rowData.datasource_id) {
+                    dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
+                }
                 return (
                     <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
+                        <Table.Cell textAlign='center' >{dsImage}</Table.Cell>
                         <Table.Cell width='3' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_owner_id"]}</Table.Cell>
@@ -267,10 +279,19 @@ class ResourcesListTable extends Component {
                             </Table.Header>
                             <Table.Body>
                                 <Table.Row>
+                                    <Table.Cell width='1'>
+                                        {/* <Dropdown
+                                            fluid
+                                            options={sourceFilterOptions}
+                                            selection
+                                            value={this.props.filterSourceType === '' ? 'ALL' : this.props.filterSourceType}
+                                            onChange={this.handleSourceTypeChange}
+                                        /> */}
+                                    </Table.Cell>
                                     <Table.Cell width='3'>
                                         <ResourceSearch filterMetadata={filterMetadata} />
                                     </Table.Cell>
-                                    <Table.Cell width='3'>
+                                    <Table.Cell width='2'>
                                         <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : ''} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell width='3'>

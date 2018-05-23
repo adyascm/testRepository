@@ -14,12 +14,20 @@ def get_widget_data(event, context):
         req_session.get_auth_token(), req_session.get_req_param('widgetId'))
     return req_session.generate_sqlalchemy_response(200, data)
 
+def get_user_stats(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True)
+    if req_error:
+        return req_error
+    stats = directory_controller.get_user_stats(req_session.get_auth_token())
+    return req_session.generate_response(200, stats)
+
 def get_users_list(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error
-    users = directory_controller.get_users(req_session.get_auth_token())
+    users = directory_controller.get_users_list(req_session.get_auth_token())
     return req_session.generate_sqlalchemy_response(200, users)
 
 def get_user_tree_data(event, context):
