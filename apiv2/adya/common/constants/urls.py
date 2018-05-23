@@ -55,6 +55,8 @@ TRUSTED_ENTITIES = '/common/trustedentities'
 # slack
 SLACK_OAUTH_LOGIN = '/slack/oauthlogin'
 SLACK_OAUTHCALLBACK_PATH = "/slack/oauthcallback"
+SLACK_OAUTH_CALLBACK_URL = constants.API_HOST + SLACK_OAUTHCALLBACK_PATH
+
 
 SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 
@@ -64,3 +66,5 @@ SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
 SCAN_SLACK_FILES = '/slack/scan/resources'
 SCAN_SLACK_APPS = '/slack/scan/apps'
+SUBSCRIBE_SLACK_NOTIFICATIONS_PATH = '/slack/scan/subscribenotifications'
+
