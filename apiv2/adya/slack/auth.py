@@ -9,6 +9,7 @@ from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, DatasourceCredentials, LoginUser
 from adya.common.utils import messaging
+from adya.common.utils.response_messages import Logger
 from adya.slack import client_credentials
 
 from adya.common.constants import scopeconstants, constants
@@ -21,6 +22,7 @@ def request_oauth(scope, auth_token):
     # try with this client id -  "25151185463.342451215601" (I created slack app for trial)
     scopes = scopeconstants.SLACK_READ_SCOPE
     redirect_uri = urls.SLACK_OAUTH_CALLBACK_URL
+    Logger().info("redirect url : slack: {}".format(redirect_uri))
     if scope:
         scopes = scopeconstants.SLACK_SCOPE_DICT[scope]
     return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}&state={2}&redirect_uri={3}".\
