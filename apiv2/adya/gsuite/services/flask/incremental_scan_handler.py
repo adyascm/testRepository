@@ -1,5 +1,5 @@
 from flask_restful import Resource,request
-from adya.gsuite import incremental_scan
+from adya.gsuite import incremental_scan, drive_change_notification
 from adya.common.utils.request_session import RequestSession
 from adya.common.utils.response_messages import Logger
 
@@ -17,14 +17,16 @@ class subscribe(Resource):
 class process_notifications(Resource):
     def post(self):
         req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID'])
+        req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[],
+                                                            headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID',
+                                                                     'X-Goog-Resource-State'])
         if req_error:
             return req_error
 
         datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
         channel_id = req_session.get_req_header('X-Goog-Channel-ID')
-        Logger().info("Processing notifications for " + str(datasource_id) + " on channel: " + str(channel_id))
-        incremental_scan.process_notifications(datasource_id, channel_id)
+        notification_type = req_session.get_req_header('X-Goog-Resource-State')
+        drive_change_notification.process_notifications(notification_type, datasource_id, channel_id)
         return req_session.generate_response(202, "Finished processing notifications. ")
 
 
