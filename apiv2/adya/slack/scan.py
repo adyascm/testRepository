@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder, \
-    Application, ApplicationUserAssociation
+    Application, ApplicationUserAssociation, DirectoryStructure
 
 from adya.common.db.connection import db_connection
 
@@ -162,11 +162,13 @@ def process_slack_channels(datasource_id, channel_data):
     db_session = db_connection().get_session()
     try:
         group_list = []
+        domain_directory_list = []
         channel_list = channel_data["channels"]
         channel_count = 0
         for channel in channel_list:
             channel_count = channel_count + 1
             group = {}
+
             group['datasource_id'] = datasource_id
             # TODO: Field that should store whether channel is private for public
             group['group_id'] = channel['id']
@@ -176,7 +178,21 @@ def process_slack_channels(datasource_id, channel_data):
             group['include_all_user'] = channel['is_general'] if 'is_general' in channel_list else None
             group_list.append(group)
 
+            creator = channel["creator"]
+            group_members = channel["members"]
+            for member in group_members:
+                domain_directory_struct = {}
+                domain_directory_struct['datasource_id'] = datasource_id
+                domain_directory_struct['parent_email'] = channel['id']
+                domain_directory_struct['member_email'] = member
+                domain_directory_struct['member_id'] = member
+                domain_directory_struct['member_role'] = "ADMIN" if creator == member else "MEMBER"
+                domain_directory_struct["member_type"] = "USER"
+
+                domain_directory_list.append(domain_directory_struct)
+
         db_session.bulk_insert_mappings(DomainGroup, group_list)
+        db_session.bulk_insert_mappings(DirectoryStructure, domain_directory_list)
 
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_group_count, channel_count, None, True)
@@ -349,18 +365,26 @@ def slack_process_apps(datasource_id, change_type, apps_data):
                 id = app["app_id"] if "app_id" in app else app["service_id"]
                 timestamp = datetime.strptime(datetime.fromtimestamp(int(app["date"])).strftime('%Y-%m-%d %H:%M:%S'),
                                               '%Y-%m-%d %H:%M:%S')
-                scopes = app["scope"] if "scope" in app else None
+
+                scopes = None
+                max_score = 0
+                if 'scope' in app:
+                    scopes = app["scope"]
+                    max_score = slack_utils.get_app_score(scopes)
 
                 user_id = app["user_id"]
 
                 existing_app = db_session.query(Application).filter(
                     and_(Application.datasource_id == datasource_id, Application.client_id == id)).first()
 
+
+
                 if existing_app:
                     update_app = db_session.query(Application).filter(
                         and_(Application.datasource_id == datasource_id, Application.client_id ==
                              id, Application.timestamp < timestamp)).update({Application.timestamp: timestamp,
-                                                                             Application.scopes: scopes},
+                                                                             Application.scopes: scopes,
+                                                                             Application.score: max_score},
                                                                             synchronize_session='fetch')
 
                     if update_app:
@@ -377,6 +401,7 @@ def slack_process_apps(datasource_id, change_type, apps_data):
                     app_obj.display_text = app["app_type"] if "app_type" in app else app["service_type"]
                     app_obj.scopes = scopes
                     app_obj.timestamp = timestamp
+                    app_obj.score = max_score
                     db_session.add(app_obj)
                     db_connection().commit()
 
@@ -436,6 +461,15 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 permission.email = channel_id_and_name_map[
                     permission.email] if permission.email in channel_id_and_name_map \
                     else permission.email
+
+            domain_directory_struct = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id)
+            for member in domain_directory_struct:
+                member_id = member.member_id
+                existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                                DomainUser.user_id == member_id)).first()
+
+                if not existing_member:
+                    db_session.delete(member)
 
             db_connection().commit()
 

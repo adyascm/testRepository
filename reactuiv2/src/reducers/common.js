@@ -82,7 +82,7 @@ export default (state = defaultState, action) => {
           if (ds.datasource_type == "GSUITE")
             ds.logo = "/images/google_logo.png";
           else if (ds.datasource_type == "SLACK")
-            ds.logo = "/images/slack_logo.png";
+            ds.logo = "/images/slack_logo.jpeg";
           map[ds.datasource_id] = ds;
         }
       }

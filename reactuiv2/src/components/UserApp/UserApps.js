@@ -55,7 +55,7 @@ class UserApps extends Component {
         {
             applications = this.props.userApps.map((application,index) => {
                 if (application !== undefined) {
-
+                    let display_text = application["display_text"].length > 25 ? application["display_text"].slice(0,25) : application["display_text"]
                     let score = application["score"]
                     var color = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
                     let scopes = application["scopes"].split(',').map((scope,index) => {
@@ -79,7 +79,7 @@ class UserApps extends Component {
                                 </Button>
                             </Grid.Column>
                             <Grid.Column  width={3}>
-                                {application["display_text"]}
+                                {display_text}
 
                             </Grid.Column>
                             <Grid.Column width={1}>

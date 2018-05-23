@@ -123,7 +123,7 @@ class ReportForm extends Component {
     }
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
-        copyFinalInputObj.frequency = "cron(* * ? * * *)"
+        copyFinalInputObj.frequency = "cron(0 0 ? * * *)"
       }
       success = true
       this.props.addScheduledReport(copyFinalInputObj)

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom'
 import agent from '../../utils/agent';
 import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
 
@@ -97,4 +96,4 @@ class ManageDataSources extends Component {
   }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ManageDataSources));
+export default connect(mapStateToProps, mapDispatchToProps)(ManageDataSources);
