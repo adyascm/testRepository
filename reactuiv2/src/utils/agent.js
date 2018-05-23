@@ -1,17 +1,19 @@
 import superagentPromise from 'superagent-promise';
 import _superagent from 'superagent';
-
+import ReactGA from 'react-ga';
 import {API_ROOT} from '../constants/actionTypes'
 
 const superagent = superagentPromise(_superagent, global.Promise);
 
-
+ReactGA.initialize('UA-119743168-1');
 
 //const encode = encodeURIComponent;
 const responseBody = res => res.body;
 
 let token = null;
 const tokenPlugin = req => {
+    if(!req.url.startsWith("http://127.0.0.1:5000"))
+        ReactGA.pageview(req.url);
     req.set('Content-Type', 'application/json');
     if (token) {
         req.set('authorization', `${token}`);

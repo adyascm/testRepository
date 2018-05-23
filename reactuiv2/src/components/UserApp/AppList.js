@@ -50,7 +50,7 @@ class AppList extends Component {
 
                 appCards.push(<Card key={appkey} color={color} app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>
                     <Card.Content>
-                        {dsImage}
+                        {image}
                         <Card.Header>
                             {appName}
                         </Card.Header>
