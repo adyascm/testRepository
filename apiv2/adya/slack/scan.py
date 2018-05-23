@@ -365,18 +365,26 @@ def slack_process_apps(datasource_id, change_type, apps_data):
                 id = app["app_id"] if "app_id" in app else app["service_id"]
                 timestamp = datetime.strptime(datetime.fromtimestamp(int(app["date"])).strftime('%Y-%m-%d %H:%M:%S'),
                                               '%Y-%m-%d %H:%M:%S')
-                scopes = app["scope"] if "scope" in app else None
+
+                scopes = None
+                max_score = 0
+                if 'scope' in app:
+                    scopes = app["scope"]
+                    max_score = slack_utils.get_app_score(scopes)
 
                 user_id = app["user_id"]
 
                 existing_app = db_session.query(Application).filter(
                     and_(Application.datasource_id == datasource_id, Application.client_id == id)).first()
 
+
+
                 if existing_app:
                     update_app = db_session.query(Application).filter(
                         and_(Application.datasource_id == datasource_id, Application.client_id ==
                              id, Application.timestamp < timestamp)).update({Application.timestamp: timestamp,
-                                                                             Application.scopes: scopes},
+                                                                             Application.scopes: scopes,
+                                                                             Application.score: max_score},
                                                                             synchronize_session='fetch')
 
                     if update_app:
@@ -393,6 +401,7 @@ def slack_process_apps(datasource_id, change_type, apps_data):
                     app_obj.display_text = app["app_type"] if "app_type" in app else app["service_type"]
                     app_obj.scopes = scopes
                     app_obj.timestamp = timestamp
+                    app_obj.score = max_score
                     db_session.add(app_obj)
                     db_connection().commit()
 
