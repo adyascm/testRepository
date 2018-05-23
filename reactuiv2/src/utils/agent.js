@@ -72,8 +72,8 @@ const Dashboard = {
 const Users = {
     getUserStats: () =>
         requests.get('/common/users/stats'),
-    getUsersList: () =>
-        requests.get('/common/users'),
+    getUsersList: (userName, userEmail, userType) =>
+        requests.get('/common/users?userName=' + userName + '&userEmail=' + userEmail + '&userType=' + userType),
     getUsersTree: () =>
         requests.get('/common/getusergrouptree')
 }

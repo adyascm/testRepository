@@ -18,6 +18,7 @@ import {
     USERS_OWNED_RESOURCES_LOADED,
     USERS_RESOURCE_PAGINATION_DATA,
     USERS_RESOURCE_FILTER_CHANGE,
+    USERS_FILTER_CHANGE,
     SET_REDIRECT_PROPS,
     LOGOUT
 } from '../constants/actionTypes';
@@ -37,7 +38,10 @@ const defaultState = {
     action: undefined,
     userFilterType: 'EXT',
     hasGroups: false,
-    filterExposureType: 'EXT'
+    filterExposureType: 'EXT',
+    filterUserName: '',
+    filterUserEmail: '',
+    filterUserType: 'EXT'
 }
 
 
@@ -194,6 +198,11 @@ export default (state = defaultState, action) => {
             }
         case USERS_RESOURCE_FILTER_CHANGE:
             state[action.property] = action.value
+            return {
+                ...state
+            }
+        case USERS_FILTER_CHANGE:
+            state[action.filterName] = action.filterValue
             return {
                 ...state
             }

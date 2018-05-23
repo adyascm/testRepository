@@ -9,7 +9,8 @@ import {
     USER_ITEM_SELECTED,
     USERS_PAGE_LOAD_START,
     USERS_LIST_PAGE_LOADED,
-    USERS_DOMAIN_STATS_LOADED
+    USERS_DOMAIN_STATS_LOADED,
+    USERS_FILTER_CHANGE
 } from '../../constants/actionTypes';
 
 
@@ -23,7 +24,9 @@ const mapDispatchToProps = dispatch => ({
     onLoad: (payload) => dispatch({ type: USERS_LIST_PAGE_LOADED, payload }),
     onLoadDomainStats: (payload) => dispatch({ type: USERS_DOMAIN_STATS_LOADED, payload }),
     selectUserItem: (payload) =>
-        dispatch({ type: USER_ITEM_SELECTED, payload })
+        dispatch({ type: USER_ITEM_SELECTED, payload }),
+    changeFilter: (filterName, filterValue) => 
+        dispatch({ type: USERS_FILTER_CHANGE, filterName, filterValue })
 });
 
 
@@ -48,7 +51,10 @@ class UserListNew extends Component {
                 "Is Admin": "parent_name",
             },
             columnNameClicked: undefined,
-            sortOrder: undefined
+            sortOrder: undefined,
+            nameFilterValue: '',
+            emailFilterValue: '',
+            typeFilterValue: 'EXT'
         }
 
         this.exposureFilterOptions = [
@@ -72,12 +78,48 @@ class UserListNew extends Component {
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList())
+        this.props.onLoad(agent.Users.getUsersList(this.props.filterUserName, this.props.filterUserEmail, this.props.filterUserType))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.filterUserName !== this.props.filterUserName || nextProps.filterUserEmail !== this.props.filterUserEmail ||
+            nextProps.filterUserType !== this.props.filterUserType) {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Users.getUsersList(nextProps.filterUserName, nextProps.filterUserEmail, nextProps.filterUserType))
+        }
     }
 
     handleRowClick = (event, rowData) => {
         this.props.selectUserItem(rowData)
+    }
+
+    handleNameChange = (event, data) => {
+        if (!data.value.length)
+            this.props.changeFilter('filterUserName', '')
+        this.setState({
+            nameFilterValue: data.value
+        })
+    }
+
+    handleEmailChange = (event, data) => {
+        if (!data.value.length)
+            this.props.changeFilter('filterUserEmail', '')
+        this.setState({
+            emailFilterValue: data.value
+        })
+    }
+
+    handleTypeChange = (event, data) => {
+        this.props.changeFilter('filterUserType', data.value)
+        this.setState({
+            typeFilterValue: data.value
+        })
+    }
+
+    handleKeyPress = (event, filterType) => {
+        if (event.key === 'Enter')
+            this.props.changeFilter(filterType, event.target.value)
     }
 
     render() {
@@ -117,7 +159,7 @@ class UserListNew extends Component {
                         <Table.Cell >{rowData["email"]}</Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
                         <Table.Cell textAlign="center">{rowData["is_admin"] ? <Icon name="checkmark" /> : null}</Table.Cell>
-                        <Table.Cell >{rowData["member_type"]}</Table.Cell>
+                        <Table.Cell textAlign="center">{rowData["member_type"]}</Table.Cell>
                     </Table.Row>
                 )
             })
@@ -144,6 +186,26 @@ class UserListNew extends Component {
                                         </Table.Row>
                                     </Table.Header>
                                     <Table.Body>
+                                        <Table.Row>
+                                            <Table.Cell width='1'></Table.Cell>
+                                            <Table.Cell width='4'>
+                                                <Input fluid placeholder="Filter by name..." value={this.state.nameFilterValue} onChange={this.handleNameChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserName')} />
+                                            </Table.Cell>
+                                            <Table.Cell width='4'>
+                                                <Input fluid placeholder="Filter by email..." value={this.state.emailFilterValue} onChange={this.handleEmailChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserEmail')} />
+                                            </Table.Cell>
+                                            <Table.Cell width='1'></Table.Cell>
+                                            <Table.Cell width='1'></Table.Cell>
+                                            <Table.Cell width='3'>
+                                                <Dropdown
+                                                    fluid
+                                                    options={this.exposureFilterOptions}
+                                                    selection
+                                                    value={this.state.typeFilterValue}
+                                                    onChange={this.handleTypeChange}
+                                                />
+                                            </Table.Cell>
+                                        </Table.Row>
                                         {tableRowData}
                                     </Table.Body>
                                 </Table>

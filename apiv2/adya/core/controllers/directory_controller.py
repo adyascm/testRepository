@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -60,7 +60,14 @@ def get_users_list(auth_token):
     datasource_ids = db_session.query(DataSource.datasource_id).filter(
             DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in datasource_ids]
-    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).all()
+    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    if user_name:
+        users_query = users_query.filter(DomainUser.full_name.ilike("%" + user_name + "%"))
+    if user_email:
+        users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%"))
+    if user_type:
+        users_query = users_query.filter(DomainUser.member_type == user_type)
+    users = users_query.all()
     return users
 
 def get_user_group_tree(auth_token):
