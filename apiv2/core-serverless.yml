@@ -308,7 +308,7 @@ functions:
           method: post
           cors: true
 
-  post-default-policies-create:
+  post-common-policies-default:
     handler: adya.core.services.lambda.policy_handler.create_default_policies
     events:
       - http:

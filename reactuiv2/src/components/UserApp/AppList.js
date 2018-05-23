@@ -44,11 +44,8 @@ class AppList extends Component {
             let dsMap = this.props.datasourcesMap;
             for (let appkey in searchData) {
                 var app = searchData[appkey]
-                var appName = app.display_text;
-                var dsImage = null;
-                if (app.datasource_id) {
-                    dsImage = <Image floated='left' inline size='mini' src={dsMap[app.datasource_id] && dsMap[app.datasource_id].logo} circular></Image>
-                }
+                var appName = app.display_text.length > 25 ? app.display_text.slice(0,25) : app.display_text
+                var image = <Image key={appkey} floated='right' size='tiny' ><Label style={{ fontSize: '1.2rem' }} circular >{appName.charAt(0)}</Label></Image>
                 var color = app.score < 1 ? 'grey' : (app.score < 4 ? 'blue' : (app.score > 7 ? 'red' : 'yellow'))
 
                 appCards.push(<Card key={appkey} color={color} app={app} onClick={this.onCardClicked.bind(this)} raised={(this.props.selectedAppItem && this.props.selectedAppItem.display_text === appName)}>

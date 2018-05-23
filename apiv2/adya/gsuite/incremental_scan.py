@@ -164,7 +164,8 @@ def _subscribe_for_drive_activity(db_session, login_user, datasource, admin_user
 
 
 def subscribe(domain_id, datasource_id):
-    is_local_deployment - constants.DEPLOYMENT_ENV == "local"
+
+    is_local_deployment = constants.DEPLOYMENT_ENV == "local"
 
     if not is_local_deployment:
         # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
