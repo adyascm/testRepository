@@ -170,7 +170,7 @@ functions:
     handler: adya.core.services.lambda.reports_handler.get_user_stats
     events:
       - http:
-          path: users/stat
+          path: users/stats
           method: get
           cors: true
 
