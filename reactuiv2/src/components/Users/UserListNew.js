@@ -125,6 +125,18 @@ class UserListNew extends Component {
             this.props.changeFilter(filterType, event.target.value)
     }
 
+    clearFilter = (event, filterType) => {
+        this.props.changeFilter(filterType, '')
+        if (filterType === 'filterUserName')
+            this.setState({
+                nameFilterValue: ''
+            })
+        else
+            this.setState({
+                emailFilterValue: ''
+            })
+    }
+
     render() {
 
         let tableHeaders = this.state.columnHeaders.map(headerName => {
@@ -192,10 +204,10 @@ class UserListNew extends Component {
                                         <Table.Row>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by name..." value={this.state.nameFilterValue} onChange={this.handleNameChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserName')} />
+                                                <Input fluid placeholder="Filter by name..." icon={this.state.nameFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event,'filterUserName')} /> : null} value={this.state.nameFilterValue} onChange={this.handleNameChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserName')} />
                                             </Table.Cell>
                                             <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by email..." value={this.state.emailFilterValue} onChange={this.handleEmailChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserEmail')} />
+                                                <Input fluid placeholder="Filter by email..." icon={this.state.emailFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'filterUserEmail')} /> : null} value={this.state.emailFilterValue} onChange={this.handleEmailChange} onKeyPress={(event) => this.handleKeyPress(event,'filterUserEmail')} />
                                             </Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
