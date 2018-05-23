@@ -1,16 +1,23 @@
+import csv
+import uuid
+
+import datetime
 from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
 import json
 import requests
+from sqlalchemy import Boolean
 
-from adya.common.constants import constants
+from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, Domain
+from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainGroup, DomainUser
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants import constants
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
 import os
 import httplib2
+
+from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
 
 GOOGLE_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
@@ -103,12 +110,6 @@ def get_file_type_from_mimetype(mime_type):
     return type
 
 
-def get_domain_name_from_email(email):
-    index_of_strudel_from_last = len(email) - email.index('@')
-    domain_name = email[-index_of_strudel_from_last + 1:]
-    return domain_name
-
-
 def get_oauth_service(credentials):
     service = discovery.build('oauth2', 'v2', credentials=credentials)
     return service
@@ -160,6 +161,7 @@ def get_resource_exposure_type(permission_exposure, highest_exposure):
     elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
         highest_exposure = constants.ResourceExposureType.INTERNAL
     return highest_exposure
+
 
 
 def get_app_score(scopes):

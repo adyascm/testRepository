@@ -173,8 +173,8 @@ def send_clean_files_email(datasource_id,user_email):
 
 def send_policy_violate_email(user_email,policy,resource,new_permissions):
     try:
-        db_session = db_connection.get_session()
-        resource_owner = db_session.query(DomainUser).filter(resource.datasource_id == DomainUser.datasource_id, DomainUser.email == resource.resource_owner_id)
+        db_session = db_connection().get_session()
+        resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
         template_name = "policy_violation"
         permissions_map = {
             "owner": "Owner",
@@ -183,8 +183,8 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
         }
         permissions = []
         for permission in new_permissions:
-            user_name = permission.email
-            permission_str = user_name + " " + permissions_map[permission.permission_type]
+            user_name = permission["email"]
+            permission_str = user_name + " " + permissions_map[permission["permission_type"]]
             permissions.append(permission_str)
 
         template_parameters = {
@@ -195,7 +195,7 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
             "permissions": permissions
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "Policy Violated"
+        email_subject = "A policy on Adya platform is violated - " + policy.name
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:

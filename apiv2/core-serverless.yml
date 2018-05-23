@@ -158,6 +158,22 @@ functions:
           method: get
           cors: true
 
+  get-common-users:
+    handler: adya.core.services.lambda.reports_handler.get_users_list
+    events:
+      - http:
+          path: users
+          method: get
+          cors: true
+
+  get-common-users-stats:
+    handler: adya.core.services.lambda.reports_handler.get_user_stats
+    events:
+      - http:
+          path: users/stat
+          method: get
+          cors: true
+
   get-common-getusertreedata:
     handler: adya.core.services.lambda.reports_handler.get_user_tree_data
     events:
@@ -292,7 +308,7 @@ functions:
           method: post
           cors: true
 
-  post-default-policies-create:
+  post-common-policies-default:
     handler: adya.core.services.lambda.policy_handler.create_default_policies
     events:
       - http:

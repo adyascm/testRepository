@@ -40,6 +40,8 @@ api.add_resource(scan_handler.GetUserApp, urls.SCAN_USERS_APP)
 api.add_resource(domain_handler.datasource, urls.GET_DATASOURCE_PATH)
 api.add_resource(domain_handler.asyncdatasourcedelete, urls.ASYNC_DELETE_DATASOURCE_PATH)
 ## get user group tree
+api.add_resource(directory_handler.UserStats, urls.GET_USERS_STATS_PATH)
+api.add_resource(directory_handler.UsersList, urls.GET_USERS_LIST_PATH)
 api.add_resource(directory_handler.UserGroupTree, urls.GET_USER_GROUP_TREE_PATH)
 api.add_resource(directory_handler.UserApps, urls.GET_APPS)
 
@@ -90,6 +92,8 @@ api.add_resource(slack_oauth_handler.slack_oauth_callback, urls.SLACK_OAUTHCALLB
 api.add_resource(slack_scan_handler.SlackScan, urls.SCAN_SLACK_START)
 api.add_resource(slack_scan_handler.SlackUsers, urls.SCAN_SLACK_USERS)
 api.add_resource(slack_scan_handler.SlackChannels, urls.SCAN_SLACK_CHANNELS)
+api.add_resource(slack_scan_handler.SlackFiles, urls.SCAN_SLACK_FILES)
+api.add_resource(slack_scan_handler.SlackApps, urls.SCAN_SLACK_APPS)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
-import '../../App.css';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
 import agent from '../../utils/agent';
-import authenticate from '../../utils/oauth';
-import { Card, Button, Container, Header, Divider} from 'semantic-ui-react'
+import { Card, Button, Container, Header, Divider } from 'semantic-ui-react'
 
 
 import {
@@ -18,7 +16,8 @@ import {
   ASYNC_END,
   SET_REDIRECT_PROPS
 } from '../../constants/actionTypes';
-import DataSourceItem from './DataSourceItem';
+import GsuiteDataSourceItem from './GsuiteDataSourceItem';
+import SlackDataSourceItem from './SlackDataSourceItem';
 
 const mapStateToProps = state => ({
   ...state.auth,
@@ -33,145 +32,68 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setDataSources: (datasources) =>
     dispatch({ type: SET_DATASOURCES, payload: datasources }),
-  addDataSource: (name, isdummy = false) => {
-    dispatch({ type: CREATE_DATASOURCE, payload: agent.Setting.createDataSource({ "display_name": name, "isDummyDatasource": isdummy }) })
-  },
-  onDeleteDataSource: (datasource) => {
-    dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
-  },
-  onPushNotification: (actionType, msg) => {
-    dispatch({ type: actionType, payload: msg })
-  },
-  onLoginStart: () =>
-    dispatch({ type: LOGIN_START }),
-  onSignInError: (errors) =>
-    dispatch({ type: LOGIN_ERROR, error: errors }),
   onDataSourceLoad: () =>
     dispatch({ type: DATASOURCE_LOAD_START }),
-  onDataSourceLoadError: () =>
+  displayErrorMessage: (error) => {
     dispatch({ type: DATASOURCE_LOAD_END }),
-  displayErrorMessage: (error) =>
-    dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] }),
-  goToDashboard: (url) =>
-    dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url })
+      dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] })
+  }
 });
 
 class ManageDataSources extends Component {
-  constructor() {
-    super();
-    this.handleClick = this.handleClick.bind(this);
-    this.onPollChanges = this.onPollChanges.bind(this);
-
-    this.addNewDatasource = () => ev => {
-      ev.preventDefault();
-      this.props.onDataSourceLoad()
-      if (this.props.currentUser.is_serviceaccount_enabled) {
-        this.props.addDataSource("GSuite")
-      } else {
-        authenticate("drive_scan_scope").then(data => {
-          this.props.addDataSource("GSuite")
-        }).catch(({ errors }) => {
-          this.props.onDataSourceLoadError(errors)
-          this.props.displayErrorMessage(errors)
-        });
-      }
-
-    };
-
-    this.addDummyDatasource = () => ev => {
-      ev.preventDefault();
-      this.props.onDataSourceLoad()
-      this.props.addDataSource("Sample dataset", true);
-    };
-
-    this.deleteDataSource = (datasource) => {
-      this.props.onDeleteDataSource(datasource);
-      agent.Setting.deleteDataSource(datasource).then(res => {
-        this.props.setDataSources([])
-      });
-    };
-  }
-
   componentWillMount() {
     window.scrollTo(0, 0)
     if (!this.props.common.datasources)
       this.props.setDataSources(agent.Setting.getDataSources());
-    this.newDataSourceName = "";
-    this.changeField = value => { this.newDataSourceName = value; }
-  }
-
-  handleClick() {
-    this.props.goToDashboard("/")
-    this.props.history.push("/")
-  }
-
-  onPollChanges = (datasource) => {
-    agent.Setting.pollGSuiteDriveChanges(datasource);
   }
 
   render() {
-    if (!this.props.common.datasources || !this.props.common.datasources.length) {
-      var header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
-      var detail = (<Container>
-        We recommend you <a target='_blank' href='https://gsuite.google.com/marketplace/app/adya/109437140823'>install Adya from GSuite marketplace</a> to get visiblity into all documents.<br />
-        Before connecting your GSuite account, you can use a
-        <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
-        to get familiar with the features. <br /> Learn more about Adya <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
-        </Container>)
-        var buttonText = "Connect your GSuite";
-        if(this.props.currentUser.is_serviceaccount_enabled)
-        {
-          header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
-          detail = (<Container>
-            Thank you for installing Adya at your organisation. <br />
-            We need to do a one-time setup by scanning your GSuite account to collect necessary metadata.
-            </Container>);
-          buttonText = "Start Scan";
-        }
-
+    if (this.props.currentUser.is_serviceaccount_enabled && !this.props.currentUser.is_admin) {
       return (
         <Container>
-          <Card.Group>
-            <Card fluid>
-              <Card.Content>
-                <Card.Description>
-                  {header}
-                  <Divider />
-                  {detail}
-                </Card.Description>
-              </Card.Content>
-              <Card.Content extra>
-                <div className='ui buttons'>
-                  <Button basic color='green' disabled={this.newDataSourceName !== "" ? true : false} onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>{buttonText}</Button>
-                </div>
-              </Card.Content>
-            </Card>
-          </Card.Group>
-        </Container>
+          You are not authorized to manage datasources. Please contact your administrator.
+          </Container>
       )
+    }
+
+    let connectedSourcesMap = {}
+    let ds = this.props.common.datasources && this.props.common.datasources.map(ds => {
+      connectedSourcesMap[ds.datasource_type] = ds;
+    });
+
+    let connectedSources = [];
+    let disconnectedSources = [];
+    if (connectedSourcesMap["GSUITE"]) {
+      connectedSources.push(<GsuiteDataSourceItem key={1} item={connectedSourcesMap["GSUITE"]} is_serviceaccount_enabled={this.props.currentUser.is_serviceaccount_enabled} />)
     }
     else {
-      if (this.props.currentUser.is_serviceaccount_enabled && !this.props.currentUser.is_admin) {
-        return (
-          <Container>
-            You are not authorized to manage datasources. Please contact your administrator.
-            </Container>
-        )
-      }
-      return (
-        <Container>
-          <Card.Group>
-            {
-              this.props.common.datasources && this.props.common.datasources.map(ds => {
-                return (
-                  <DataSourceItem key={ds["creation_time"]} item={ds} onDelete={this.deleteDataSource} handleClick={this.handleClick} onPollChanges={this.onPollChanges} />
-                )
-              })
-            }
-          </Card.Group>
-        </Container>
-      )
+      disconnectedSources.push(<GsuiteDataSourceItem key={1} item={undefined} is_serviceaccount_enabled={this.props.currentUser.is_serviceaccount_enabled} />)
     }
+
+    if (connectedSourcesMap["SLACK"]) {
+      connectedSources.push(<SlackDataSourceItem key={2} item={connectedSourcesMap["SLACK"]} />)
+    }
+    else {
+      disconnectedSources.push(<SlackDataSourceItem key={2} item={undefined} />)
+    }
+    let moreConnectors = null;
+    if (disconnectedSources.length > 0) {
+      moreConnectors = (
+        <div>
+          <Divider horizontal>Available Connectors</Divider>
+          <Card.Group itemsPerRow='1'>
+            {disconnectedSources}
+          </Card.Group>
+        </div>);
+    }
+    return (
+      <Container>
+        <Card.Group itemsPerRow='1'>
+          {connectedSources}
+        </Card.Group>
+        {moreConnectors}
+      </Container>
+    )
   }
 }
 

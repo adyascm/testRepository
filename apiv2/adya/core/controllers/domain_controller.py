@@ -8,13 +8,12 @@ import csv
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import utils, messaging
 from adya.common.constants import constants, urls
-from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, \
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
     Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
-    Alert
+    Alert, DatasourceCredentials
 
 from adya.gsuite import gutils
 
@@ -62,11 +61,10 @@ def create_datasource(auth_token, payload):
             auth_token, existing_user.email, db_session)
         is_admin_user = False
 
-
         #If service account is enabled, non admin cannot create a data source
         if(datasource.is_serviceaccount_enabled and admin_response):
             raise Exception(
-                 admin_response + " Action not allowed.")  
+                 admin_response + " Action not allowed.")
         if not admin_response:
             is_admin_user = True
 
@@ -76,7 +74,7 @@ def create_datasource(auth_token, payload):
 
         if is_admin_user and not datasource.is_serviceaccount_enabled:
             # Since it is an admin user, update the domain name in domain table to strip off the full email
-            domain_name = gutils.get_domain_name_from_email(existing_user.email)
+            domain_name = utils.get_domain_name_from_email(existing_user.email)
             db_session.query(Domain).filter(Domain.domain_id == existing_user.domain_id).update(
                 {"domain_name": domain_name})
 
@@ -128,6 +126,8 @@ def async_delete_datasource(auth_token, datasource_id):
         db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
         db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
         db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+
+        db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
         db_session.delete(existing_datasource)
         db_connection().commit()
         Logger().info("Datasource deleted successfully")

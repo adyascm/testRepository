@@ -46,14 +46,14 @@ class UserOwnedResources extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["key"] }))    
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["email"] }))    
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["key"]], 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': this.props.selectedUserItem["key"] }))
+            nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': this.props.selectedUserItem["email"] }))
         }
     }
 
@@ -92,7 +92,7 @@ class UserOwnedResources extends Component {
         
         if (this.props.selectedUserItem.ownedResources)
             tableRowData = this.props.selectedUserItem.ownedResources.map((rowData, index) => {
-                if (this.props.selectedUserItem["key"] === rowData["resource_owner_id"])
+                if (this.props.selectedUserItem["email"] === rowData["resource_owner_id"])
                     return (
                         <Table.Row key={index}>
                             <Table.Cell width="3" style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>

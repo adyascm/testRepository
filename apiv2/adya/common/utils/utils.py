@@ -46,4 +46,9 @@ def get_role_type(role):
     elif role == "owner":
         return constants.Role.OWNER
 
+def get_domain_name_from_email(email):
+    index_of_strudel_from_last = len(email) - email.index('@')
+    domain_name = email[-index_of_strudel_from_last + 1:]
+    return domain_name
+
 
