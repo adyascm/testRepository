@@ -56,13 +56,13 @@ def send_gdrive_scan_completed_email(auth_token, datasource):
         rendered_html = get_rendered_html(template_name, template_parameters)
 
         # only to get admin users
-        all_admin_user_for_a_domain = session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id,
-                                                                           DomainUser.is_admin == True)).all()
+        # all_admin_user_for_a_domain = session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource.datasource_id,
+        #                                                                    DomainUser.is_admin == True)).all()
 
         user_list = set()
-        if all_admin_user_for_a_domain:
-            for user in all_admin_user_for_a_domain:
-                user_list.add(user.email)
+        # if all_admin_user_for_a_domain:
+        #     for user in all_admin_user_for_a_domain:
+        #         user_list.add(user.email)
         user_list.add(login_user.email)
 
         user_list = list(user_list)
