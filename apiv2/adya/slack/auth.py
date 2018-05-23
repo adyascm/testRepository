@@ -20,10 +20,11 @@ def request_oauth(scope, auth_token):
     client_id = client_credentials.client_id
     # try with this client id -  "25151185463.342451215601" (I created slack app for trial)
     scopes = scopeconstants.SLACK_READ_SCOPE
+    redirect_uri = urls.SLACK_OAUTH_CALLBACK_URL
     if scope:
         scopes = scopeconstants.SLACK_SCOPE_DICT[scope]
-    return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}&state={2}".\
-                        format(scopes, client_id, auth_token)
+    return urls.SLACK_ENDPOINT + "?scope={0}&client_id={1}&state={2}&redirect_uri={3}".\
+                        format(scopes, client_id, auth_token, redirect_uri)
 
 
 def oauth_callback(auth_code, auth_token):
