@@ -19,7 +19,6 @@ def handle_channel_expiration():
     subscription_list = db_session.query(PushNotificationsSubscription).all()
     for row in subscription_list:
         access_time = datetime.datetime.utcnow()
-        expire_time = access_time
 
         #If the subscription is not yet expired and expiry is more than 6 hours, dont resubscribe
         #It will happen in the next 6 hourly check
@@ -29,6 +28,10 @@ def handle_channel_expiration():
         #If the subscription is not yet expired and is going to expire in next 6 hours, then first unsubscribe
         if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=21600)):
             unsubscribe_subscription(row)
+
+        #If subscription is in progress, then dont renew it in this cycle
+        if row.in_progress:
+            continue
 
         try:
             is_service_account_enabled = False
@@ -52,7 +55,6 @@ def handle_channel_expiration():
 
                 response = reports_service.activities().watch(
                     userKey='all', applicationName='drive', body=body).execute()
-
 
             else:
                 if is_service_account_enabled:
@@ -79,7 +81,8 @@ def handle_channel_expiration():
                 Logger().info("Response for push notifications renew subscription request for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
                     row.domain_id, row.datasource_id, row.channel_id, response))
 
-            expire_time = access_time + timedelta(seconds=86100)
+            row.last_accessed = access_time
+            row.expire_at = access_time + timedelta(seconds=86100)
             row.resource_id = response['resourceId']
             row.resource_uri = response['resourceUri']
 
@@ -87,8 +90,6 @@ def handle_channel_expiration():
             Logger().exception("Exception occurred while trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                 row.domain_id, row.datasource_id, row.channel_id))
 
-        row.last_accessed = access_time
-        row.expire_at = expire_time
     db_connection().commit()
 
     return "Subscription renewal completed"

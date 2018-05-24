@@ -150,10 +150,11 @@ export default (state = defaultState, action) => {
                     }
                 }
             }
-            if ((state.selectedUserItem.member_type === 'EXT') && !rows.length)
-                state.selectedUserItem = undefined
-            else
-                state.selectedUserItem.resources = rows;
+            //Removed by Amit, this is not the correct way of handling the issue
+            // if ((state.selectedUserItem.member_type === 'EXT') && !rows.length)
+            //     state.selectedUserItem = undefined
+            // else
+            state.selectedUserItem.resources = rows;
 
             return {
                 ...state,

@@ -188,7 +188,6 @@ def process_slack_channels(datasource_id, channel_data):
                 domain_directory_struct['member_id'] = member
                 domain_directory_struct['member_role'] = "ADMIN" if creator == member else "MEMBER"
                 domain_directory_struct["member_type"] = "USER"
-
                 domain_directory_list.append(domain_directory_struct)
 
         db_session.bulk_insert_mappings(DomainGroup, group_list)
@@ -456,6 +455,7 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
         if send_message:
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
         if get_scan_status(datasource) == 1:
+            # setting channel/group name in resource_permission table
             channel_id_and_name_map = {}
             channels_groups = db_session.query(DomainGroup).filter(DataSource.datasource_id == datasource_id).all()
             for channel_group in channels_groups:
@@ -465,20 +465,31 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 ResourcePermission.datasource_id == datasource_id).all()
 
             for permission in resource_permissions:
-                permission.email = channel_id_and_name_map[
-                    permission.email] if permission.email in channel_id_and_name_map \
+                permission.email = channel_id_and_name_map[permission.email] if permission.email in channel_id_and_name_map \
                     else permission.email
 
+            # checking for present users and extracting their email id
             domain_directory_struct = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id)
             for member in domain_directory_struct:
                 member_id = member.member_id
                 existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                                 DomainUser.user_id == member_id)).first()
 
+                is_external_user = False
                 if existing_member:
                     member.member_email = existing_member.email
+                    # checking if the member is external or internal
+                    is_external_user = True if existing_member.member_type == constants.UserMemberType.EXTERNAL else False
+
                 else:
                     db_session.delete(member)
+
+                # updaeting channel is_external column
+                if is_external_user:
+                    db_session.query(DomainGroup).filter(and_(DomainGroup.datasource_id == datasource_id,
+                                        DomainGroup.group_id == member.parent_email, DomainGroup.is_external == False)).\
+                                            update({DomainGroup.is_external: is_external_user},
+                                                   synchronize_session='fetch')
 
             db_connection().commit()
 
