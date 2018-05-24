@@ -43,12 +43,12 @@ class UserListNew extends Component {
                 "Type"
             ],
             columnHeaderDataNameMap: {
-                "Avatar": "resource_name",
-                "Name": "resource_type",
-                "Email": "resource_owner_id",
+                "Avatar": "",
+                "Name": "user_name",
+                "Email": "user_email",
                 "Source": "datasource_id",
-                "Type": "exposure_type",
-                "Is Admin": "parent_name",
+                "Type": "user_type",
+                "Is Admin": "is_admin",
             },
             columnNameClicked: undefined,
             sortOrder: undefined,
@@ -78,7 +78,7 @@ class UserListNew extends Component {
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue))
+        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', ''))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
@@ -86,7 +86,7 @@ class UserListNew extends Component {
         if (nextProps.nameColumnFilterValue !== this.props.nameColumnFilterValue || nextProps.emailColumnFilterValue !== this.props.emailColumnFilterValue ||
             nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue))
+            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', ''))
         }
     }
 
@@ -100,6 +100,24 @@ class UserListNew extends Component {
 
     clearFilter = (event, filterType) => {
         this.props.changeFilter(filterType, '');
+    }
+
+    handleColumnSort = (mappedColumnName) => {
+        if (this.state.columnNameClicked !== mappedColumnName) {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc'))
+            this.setState({
+                columnNameClicked: mappedColumnName,
+                sortOrder: 'ascending'
+            })
+        }
+        else {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc'))
+            this.setState({
+                sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
+            })
+        }
     }
 
     render() {
