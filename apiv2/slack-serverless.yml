@@ -141,18 +141,36 @@ functions:
           method: post
           cors: true
 
-  get-slack-scan-groups:
-    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_groups
+  get-slack-scan-channels:
+    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_channels
     events:
       - http:
           path: scan/channels
           method: get
           cors: true
 
-  post-slack-scan-groups:
-    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_groups
+  post-slack-scan-channels:
+    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_channels
     events:
       - http:
           path: scan/channels
           method: post
           cors: true
+
+  post-slack-scan-apps:
+    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_apps
+    events:
+      - http:
+          path: scan/apps
+          method: post
+          cors: true
+
+  get-slack-scan-apps:
+    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_apps
+    events:
+      - http:
+          path: scan/apps
+          method: get
+          cors: true
+
+

@@ -40,7 +40,8 @@ def oauth_callback(auth_code, auth_token):
         "oauth.access",
         client_id=client_credentials.client_id,
         client_secret=client_credentials.client_secret,
-        code=auth_code
+        code=auth_code,
+        redirect_uri=urls.SLACK_OAUTH_CALLBACK_URL
     )
     print auth_response
 
