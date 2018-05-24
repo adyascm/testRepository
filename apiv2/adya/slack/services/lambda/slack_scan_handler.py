@@ -41,7 +41,7 @@ def process_slack_resources(event, context):
 def get_slack_users(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId','domainId'], ['nextCursor'])
+        True, ['dataSourceId', 'domainId'], ['nextCursor'])
     if req_error:
         return req_error
 
@@ -64,7 +64,7 @@ def process_slack_users(event, context):
     return req_session.generate_response(202)
 
 
-def get_slack_groups(event, context):
+def get_slack_channels(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId'], ['nextCursor'])
@@ -77,7 +77,7 @@ def get_slack_groups(event, context):
     return req_session.generate_response(202)
 
 
-def process_slack_groups(event, context):
+def process_slack_channels(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
         True, ['dataSourceId'])
