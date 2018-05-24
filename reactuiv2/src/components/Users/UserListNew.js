@@ -84,7 +84,7 @@ class UserListNew extends Component {
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', ''))
+        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', ''))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
@@ -92,7 +92,7 @@ class UserListNew extends Component {
         if (nextProps.nameColumnFilterValue !== this.props.nameColumnFilterValue || nextProps.emailColumnFilterValue !== this.props.emailColumnFilterValue ||
             nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', '', ''))
+            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', ''))
         }
     }
 
@@ -111,7 +111,7 @@ class UserListNew extends Component {
     handleColumnSort = (mappedColumnName) => {
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc'))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -119,7 +119,7 @@ class UserListNew extends Component {
         }
         else {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc'))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -131,7 +131,7 @@ class UserListNew extends Component {
             this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
         else if (statType === "Domains") {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', statSubType))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, this.props.typeColumnFilterValue, '', ''))
         }
         
     }

@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None, domain_id=None):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -66,17 +66,11 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
             users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.desc())
         else:
             users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.asc())
-    if user_email or column_header_name == 'user_email' or domain_id:
+    if user_email or column_header_name == 'user_email':
         if sort_order == 'desc':
-            if domain_id:
-                users_query = users_query.filter(DomainUser.email.contains(domain_id)).order_by(DomainUser.email.desc())
-            else:
-                users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
+            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
         else:
-            if domain_id:
-                users_query = users_query.filter(DomainUser.email.contains(domain_id)).order_by(DomainUser.email.asc())
-            else:
-                users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
+            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
     if user_type or column_header_name == 'user_type':
         if user_type != '':
             users_query = users_query.filter(DomainUser.member_type == user_type)
