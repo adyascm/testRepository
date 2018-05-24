@@ -8,7 +8,6 @@ import csv
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import utils, messaging
 from adya.common.constants import constants, urls
-from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, \
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \

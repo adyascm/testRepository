@@ -41,7 +41,8 @@ const defaultState = {
     filterExposureType: 'EXT',
     nameColumnFilterValue: "", 
     emailColumnFilterValue: "", 
-    typeColumnFilterValue: "EXT"
+    typeColumnFilterValue: "EXT",
+    sourceColumnFilterValue: ""
 }
 
 

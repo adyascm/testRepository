@@ -1,7 +1,6 @@
 from flask_restful import Resource,request
 from adya.gsuite import incremental_scan, drive_change_notification
 from adya.common.utils.request_session import RequestSession
-from adya.common.utils.response_messages import Logger
 
 class subscribe(Resource):
     def post(self):
