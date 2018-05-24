@@ -199,7 +199,7 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
-        Logger.exception("Exception occured while sending policy violation email")
+        Logger().exception("Exception occured while sending policy violation email")
         return False
 
 
