@@ -6,7 +6,8 @@ from adya.common.db import db_utils
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain, DomainUser
 from adya.common.constants import constants
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='', owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None):
+def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='',
+                  owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None, datasource_id=None):
     if not auth_token:
         return None
     page_number = page_number if page_number else 0
@@ -17,9 +18,12 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     user_domain_id = existing_user.domain_id
     loggged_in_user_email = existing_user.email
     is_admin = existing_user.is_admin
-
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
+    domain_datasource_ids = []
+    if datasource_id:
+        domain_datasource_ids = [datasource_id]
+    else:
+        domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
+        domain_datasource_ids = [r for r, in domain_datasource_ids]
     resources = []
     selectedUser = None
     resource_alias = aliased(Resource)
