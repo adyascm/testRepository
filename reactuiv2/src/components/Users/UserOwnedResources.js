@@ -21,9 +21,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: USERS_OWNED_RESOURCES_LOAD_START }),
     onLoad: (payload) => dispatch({ type: USERS_OWNED_RESOURCES_LOADED, payload }),
-    setPaginationData: (pageNumber, pageLimit) => 
+    setPaginationData: (pageNumber, pageLimit) =>
         dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit }),
-    resetPaginationData: (pageNumber, pageLimit) => 
+    resetPaginationData: (pageNumber, pageLimit) =>
         dispatch({ type: USERS_RESOURCE_PAGINATION_DATA, pageNumber, pageLimit }),
     onChangePermission: (actionType, resource, newValue) =>
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, actionType, resource, newValue })
@@ -46,14 +46,17 @@ class UserOwnedResources extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["email"] }))    
+            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["email"],
+                                                  'datasourceId': this.props.selectedUserItem["datasource_id"]}))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': this.props.selectedUserItem["email"] }))
+            nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]],
+              'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+              'ownerEmailId': this.props.selectedUserItem["email"], 'datasourceId': this.props.selectedUserItem["datasource_id"] }))
         }
     }
 
@@ -89,7 +92,7 @@ class UserOwnedResources extends Component {
         }
 
         let tableRowData = null
-        
+
         if (this.props.selectedUserItem.ownedResources)
             tableRowData = this.props.selectedUserItem.ownedResources.map((rowData, index) => {
                 if (this.props.selectedUserItem["email"] === rowData["resource_owner_id"])
@@ -115,7 +118,7 @@ class UserOwnedResources extends Component {
                     </Dimmer>
                 </div>
             )
-        
+
         if (this.props.selectedUserItem.ownedResources && this.props.selectedUserItem.ownedResources.length)
             return (
                 <div>
@@ -137,12 +140,12 @@ class UserOwnedResources extends Component {
                     </div>
                 </div>
             )
-        else 
+        else
             return (
                 <div style={{ marginLeft: '30%' }}>
                     User is not the owner for any resource
                 </div>
-            )      
+            )
     }
 }
 
