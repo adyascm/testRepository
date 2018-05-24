@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -61,12 +61,23 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None):
             DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in datasource_ids]
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
-    if user_name:
-        users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%"))
-    if user_email:
-        users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%"))
-    if user_type:
-        users_query = users_query.filter(DomainUser.member_type == user_type)
+    if user_name or column_header_name == 'user_name':
+        if sort_order == 'desc':
+            users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.desc())
+        else:
+            users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.asc())
+    if user_email or column_header_name == 'user_email':
+        if sort_order == 'desc':
+            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
+        else:
+            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
+    if user_type or column_header_name == 'user_type':
+        if user_type != '':
+            users_query = users_query.filter(DomainUser.member_type == user_type)
+        if sort_order == 'desc':
+            users_query = users_query.order_by(DomainUser.member_type.desc())
+        else:
+            users_query = users_query.order_by(DomainUser.member_type.asc())
     users = users_query.all()
     return users
 
