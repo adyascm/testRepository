@@ -67,7 +67,7 @@ def handle_channel_expiration():
                     row.page_token = response.get('startPageToken')
                     Logger().info("new start token - {}".format(row.page_token))
 
-                Logger.info("Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
+                Logger().info("Trying to renew subscription for push notifications for domain_id: {} datasource_id: {} channel_id: {}".format(
                     row.domain_id, row.datasource_id, row.channel_id))
 
                 address = urls.PROCESS_DRIVE_NOTIFICATIONS_PATH
@@ -306,4 +306,4 @@ def unsubscribed_all_the_previous_subscription(datasource_id):
         Logger().info("unsubscribed_all_the_previous_subscription : subscription")
         unsubscribe_subscription(subscription)
 
-    Logger.info("unsubscribed all the channel for datasource - {} ".format(datasource_id))
+    Logger().info("unsubscribed all the channel for datasource - {} ".format(datasource_id))

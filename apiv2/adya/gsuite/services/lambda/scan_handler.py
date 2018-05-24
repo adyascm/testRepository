@@ -4,7 +4,6 @@ from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
 
 from adya.core.controllers import actions_controller
-from adya.common.utils.response_messages import Logger
 
 def start_scan(event, context):
     req_session = RequestSession(event)

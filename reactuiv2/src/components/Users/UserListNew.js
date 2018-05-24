@@ -133,6 +133,10 @@ class UserListNew extends Component {
             this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
         else if (statType === "Domains") {
             this.props.onLoadStart()
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, this.props.typeColumnFilterValue, '', '', ''))
+        }
+        else if (statType === "Privileges") {
+            this.props.onLoadStart()
             this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', statSubType))
         }
         
