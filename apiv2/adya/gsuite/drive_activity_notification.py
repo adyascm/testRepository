@@ -12,10 +12,9 @@ from adya.gsuite import gutils
 
 
 def process_notifications_for_activity_watch(notification_type, datasource_id, channel_id, body):
-    if notification_type == "sync":
+    if notification_type == "sync" or not body:
         return
     db_session = db_connection().get_session()
-    Logger().info("process_notifications_for_activity_watch : body :  {}".format(body))
 
     subscription = db_session.query(PushNotificationsSubscription).filter(
         PushNotificationsSubscription.channel_id == channel_id).first()
