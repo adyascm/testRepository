@@ -157,3 +157,20 @@ functions:
           method: post
           cors: true
 
+  post-slack-scan-apps:
+    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_apps
+    events:
+      - http:
+          path: scan/apps
+          method: post
+          cors: true
+
+  get-slack-scan-apps:
+    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_apps
+    events:
+      - http:
+          path: scan/apps
+          method: get
+          cors: true
+
+

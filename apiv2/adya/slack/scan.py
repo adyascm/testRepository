@@ -217,7 +217,13 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
 
         # adding channels to db
         # TODO: RECONCILIATION
-        messaging.trigger_post_event(urls.SCAN_SLACK_FILES, auth_token, query_params, files, "slack")
+
+        sentfile_count = 0
+        while sentfile_count < total_file_count:
+            filesdata = {}
+            filesdata["files"] = files[sentfile_count:sentfile_count + 30]
+            messaging.trigger_post_event(urls.SCAN_SLACK_FILES, auth_token, query_params, filesdata, "slack")
+            sentfile_count += 30
 
         if page_number < total_number_of_page:
             page_number = page_number + 1
@@ -232,12 +238,13 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
         Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
 
 
-def process_slack_files(datasource_id, file_list):
+def process_slack_files(datasource_id, files_data):
     db_session = db_connection().get_session()
     try:
         resource_list = []
         resource_perms_list = []
         resource_count = 0
+        file_list = files_data["files"]
         for file in file_list:
             resource_count = resource_count + 1
             resource = {}
