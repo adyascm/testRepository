@@ -87,3 +87,30 @@ def process_slack_channels(event, context):
     scan.process_slack_channels(req_session.get_req_param('dataSourceId'), req_session.get_body())
     return req_session.generate_response(202)
 
+
+def get_slack_apps(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(
+        True, ['dataSourceId'], ['change_type'])
+    if req_error:
+        return req_error
+
+    scan.slack_process_apps(req_session.get_req_param('dataSourceId'), req_session.get_req_param('change_type'),
+                            req_session.get_body())
+    return req_session.generate_response(202)
+
+
+def process_slack_apps(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(
+        True, ['dataSourceId'], ['page', 'change_type'])
+    if req_error:
+        return req_error
+
+    scan.get_slack_apps(req_session.get_auth_token(),
+                        req_session.get_req_param('dataSourceId'),
+                        req_session.get_req_param('page'),
+                        req_session.get_req_param('change_type'))
+
+    return req_session.generate_response(202)
+
