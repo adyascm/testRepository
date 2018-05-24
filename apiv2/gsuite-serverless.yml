@@ -205,7 +205,7 @@ functions:
           method: post
           cors: true
   post-google-scan-processactivitynotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_drive_activity_notifications
+    handler: adya.gsuite.services.lambda.scan_handler.process_activity_notifications
     events:
       - http:
           path: scan/processactivitynotifications

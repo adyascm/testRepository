@@ -11,7 +11,7 @@ from adya.common.utils.response_messages import Logger
 from adya.gsuite import gutils
 
 
-def process_notifications_for_activity_watch(notification_type, datasource_id, channel_id, body):
+def process_notifications_for_activity(notification_type, datasource_id, channel_id, body):
     if notification_type == "sync" or not body:
         return
     db_session = db_connection().get_session()
