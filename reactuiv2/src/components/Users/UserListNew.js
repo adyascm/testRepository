@@ -162,7 +162,8 @@ class UserListNew extends Component {
         if (usersData)
             tableRowData = usersData.map(rowData => {
                 var avatarImage = null;
-                rowData.full_name = rowData.first_name + " " + rowData.last_name
+                if(!rowData.full_name)
+                    rowData.full_name = rowData.first_name + " " + (rowData.last_name || "")
                 if (rowData.photo_url) {
                     avatarImage = <Image inline size='mini' src={rowData.photo_url} circular></Image>
                 } else {
