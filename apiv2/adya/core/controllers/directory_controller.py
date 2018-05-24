@@ -170,7 +170,8 @@ def get_all_apps(auth_token):
     domain_datasource_ids = [r.datasource_id for r in datasources]
     domain_user = db_session.query(DomainUser).filter(
         DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token, LoginUser.email == DomainUser.email).first()
+        filter(and_(LoginUser.auth_token == auth_token, LoginUser.email == DomainUser.email,
+                    DomainUser.datasource_id.in_(domain_datasource_ids))).first()
 
     is_admin = True
     if domain_user:
