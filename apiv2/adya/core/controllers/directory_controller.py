@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None, domain_id=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -58,7 +58,7 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
     
     datasource_ids = db_session.query(DataSource.datasource_id).filter(
-            DataSource.domain_id == user_domain_id).all()
+        DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in datasource_ids]
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     if user_name or column_header_name == 'user_name':
@@ -66,11 +66,17 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
             users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.desc())
         else:
             users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.asc())
-    if user_email or column_header_name == 'user_email':
+    if user_email or column_header_name == 'user_email' or domain_id:
         if sort_order == 'desc':
-            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
+            if domain_id:
+                users_query = users_query.filter(DomainUser.email.contains(domain_id)).order_by(DomainUser.email.desc())
+            else:
+                users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
         else:
-            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
+            if domain_id:
+                users_query = users_query.filter(DomainUser.email.contains(domain_id)).order_by(DomainUser.email.asc())
+            else:
+                users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
     if user_type or column_header_name == 'user_type':
         if user_type != '':
             users_query = users_query.filter(DomainUser.member_type == user_type)
