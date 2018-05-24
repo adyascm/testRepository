@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None, user_privileges=None):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, user_source=None, column_header_name=None, sort_order=None, user_privileges=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -57,8 +57,11 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
     is_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
     
-    datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == user_domain_id).all()
+    if user_source:
+        datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).filter(DataSource.datasource_id == user_source).all()
+    else:
+        datasource_ids = db_session.query(DataSource.datasource_id).filter(
+            DataSource.domain_id == user_domain_id).all()
     domain_datasource_ids = [r for r, in datasource_ids]
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     if user_name or column_header_name == 'user_name':
