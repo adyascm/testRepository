@@ -49,7 +49,7 @@ def get_user_stats(auth_token):
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None):
+def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, column_header_name=None, sort_order=None, user_privileges=None):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
@@ -78,6 +78,12 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
             users_query = users_query.order_by(DomainUser.member_type.desc())
         else:
             users_query = users_query.order_by(DomainUser.member_type.asc())
+    if user_privileges:
+        if user_privileges == "Admin":
+            users_query = users_query.filter(DomainUser.is_admin == True)
+        else:
+            users_query = users_query.filter(DomainUser.is_admin == False)
+
     users = users_query.all()
     return users
 
