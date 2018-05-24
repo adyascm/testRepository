@@ -75,6 +75,12 @@ class UserListNew extends Component {
                 value: 'TRUST'
             }
         ]
+
+        this.exposureFilterMap = {
+            "External": 'EXT',
+            "Internal": 'INT',
+            "Trusted": 'TRUST'
+        }
     }
     componentWillMount() {
         this.props.onLoadStart()
@@ -118,6 +124,12 @@ class UserListNew extends Component {
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
         }
+    }
+
+    handleStatsClick = (event, statType, statSubType) => {
+        if (statType === "Access") 
+            this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
+        
     }
 
     render() {
@@ -173,7 +185,7 @@ class UserListNew extends Component {
                 <Grid fluid >
                     <Grid.Row fluid>
                         <Grid.Column width={3}>
-                            <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem}/>
+                            <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} />
                         </Grid.Column>
                         <Grid.Column width={13}>
                             <div ref="table" style={{ 'minHeight': usersData ? null : document.body.clientHeight / 2, 'maxHeight': document.body.clientHeight / 1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>

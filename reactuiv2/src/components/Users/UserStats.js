@@ -17,7 +17,7 @@ const UserStats = props => {
             let statSubType = statSubTypesKeys[stIndex];
             let statNumber = statSubTypes[statSubType];
             subTypeMenu.push((
-                <Menu.Item as='a' >
+                <Menu.Item as='a' onClick={(event) => props.handleStatsClick(event,statType,statSubType)}>
                     <Label key={index} color='blue'>{statNumber}</Label>
                     {statSubType}
                 </Menu.Item>
