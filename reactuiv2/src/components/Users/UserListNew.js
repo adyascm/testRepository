@@ -86,15 +86,15 @@ class UserListNew extends Component {
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', ''))
+        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, '', '', ''))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.nameColumnFilterValue !== this.props.nameColumnFilterValue || nextProps.emailColumnFilterValue !== this.props.emailColumnFilterValue ||
-            nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue) {
+            nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue || nextProps.sourceColumnFilterValue !== this.props.sourceColumnFilterValue) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', '', ''))
+            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, nextProps.sourceColumnFilterValue, '', '', ''))
         }
     }
 
@@ -113,7 +113,7 @@ class UserListNew extends Component {
     handleColumnSort = (mappedColumnName) => {
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, mappedColumnName, 'asc', ''))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -121,7 +121,7 @@ class UserListNew extends Component {
         }
         else {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc', ''))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -133,11 +133,11 @@ class UserListNew extends Component {
             this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
         else if (statType === "Domains") {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, this.props.typeColumnFilterValue, '', '', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, '', '', ''))
         }
         else if (statType === "Privileges") {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', statSubType))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, '', '', statSubType))
         }
         
     }
@@ -221,13 +221,14 @@ class UserListNew extends Component {
                                                 <Input fluid placeholder="Filter by email..." icon={this.props.emailColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'emailColumnFilterValue')} /> : null} value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
                                             </Table.Cell>
                                             <Table.Cell >
-                                            <Dropdown
+                                                <Dropdown
                                                     fluid
                                                     options={datasourceFilterOptions}
                                                     selection
                                                     value={this.props.sourceColumnFilterValue}
                                                     onChange={(event, data) => this.handleColumnFilterChange(event, data, "sourceColumnFilterValue")}
-                                                /></Table.Cell>
+                                                />
+                                            </Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='3'>
                                                 <Dropdown
