@@ -475,7 +475,9 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                                 DomainUser.user_id == member_id)).first()
 
-                if not existing_member:
+                if existing_member:
+                    member.member_email = existing_member.email
+                else:
                     db_session.delete(member)
 
             db_connection().commit()
