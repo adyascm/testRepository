@@ -73,7 +73,7 @@ def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, 
             users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
     if user_type or column_header_name == 'user_type':
         if user_type != '':
-            users_query.filter(DomainUser.member_type == user_type)
+            users_query = users_query.filter(DomainUser.member_type == user_type)
         if sort_order == 'desc':
             users_query = users_query.order_by(DomainUser.member_type.desc())
         else:
