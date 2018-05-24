@@ -54,7 +54,8 @@ class UserListNew extends Component {
             sortOrder: undefined,
             nameColumnFilterValue: this.props.nameColumnFilterValue,
             emailColumnFilterValue: this.props.emailColumnFilterValue,
-            typeColumnFilterValue: this.props.typeColumnFilterValue
+            typeColumnFilterValue: this.props.typeColumnFilterValue,
+            sourceColumnFilterValue: this.props.sourceColumnFilterValue
         }
 
         this.exposureFilterOptions = [
@@ -77,6 +78,7 @@ class UserListNew extends Component {
         ]
 
         this.exposureFilterMap = {
+            "All": '',
             "External": 'EXT',
             "Internal": 'INT',
             "Trusted": 'TRUST'
@@ -84,7 +86,7 @@ class UserListNew extends Component {
     }
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', ''))
+        this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', ''))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
@@ -92,7 +94,7 @@ class UserListNew extends Component {
         if (nextProps.nameColumnFilterValue !== this.props.nameColumnFilterValue || nextProps.emailColumnFilterValue !== this.props.emailColumnFilterValue ||
             nextProps.typeColumnFilterValue !== this.props.typeColumnFilterValue) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', ''))
+            this.props.onLoad(agent.Users.getUsersList(nextProps.nameColumnFilterValue, nextProps.emailColumnFilterValue, nextProps.typeColumnFilterValue, '', '', ''))
         }
     }
 
@@ -111,7 +113,7 @@ class UserListNew extends Component {
     handleColumnSort = (mappedColumnName) => {
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc'))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, 'asc', ''))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -119,7 +121,7 @@ class UserListNew extends Component {
         }
         else {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc'))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc', ''))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -129,11 +131,20 @@ class UserListNew extends Component {
     handleStatsClick = (event, statType, statSubType) => {
         if (statType === "Access") 
             this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
+        else if (statType === "Domains") {
+            this.props.onLoadStart()
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, '', '', statSubType))
+        }
         
     }
 
     render() {
 
+        let datasourceFilterOptions = [{text:"All", value:""}];
+        for (var index in this.props.datasources) {
+            let ds = this.props.datasources[index];
+            datasourceFilterOptions.push({text:ds.datasource_type, value:ds.datasource_id});
+          }
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
             return (
@@ -151,7 +162,8 @@ class UserListNew extends Component {
         if (usersData)
             tableRowData = usersData.map(rowData => {
                 var avatarImage = null;
-                rowData.full_name = rowData.first_name + " " + rowData.last_name
+                if(!rowData.full_name)
+                    rowData.full_name = rowData.first_name + " " + (rowData.last_name || "")
                 if (rowData.photo_url) {
                     avatarImage = <Image inline size='mini' src={rowData.photo_url} circular></Image>
                 } else {
@@ -204,7 +216,14 @@ class UserListNew extends Component {
                                             <Table.Cell width='4'>
                                                 <Input fluid placeholder="Filter by email..." icon={this.props.emailColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'emailColumnFilterValue')} /> : null} value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
                                             </Table.Cell>
-                                            <Table.Cell width='1'></Table.Cell>
+                                            <Table.Cell >
+                                            <Dropdown
+                                                    fluid
+                                                    options={datasourceFilterOptions}
+                                                    selection
+                                                    value={this.props.sourceColumnFilterValue}
+                                                    onChange={(event, data) => this.handleColumnFilterChange(event, data, "sourceColumnFilterValue")}
+                                                /></Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='3'>
                                                 <Dropdown

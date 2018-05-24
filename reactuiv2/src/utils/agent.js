@@ -74,8 +74,8 @@ const Dashboard = {
 const Users = {
     getUserStats: () =>
         requests.get('/common/users/stats'),
-    getUsersList: (userName, userEmail, userType, sortColumnName, sortOrder) =>
-        requests.get('/common/users?userName=' + userName + '&userEmail=' + userEmail + '&userType=' + userType + '&sortColumnName=' + sortColumnName + '&sortOrder=' + sortOrder),
+    getUsersList: (userName, userEmail, userType, sortColumnName, sortOrder, domainId) =>
+        requests.get('/common/users?userName=' + userName + '&userEmail=' + userEmail + '&userType=' + userType + '&sortColumnName=' + sortColumnName + '&sortOrder=' + sortOrder + '&domainId=' + domainId),
     getUsersTree: () =>
         requests.get('/common/getusergrouptree')
 }

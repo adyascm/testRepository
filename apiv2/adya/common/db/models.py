@@ -112,7 +112,7 @@ class DomainUser(Base):
     member_type = Column(String(6))
     customer_id = Column(String(255))
     
-    groups = relationship("DomainGroup", secondary="domain_directory_structure", primaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DomainUser.email==DirectoryStructure.member_email)", 
+    groups = relationship("DomainGroup", secondary="domain_directory_structure", primaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DomainUser.email==DirectoryStructure.member_email)", 
     secondaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DirectoryStructure.parent_email==DomainGroup.email)")
 
 
