@@ -300,14 +300,6 @@ functions:
           method: delete
           cors: true
 
-  post-common-policies-validate:
-    handler: adya.core.services.lambda.policy_handler.validate_policy
-    events:
-      - http:
-          path: policies/validate
-          method: post
-          cors: true
-
   post-common-policies-default:
     handler: adya.core.services.lambda.policy_handler.create_default_policies
     events:

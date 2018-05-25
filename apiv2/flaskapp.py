@@ -9,7 +9,7 @@ from adya.common.constants import urls
 from adya.core.services.flask import auth_handler, domain_handler, directory_handler, reports_handler, resource_handler, actions_handler, auditlog_handler, policy_handler, alert_handler
 from adya.gsuite import drive_change_notification
 from adya.gsuite.services.flask import oauth_handler, scan_handler, incremental_scan_handler, activities_handler
-from adya.gsuite.services.flask import action_handler
+from adya.gsuite.services.flask import action_handler, policy_validate_handler
 from adya.slack.services.flask import slack_scan_handler, slack_oauth_handler
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -73,7 +73,7 @@ api.add_resource(auditlog_handler.get_audit_log, urls.GET_AUDITLOG_PATH)
 
 #policies
 api.add_resource(policy_handler.Policy, urls.POLICIES_PATH)
-api.add_resource(policy_handler.PolicyValidator, urls.POLICIES_VALIDATE_PATH)
+api.add_resource(policy_validate_handler.PolicyValidator, urls.GSUITE_POLICIES_VALIDATE_PATH)
 api.add_resource(policy_handler.DefaultPoliciesCreator, urls.CREATE_DEFAULT_POLICES_PATH)
 
 #alerts
