@@ -29,11 +29,23 @@ const mapDispatchToProps = dispatch => ({
 class UsersNew extends Component {
   constructor(props) {
     super(props);
+    
+    this.state = {
+      showHierarchy: false
+    }
   }
 
   componentWillMount() {
     window.scrollTo(0, 0)
     this.props.selectUserItem(undefined)
+  }
+
+  toggleHierarchyView = () => {
+    this.props.selectUserItem(undefined)
+    this.setState({
+      ...this.state,
+      showHierarchy: !this.state.showHierarchy
+    });
   }
 
   render() {
@@ -48,20 +60,33 @@ class UsersNew extends Component {
       gridWidth = 4;
     }
 
+    let toggleCheckbox = (
+      <Checkbox toggle
+        label='Show groups tree'
+        onChange={this.toggleHierarchyView}
+        checked={this.state.showHierarchy}
+      />
+    )
+
     return (
         <Container fluid style={containerStyle}>
             <Grid divided='vertically' stretched>
-            <Grid.Row stretched>
-                <Grid.Column stretched width={gridWidth}>
-                    <UserListNew />
+              <Grid.Row >
+                <Grid.Column stretched floated='right' width="5">
+                  {toggleCheckbox}
                 </Grid.Column>
-                {
-                this.props.selectedUserItem ?
-                    (<Grid.Column width='12'>
-                    <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
-                    </Grid.Column>) : null
-                }
-            </Grid.Row>
+              </Grid.Row>
+              <Grid.Row stretched>
+                  <Grid.Column stretched width={gridWidth}>
+                      { !this.state.showHierarchy ? <UserListNew /> : <UsersTree /> }
+                  </Grid.Column>
+                  {
+                  this.props.selectedUserItem ?
+                      (<Grid.Column width='12'>
+                      <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
+                      </Grid.Column>) : null
+                  }
+              </Grid.Row>
             </Grid>
             <Actions />
         </Container >
