@@ -167,7 +167,7 @@ def process_activity_notifications(event, context):
     datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
     notification_type = req_session.get_req_header('X-Goog-Resource-State')
-    activity_notification.process_notifications_for_activity(notification_type, datasource_id, channel_id, req_session.get_body())
+    activity_notification.process_notifications(notification_type, datasource_id, channel_id, req_session.get_body())
     return req_session.generate_response(202)    
 
 

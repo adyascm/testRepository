@@ -48,7 +48,8 @@ api.add_resource(directory_handler.UserApps, urls.GET_APPS)
 # incremental scan
 api.add_resource(incremental_scan_handler.subscribe, urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
 api.add_resource(incremental_scan_handler.PollChanges, urls.GDRIVE_PERIODIC_CHANGES_POLL)
-api.add_resource(incremental_scan_handler.process_notifications, urls.PROCESS_DRIVE_NOTIFICATIONS_PATH)
+api.add_resource(incremental_scan_handler.process_drive_notifications, urls.PROCESS_DRIVE_NOTIFICATIONS_PATH)
+api.add_resource(incremental_scan_handler.process_activity_notifications, urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH)
 
 # get file resource data
 api.add_resource(resource_handler.GetResources, urls.GET_RESOURCE_TREE_PATH)
