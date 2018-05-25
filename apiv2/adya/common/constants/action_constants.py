@@ -1,5 +1,8 @@
 from enum import Enum
 
+from adya.common.constants import urls
+from adya.common.constants.constants import ConnectorTypes
+
 
 class ActionNames(Enum):
     TRANSFER_OWNERSHIP = "transfer_ownership"
@@ -23,13 +26,10 @@ class ActionStatus(Enum):
     SUCCESS = 'SUCCESS'
     FAILED = 'FAILED'
 
-class ActionStatus(Enum):
-    STARTED = 'STARTED'
-    SUCCESS = 'SUCCESS'
-    FAILED = 'FAILED'
-
-
-
+connectors_to_action_path_mapping = {
+    ConnectorTypes.GSUITE : urls.ACTION_PATH,
+    ConnectorTypes.SLACK: urls.SLACK_ACTION_PATH
+}
 
 
 

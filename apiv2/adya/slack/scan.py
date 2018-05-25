@@ -383,8 +383,6 @@ def slack_process_apps(datasource_id, change_type, apps_data):
                 existing_app = db_session.query(Application).filter(
                     and_(Application.datasource_id == datasource_id, Application.client_id == id)).first()
 
-
-
                 if existing_app:
                     update_app = db_session.query(Application).filter(
                         and_(Application.datasource_id == datasource_id, Application.client_id ==
@@ -455,42 +453,65 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
         if send_message:
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
         if get_scan_status(datasource) == 1:
-            # setting channel/group name in resource_permission table
-            channel_id_and_name_map = {}
-            channels_groups = db_session.query(DomainGroup).filter(DataSource.datasource_id == datasource_id).all()
-            for channel_group in channels_groups:
-                channel_id_and_name_map[channel_group.group_id] = channel_group.name
+
+            channels_groups = db_session.query(DomainGroup).filter(
+                DataSource.datasource_id == datasource_id).all()
 
             resource_permissions = db_session.query(ResourcePermission).filter(
                 ResourcePermission.datasource_id == datasource_id).all()
 
-            for permission in resource_permissions:
-                permission.email = channel_id_and_name_map[permission.email] if permission.email in channel_id_and_name_map \
-                    else permission.email
-
+            channel_id_and_name_map = {}
             # checking for present users and extracting their email id
-            domain_directory_struct = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id == datasource_id)
+            domain_directory_struct = db_session.query(DirectoryStructure).filter(
+                DirectoryStructure.datasource_id == datasource_id)
             for member in domain_directory_struct:
                 member_id = member.member_id
                 existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
-                                                                DomainUser.user_id == member_id)).first()
+                                                                           DomainUser.user_id == member_id)).first()
 
                 is_external_user = False
                 if existing_member:
                     member.member_email = existing_member.email
                     # checking if the member is external or internal
-                    is_external_user = True if existing_member.member_type == constants.UserMemberType.EXTERNAL else False
+                    if existing_member.member_type == constants.UserMemberType.EXTERNAL:
+                        is_external_user = True
 
                 else:
                     db_session.delete(member)
 
-                # updaeting channel is_external column
-                if is_external_user:
-                    db_session.query(DomainGroup).filter(and_(DomainGroup.datasource_id == datasource_id,
-                                        DomainGroup.group_id == member.parent_email, DomainGroup.is_external == False)).\
-                                            update({DomainGroup.is_external: is_external_user},
-                                                   synchronize_session='fetch')
+                # updating channel is_external column
 
+                for channel_group in channels_groups:
+                    if channel_group.group_id == member.parent_email and channel_group.is_external == False:
+                        channel_group.is_external = is_external_user if is_external_user else False
+
+                    # map - {key: group id, value: list[group/channel name, is_external]}
+                    if channel_group.group_id not in channel_id_and_name_map:
+                        channel_id_and_name_map[channel_group.group_id] = [channel_group.name, is_external_user]
+                    elif channel_id_and_name_map[channel_group.group_id][1] == False and is_external_user:
+                        channel_id_and_name_map[channel_group.group_id] = [channel_group.name, is_external_user]
+
+            # setting channel/group name in resource_permission table
+            external_resource_ids = set()
+            for permission in resource_permissions:
+                if permission.email in channel_id_and_name_map:
+                    is_external_exposure_type = channel_id_and_name_map[permission.email][1]
+                    permission.email = channel_id_and_name_map[permission.email][0]
+                    if is_external_exposure_type:
+                        permission.exposure_type = constants.ResourceExposureType.EXTERNAL
+                        external_resource_ids.add(permission.resource_id)
+
+            # updating resource exposure type for external
+            resource_list_to_be_updated = []
+            for resource_id in external_resource_ids:
+                resource_map = {
+                    "resource_id": resource_id,
+                    "datasource_id": datasource_id,
+                    "exposure_type": constants.ResourceExposureType.EXTERNAL
+                }
+                resource_list_to_be_updated.append(resource_map)
+
+            db_session.bulk_update_mappings(Resource, resource_list_to_be_updated)
             db_connection().commit()
 
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
