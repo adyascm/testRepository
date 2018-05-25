@@ -23,6 +23,7 @@ HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH = '/google/scan/handlechannelexpiration'
 GDRIVE_PERIODIC_CHANGES_POLL = '/google/scan/polldrivechanges'
 PROCESS_GDRIVE_DIRECTORY_NOTIFICATIONS_PATH = '/google/scan/directoryprocessnotifications'
 GET_ACTIVITIES_FOR_USER_PATH = '/google/getactivitiesforuser'
+GSUITE_POLICIES_VALIDATE_PATH = '/google/policies/validate'
 
 GET_USERS_LIST_PATH = "/common/users"
 GET_USERS_STATS_PATH = "/common/users/stats"
@@ -35,6 +36,7 @@ ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
 
 GET_SCHEDULED_REPORT_PATH = '/common/scheduledreport'
 RUN_SCHEDULED_REPORT = '/common/scheduledreport/runreport'
+EXECUTE_SCHEDULED_REPORT = '/common/executescheduledreport'
 
 GET_ALL_ACTIONS_PATH = '/common/getallactions'
 INITIATE_ACTION_PATH = '/common/initiateaction'
@@ -42,7 +44,6 @@ INITIATE_ACTION_PATH = '/common/initiateaction'
 GET_AUDITLOG_PATH = '/common/getauditlog'
 
 POLICIES_PATH = '/common/policies'
-POLICIES_VALIDATE_PATH = '/common/policies/validate'
 CREATE_DEFAULT_POLICES_PATH ='/common/policies/default'
 
 ALERTS_PATH = '/common/alerts'
@@ -66,5 +67,7 @@ SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
 SCAN_SLACK_FILES = '/slack/scan/resources'
 SCAN_SLACK_APPS = '/slack/scan/apps'
-SUBSCRIBE_SLACK_NOTIFICATIONS_PATH = '/slack/scan/subscribenotifications'
+PROCESS_SLACK_NOTIFICATIONS_PATH = '/slack/scan/notifications'
+SLACK_ACTION_PATH = '/slack/actions'
+
 

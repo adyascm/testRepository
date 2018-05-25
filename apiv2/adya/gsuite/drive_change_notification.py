@@ -4,8 +4,7 @@ import json
 import requests
 from sqlalchemy import and_
 
-from adya.common.constants import urls
-from adya.common.constants.constants import get_url_from_path
+from adya.common.constants import urls, constants
 from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
 from adya.common.db.models import PushNotificationsSubscription, LoginUser, DataSource, Resource, ResourcePermission, \
@@ -97,7 +96,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
         if subscription.stale == 1:
             subscription.stale = 0
             db_connection().commit()
-            response = requests.post(get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
+            response = requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
                                      headers={"X-Goog-Channel-Token": datasource_id,
                                               "X-Goog-Channel-ID": channel_id,
                                               'X-Goog-Resource-State': notification_type})
@@ -201,9 +200,9 @@ def update_resource(datasource_id, user_email, updated_resource):
         payload["old_permissions"] = existing_permissions_dump
         payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
         payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
-        policy_params = {'dataSourceId': datasource_id}
+        policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE}
         Logger().info("update_resource : payload : {}".format(payload))
-        messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
+        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
     except Exception as ex:
         Logger().exception("Exception occurred while processing incremental update for drive resource using email: {}".format(user_email))

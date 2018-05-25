@@ -84,7 +84,7 @@ def _subscribe_for_activity(db_session, subscription, is_local_deployment):
     try:
         subscription.last_accessed = datetime.datetime.utcnow()
         if not subscription.page_token:
-            subscription.page_token = subscription.last_accessed.isoformat() + "Z"
+            subscription.page_token = subscription.last_accessed.isoformat("T") + "Z"
 
         if not is_local_deployment:
             reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
@@ -219,16 +219,22 @@ def unsubscribe_subscription(subscription):
 def gdrive_periodic_changes_poll(datasource_id=None):
     db_session = db_connection().get_session()
     hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
-    subscription_list = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE)
+    subscription_list = db_session.query(PushNotificationsSubscription)
     if datasource_id:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
     else:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
     for row in subscription_list.all():
-        requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
-                        headers={"X-Goog-Channel-Token": row.datasource_id,
-                                                "X-Goog-Channel-ID": row.channel_id,
-                                                'X-Goog-Resource-State': "change"})
+        if row.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE:
+            requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
+                            headers={"X-Goog-Channel-Token": row.datasource_id,
+                                                    "X-Goog-Channel-ID": row.channel_id,
+                                                    'X-Goog-Resource-State': "change"})
+        else:
+            requests.post(constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
+                            headers={"X-Goog-Channel-Token": row.datasource_id,
+                                                    "X-Goog-Channel-ID": row.channel_id,
+                                                    'X-Goog-Resource-State': "adya"})
 
 def unsubscribed_all_the_previous_subscription(datasource_id):
     db_session = db_connection().get_session()
