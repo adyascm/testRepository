@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Dimmer, Loader } from 'semantic-ui-react'
 
 import {
+    USERS_PAGE_LOAD_START,
+    USERS_PAGE_LOADED,
     USER_ITEM_SELECTED
 } from '../../constants/actionTypes';
 
@@ -9,6 +12,7 @@ import { AgGridReact } from "ag-grid-react";
 import 'ag-grid/dist/styles/ag-grid.css';
 import 'ag-grid/dist/styles/ag-theme-fresh.css';
 import UserGroupCell from './UserGroupCell';
+import agent from '../../utils/agent'
 
 const mapStateToProps = state => ({
     ...state.users
@@ -16,13 +20,18 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     selectUserItem: (payload) =>
-        dispatch({ type: USER_ITEM_SELECTED, payload })
+        dispatch({ type: USER_ITEM_SELECTED, payload }),
+    loadUsersTreeData: (payload) =>
+        {
+            dispatch({ type: USERS_PAGE_LOAD_START });
+            dispatch({ type: USERS_PAGE_LOADED, payload });
+        }
 });
 
 class UsersTree extends Component {
     constructor(props) {
         super(props);
-        this.onCellClicked = this.onCellClicked.bind(this);
+        //this.onCellClicked = this.onCellClicked.bind(this);
         this.cellExpandedOrCollapsed = this.cellExpandedOrCollapsed.bind(this);
 
         this.state = {
@@ -60,7 +69,7 @@ class UsersTree extends Component {
                 sort: "asc",
                 cellStyle: { textAlign: "left" },
                 cellRenderer: "agTextCellRenderer",
-                width: document.body.clientWidth/4
+                width: document.body.clientWidth/2
             },
             {
                 headerName: "Type",
@@ -100,6 +109,10 @@ class UsersTree extends Component {
             }
         }
         
+    }
+
+    componentWillMount() {
+        this.props.loadUsersTreeData(agent.Users.getUsersTree())
     }
 
     componentWillReceiveProps(nextProps){
@@ -199,9 +212,9 @@ class UsersTree extends Component {
             })
         }
     }
-    onCellClicked(params) {
-        this.props.selectUserItem(params.data);
-    }
+    // onCellClicked(params) {
+    //     this.props.selectUserItem(params.data);
+    // }
 
     cellExpandedOrCollapsed(params) {
         
@@ -222,7 +235,13 @@ class UsersTree extends Component {
     }
 
     render() {
-        if(!this.state.rows){
+        if (this.props.isLoadingUsers) 
+            return (
+                <Dimmer active inverted>
+                    <Loader inverted content='Loading' />
+                </Dimmer>
+            )
+        else if(this.props.usersTreePayload && !this.state.rows){
             this.setTreeRows();
         }
         else if (this.state.rows && this.state.rows.length)
