@@ -35,6 +35,7 @@ ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
 
 GET_SCHEDULED_REPORT_PATH = '/common/scheduledreport'
 RUN_SCHEDULED_REPORT = '/common/scheduledreport/runreport'
+EXECUTE_SCHEDULED_REPORT = '/common/executescheduledreport'
 
 GET_ALL_ACTIONS_PATH = '/common/getallactions'
 INITIATE_ACTION_PATH = '/common/initiateaction'
@@ -66,5 +67,7 @@ SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
 SCAN_SLACK_FILES = '/slack/scan/resources'
 SCAN_SLACK_APPS = '/slack/scan/apps'
-SUBSCRIBE_SLACK_NOTIFICATIONS_PATH = '/slack/scan/subscribenotifications'
+PROCESS_SLACK_NOTIFICATIONS_PATH = '/slack/scan/notifications'
+SLACK_ACTION_PATH = '/slack/actions'
+
 
