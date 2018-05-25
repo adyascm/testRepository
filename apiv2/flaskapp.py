@@ -10,7 +10,8 @@ from adya.core.services.flask import auth_handler, domain_handler, directory_han
 from adya.gsuite import drive_change_notification
 from adya.gsuite.services.flask import oauth_handler, scan_handler, incremental_scan_handler, activities_handler
 from adya.gsuite.services.flask import action_handler, policy_validate_handler
-from adya.slack.services.flask import slack_scan_handler, slack_oauth_handler
+from adya.slack.services.flask import slack_scan_handler, slack_oauth_handler, slack_incremental_scan_handler, \
+    slack_actions_handler
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -95,6 +96,9 @@ api.add_resource(slack_scan_handler.SlackUsers, urls.SCAN_SLACK_USERS)
 api.add_resource(slack_scan_handler.SlackChannels, urls.SCAN_SLACK_CHANNELS)
 api.add_resource(slack_scan_handler.SlackFiles, urls.SCAN_SLACK_FILES)
 api.add_resource(slack_scan_handler.SlackApps, urls.SCAN_SLACK_APPS)
+
+#slack actions
+api.add_resource(slack_actions_handler.SlackActions, urls.SLACK_ACTION_PATH)
 
 
 if __name__ == '__main__':
