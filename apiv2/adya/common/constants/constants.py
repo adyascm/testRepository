@@ -120,9 +120,12 @@ permission_priority = {
 }
 
 
-class TypeOfPushNotificationCallback(Enum):
+class GSuiteNotificationType(Enum):
     DRIVE_CHANGE = 'DRIVE_CHANGE'
-    ACTIVITY_CHANGE = 'ACTIVITY_CHANGE'
+    DRIVE_ACTIVITY = 'drive'
+    ADMIN_ACTIVITY = 'admin'
+    TOKEN_ACTIVITY = 'token'
+    LOGIN_ACTIVITY = 'login'
 
 class ConnectorTypes(Enum):
     GSUITE = "GSUITE"

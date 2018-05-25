@@ -1,5 +1,5 @@
 from adya.gsuite import scan, incremental_scan
-from adya.gsuite import drive_change_notification, incremental_scan, drive_activity_notification
+from adya.gsuite import drive_change_notification, incremental_scan, activity_notification
 from adya.common.utils import utils
 from adya.common.utils.request_session import RequestSession
 
@@ -158,7 +158,7 @@ def process_drive_change_notifications(event, context):
     drive_change_notification.process_notifications(notification_type, datasource_id, channel_id)
     return req_session.generate_response(202)
 
-def process_drive_activity_notifications(event, context):
+def process_activity_notifications(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[], headers=['X-Goog-Channel-Token', 'X-Goog-Channel-ID', 'X-Goog-Resource-State'])
     if req_error:
@@ -167,7 +167,7 @@ def process_drive_activity_notifications(event, context):
     datasource_id = req_session.get_req_header('X-Goog-Channel-Token')
     channel_id = req_session.get_req_header('X-Goog-Channel-ID')
     notification_type = req_session.get_req_header('X-Goog-Resource-State')
-    drive_activity_notification.process_notifications_for_activity_watch(notification_type, datasource_id, channel_id, req_session.get_body())
+    activity_notification.process_notifications_for_activity(notification_type, datasource_id, channel_id, req_session.get_body())
     return req_session.generate_response(202)    
 
 
