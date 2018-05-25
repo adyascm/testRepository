@@ -41,7 +41,7 @@ class UsersNew extends Component {
   }
 
   toggleHierarchyView = () => {
-    //this.props.selectUserItem(undefined)
+    this.props.selectUserItem(undefined)
     this.setState({
       ...this.state,
       showHierarchy: !this.state.showHierarchy
