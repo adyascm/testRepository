@@ -110,7 +110,7 @@ class GsuiteDataSourceItem extends Component {
                 datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
             return (
                 <Card fluid >
-                    <Dimmer active={datasource.isDeleting} inverted>
+                    <Dimmer active={this.props.common.datasourceLoading} inverted>
                         <Loader inverted content='Deleting...' />
                     </Dimmer>
                     <Card.Content>
@@ -142,7 +142,7 @@ class GsuiteDataSourceItem extends Component {
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
-                            <Button basic color='red' loading={datasource.isDeleting} onClick={this.deleteDataSource(datasource)}>Delete</Button>
+                            <Button basic color='red' loading={this.props.common.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
                             {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
                         </div>
                     </Card.Content>
@@ -179,7 +179,7 @@ class GsuiteDataSourceItem extends Component {
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
-                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.props.datasourceLoading ? true : false}>{buttonText}</Button>
+                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.props.common.datasourceLoading}>{buttonText}</Button>
                         </div>
                     </Card.Content>
                 </Card>
