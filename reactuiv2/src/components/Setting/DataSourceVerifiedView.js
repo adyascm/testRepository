@@ -3,9 +3,7 @@ import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { 
     SET_DATASOURCES, 
-    GET_ALL_ACTIONS, 
-    USERS_PAGE_LOADED, 
-    USERS_PAGE_LOAD_START,
+    GET_ALL_ACTIONS,
     FETCH_ALERTS_COUNT 
 } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
@@ -20,11 +18,6 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: SET_DATASOURCES, payload: datasources }),
     loadActions: (payload) =>
         dispatch({ type: GET_ALL_ACTIONS, payload }),
-    loadUsersTreeData: (payload) =>
-    {
-        dispatch({ type: USERS_PAGE_LOAD_START });
-        dispatch({ type: USERS_PAGE_LOADED, payload });
-    },
     fetchAlertsCount: (alertsCount) => 
         dispatch({ type: FETCH_ALERTS_COUNT, alertsCount })    
 });
@@ -37,11 +30,6 @@ const DataSourceVerifiedView = ChildComponent => {
             if (!this.props.common.all_actions_list) {
                 this.props.loadActions(agent.Actions.getAllActions())
             }
-            // if ((this.props.common.datasources && this.props.common.datasources.length > 0) && 
-            // (!this.props.users.isLoadingUsers && !this.props.users.usersTreePayload))
-            // {
-            //     this.props.loadUsersTreeData(agent.Users.getUsersTree());
-            // }
             if ((this.props.common.datasources && this.props.common.datasources.length > 0) &&
                 (this.props.alert.alertsCount === undefined)) {
                 agent.Alert.getAlertsCount().then(response => {

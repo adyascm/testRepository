@@ -38,16 +38,6 @@ class Policy(Resource):
                                                       req_session.get_body())
          return req_session.generate_sqlalchemy_response(201, policy_obj)
 
-
-class PolicyValidator(Resource):
-    def post(self):
-        req_session = RequestSession(request)
-        req_error = req_session.validate_authorized_request(True, ['dataSourceId'])
-        if req_error:
-            return req_error
-        policy_controller.validate(req_session.get_auth_token(), req_session.get_req_param('dataSourceId'), req_session.get_body())
-        return req_session.generate_response(200)
-
 class DefaultPoliciesCreator(Resource):
     def post(self):
         req_session = RequestSession(request)

@@ -204,8 +204,9 @@ functions:
           path: scan/processdrivenotifications
           method: post
           cors: true
+
   post-google-scan-processactivitynotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_activity_change_notifications
+    handler: adya.gsuite.services.lambda.scan_handler.process_activity_notifications
     events:
       - http:
           path: scan/processactivitynotifications
@@ -250,4 +251,12 @@ functions:
       - http:
           path: actions
           method: delete
-          cors: true        
+          cors: true      
+
+  post-google-policies-validate:
+    handler: adya.core.services.lambda.policy_validate_handler.validate_policy
+    events:
+      - http:
+          path: policies/validate
+          method: post
+          cors: true  

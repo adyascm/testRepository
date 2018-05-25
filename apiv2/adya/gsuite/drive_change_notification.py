@@ -51,8 +51,13 @@ def process_notifications(notification_type, datasource_id, channel_id):
 
         page_token = subscription.page_token
         while True:
-            response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
-                                                    spaces='drive').execute()
+            try:
+                response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
+                                                        spaces='drive').execute()
+            except Exception as ex:
+                Logger().exception( "Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
+                    user_email, datasource_id, channel_id, ex))
+                break
             Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
             changes = response.get('changes')
             if len(changes) < 1:
@@ -198,7 +203,7 @@ def update_resource(datasource_id, user_email, updated_resource):
         payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
         policy_params = {'dataSourceId': datasource_id}
         Logger().info("update_resource : payload : {}".format(payload))
-        messaging.trigger_post_event(urls.POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload)
+        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
     except Exception as ex:
         Logger().exception("Exception occurred while processing incremental update for drive resource using email: {}".format(user_email))
