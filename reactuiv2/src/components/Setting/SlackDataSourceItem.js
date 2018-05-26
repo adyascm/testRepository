@@ -20,8 +20,7 @@ import {
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-  ...state.common,
-  ...state.agent
+  ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -46,14 +45,28 @@ const mapDispatchToProps = dispatch => ({
 class SlackDataSourceItem extends Component {
   constructor() {
       super();
+
+      this.state = {
+          datasourceLoading: false
+      }
+      
       this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
             this.props.onDataSourceLoad()
+            this.setState({
+                datasourceLoading: true
+            })
             oauth.authenticateSlack("slack_read_scopes", this.props.token).then(data => {
                 this.props.setDataSources(agent.Setting.getDataSources());
+                this.setState({
+                    datasourceLoading: false
+                })
             }).catch(({ errors }) => {
             this.props.onDataSourceLoadError()
             this.props.displayErrorMessage(errors)
+            this.setState({
+                datasourceLoading: false
+            })
             });
       };
 
@@ -98,7 +111,7 @@ class SlackDataSourceItem extends Component {
       var datasourceImage = <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
       return (
           <Card fluid >
-              <Dimmer active={this.props.common.datasourceLoading} inverted>
+              <Dimmer active={this.state.datasourceLoading} inverted>
                   <Loader inverted content='Deleting...' />
               </Dimmer>
               <Card.Content>
@@ -130,7 +143,7 @@ class SlackDataSourceItem extends Component {
               </Card.Content>
               <Card.Content extra>
                   <div className='ui buttons'>
-                      <Button basic color='red' loading={this.props.common.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
+                      <Button basic color='red' loading={this.state.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
                       {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
                   </div>
               </Card.Content>
@@ -156,7 +169,7 @@ class SlackDataSourceItem extends Component {
                 </Card.Content>
                 <Card.Content extra>
                     <div className='ui buttons'>
-                        <Button basic color='green' onClick={this.addNewDatasource()} loading={this.props.datasourceLoading}>Connect</Button>
+                        <Button basic color='green' onClick={this.addNewDatasource()} loading={this.state.datasourceLoading}>Connect</Button>
                     </div>
                 </Card.Content>
             </Card>

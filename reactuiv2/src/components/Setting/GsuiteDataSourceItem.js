@@ -30,7 +30,7 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: DELETE_DATASOURCE_START, payload: datasource })
     },
     onDataSourceLoad: () =>
-        dispatch({ type: DATASOURCE_LOAD_START }),
+        dispatch({ type: DATASOURCE_LOAD_START}),
     displayErrorMessage: (error) => {
         dispatch({ type: DATASOURCE_LOAD_END }),
             dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] })
@@ -44,16 +44,30 @@ const mapDispatchToProps = dispatch => ({
 class GsuiteDataSourceItem extends Component {
     constructor() {
         super();
+
+        this.state = {
+            datasourceLoading: false
+        }
+
         this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
             this.props.onDataSourceLoad()
+            this.setState({
+                datasourceLoading: true
+            })
             if (this.props.is_serviceaccount_enabled) {
                 this.props.addDataSource("GSuite", "GSUITE")
             } else {
                 oauth.authenticateGsuite("drive_scan_scope").then(data => {
                     this.props.addDataSource("GSuite", "GSUITE")
+                    this.setState({
+                        datasourceLoading: false
+                    })
                 }).catch(({ errors }) => {
                     this.props.displayErrorMessage(errors)
+                    this.setState({
+                        datasourceLoading: false
+                    })
                 });
             }
         };
@@ -67,8 +81,14 @@ class GsuiteDataSourceItem extends Component {
         this.deleteDataSource = (datasource) => ev => {
             ev.preventDefault();
             this.props.onDeleteDataSource(datasource);
+            this.setState({
+                datasourceLoading: true
+            })
             agent.Setting.deleteDataSource(datasource).then(res => {
                 this.props.setDataSources(agent.Setting.getDataSources());
+                this.setState({
+                    datasourceLoading: false
+                })
             });
         };
         this.handleClick = () => ev => {
@@ -110,7 +130,7 @@ class GsuiteDataSourceItem extends Component {
                 datasourceImage = <Image circular floated='left' size='small'><Label content='Sample' icon='lab' /></Image>
             return (
                 <Card fluid >
-                    <Dimmer active={this.props.common.datasourceLoading} inverted>
+                    <Dimmer active={this.state.datasourceLoading} inverted>
                         <Loader inverted content='Deleting...' />
                     </Dimmer>
                     <Card.Content>
@@ -142,7 +162,7 @@ class GsuiteDataSourceItem extends Component {
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
-                            <Button basic color='red' loading={this.props.common.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
+                            <Button basic color='red' loading={this.state.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
                             {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
                         </div>
                     </Card.Content>
@@ -179,7 +199,7 @@ class GsuiteDataSourceItem extends Component {
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
-                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.props.common.datasourceLoading}>{buttonText}</Button>
+                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.state.datasourceLoading}>{buttonText}</Button>
                         </div>
                     </Card.Content>
                 </Card>
