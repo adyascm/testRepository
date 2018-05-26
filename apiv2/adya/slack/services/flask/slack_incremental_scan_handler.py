@@ -5,7 +5,7 @@ from adya.common.utils.request_session import RequestSession
 from adya.slack.incremental_scan import process_notifications
 
 
-class process_slack_notifications(Resource):
+class ProcessSlackNotifications(Resource):
     def post(self):
         req_session = RequestSession(request)
         req_error = req_session.validate_authorized_request(False, mandatory_params=[], optional_params=[])
