@@ -20,7 +20,8 @@ class SlackActions(Resource):
         if not "permissions" in body:
             return req_session.generate_error_response(400, "Missing permissions to delete")
         permissions = body["permissions"]
-        slack_action = slack_actions.Actions(req_session.get_req_param('datasource_id'),permissions)
+        slack_action = slack_actions.Actions(req_session.get_req_param('datasource_id'),permissions,
+                                             req_session.get_req_param('initiated_by_email'))
         deleted_File = slack_action.delete_public_and_external_sharing_for_file()
         exceptions = slack_action.get_exception_messages()
 
