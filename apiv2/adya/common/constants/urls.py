@@ -67,7 +67,7 @@ SCAN_SLACK_USERS = '/slack/scan/users'
 SCAN_SLACK_CHANNELS = '/slack/scan/channels'
 SCAN_SLACK_FILES = '/slack/scan/resources'
 SCAN_SLACK_APPS = '/slack/scan/apps'
-PROCESS_SLACK_NOTIFICATIONS_PATH = '/slack/scan/notifications'
+PROCESS_SLACK_NOTIFICATIONS_PATH = '/slack/scan/processnotifications'
 SLACK_ACTION_PATH = '/slack/actions'
 
 
