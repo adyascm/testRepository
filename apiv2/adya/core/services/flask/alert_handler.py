@@ -17,7 +17,7 @@ class Alert(Resource):
         req_error = req_session.validate_authorized_request()
         if req_error:
             return req_error
-        alerts = alert_controller.create_alerts(req_session.get_auth_token, req_session.get_body)
+        alerts = alert_controller.create_alerts(req_session.get_auth_token, req_session.get_body())
         return req_session.generate_sqlalchemy_response(201,alerts)
 
 class AlertsCount(Resource):

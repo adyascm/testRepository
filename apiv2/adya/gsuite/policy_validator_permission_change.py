@@ -1,5 +1,7 @@
 import json
+from sqlalchemy import and_
 
+from adya.common.constants import constants, urls
 from adya.common.utils import messaging
 from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSource
 from adya.common.utils.response_messages import Logger
@@ -76,6 +78,7 @@ def validate_policy(db_session, auth_token, datasource_id, policy, resource, new
         payload["datasource_id"] = datasource_id
         payload["name"] = policy.name
         payload["policy_id"] = policy.policy_id
+        payload["severity"] = policy.severity
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
