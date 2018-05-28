@@ -522,6 +522,12 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 resource_list_to_be_updated.append(resource_map)
 
             db_session.bulk_update_mappings(Resource, resource_list_to_be_updated)
+
+            #update user_id with user_email in app association table
+            db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.datasource_id == datasource_id,
+                                                            DomainUser.datasource_id == datasource_id, DomainUser.user_id ==
+                                                    ApplicationUserAssociation.user_email).\
+                                        update({ApplicationUserAssociation.user_email : DomainUser.email},synchronize_session='fetch')
             db_connection().commit()
 
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
