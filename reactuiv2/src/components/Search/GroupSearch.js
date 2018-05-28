@@ -82,7 +82,7 @@ class GroupSearch extends Component {
 
         setTimeout(() => {
             if (this.state.value.length < 1) return this.resetComponent()
-            agent.Users.getUsersList("", this.state.value, "").then(res => {
+            agent.Users.getUsersList("", this.state.value, "", "", "", "", "").then(res => {
                 this.setState({
                     isLoading: false,
                     results: res,

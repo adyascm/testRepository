@@ -4,7 +4,9 @@ import json
 from datetime import datetime
 
 from adya.common.constants import constants, action_constants, urls
+from adya.common.constants.action_constants import connectors_to_action_path_mapping
 from adya.common.db import db_utils
+from adya.common.db.db_utils import get_datasource
 from adya.common.utils import messaging, response_messages
 from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, \
     Resource, DirectoryStructure, DomainUser, DataSource
@@ -243,9 +245,12 @@ def add_resource_permission(auth_token, datasource_id, action_payload, log_entry
     permission.email = action_parameters['user_email']
     permission.permission_type = new_permission_role
 
+    datasource_obj = get_datasource(datasource_id)
+    datasource_type = datasource_obj.datasource_type
+
     query_params = {"user_email": resource_owner, "datasource_id": datasource_id,"initiated_by_email": action_payload['initiated_by'], "log_id": str(log_entry.log_id)}
     body = json.dumps([permission], cls=alchemy_encoder())
-    response = messaging.trigger_post_event(urls.ACTION_PATH, auth_token, query_params,
+    response = messaging.trigger_post_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_params,
                                             {"permissions": json.loads(body)}, "gsuite", constants.TriggerType.SYNC)
     return response
 
@@ -282,11 +287,15 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     existing_permission_json["permission_type"] = new_permission_role
     body = [existing_permission_json]
     response = "Action executed"
+
+    datasource_obj = get_datasource(datasource_id)
+    datasource_type = datasource_obj.datasource_type
+
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
-        response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
+        response = messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param, {"permissions": body},
                                                   "gsuite", constants.TriggerType.SYNC)
     else:
-        response = messaging.trigger_update_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": body},
+        response = messaging.trigger_update_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param, {"permissions": body},
                                                   "gsuite", constants.TriggerType.SYNC)
 
     return response
@@ -392,12 +401,17 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
     while sent_perms_count < permissions_to_update_count:
         permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
+
+        datasource_obj = get_datasource(datasource_id)
+        datasource_type = datasource_obj.datasource_type
+
         if permissions_to_update_count < BATCH_COUNT:
-            sync_response = messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param,
+            sync_response = messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param,
                                                            {"permissions": json.loads(body)}, "gsuite",
                                                            constants.TriggerType.SYNC)
         else:
-            messaging.trigger_delete_event(urls.ACTION_PATH, auth_token, query_param, {"permissions": json.loads(body)},
+            messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param,
+                                           {"permissions": json.loads(body)},
                                            "gsuite")
         sent_perms_count += BATCH_COUNT
 

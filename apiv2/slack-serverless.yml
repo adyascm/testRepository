@@ -173,4 +173,11 @@ functions:
           method: get
           cors: true
 
+  post-slack-scan-processnotifications:
+    handler: adya.slack.services.lambda.slack_incremental_scan_handler.process_slack_notifications
+    events:
+      - http:
+          path: scan/processnotifications
+          method: post
+          cors: true
 
