@@ -316,6 +316,7 @@ class Policy(Base):
         "PolicyCondition", backref="policy")
     actions = relationship(
         "PolicyAction", backref="policy")
+    severity = Column(String(255), default="HIGH")   
 
 class PolicyCondition(Base):
     __tablename__ = 'policy_condition'

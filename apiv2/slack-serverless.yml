@@ -181,3 +181,11 @@ functions:
           method: post
           cors: true
 
+  delete-slack-actions:
+    handler: adya.slack.services.lambda.slack_actions_handler.delete_permissions_action
+    events:
+      - http:
+          path: actions
+          method: delete
+          cors: true
+

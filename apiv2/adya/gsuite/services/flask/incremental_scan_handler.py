@@ -1,5 +1,5 @@
 from flask_restful import Resource,request
-from adya.gsuite import incremental_scan, drive_change_notification
+from adya.gsuite import incremental_scan, drive_change_notification, activity_notification
 from adya.common.utils.request_session import RequestSession
 
 class subscribe(Resource):

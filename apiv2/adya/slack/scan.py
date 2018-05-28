@@ -24,7 +24,6 @@ def start_slack_scan(auth_token, datasource_id, domain_id):
 
     messaging.trigger_get_event(urls.SCAN_SLACK_USERS, auth_token, query_params, "slack")
     messaging.trigger_get_event(urls.SCAN_SLACK_CHANNELS, auth_token, query_params, "slack")
-    messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
     messaging.trigger_get_event(urls.SCAN_SLACK_APPS, auth_token, query_params, "slack")
 
 
@@ -66,39 +65,43 @@ def get_slack_users(auth_token, domain_id, datasource_id, next_cursor_token=None
                 format(next_cursor_token))
 
 
-def process_slack_users(datasource_id, domain_id, memebersdata):
+def process_slack_users(auth_token, datasource_id, domain_id, memebersdata):
     db_session = db_connection().get_session()
+
+    members_data = memebersdata["users"]
+    user_list = []
+    user_id_map = {}
+    app_list = []
+    channels_count = 0
+    for member in members_data:
+        channels_count = channels_count + 1
+        user = {}
+        if member['deleted'] or member['is_bot']:
+            continue
+        profile_info = member['profile']
+        user['datasource_id'] = datasource_id
+        if 'email' in profile_info:
+            user['email'] = profile_info['email']
+        else:
+            continue
+
+        full_name = profile_info['real_name']
+        name_list = full_name.split(" ")
+        user['first_name'] = name_list[0]
+        user['last_name'] = name_list[1] if len(name_list) > 1 else None
+        user['full_name'] = full_name
+        user['user_id'] = member['id']
+        user['is_admin'] = member['is_admin']
+        user['creation_time'] = datetime.fromtimestamp(member['updated']).strftime("%Y-%m-%d %H:%M:%S")
+        user['member_type'] = constants.UserMemberType.INTERNAL
+        # check for user type
+        if check_if_external_user(db_session, domain_id, profile_info['email']):
+            user['member_type'] = constants.UserMemberType.EXTERNAL
+
+        user_id_map[member['id']] = profile_info['email']
+        user_list.append(user)
+
     try:
-        members_data = memebersdata["users"]
-        user_list = []
-        app_list = []
-        channels_count = 0
-        for member in members_data:
-            channels_count = channels_count + 1
-            user = {}
-            if member['deleted'] or member['is_bot']:
-                continue
-            profile_info = member['profile']
-            user['datasource_id'] = datasource_id
-            if 'email' in profile_info:
-                user['email'] = profile_info['email']
-            else:
-                continue
-
-            full_name = profile_info['real_name']
-            name_list = full_name.split(" ")
-            user['first_name'] = name_list[0]
-            user['last_name'] = name_list[1] if len(name_list) > 1 else None
-            user['full_name'] = full_name
-            user['user_id'] = member['id']
-            user['is_admin'] = member['is_admin']
-            user['creation_time'] = datetime.fromtimestamp(member['updated']).strftime("%Y-%m-%d %H:%M:%S")
-            user['member_type'] = constants.UserMemberType.INTERNAL
-            # check for user type
-            if check_if_external_user(db_session, domain_id, profile_info['email']):
-                user['member_type'] = constants.UserMemberType.EXTERNAL
-
-            user_list.append(user)
         db_session.bulk_insert_mappings(DomainUser, user_list)
         db_connection().commit()
         get_and_update_scan_count(datasource_id, DataSource.processed_user_count, channels_count, None, True)
@@ -106,6 +109,11 @@ def process_slack_users(datasource_id, domain_id, memebersdata):
         db_session.rollback()
         # get_and_update_scan_count(datasource_id, DataSource.total_group_count, 0, None, True)
         Logger().exception("Exception occurred while processing data for slack users ex: {}".format(ex))
+
+    for user_id in user_id_map:
+        query_params = {'domainId': domain_id, 'dataSourceId': datasource_id,
+                        'userId': user_id, 'userEmail': user_id_map[user_id]}
+        messaging.trigger_get_event(urls.SCAN_SLACK_FILES, auth_token, query_params, "slack")
 
 
 def get_slack_channels(auth_token, datasource_id, next_cursor_token=None):
@@ -172,7 +180,7 @@ def process_slack_channels(datasource_id, channel_data):
             group['datasource_id'] = datasource_id
             # TODO: Field that should store whether channel is private for public
             group['group_id'] = channel['id']
-            group['email'] = channel['id']
+            group['email'] = channel['name']
             group['name'] = channel['name']
             group['direct_members_count'] = channel['num_members'] if 'num_members' in channel_list else None
             group['include_all_user'] = channel['is_general'] if 'is_general' in channel_list else None
@@ -183,7 +191,7 @@ def process_slack_channels(datasource_id, channel_data):
             for member in group_members:
                 domain_directory_struct = {}
                 domain_directory_struct['datasource_id'] = datasource_id
-                domain_directory_struct['parent_email'] = channel['id']
+                domain_directory_struct['parent_email'] = channel['name']
                 domain_directory_struct['member_email'] = member
                 domain_directory_struct['member_id'] = member
                 domain_directory_struct['member_role'] = "ADMIN" if creator == member else "MEMBER"
@@ -201,17 +209,19 @@ def process_slack_channels(datasource_id, channel_data):
         Logger().exception("Exception occurred while processing data for slack channels using ex : {}".format(ex))
 
 
-def get_slack_files(auth_token, datasource_id, page_number_token=None):
+def get_slack_files(auth_token, datasource_id, user_id, user_email, page_number_token=None):
     try:
         slack_client = slack_utils.get_slack_client(datasource_id)
-        file_list = slack_client.api_call("files.list", page=page_number_token)
+        file_list = slack_client.api_call("files.list",
+                                          user=user_id,
+                                          page=page_number_token)
 
         files = file_list['files']
         total_file_count = len(files)
         page_number = file_list['paging']['page']
         total_number_of_page = file_list['paging']['pages']
 
-        query_params = {'dataSourceId': datasource_id}
+        query_params = {'dataSourceId': datasource_id, "userEmail":user_email}
         get_and_update_scan_count(datasource_id, DataSource.total_file_count, total_file_count, auth_token, True)
 
         # adding channels to db
@@ -237,7 +247,7 @@ def get_slack_files(auth_token, datasource_id, page_number_token=None):
         Logger().exception("Exception occurred while processing data for slack files using ex : {}".format(ex))
 
 
-def process_slack_files(datasource_id, files_data):
+def process_slack_files(datasource_id, user_email, files_data):
     db_session = db_connection().get_session()
     try:
         resource_list = []
@@ -252,7 +262,7 @@ def process_slack_files(datasource_id, files_data):
             resource['resource_name'] = file['name']
             resource['resource_type'] = file['filetype']
             resource['resource_size'] = file['size']
-            resource['resource_owner_id'] = file['user']
+            resource['resource_owner_id'] = user_email
             resource['creation_time'] = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
             resource['web_content_link'] = file['url_private_download'] if 'url_private_download' in file else None
             resource['web_view_link'] = file['url_private'] if 'url_private' in file else None
