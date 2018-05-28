@@ -52,7 +52,8 @@ class PolicyItemDetail extends Component {
 
         this.setState({
             policyTriggerType: [
-                { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
+                { text: 'Permission Change', value: 'PERMISSION_CHANGE' },
+                { text: 'App Install', value: 'APP_INSTALL' }],
             disableEmailField: true,
             severityType: [
                 { text: 'High', value: 'HIGH' },

@@ -77,6 +77,7 @@ class PolicyConditionMatch(Enum):
     CONTAIN = 'contain'
     EQUAL = 'equal'
     NOTEQUAL = 'notequal'
+    GREATER = 'greater'
 
 class ResponseType(Enum):
     ERROR = 'error'
@@ -91,12 +92,15 @@ class DocType(Enum):
 
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
+    APP_INSTALL = 'APP_INSTALL'
 
 class PolicyMatchType(Enum):
     DOCUMENT_NAME = 'DOCUMENT_NAME'
     DOCUMENT_OWNER = 'DOCUMENT_OWNER'
     DOCUMENT_EXPOSURE = 'DOCUMENT_EXPOSURE'
-    PERMISSION_EMAIL = "PERMISSION_EMAIL"
+    PERMISSION_EMAIL = 'PERMISSION_EMAIL'
+    APP_NAME = 'APP_NAME'
+    APP_RISKINESS = 'APP_RISKINESS'
 
 class policyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
