@@ -112,10 +112,10 @@ class ResourcesListTable extends Component {
         if (nextProps !== this.props) {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.selectedUser !== this.props.selectedUser || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
-                ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined)) {
+                ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined) || nextProps.filterSourceType !== this.props.filterSourceType) {
                 let ownerEmailId = nextProps.selectedUser ? nextProps.selectedUser.email : ''
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc' }))
+                nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc', 'sourceType': nextProps.filterSourceType }))
             }
 
             if (nextProps.filterResourceType !== this.state.filterResourceType)
@@ -151,6 +151,10 @@ class ResourcesListTable extends Component {
         this.setState({
             filterParentFolder: event.target.value
         })
+    }
+
+    handleSourceTypeChange = (event, data) => {
+        this.props.changeFilter("filterSourceType", data.value)
     }
 
     handleDateChange = (date) => {
@@ -232,8 +236,8 @@ class ResourcesListTable extends Component {
         let resourceData = null
         let dsMap = this.props.datasourcesMap;
         let sourceFilterOptions = [{"text":"All", "value":"ALL"}];
-        for(var ii=0; ii< this.props.datasources.length; ii++){
-            sourceFilterOptions.push({"text":this.props.datasources[ii].datasource_type, "value":this.props.datasources[ii].datasource_id});
+        for(var index=0; index< this.props.datasources.length; index++){
+            sourceFilterOptions.push({"text":this.props.datasources[index].datasource_type, "value":this.props.datasources[index].datasource_id});
         }
         if (this.props.resourceSearchPayload)
             resourceData = this.props.resourceSearchPayload
@@ -279,14 +283,14 @@ class ResourcesListTable extends Component {
                             </Table.Header>
                             <Table.Body>
                                 <Table.Row>
-                                    <Table.Cell width='1'>
-                                        {/* <Dropdown
+                                    <Table.Cell width='2'>
+                                        <Dropdown
                                             fluid
                                             options={sourceFilterOptions}
                                             selection
                                             value={this.props.filterSourceType === '' ? 'ALL' : this.props.filterSourceType}
                                             onChange={this.handleSourceTypeChange}
-                                        /> */}
+                                        />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
                                         <ResourceSearch filterMetadata={filterMetadata} />

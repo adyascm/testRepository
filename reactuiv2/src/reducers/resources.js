@@ -24,6 +24,7 @@ const defaultState = {
     filterEmailId: '',
     filterParentFolder: '',
     filterByDate: '',
+    filterSourceType: '',
     pageNumber: 0,
     pageLimit: 100
 };
