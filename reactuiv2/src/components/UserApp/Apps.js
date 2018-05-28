@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
-import { Container, Dimmer, Loader, Grid, Radio } from 'semantic-ui-react';
+import { Container, Dimmer, Loader, Grid, Header } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
@@ -80,6 +80,9 @@ class Apps extends Component {
       return (
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
+          <Grid.Row stretched>
+          <Header>Third party apps with your account access</Header>
+          </Grid.Row>
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}> 
                 <AppList />
