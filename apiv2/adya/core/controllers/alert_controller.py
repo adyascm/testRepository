@@ -11,8 +11,11 @@ def get_alerts(auth_token):
     existing_user = db_utils.get_user_session(auth_token, db_session=db_session)
 
     alerts = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
-                                            Alert.datasource_id == DataSource.datasource_id).all()
-    return alerts
+                                            Alert.datasource_id == DataSource.datasource_id, Alert.isOpen == True)
+    alerts_obj = alerts.order_by(Alert.last_updated.desc()).limit(100).all()                                        
+    alerts.update({"isOpen": False}, synchronize_session = 'fetch')
+    db_connection().commit() 
+    return alerts_obj
 
 def fetch_alerts_count(auth_token):
     db_session = db_connection().get_session()

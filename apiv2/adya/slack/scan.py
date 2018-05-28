@@ -266,7 +266,7 @@ def process_slack_files(datasource_id, user_email, files_data):
             resource['creation_time'] = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
             resource['web_content_link'] = file['url_private_download'] if 'url_private_download' in file else None
             resource['web_view_link'] = file['url_private'] if 'url_private' in file else None
-
+            is_editable = file["editable"]
             resource_exposure_type = constants.ResourceExposureType.INTERNAL if file['is_public'] \
                 else (constants.ResourceExposureType.ANYONEWITHLINK if file['public_url_shared'] else
                       constants.ResourceExposureType.PRIVATE)
@@ -278,14 +278,14 @@ def process_slack_files(datasource_id, user_email, files_data):
                 permission_exposure_type = constants.ResourceExposureType.DOMAIN
                 resource_perms_list = get_resource_permission_map(datasource_id, file, shared_in_channel,
                                                                   permission_exposure_type,
-                                                                  resource_perms_list)
+                                                                  resource_perms_list, is_editable)
 
             shared_in_private_group = file['groups']
             if shared_in_private_group:
                 permission_exposure_type = constants.ResourceExposureType.INTERNAL
                 resource_perms_list = get_resource_permission_map(datasource_id, file, shared_in_private_group,
                                                                   permission_exposure_type,
-                                                                  resource_perms_list)
+                                                                  resource_perms_list, is_editable)
 
             # shared_in_direct_msgs = file['ims']
             # if shared_in_direct_msgs:
@@ -314,7 +314,7 @@ def process_slack_files(datasource_id, user_email, files_data):
         get_and_update_scan_count(datasource_id, DataSource.file_scan_status, 10001, None, True)
 
 
-def get_resource_permission_map(datasource_id, file, shared_id_list, permission_exposure_type, resource_perms_list):
+def get_resource_permission_map(datasource_id, file, shared_id_list, permission_exposure_type, resource_perms_list, is_editable):
     for shared_id in shared_id_list:
         resource_permission = {}
         resource_permission['datasource_id'] = datasource_id
@@ -322,7 +322,7 @@ def get_resource_permission_map(datasource_id, file, shared_id_list, permission_
         resource_permission['email'] = shared_id
         resource_permission['exposure_type'] = permission_exposure_type
         resource_permission['permission_id'] = shared_id
-
+        resource_permission['permission_type'] = constants.Role.WRITER if is_editable else constants.Role.READER
         resource_perms_list.append(resource_permission)
 
     return resource_perms_list
