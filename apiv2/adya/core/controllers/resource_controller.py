@@ -41,10 +41,11 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
             else:
                 resources_query = resources_query.order_by(resource_alias.datasource_id.asc())
     if user_emails:
-        user_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_emails)).first()
+        users_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.email == user_emails)).all()
         parent_ids = []
-        for group in user_info.groups:
-            parent_ids.append(group.email)
+        for user in users_info:
+            for group in user.groups:
+                parent_ids.append(group.email)
 
         email_list = parent_ids + user_emails
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
