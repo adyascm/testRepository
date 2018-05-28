@@ -54,7 +54,7 @@ class ResourcesListTable extends Component {
             filterParentFolder: "",
             currentDate: "",
             columnHeaderDataNameMap: {
-                "Source": "datasource_id",
+                "Source": "source_type",
                 "Name": "resource_name",
                 "Type": "resource_type",
                 "Owner": "resource_owner_id",
@@ -202,7 +202,7 @@ class ResourcesListTable extends Component {
             this.props.onLoadStart()
 
             this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                                                                 'sortColumn': mappedColumnName, 'sortType': 'asc' }))
+                                                                 'sortColumn': mappedColumnName, 'sortType': 'asc', 'sourceType': this.props.filterSourceType }))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -212,7 +212,7 @@ class ResourcesListTable extends Component {
             this.props.onLoadStart()
 
             this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                                                                 'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc' }))
+                                                                 'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc', 'sourceType': this.props.filterSourceType }))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -235,7 +235,7 @@ class ResourcesListTable extends Component {
         let tableRowData = null
         let resourceData = null
         let dsMap = this.props.datasourcesMap;
-        let sourceFilterOptions = [{"text":"All", "value":"ALL"}];
+        let sourceFilterOptions = [{"text":"All", "value":""}];
         for(var index=0; index< this.props.datasources.length; index++){
             sourceFilterOptions.push({"text":this.props.datasources[index].datasource_type, "value":this.props.datasources[index].datasource_id});
         }
