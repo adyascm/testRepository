@@ -52,10 +52,10 @@ class SlackDataSourceItem extends Component {
       
       this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
-            this.props.onDataSourceLoad()
             this.setState({
                 datasourceLoading: true
             })
+            this.props.onDataSourceLoad()
             oauth.authenticateSlack("slack_read_scopes", this.props.token).then(data => {
                 this.props.setDataSources(agent.Setting.getDataSources());
                 this.setState({
@@ -72,9 +72,15 @@ class SlackDataSourceItem extends Component {
 
       this.deleteDataSource = (datasource) => ev => {
           ev.preventDefault();
-          this.props.onDeleteDataSource(datasource);
+          this.setState({
+            datasourceLoading: true
+          })
+          //this.props.onDeleteDataSource(datasource);
           agent.Setting.deleteDataSource(datasource).then(res => {
               this.props.setDataSources(agent.Setting.getDataSources());
+              this.setState({
+                datasourceLoading: false
+              })
           });
       };
 

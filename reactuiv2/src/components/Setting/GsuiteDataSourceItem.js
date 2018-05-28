@@ -60,6 +60,7 @@ class GsuiteDataSourceItem extends Component {
             } else {
                 oauth.authenticateGsuite("drive_scan_scope").then(data => {
                     this.props.addDataSource("GSuite", "GSUITE")
+                    //this.props.setDataSources(agent.Setting.getDataSources())
                     this.setState({
                         datasourceLoading: false
                     })
@@ -80,7 +81,7 @@ class GsuiteDataSourceItem extends Component {
 
         this.deleteDataSource = (datasource) => ev => {
             ev.preventDefault();
-            this.props.onDeleteDataSource(datasource);
+            //this.props.onDeleteDataSource(datasource);
             this.setState({
                 datasourceLoading: true
             })

@@ -96,14 +96,24 @@ export default (state = defaultState, action) => {
     case SCAN_UPDATE_RECEIVED:
       if (state.datasources) {
         var newDS = JSON.parse(action.payload);
-        var oldDS = state.datasources[0];
+        //var oldDS = state.datasources[0];
+        let currDatasourceIndex = 0;
+        for (let index=0; index<state.datasources.length; index++) {
+          if (state.datasources[index]["datasource_id"] === newDS["datasource_id"]) {
+            currDatasourceIndex = index;
+            break;
+          }
+        }
+        var oldDS = state.datasources[currDatasourceIndex]
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
           if (newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
             || newDS.processed_file_count > oldDS.processed_file_count
             || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status ||
             newDS.total_group_count > oldDS.total_group_count || newDS.processed_group_count > oldDS.processed_group_count ||
             newDS.total_user_count > oldDS.total_user_count || newDS.processed_user_count > oldDS.processed_user_count) {
-            state.datasources[0] = newDS;
+            //state.datasources[0] = newDS;
+            //state.datasourcesMap[newDS["datasource_id"]] = newDS
+            state.datasources[currDatasourceIndex] = newDS
           }
         }
       }
@@ -125,7 +135,7 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         datasourceLoading: false,
-        datasources: action.error ? null : [action.payload]
+        datasources: action.error ? null : [...state.datasources,action.payload]
       };
     case DELETE_DATASOURCE_START:
       if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {
