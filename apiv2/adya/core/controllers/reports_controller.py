@@ -15,12 +15,11 @@ from adya.common.utils.response_messages import Logger
 
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
-
     if not (auth_token or datasource_id):
         return None
 
     db_session = db_connection().get_session()
-    
+
     is_admin = False
     login_user_email = user_email
     is_service_account_is_enabled = True
@@ -45,17 +44,18 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if widget_id == 'usersCount':
 
         if is_service_account_is_enabled and not is_admin:
-            user_count_query = db_session.query(ResourcePermission.email).filter( and_(
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids), Resource.resource_owner_id == login_user_email,
-                                                    ResourcePermission.resource_id == Resource.resource_id,
-                                                    DomainUser.email == ResourcePermission.email,
-                                                    DomainUser.datasource_id.in_(domain_datasource_ids),
-                                                    DomainUser.member_type == constants.UserMemberType.EXTERNAL)).distinct().count()
+            user_count_query = db_session.query(ResourcePermission.email).filter(and_(
+                ResourcePermission.datasource_id.in_(domain_datasource_ids),
+                Resource.resource_owner_id == login_user_email,
+                ResourcePermission.resource_id == Resource.resource_id,
+                DomainUser.email == ResourcePermission.email,
+                DomainUser.datasource_id.in_(domain_datasource_ids),
+                DomainUser.member_type == constants.UserMemberType.EXTERNAL)).distinct().count()
             # add 1 for loggin user
             user_count_query += 1
         else:
-            user_count_query = db_session.query(DomainUser).filter(
-                DomainUser.datasource_id.in_(domain_datasource_ids)).count()
+            user_count_query = db_session.query(DomainUser.email).filter(
+                DomainUser.datasource_id.in_(domain_datasource_ids)).distinct().count()
 
         data = user_count_query
     elif widget_id == 'groupsCount':
@@ -109,7 +109,10 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             elif share_type[0] == constants.ResourceExposureType.DOMAIN:
                 domain_count = share_type[1]
 
-        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count], [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count], [constants.DocType.EXTERNAL_COUNT, external_count], [constants.DocType.DOMAIN_COUNT, domain_count]]
+        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count],
+                        [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count],
+                        [constants.DocType.EXTERNAL_COUNT, external_count],
+                        [constants.DocType.DOMAIN_COUNT, domain_count]]
         data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count
 
     elif widget_id == 'sharedDocsList':
@@ -137,15 +140,51 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = {}
         external_user_list = db_session.query(ResourcePermission.email, func.count(ResourcePermission.email)).filter(
             and_(ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids),)).group_by(ResourcePermission.email).order_by(
+                 ResourcePermission.datasource_id.in_(domain_datasource_ids), )).group_by(
+            ResourcePermission.email).order_by(
             func.count(ResourcePermission.email).desc())
 
         if is_service_account_is_enabled and not is_admin:
             external_user_list = external_user_list.filter(and_(Resource.resource_owner_id == login_user_email,
-                                                    ResourcePermission.resource_id == Resource.resource_id))
+                                                                ResourcePermission.resource_id == Resource.resource_id))
 
+        user_group_emails_and_count = external_user_list.limit(5).all()
+        external_user_emails_count_map = {}
 
-        data["rows"] = external_user_list.limit(5).all()
+        # get only external users ; removing channels/groups
+        for row in user_group_emails_and_count:
+            count_for_particular_email = row[1]
+            email = row[0]
+            directory_struct = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.parent_email == email,
+                                                                  DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+                                                                  DomainUser.email == DirectoryStructure.member_email,
+                                                                  DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
+            if directory_struct:
+                for memberdetails in directory_struct:
+                    user = memberdetails.member_email
+                    if user in external_user_emails_count_map:
+                        count = external_user_emails_count_map[user]
+                        external_user_emails_count_map[user] = count+count_for_particular_email
+                    else:
+                        external_user_emails_count_map[user] = count_for_particular_email
+            else:
+                if email in external_user_emails_count_map:
+                    count = external_user_emails_count_map[email]
+                    external_user_emails_count_map[email] = count + count_for_particular_email
+                else:
+                    external_user_emails_count_map[email] = count_for_particular_email
+
+        external_user_perms_count = []
+        total_count = 0
+
+        for key,value in external_user_emails_count_map.iteritems():
+            total_count = total_count+1
+            input_list = [key, value]
+            external_user_perms_count.append(input_list)
+
+        sorted_external_user_list = sorted(external_user_perms_count, key=lambda x: x[1], reverse=True)
+
+        data["rows"] = sorted_external_user_list[:5]
         data["totalCount"] = external_user_list.count()
     elif widget_id == 'userAppAccess':
         data = {}
@@ -172,7 +211,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         file_type_query = db_session.query(Resource.resource_type, func.count(Resource.resource_type)).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.resource_type).order_by(
+                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(
+            Resource.resource_type).order_by(
             func.count(Resource.resource_type).desc())
 
         if is_service_account_is_enabled and not is_admin:
@@ -196,9 +236,10 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     elif widget_id == "internalUserList":
         data = {}
         internal_user_list = db_session.query(Resource.resource_owner_id, func.count(Resource.resource_id)).filter(
-                         and_(Resource.datasource_id.in_(domain_datasource_ids),
-                              Resource.exposure_type.in_([constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
-                              )).group_by(Resource.resource_owner_id).order_by(func.count(Resource.resource_id).desc())
+            and_(Resource.datasource_id.in_(domain_datasource_ids),
+                 Resource.exposure_type.in_(
+                     [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
+                 )).group_by(Resource.resource_owner_id).order_by(func.count(Resource.resource_id).desc())
 
         if is_service_account_is_enabled and not is_admin:
             internal_user_list = internal_user_list.filter(Resource.resource_owner_id == login_user_email)
@@ -318,8 +359,9 @@ def run_report(auth_token, report_id):
         elif selected_entity_type == "resource":
             query_string = ResourcePermission.resource_id == selected_entity
 
-        get_perms_report = db_session.query(ResourcePermission, Resource).filter(and_(ResourcePermission.datasource_id == datasource_id,
-                                                        query_string, Resource.resource_id == ResourcePermission.resource_id)).all()
+        get_perms_report = db_session.query(ResourcePermission, Resource).filter(
+            and_(ResourcePermission.datasource_id == datasource_id,
+                 query_string, Resource.resource_id == ResourcePermission.resource_id)).all()
 
         for perm_Report in get_perms_report:
             data_map = {
@@ -392,7 +434,7 @@ def generate_csv_report(report_id):
     report_data, email_list, report_type, report_desc, report_name = run_report(None, report_id)
     Logger().info("generate_csv_report : report data : " + str(report_data))
     csv_records = ""
-    Logger().info("report type : "+ str(report_type))
+    Logger().info("report type : " + str(report_type))
     if report_type == "Permission":
 
         perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
