@@ -104,6 +104,11 @@ class UserListNew extends Component {
 
     handleColumnFilterChange = (event, data, filterType) => {
         this.props.changeFilter(filterType, data.value)
+        if (filterType === 'typeColumnFilterValue') {
+            this.setState({
+                typeColumnFilterValue: data.value
+            })
+        }
     }
 
     clearFilter = (event, filterType) => {
@@ -129,15 +134,25 @@ class UserListNew extends Component {
     }
 
     handleStatsClick = (event, statType, statSubType) => {
-        if (statType === "Access") 
-            this.props.changeFilter("typeColumnFilterValue",this.exposureFilterMap[statSubType])
+        if (statType === "Access") {
+            this.props.changeFilter("typeColumnFilterValue", this.exposureFilterMap[statSubType])
+            this.setState({
+                typeColumnFilterValue: this.exposureFilterMap[statSubType]
+            })
+        }
         else if (statType === "Domains") {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, '', '', ''))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, statSubType, '', this.props.sourceColumnFilterValue, '', '', ''))
+            this.setState({
+                typeColumnFilterValue: ''
+            })
         }
         else if (statType === "Privileges") {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, this.props.typeColumnFilterValue, this.props.sourceColumnFilterValue, '', '', statSubType))
+            this.props.onLoad(agent.Users.getUsersList(this.props.nameColumnFilterValue, this.props.emailColumnFilterValue, '', this.props.sourceColumnFilterValue, '', '', statSubType))
+            this.setState({
+                typeColumnFilterValue: ''
+            })
         }
         
     }
@@ -235,7 +250,7 @@ class UserListNew extends Component {
                                                     fluid
                                                     options={this.exposureFilterOptions}
                                                     selection
-                                                    value={this.props.typeColumnFilterValue}
+                                                    value={this.state.typeColumnFilterValue}
                                                     onChange={(event, data) => this.handleColumnFilterChange(event, data, "typeColumnFilterValue")}
                                                 />
                                             </Table.Cell>
