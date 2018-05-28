@@ -5,6 +5,7 @@ from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSou
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import aws_utils
 from adya.common.email_templates import adya_emails
+from adya.common.db.connection import db_connection
 
 def validate_permission_change(auth_token, datasource_id, payload):
     old_permissions = json.loads(payload["old_permissions"])
