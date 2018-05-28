@@ -23,13 +23,16 @@ class PolicyCondition extends Component {
                 { text: 'Document.Name', value: 'DOCUMENT_NAME' },
                 { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
                 { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
-                { text: 'Permission.Email', value: 'PERMISSION_EMAIL' }
+                { text: 'Permission.Email', value: 'PERMISSION_EMAIL' },
+                { text: 'Application.Name', value: 'APP_NAME' },
+                { text: 'Application.Riskiness', value: 'APP_RISKINESS' }
             ],
             filterConditionOptions: [
                 { text: 'Equals', value: 'equal' },
                 { text: 'Not Equals', value: 'notequal' },
                 { text: 'Contains', value: 'contain' },
-                { text: 'Does not contain', value: 'notcontain' }
+                { text: 'Does not contain', value: 'notcontain' },
+                { text: 'Greater than', value: 'greater' }
             ],
             filterValue: ''
         }
