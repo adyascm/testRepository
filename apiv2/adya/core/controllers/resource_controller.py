@@ -30,7 +30,13 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
     parent_alias = aliased(Resource)
     resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
     if user_emails:
-        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(user_emails)))
+        user_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_emails)).first()
+        parent_ids = []
+        for group in user_info.groups:
+            parent_ids.append(group.email)
+
+        email_list = parent_ids + user_emails
+        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
         selectedUser = user_emails[0]
     if selected_date or sort_column_name == 'last_modified_time':
