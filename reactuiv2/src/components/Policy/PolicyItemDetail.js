@@ -39,6 +39,7 @@ class PolicyItemDetail extends Component {
             conditions: [{ match_type: "DOCUMENT_NAME", match_condition: "equal", match_value: "" }],
             actions: [],
             name: "",
+            severity:"HIGH",
             description: "",
             policyId: undefined,
             showPolicyForm: false,
@@ -53,6 +54,11 @@ class PolicyItemDetail extends Component {
             policyTriggerType: [
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' }],
             disableEmailField: true,
+            severityType: [
+                { text: 'High', value: 'HIGH' },
+                { text: 'Medium', value: 'MEDIUM' },
+                { text: 'Low', value: 'LOW' }
+            ]
         })
     }
 
@@ -69,7 +75,8 @@ class PolicyItemDetail extends Component {
                     To: '',
                     disableEmailField: true,
                     showPolicyForm: nextProps.showPolicyForm,
-                    isActive: true
+                    isActive: true,
+                    severity:"HIGH"
                 })
             }
             else
@@ -102,7 +109,8 @@ class PolicyItemDetail extends Component {
                 triggerType: nextProps.policyDetails.trigger_type,
                 conditions: nextProps.policyDetails.conditions,
                 //actions: allActions,
-                policyId: nextProps.policyDetails.policy_id
+                policyId: nextProps.policyDetails.policy_id,
+                severity: nextProps.policyDetails.severity
             })
         }
 
@@ -186,6 +194,12 @@ class PolicyItemDetail extends Component {
       })
     }
 
+    handleSeverityChange = (event , data) => {
+        this.setState({
+            severity: data.value
+        })
+    }
+
     submitPolicyModalForm = () => {
         let policyInfo = {
             "datasource_id": this.props.datasources[0]["datasource_id"],
@@ -195,7 +209,8 @@ class PolicyItemDetail extends Component {
             "trigger_type": this.state.triggerType,
             "conditions": this.state.conditions,
             "actions": this.state.actions,
-            "is_active": this.state.isActive
+            "is_active": this.state.isActive,
+            "severity":this.state.severity
         }
 
         this.props.policyLoadStart()
@@ -247,13 +262,15 @@ class PolicyItemDetail extends Component {
                         Policy Details
                     </Modal.Header>
                     <Modal.Content>
-                        <Form onSubmit={this.submitPolicyModalForm} >
+                        <Form onSubmit={this.submitPolicyModalForm} >   
                             <Segment.Group>
                                 <Segment>
+                                <Form.Group widths='equal'>
                                   <Form.Field>
                                     <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
-                                    />
-                                  </Form.Field>
+                                    /></Form.Field>
+                                    <Form.Field required inline control={Select} label="Severity" options={this.state.severityType} placeholder='Select severity level...' value={this.state.severity} onChange={(event, data) => this.handleSeverityChange(event, data)} />
+                                    </Form.Group>
                                     <Form.Group widths='equal'>
                                         <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />
                                         <Form.Field required control={Input} label='Policy Description' placeholder='Specify a value' value={this.state.description} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'description')} />

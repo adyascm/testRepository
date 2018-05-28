@@ -35,7 +35,7 @@ def create_alerts(auth_token, payload):
         alert.number_of_violations = 1
         alert.last_updated = last_update_time
         alert.created_at = last_update_time
-        alert.severity = 'High'
+        alert.severity = payload["severity"]
         alert.policy_id = payload["policy_id"]
         alert.payload = None
         

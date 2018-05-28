@@ -54,6 +54,7 @@ def create_policy(auth_token, payload):
         policy.trigger_type = payload["trigger_type"]
         policy.created_by = payload["created_by"]
         policy.is_active = payload["is_active"]
+        policy.severity = payload["severity"]
         db_session.add(policy)
 
         # inserting data into policy conditions table
