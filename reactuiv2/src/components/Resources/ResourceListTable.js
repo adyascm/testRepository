@@ -100,7 +100,7 @@ class ResourcesListTable extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit }))
+        this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'sourceType': this.props.filterSourceType }))
     }
 
     componentWillUnmount() {
