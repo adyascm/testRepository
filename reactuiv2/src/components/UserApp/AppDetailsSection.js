@@ -50,14 +50,14 @@ class AppDetailsSection extends Component {
     componentWillMount() {
         if (this.props.selectedAppItem && this.props.selectedAppItem.client_id) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+            this.props.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id, this.props.selectedAppItem.datasource_id))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.appDeleted !== this.props.appDeleted) {
             nextProps.appUsersLoadStart()
-            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id, this.props.selectedAppItem.datasource_id))
         }
     }
 
@@ -82,8 +82,8 @@ class AppDetailsSection extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical' 
-                                        basic color='red' 
+                                <Button animated='vertical'
+                                        basic color='red'
                                         onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
@@ -100,7 +100,7 @@ class AppDetailsSection extends Component {
             }
 
             let panes = [
-                { menuItem: 'Users', render: () => <Tab.Pane attached={false}> 
+                { menuItem: 'Users', render: () => <Tab.Pane attached={false}>
                                                     <Grid celled='internally'>{appUsers}
                                                     </Grid> </Tab.Pane> }
               ]
