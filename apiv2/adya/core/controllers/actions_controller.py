@@ -212,8 +212,7 @@ def initiate_action(auth_token, action_payload):
 
     except Exception as e:
         Logger().exception(
-            "Exception occurred while initiating action using payload " + str(action_payload) + " on domain: " + str(
-                domain_id) + " and datasource: " + str(datasource_id))
+            "Exception occurred while initiating action using payload " + str(action_payload))
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
 
