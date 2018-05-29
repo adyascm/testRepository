@@ -228,16 +228,12 @@ def get_users_for_app(auth_token, client_id):
     return apps_query_data
 
 
-def get_apps_for_user(auth_token, user_email):
+def get_apps_for_user(auth_token, datasource_id, user_email):
     db_session = db_connection().get_session()
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
     domain_applications = db_session.query(ApplicationUserAssociation.client_id).filter(
         and_(ApplicationUserAssociation.user_email == user_email,
-             ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))).all()
+             ApplicationUserAssociation.datasource_id == datasource_id)).all()
     domain_applications = [r for r, in domain_applications]
     user_apps = db_session.query(Application).filter(and_(Application.client_id.in_(domain_applications),
-                                                          Application.datasource_id.in_(domain_datasource_ids))).order_by(desc(Application.score)).all()
+                                                          Application.datasource_id == datasource_id)).order_by(desc(Application.score)).all()
     return user_apps

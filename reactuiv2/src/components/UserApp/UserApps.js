@@ -26,14 +26,14 @@ class UserApps extends Component {
     componentWillMount() {
         if (this.props.selectedUser && this.props.selectedUser.email) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+            this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if ((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
         }
     }
 
