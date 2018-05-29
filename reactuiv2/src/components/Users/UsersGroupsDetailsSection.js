@@ -159,7 +159,7 @@ class UsersGroupsDetailsSection extends Component {
                 <Segment>
                     <Icon name='close' onClick={this.closeDetailsSection} />
                     <UserDetails selectedUserItem={this.props.selectedUserItem} usersTreePayload={this.props.usersTreePayload}
-                      onQuickAction={this.onQuickAction} onUserGroupAction={this.onUserGroupAction}/>
+                      onQuickAction={this.onQuickAction} onUserGroupAction={this.onUserGroupAction} all_actions_list={this.props.all_actions_list} datasourcesMap={this.props.datasourcesMap}/>
                     <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
                 </Segment>
             )

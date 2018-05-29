@@ -7,6 +7,7 @@ import { RESOURCES_TREE_SET_ROW_DATA, RESOURCES_ACTION_LOAD } from '../../consta
 
 const mapStateToProps = state => ({
     ...state.resources,
+    ...state.common,
     usersTreePayload: state.users.usersTreePayload
 })
 
@@ -64,7 +65,7 @@ class ResourceDetailsSection extends Component {
         return (
             <Segment>
                 <Icon name='close' onClick={this.closeDetailsSection} />
-                <ResourceDetails rowData={this.props.rowData} onQuickAction={this.onQuickAction}/>
+                <ResourceDetails rowData={this.props.rowData} onQuickAction={this.onQuickAction} all_actions_list={this.props.all_actions_list} datasourcesMap={this.props.datasourcesMap}/>
                 <Tab menu={{ secondary: true, pointing: true }} panes={panes} />
             </Segment>
         )

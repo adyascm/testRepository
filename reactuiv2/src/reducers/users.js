@@ -166,6 +166,7 @@ export default (state = defaultState, action) => {
                 action: {
                     key: action.actionType,
                     old_owner_email: state.selectedUserItem.email,
+                    full_name: state.selectedUserItem.full_name,
                     user_email: state.selectedUserItem.email,
                     resource_id: action.resource ? action.resource.resource_id : undefined,
                     resource_name: action.resource ? action.resource.resource_name : undefined,
