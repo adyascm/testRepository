@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Mustache from 'mustache';
 import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-react'
 import { RESOURCES_ACTION_CANCEL, RESOURCES_PAGE_LOAD_START, RESOURCES_PAGE_LOADED,
      USERS_RESOURCE_ACTION_CANCEL, USERS_PAGE_LOAD_START, USERS_PAGE_LOADED, USERS_OWNED_RESOURCES_LOAD_START, USERS_OWNED_RESOURCES_LOADED,
@@ -201,6 +202,7 @@ class Actions extends Component {
             return null;
         }
         let actionConfig = this.props.all_actions_list[action.key];
+        let actionDescription = Mustache.render(actionConfig.description, action);
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)
                 return null;
@@ -242,7 +244,7 @@ class Actions extends Component {
                 <Modal.Header>Action - {actionConfig.name}</Modal.Header>
                 <Modal.Content >
                     {message}
-                    <Modal.Description><Header>{actionConfig.description}</Header></Modal.Description>
+                    <Modal.Description><Header>{actionDescription}</Header></Modal.Description>
                     <Form onSubmit={submitAction}>
                         {formFields}
                         {cancelButton}

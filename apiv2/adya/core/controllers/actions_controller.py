@@ -5,7 +5,7 @@ from datetime import datetime
 
 from adya.common.constants import constants, action_constants, urls
 from adya.common.constants.action_constants import connectors_to_action_path_mapping
-from adya.common.db import db_utils
+from adya.common.db import db_utils, action_definitions
 from adya.common.db.db_utils import get_datasource
 from adya.common.utils import messaging, response_messages
 from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, \
@@ -165,8 +165,7 @@ def get_actions():
                removeUserForApp
                ]
 
-    return actions
-
+    return action_definitions.actions
 
 def instantiate_action(datasource_type, key, name, description, parameters, is_admin_only):
     actionObject = Action()
@@ -183,7 +182,7 @@ def instantiate_action(datasource_type, key, name, description, parameters, is_a
 def get_action(action_to_take):
     actions_list = get_actions()
     for action in actions_list:
-        if action.key == action_to_take:
+        if action["key"] == action_to_take:
             return action
     return None
 
@@ -468,12 +467,13 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload, log_entry):
     action_parameters = action_payload['parameters']
     response_msg = ''
+    action_key = action_config["key"]
     # Watch report action
-    if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
+    if action_key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
         response_msg = create_watch_report(auth_token, datasource_id, action_payload, log_entry)
 
     # Trigger mail for cleaning files
-    elif action_config.key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
+    elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
         user_email = action_parameters['user_email']
         status_message = "Notification sent to {} for cleanUp".format(user_email)
         log_entry.status = action_constants.ActionStatus.SUCCESS
@@ -486,12 +486,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         response_msg = ResponseMessage(status_code,status_message)
 
     # Directory change actions
-    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
-        response_msg = modify_group_membership(auth_token, datasource_id, action_config.key, action_parameters, log_entry)
+    elif action_key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_key == action_constants.ActionNames.ADD_USER_TO_GROUP:
+        response_msg = modify_group_membership(auth_token, datasource_id, action_key, action_parameters, log_entry)
 
     # Transfer ownership 
     # part of batch action
-    elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+    elif action_key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
         old_owner_email = action_parameters["old_owner_email"]
         new_owner_email = action_parameters["new_owner_email"]
         response = actions.transfer_ownership(
@@ -508,43 +508,43 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         response_msg = response_messages.ResponseMessage(status_code, status_message)
 
     # Bulk permission change actions for user
-    elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, "ALL", log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                              constants.ResourceExposureType.EXTERNAL, log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+    elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by, log_entry)
 
     # Bulk permission change actions for resource
-    elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, 'ALL',log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload,
                                           constants.ResourceExposureType.EXTERNAL, log_entry)
 
     # Single Resource permission change actions
-    elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         action_parameters['new_permission_role'] = ''
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
+    elif action_key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
         response_msg = add_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+    elif action_key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         action_parameters['new_permission_role'] = constants.Role.OWNER
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
 
     # Uninstalling an app for a user
-    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
+    elif action_key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
         user_email = action_parameters['user_email']
         client_id = action_parameters['client_id']
         response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id, log_entry)
@@ -552,7 +552,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     return response_msg
 
 def validate_action_parameters(action_config, action_parameters):
-    config_params = action_config.parameters
+    config_params = action_config["parameters"]
     for param in config_params:
         key = param['key']
         if key not in action_parameters:

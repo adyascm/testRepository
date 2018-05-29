@@ -1,6 +1,7 @@
 import React from 'react';
 import { Item, Label, Dropdown } from 'semantic-ui-react'
 import { IntlProvider, FormattedRelative } from 'react-intl';
+import Mustache from 'mustache';
 
 const openLink = (link) => function (ev) {
     var win = window.open(link, '_blank');
@@ -11,20 +12,32 @@ const openLink = (link) => function (ev) {
 }
 const ResourceDetails = props => {
 
-    var quickActions = [
-        {
-            text: 'Transfer ownership of \"' + props.rowData['resource_name'] + '\"',
-            value: 'change_owner'
-        },
-        {
-            text: 'Remove access from outside the company for \"' + props.rowData['resource_name'] + '\"',
-            value: 'remove_external_access_to_resource'
-        },
-        {
-            text: 'Remove access to everyone (except owner) for \"' + props.rowData['resource_name'] + '\"',
-            value: 'make_resource_private'
-        }];
-
+    // var quickActions = [
+    //     {
+    //         text: 'Transfer ownership of \"' + props.rowData['resource_name'] + '\"',
+    //         value: 'change_owner'
+    //     },
+    //     {
+    //         text: 'Remove access from outside the company for \"' + props.rowData['resource_name'] + '\"',
+    //         value: 'remove_external_access_to_resource'
+    //     },
+    //     {
+    //         text: 'Remove access to everyone (except owner) for \"' + props.rowData['resource_name'] + '\"',
+    //         value: 'make_resource_private'
+    //     }];
+    var quickActions = [];
+    var actionKeys = Object.keys(props.all_actions_list)
+    var ds = props.datasourcesMap[props.rowData.datasource_id];
+    for (var ii = 0; ii < actionKeys.length; ii++) {
+        var action = props.all_actions_list[actionKeys[ii]];
+        if (action.datasource_type == ds.datasource_type) {
+            if (action.action_type == "QUICK_ACTION") {
+                if (action.action_entity == "DOCUMENT") {
+                    quickActions.push({ "text": Mustache.render(action.description, props.rowData), "value": action.key });
+                }
+            }
+        }
+    }
     var image = null;
     if (props.rowData.icon_link) {
         image = <Item.Image inline floated='right' size='mini' src={props.rowData.icon_link} circular></Item.Image>
@@ -45,10 +58,10 @@ const ResourceDetails = props => {
 
                         <div style={{ marginBottom: "10px" }}>
                             <Label as='a' color='blue' active onClick={openLink(props.rowData['web_view_link'])}>View</Label>
-                            {props.rowData['web_content_link']?
-                            <Label as='a' color='orange' active onClick={openLink(props.rowData['web_content_link'])}>Download</Label>
-                            :null
-                          }
+                            {props.rowData['web_content_link'] ?
+                                <Label as='a' color='orange' active onClick={openLink(props.rowData['web_content_link'])}>Download</Label>
+                                : null
+                            }
                         </div>
                     </Item.Meta>
                     <Item.Extra extra="true">
