@@ -68,7 +68,7 @@ def send_gdrive_scan_completed_email(auth_token, datasource):
         user_list = list(user_list)
         Logger().info("send_gdrive_scan_completed_email : user email list : {}".format(user_list))
 
-        email_subject="Your gdrive scan has completed!"
+        email_subject="[Adya] Your GSuite account is ready for review"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
         Logger().exception("Exception occurred sending gdrive scan completed email")
@@ -164,7 +164,7 @@ def send_clean_files_email(datasource_id,user_email):
         template_name = "clean_files"
         template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject="CleanUp Your Files!"
+        email_subject="[Adya] You are requested to audit your GSuite account"
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
@@ -195,7 +195,7 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
             "permissions": permissions
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "A policy on Adya platform is violated - " + policy.name
+        email_subject = "[Adya] A policy is violated in your GSuite account"
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
