@@ -93,3 +93,10 @@ def get_app_score(scopes):
                 max_score = score
 
     return max_score
+
+
+def is_external_user(domain_id, email):
+    if email.endswith(domain_id):
+            return False
+    else:
+        return True

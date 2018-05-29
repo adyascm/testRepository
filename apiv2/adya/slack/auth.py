@@ -55,6 +55,7 @@ def oauth_callback(auth_code, auth_token):
         return redirect_url
 
     user_email = profile_info['profile']['email']
+    connected_user_domain_id = user_email.split('@')[1]
 
     db_session = db_connection().get_session()
     login_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
@@ -71,13 +72,13 @@ def oauth_callback(auth_code, auth_token):
     db_session.add(datasource)
     db_connection().commit()
 
-    query_params = {"domainId": datasource.domain_id,
+    query_params = {"domainId": connected_user_domain_id,
                     "dataSourceId": datasource.datasource_id,
                     }
 
     datasource_credentials = DatasourceCredentials()
     datasource_credentials.datasource_id = datasource.datasource_id
-    datasource_credentials.credentials = json.dumps({'domain_id': login_user.domain_id, 'authorize_scope_name': scopes, 'token': access_token})
+    datasource_credentials.credentials = json.dumps({'domain_id': connected_user_domain_id, 'authorize_scope_name': scopes, 'token': access_token})
     datasource_credentials.created_user = user_email
     db_session.add(datasource_credentials)
     db_connection().commit()
