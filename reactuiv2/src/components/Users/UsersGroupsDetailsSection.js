@@ -138,21 +138,16 @@ class UsersGroupsDetailsSection extends Component {
             return null;
         else {
             let userName = this.props.selectedUserItem['first_name']
-            let panes = [
-                { menuItem: userName + '\'s documents', render: () => <Tab.Pane attached={false}>{ownedResourceLayout}</Tab.Pane> }
-            ]
-            let extraPanes = [
-                { menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> },
-                { menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> },
-                { menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> }
-            ]
-
-            if ((this.props.selectedUserItem["member_type"] !== 'EXT') &&
-                (this.props.selectedUserItem["type"] !== "group"))
-                panes.push(...extraPanes)
+            let ds = this.props.datasourcesMap[this.props.selectedUserItem.datasource_id];
+            let panes = [];
+            if ((this.props.selectedUserItem["member_type"] === 'EXT'))
+                panes.push({ menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> });
             else {
-                panes.pop()
-                panes.push(extraPanes[0])
+                panes.push({ menuItem: userName + '\'s documents', render: () => <Tab.Pane attached={false}>{ownedResourceLayout}</Tab.Pane> });
+                panes.push({ menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> });
+                if(ds.datasource_type === "GSUITE")
+                    panes.push({ menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> });
+                panes.push({ menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> });
             }
 
             return (

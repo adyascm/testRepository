@@ -38,10 +38,12 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
     try:
         app_name = incoming_activity["id"]["applicationName"]
         actor_email = incoming_activity['actor']['email']
-        if app_name == "drive":
-            process_drive_activity(actor_email, incoming_activity)
-        elif app_name == "token":
+
+        if app_name == "token":
             process_token_activity(datasource_id, actor_email, incoming_activity)
+        # elif app_name == "drive":
+        #     process_drive_activity(actor_email, incoming_activity)
+        
 
         db_session.refresh(subscription)
         subscription.last_accessed = datetime.datetime.utcnow()
@@ -53,10 +55,9 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
         Logger().exception("Exception occurred while processing activity notification for datasource_id: {} channel_id: {} - {}".format(datasource_id, channel_id, e))
 
 def process_token_activity(datasource_id, actor_email, incoming_activity):
-
+    Logger().info("Processing token activity - {}".format(incoming_activity))
     for event in incoming_activity['events']:
         event_name = event['name']
-        event_type = event['type']
         if event_name == "authorize":
             application = Application()
             application.datasource_id = datasource_id

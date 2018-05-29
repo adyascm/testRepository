@@ -81,7 +81,7 @@ class Apps extends Component {
         <Container style={containerStyle}>
           <Grid divided='vertically' stretched>
           <Grid.Row stretched>
-          <Header>Third party apps with your account access</Header>
+          <Header>Third party apps with account access</Header>
           </Grid.Row>
             <Grid.Row stretched>
               <Grid.Column stretched width={gridWidth}> 
