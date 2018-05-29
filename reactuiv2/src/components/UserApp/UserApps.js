@@ -58,7 +58,8 @@ class UserApps extends Component {
                     let display_text = application["display_text"].length > 25 ? application["display_text"].slice(0,25) : application["display_text"]
                     let score = application["score"]
                     var color = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
-                    let scopes = application["scopes"].split(',').map((scope,index) => {
+                    var scopesString = application["scopes"] || "";
+                    let scopes = scopesString.split(',').map((scope,index) => {
                     return (
                     <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
                             {scope}
