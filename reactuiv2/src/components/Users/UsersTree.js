@@ -246,7 +246,7 @@ class UsersTree extends Component {
         }
         else if (this.state.rows && this.state.rows.length)
             return (
-                <div className="ag-theme-fresh" style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
+                <div className="ag-theme-fresh" style={{ maxHeight: document.body.clientHeight/1.25, overflow: "auto" }}>
                     <AgGridReact
                         id="myGrid" 
                         domLayout="autoHeight"
