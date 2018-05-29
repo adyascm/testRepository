@@ -9,7 +9,7 @@ from adya.common.db import db_utils, action_definitions
 from adya.common.db.db_utils import get_datasource
 from adya.common.utils import messaging, response_messages
 from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, \
-    Resource, DirectoryStructure, DomainUser, DataSource
+    Resource, DirectoryStructure, DomainUser, DataSource, LoginUser
 from adya.common.db.connection import db_connection
 from adya.common.utils.response_messages import ResponseMessage, Logger
 from adya.gsuite import actions, gutils
@@ -187,11 +187,16 @@ def get_action(action_to_take):
     return None
 
 
-def initiate_action(auth_token, domain_id, datasource_id, action_payload):
+def initiate_action(auth_token, action_payload):
     try:
         action_to_take = action_payload['key']
         initiated_by = action_payload['initiated_by']
         action_parameters = action_payload['parameters']
+        datasource_id = action_payload['datasource_id']
+
+        db_session = db_connection().get_session()
+        login_user_info = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+        domain_id = login_user_info.domain_id
 
         action_config = get_action(action_to_take)
 
@@ -461,7 +466,6 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
 
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload, log_entry):
     action_parameters = action_payload['parameters']
-    db_session = db_connection().get_session()
     response_msg = ''
     action_key = action_config["key"]
     # Watch report action

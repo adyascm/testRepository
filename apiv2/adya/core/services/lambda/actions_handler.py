@@ -23,12 +23,9 @@ def initiate_action(event, context):
         return req_error
 
     auth_token = req_session.get_auth_token()
-    data_source = domain_controller.get_datasource(auth_token, None)
-    domain_id = data_source[0].domain_id
-    datasource_id = data_source[0].datasource_id
 
     action_payload = req_session.get_body()
 
-    Logger().info("Initiating action using payload: " + str(action_payload) + "on domain: " + str(domain_id) + " and datasource_id: " + str(datasource_id))
-    response = actions_controller.initiate_action(auth_token, domain_id, datasource_id, action_payload)
+    Logger().info("Initiating action using payload: " + str(action_payload))
+    response = actions_controller.initiate_action(auth_token, action_payload)
     return req_session.generate_response(response.response_code, json.dumps(response.get_response_body()))
