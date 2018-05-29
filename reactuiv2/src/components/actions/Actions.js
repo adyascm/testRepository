@@ -15,7 +15,8 @@ const mapStateToProps = state => ({
     all_actions_list: state.common.all_actions_list,
     action: state.resources.action || state.users.action || state.apps.action,
     selectedUser: state.users.selectedUserItem,
-    datasources: state.common.datasources
+    datasources: state.common.datasources,
+    datasourcesMap: state.common.datasourcesMap
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -93,7 +94,8 @@ class Actions extends Component {
             ...this.state,
             inProgress: true
         });
-        if (this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
+        var ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        if (ds.datasource_type != "GSUITE" || this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
             this.executeAction(this.build_action_payload(), resp => {
                 this.setState({
                     ...this.state,

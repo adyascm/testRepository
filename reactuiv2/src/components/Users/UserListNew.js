@@ -219,7 +219,7 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} />
                         </Grid.Column>
                         <Grid.Column width={13}>
-                            <div ref="table" style={{ 'minHeight': usersData && usersData.length > 0 ? null : document.body.clientHeight/2, 'maxHeight': document.body.clientHeight/1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                            <div ref="table" style={{ 'minHeight': document.body.clientHeight/1.25, 'maxHeight': document.body.clientHeight/1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                                         <Table.Row>

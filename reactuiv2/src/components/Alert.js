@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Loader, Dimmer, Button, Table, Dropdown, Form, Input, Label } from 'semantic-ui-react';
 import agent from '../utils/agent';
+import Mustache from 'mustache';
 import {
     ALERTS_LOAD_START,
     ALERTS_LOADED
@@ -27,8 +28,8 @@ class Alert extends Component {
         this.state = {
             columnHeaders: [
                 "Alert Name",
-                "Created At",
                 "Severity",
+                "Description",
                 "Number of Violations",
                 "Last Updated"
             ]
@@ -48,14 +49,18 @@ class Alert extends Component {
         })
 
         let tableRowData = null
-
+        
         if (this.props.alerts && this.props.alerts.length)
             tableRowData = this.props.alerts.map((rowData, index) => {
+                let desc = rowData["description_template"]
+                let payload = JSON.parse(rowData["payload"])
+                desc = Mustache.to_html(desc,payload)
+                
                 return (
                     <Table.Row key={index}>
                         <Table.Cell>{rowData["name"]}</Table.Cell>
-                        <Table.Cell><DateComponent value={rowData["created_at"]} /></Table.Cell>
                         <Table.Cell>{rowData["severity"]}</Table.Cell>
+                        <Table.Cell>{desc} </Table.Cell>
                         <Table.Cell>{rowData["number_of_violations"]}</Table.Cell>
                         <Table.Cell><DateComponent value={rowData["last_updated"]} /></Table.Cell>
                     </Table.Row>

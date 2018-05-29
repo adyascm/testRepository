@@ -91,7 +91,6 @@ export default (state = defaultState, action) => {
             state[action.property] = action.value
             return {
                 ...state,
-                isLoadingResources: true
             }
         case LOGOUT:
             return {

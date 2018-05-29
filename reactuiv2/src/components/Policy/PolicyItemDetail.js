@@ -44,11 +44,16 @@ class PolicyItemDetail extends Component {
             policyId: undefined,
             showPolicyForm: false,
             To: '',
-            isActive: true
+            isActive: true,
+            datasource_id:this.props.datasources[0]["datasource_id"],
         }
     }
 
     componentWillMount() {
+        let datasourceType = []
+        this.props.datasources.map((datasource,index) => {
+            datasourceType.push({"text":datasource["display_name"],"value":datasource["datasource_id"]})
+        })
 
         this.setState({
             policyTriggerType: [
@@ -59,7 +64,8 @@ class PolicyItemDetail extends Component {
                 { text: 'High', value: 'HIGH' },
                 { text: 'Medium', value: 'MEDIUM' },
                 { text: 'Low', value: 'LOW' }
-            ]
+            ],
+            datasourceType:datasourceType
         })
     }
 
@@ -77,7 +83,8 @@ class PolicyItemDetail extends Component {
                     disableEmailField: true,
                     showPolicyForm: nextProps.showPolicyForm,
                     isActive: true,
-                    severity:"HIGH"
+                    severity:"HIGH",
+                    datasource_id:this.props.datasources[0]["datasource_id"],
                 })
             }
             else
@@ -111,7 +118,8 @@ class PolicyItemDetail extends Component {
                 conditions: nextProps.policyDetails.conditions,
                 //actions: allActions,
                 policyId: nextProps.policyDetails.policy_id,
-                severity: nextProps.policyDetails.severity
+                severity: nextProps.policyDetails.severity,
+                datasource_id:nextProps.policyDetails.datasource_id
             })
         }
 
@@ -200,10 +208,15 @@ class PolicyItemDetail extends Component {
             severity: data.value
         })
     }
+    handleDataSourceChange = (event, data) => {
+        this.setState({
+            datasource_id: data.value
+        })   
+    }
 
     submitPolicyModalForm = () => {
         let policyInfo = {
-            "datasource_id": this.props.datasources[0]["datasource_id"],
+            "datasource_id": this.state.datasource_id,
             "name": this.state.name,
             "description": this.state.description,
             "created_by": this.props.currentUser["email"],
@@ -211,7 +224,8 @@ class PolicyItemDetail extends Component {
             "conditions": this.state.conditions,
             "actions": this.state.actions,
             "is_active": this.state.isActive,
-            "severity":this.state.severity
+            "severity":this.state.severity,
+            "datasource_id":this.state.datasource_id
         }
 
         this.props.policyLoadStart()
@@ -270,7 +284,8 @@ class PolicyItemDetail extends Component {
                                   <Form.Field>
                                     <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
                                     /></Form.Field>
-                                    <Form.Field required inline control={Select} label="Severity" options={this.state.severityType} placeholder='Select severity level...' value={this.state.severity} onChange={(event, data) => this.handleSeverityChange(event, data)} />
+                                    <Form.Field inline control={Select} label="Connector" options={this.state.datasourceType} placeholder='Select connector...' value={this.state.datasource_id} onChange={(event, data) => this.handleDataSourceChange(event, data)} />
+                                    <Form.Field inline control={Select} label="Severity" options={this.state.severityType} placeholder='Select severity level...' value={this.state.severity} onChange={(event, data) => this.handleSeverityChange(event, data)} />
                                     </Form.Group>
                                     <Form.Group widths='equal'>
                                         <Form.Field required control={Input} label='Policy Name' placeholder='Specify a value' value={this.state.name} onChange={(event, data) => this.handlePolicyNameChange(event, data, 'name')} />

@@ -63,7 +63,7 @@ class AppList extends Component {
             }
         }
         return (
-            <Card.Group style={{ maxHeight: document.body.clientHeight, overflow: "auto" }}>
+            <Card.Group style={{ maxHeight: document.body.clientHeight/1.05, overflow: "auto" }}>
                 {appCards}
             </Card.Group>
 
