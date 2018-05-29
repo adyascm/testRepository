@@ -178,5 +178,4 @@ def get_lambda_name(httpmethod, endpoint, service_name="core"):
     lambda_name = service_name + "-" + \
         constants.DEPLOYMENT_ENV + '-' + \
         str(httpmethod) + '-' + slugify(endpoint)
-    Logger().info("get_lambda_name: lambda name : ", lambda_name)
     return lambda_name
