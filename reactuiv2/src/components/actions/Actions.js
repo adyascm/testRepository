@@ -81,6 +81,7 @@ class Actions extends Component {
         payload['key'] = this.state['key']
         payload['initiated_by'] = this.props.logged_in_user['email']
         payload['parameters'] = parameters
+        payload['datasource_id'] = action.datasource_id
 
         return JSON.stringify(payload);
     }

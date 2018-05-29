@@ -39,8 +39,8 @@ const defaultState = {
     userFilterType: 'EXT',
     hasGroups: false,
     filterExposureType: 'EXT',
-    nameColumnFilterValue: "", 
-    emailColumnFilterValue: "", 
+    nameColumnFilterValue: "",
+    emailColumnFilterValue: "",
     typeColumnFilterValue: "EXT",
     sourceColumnFilterValue: ""
 }
@@ -165,6 +165,7 @@ export default (state = defaultState, action) => {
                 ...state,
                 action: {
                     key: action.actionType,
+                    datasource_id: state.selectedUserItem.datasource_id,
                     old_owner_email: state.selectedUserItem.email,
                     user_email: state.selectedUserItem.email,
                     resource_id: action.resource ? action.resource.resource_id : undefined,
