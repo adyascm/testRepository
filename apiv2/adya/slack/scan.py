@@ -258,13 +258,15 @@ def process_slack_files(datasource_id, user_email, files_data):
         for file in file_list:
             resource_count = resource_count + 1
             resource = {}
+            timestamp = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
             resource['datasource_id'] = datasource_id
             resource['resource_id'] = file['id']
             resource['resource_name'] = file['name']
             resource['resource_type'] = file['filetype']
             resource['resource_size'] = file['size']
             resource['resource_owner_id'] = user_email
-            resource['creation_time'] = datetime.fromtimestamp(file['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
+            resource['creation_time'] = timestamp
+            resource['last_modified_time'] = timestamp
             resource['web_content_link'] = file['url_private_download'] if 'url_private_download' in file else None
             resource['web_view_link'] = file['url_private'] if 'url_private' in file else None
             is_editable = file["editable"]
@@ -478,9 +480,11 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 ResourcePermission.datasource_id == datasource_id).all()
 
             channel_id_and_name_map = {}
-            # checking for present users and extracting their email id and deleting the removes user from directory structure
+            # checking for present users and extracting their email id and deleting the removed user from directory structure
             domain_directory_struct = db_session.query(DirectoryStructure).filter(
-                DirectoryStructure.datasource_id == datasource_id)
+                DirectoryStructure.datasource_id == datasource_id).all()
+
+            member_to_be_deleted = []
             for member in domain_directory_struct:
                 member_id = member.member_id
                 existing_member = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
@@ -494,7 +498,7 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                         is_external_user = True
 
                 else:
-                    db_session.delete(member)
+                    member_to_be_deleted.append(member_id)
 
                 # updating channel is_external column
 
@@ -507,6 +511,10 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                         channel_id_and_name_map[channel_group.group_id] = [channel_group.name, is_external_user]
                     elif channel_id_and_name_map[channel_group.group_id][1] == False and is_external_user:
                         channel_id_and_name_map[channel_group.group_id] = [channel_group.name, is_external_user]
+
+            db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
+                                                             DirectoryStructure.member_id.in_(member_to_be_deleted))).delete(
+                synchronize_session=False)
 
             # setting channel/group name in resource_permission table
             external_resource_ids = set()
@@ -532,8 +540,9 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                                                             DomainUser.datasource_id == datasource_id, DomainUser.user_id ==
                                                     ApplicationUserAssociation.user_email).\
                                         update({ApplicationUserAssociation.user_email : DomainUser.email},synchronize_session='fetch')
-            db_connection().commit()
 
+
+            db_connection().commit()
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
 
 

@@ -4,6 +4,7 @@ from adya.common.db.models import Alert, DataSource
 from adya.common.utils.response_messages import ResponseMessage, Logger
 import uuid
 import datetime
+import json
 
 
 def get_alerts(auth_token):
@@ -11,7 +12,7 @@ def get_alerts(auth_token):
     existing_user = db_utils.get_user_session(auth_token, db_session=db_session)
 
     alerts = db_session.query(Alert).filter(DataSource.domain_id == existing_user.domain_id,
-                                            Alert.datasource_id == DataSource.datasource_id, Alert.isOpen == True)
+                                            Alert.datasource_id == DataSource.datasource_id)
     alerts_obj = alerts.order_by(Alert.last_updated.desc()).limit(100).all()                                        
     alerts.update({"isOpen": False}, synchronize_session = 'fetch')
     db_connection().commit() 
@@ -40,8 +41,9 @@ def create_alerts(auth_token, payload):
         alert.created_at = last_update_time
         alert.severity = payload["severity"]
         alert.policy_id = payload["policy_id"]
-        alert.payload = None
-        
+        payload["payload"]["policy_name"] = payload["name"]
+        alert.payload = json.dumps(payload["payload"])
+        alert.description_template = payload["description_template"]
         db_session.add(alert)
         db_connection().commit()
         return alert        

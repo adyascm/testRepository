@@ -41,14 +41,14 @@ class Dashboard extends Component {
     ];
     this.gridWidgetConfigs = [
       { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'EXT'}}},
-      {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'DOMAIN'}}}
+      {id: "internalUserList", header: "Users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'DOMAIN'}}}
     ];
   }
 
   componentWillMount() {
     window.scrollTo(0, 0)
   }
-  
+
   render() {
     return (
       <Container fluid>

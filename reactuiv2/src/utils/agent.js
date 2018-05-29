@@ -83,7 +83,7 @@ const Users = {
 const Apps = {
     getapps: () => requests.get('/common/getappsdata'),
     getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?userEmail=' + userEmail + '&datasourceId=' + datasourceId),
-    getappusers: (clientId) => requests.get('/common/getappsdata?clientId=' + clientId),
+    getappusers: (clientId, datasourceId) => requests.get('/common/getappsdata?clientId=' + clientId + '&datasourceId=' + datasourceId),
 }
 
 const Resources = {
