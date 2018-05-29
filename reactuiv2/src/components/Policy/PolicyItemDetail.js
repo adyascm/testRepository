@@ -284,7 +284,7 @@ class PolicyItemDetail extends Component {
                                   <Form.Field>
                                     <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
                                     /></Form.Field>
-                                    <Form.Field inline control={Select} label="Source" options={this.state.datasourceType} placeholder='Select source...' value={this.state.datasource_id} onChange={(event, data) => this.handleDataSourceChange(event, data)} />
+                                    <Form.Field inline control={Select} label="Connector" options={this.state.datasourceType} placeholder='Select connector...' value={this.state.datasource_id} onChange={(event, data) => this.handleDataSourceChange(event, data)} />
                                     <Form.Field inline control={Select} label="Severity" options={this.state.severityType} placeholder='Select severity level...' value={this.state.severity} onChange={(event, data) => this.handleSeverityChange(event, data)} />
                                     </Form.Group>
                                     <Form.Group widths='equal'>
