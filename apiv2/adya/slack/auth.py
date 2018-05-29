@@ -9,15 +9,15 @@ from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource, DatasourceCredentials, LoginUser
 from adya.common.utils import messaging
-from adya.slack import client_credentials
 
 from adya.common.constants import scopeconstants, constants
 
 from adya.common.constants import urls
+from adya.slack import slack_utils
 
 
 def request_oauth(scope, auth_token):
-    client_id = client_credentials.client_id
+    client_id = slack_utils.SLACK_CLIENT_ID
     # try with this client id -  "25151185463.342451215601" (I created slack app for trial)
     scopes = scopeconstants.SLACK_READ_SCOPE
     redirect_uri = urls.SLACK_OAUTH_CALLBACK_URL
@@ -36,8 +36,8 @@ def oauth_callback(auth_code, auth_token):
     # Request the auth tokens from Slack
     auth_response = sc.api_call(
         "oauth.access",
-        client_id=client_credentials.client_id,
-        client_secret=client_credentials.client_secret,
+        client_id=slack_utils.SLACK_CLIENT_ID,
+        client_secret=slack_utils.SLACK_CLIENT_SECRET,
         code=auth_code,
         redirect_uri=urls.SLACK_OAUTH_CALLBACK_URL
     )
