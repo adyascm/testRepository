@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder, \
-    Application, ApplicationUserAssociation, DirectoryStructure
+    Application, ApplicationUserAssociation, DirectoryStructure, DatasourceCredentials
 
 from adya.common.db.connection import db_connection
 
@@ -12,8 +12,8 @@ from adya.common.utils import messaging
 
 from adya.common.constants import urls, constants
 from adya.common.utils.response_messages import Logger
-from adya.gsuite.gutils import check_if_external_user
 from adya.slack import slack_utils
+from adya.slack.slack_utils import is_external_user
 
 
 def start_slack_scan(auth_token, datasource_id, domain_id):
@@ -95,7 +95,8 @@ def process_slack_users(auth_token, datasource_id, domain_id, memebersdata):
         user['creation_time'] = datetime.fromtimestamp(member['updated']).strftime("%Y-%m-%d %H:%M:%S")
         user['member_type'] = constants.UserMemberType.INTERNAL
         # check for user type
-        if check_if_external_user(db_session, domain_id, profile_info['email']):
+
+        if is_external_user(domain_id, profile_info['email']):
             user['member_type'] = constants.UserMemberType.EXTERNAL
 
         user_id_map[member['id']] = profile_info['email']
@@ -267,8 +268,8 @@ def process_slack_files(datasource_id, user_email, files_data):
             resource['web_content_link'] = file['url_private_download'] if 'url_private_download' in file else None
             resource['web_view_link'] = file['url_private'] if 'url_private' in file else None
             is_editable = file["editable"]
-            resource_exposure_type = constants.ResourceExposureType.INTERNAL if file['is_public'] \
-                else (constants.ResourceExposureType.ANYONEWITHLINK if file['public_url_shared'] else
+            resource_exposure_type = constants.ResourceExposureType.ANYONEWITHLINK if file['public_url_shared']\
+                else (constants.ResourceExposureType.DOMAIN if file['is_public'] else
                       constants.ResourceExposureType.PRIVATE)
 
             # files shared in various ways
@@ -286,6 +287,12 @@ def process_slack_files(datasource_id, user_email, files_data):
                 resource_perms_list = get_resource_permission_map(datasource_id, file, shared_in_private_group,
                                                                   permission_exposure_type,
                                                                   resource_perms_list, is_editable)
+
+            if resource_exposure_type == constants.ResourceExposureType.ANYONEWITHLINK:
+                resource_perms_list = get_resource_permission_map(datasource_id, file, [resource_exposure_type],
+                                                                  resource_exposure_type,
+                                                                  resource_perms_list, is_editable)
+
 
             # shared_in_direct_msgs = file['ims']
             # if shared_in_direct_msgs:
@@ -471,7 +478,7 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 ResourcePermission.datasource_id == datasource_id).all()
 
             channel_id_and_name_map = {}
-            # checking for present users and extracting their email id
+            # checking for present users and extracting their email id and deleting the removes user from directory structure
             domain_directory_struct = db_session.query(DirectoryStructure).filter(
                 DirectoryStructure.datasource_id == datasource_id)
             for member in domain_directory_struct:
@@ -507,21 +514,18 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                 if permission.email in channel_id_and_name_map:
                     is_external_exposure_type = channel_id_and_name_map[permission.email][1]
                     permission.email = channel_id_and_name_map[permission.email][0]
-                    if is_external_exposure_type:
+                    permission_exposure = permission.exposure_type
+                    if is_external_exposure_type and permission_exposure != (constants.ResourceExposureType.ANYONEWITHLINK
+                                              or constants.ResourceExposureType.PUBLIC):
                         permission.exposure_type = constants.ResourceExposureType.EXTERNAL
                         external_resource_ids.add(permission.resource_id)
 
             # updating resource exposure type for external
-            resource_list_to_be_updated = []
-            for resource_id in external_resource_ids:
-                resource_map = {
-                    "resource_id": resource_id,
-                    "datasource_id": datasource_id,
-                    "exposure_type": constants.ResourceExposureType.EXTERNAL
-                }
-                resource_list_to_be_updated.append(resource_map)
-
-            db_session.bulk_update_mappings(Resource, resource_list_to_be_updated)
+            db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
+                                            Resource.resource_id.in_(external_resource_ids), Resource.exposure_type !=
+                                                   (constants.ResourceExposureType.ANYONEWITHLINK or
+                                                    constants.ResourceExposureType.PUBLIC))).update({Resource.exposure_type :
+                                                                        constants.ResourceExposureType.EXTERNAL},synchronize_session='fetch')
 
             #update user_id with user_email in app association table
             db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.datasource_id == datasource_id,

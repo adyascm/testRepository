@@ -69,10 +69,14 @@ def create_datasource(auth_token, db_session, existing_user, payload):
 
 
 def get_resource_exposure_type(permission_exposure, resource_exposure):
-    if permission_exposure == constants.ResourceExposureType.DOMAIN and not (
-        resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK):
+    if permission_exposure == constants.ResourceExposureType.ANYONEWITHLINK:
+        return permission_exposure
+    if permission_exposure == constants.ResourceExposureType.EXTERNAL and not(resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK):
+        resource_exposure = constants.ResourceExposureType.EXTERNAL
+    if permission_exposure == constants.ResourceExposureType.DOMAIN and not (resource_exposure == constants.ResourceExposureType.EXTERNAL or
+                                                                                     resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK):
         resource_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (
+    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (resource_exposure == constants.ResourceExposureType.EXTERNAL or
             resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK or resource_exposure == constants.ResourceExposureType.DOMAIN):
         resource_exposure = constants.ResourceExposureType.INTERNAL
     return resource_exposure
@@ -93,3 +97,10 @@ def get_app_score(scopes):
                 max_score = score
 
     return max_score
+
+
+def is_external_user(domain_id, email):
+    if email.endswith(domain_id):
+            return False
+    else:
+        return True

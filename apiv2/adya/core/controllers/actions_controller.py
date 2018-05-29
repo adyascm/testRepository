@@ -303,7 +303,8 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type, log_entry):
     db_session = db_connection().get_session()
     # By default we remove all external access i.e. PUBLIC and EXTERNAL
-    permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+    permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC,
+                       constants.ResourceExposureType.ANYONEWITHLINK]
     # Other option is to also remove all access i.e. DOMAIN and INTERNAL also
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
         permission_type.append(constants.ResourceExposureType.DOMAIN)
@@ -345,8 +346,9 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
     has_domain_sharing = False
     for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
-            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
-                permissions_to_update.append(permission)
+            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == \
+                    constants.ResourceExposureType.PUBLIC or permission.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK:
+                    permissions_to_update.append(permission)
             elif permission.exposure_type == constants.ResourceExposureType.DOMAIN:
                 has_domain_sharing = True
 
