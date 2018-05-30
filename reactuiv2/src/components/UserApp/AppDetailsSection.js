@@ -76,13 +76,14 @@ class AppDetailsSection extends Component {
                 )
             }
             let appUsers = []
+            let ds = this.props.datasourcesMap[this.props.selectedAppItem.datasource_id];
             if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app =this.props.selectedAppItem
                 appUsers = this.props.appUsers.map((user,index) => {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical'
+                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
                                         basic color='red'
                                         onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}>
                                     <Button.Content hidden>Remove</Button.Content>

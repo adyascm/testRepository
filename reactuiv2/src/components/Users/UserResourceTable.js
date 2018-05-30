@@ -169,7 +169,7 @@ class UserResourceTable extends Component {
             else
                 return (
                     <div style={{ marginLeft: '30%' }}>
-                        No Resources to display for user
+                        Nothing to display
                     </div>
                 )
         }

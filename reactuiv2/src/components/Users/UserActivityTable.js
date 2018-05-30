@@ -104,7 +104,7 @@ class UserActivityTable extends Component {
             else
                 return (
                     <div style={{ marginLeft: '30%' }}>
-                        No Activities to display for user
+                        Nothing to display
                     </div>
                 )
         }

@@ -11,7 +11,8 @@ import {
 
 
 const mapStateToProps = state => ({
-    ...state.apps
+    ...state.apps,
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -53,6 +54,7 @@ class UserApps extends Component {
         }
         else if (this.props.userApps && this.props.userApps.length)
         {
+            let ds = this.props.datasourcesMap[selectedUser.datasource_id];
             applications = this.props.userApps.map((application,index) => {
                 if (application !== undefined) {
                     let display_text = application["display_text"].length > 25 ? application["display_text"].slice(0,25) : application["display_text"]
@@ -70,7 +72,7 @@ class UserApps extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical'
+                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
                                     basic color='red'
                                     onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
