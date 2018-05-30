@@ -59,9 +59,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
                 break
             Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
             changes = response.get('changes')
-            if len(changes) < 1:
-                Logger().info("No changes found for this notification, hence ignoring.")
-                return
 
             # Mark Inprogress
             if should_mark_in_progress:
@@ -75,7 +72,11 @@ def process_notifications(notification_type, datasource_id, channel_id):
             for change in changes:
                 # Process change
                 fileId = change.get('fileId')
-                handle_change(drive_service, datasource_id, user_email, fileId)
+                is_removed = change.get('removed')
+                if is_removed:
+                    remove_file(datasource_id, fileId)
+                else:
+                    handle_change(drive_service, datasource_id, user_email, fileId)
 
             if 'nextPageToken' in response:
                 # More changes available, so continue fetching changes with the updated page token
@@ -105,6 +106,12 @@ def process_notifications(notification_type, datasource_id, channel_id):
         Logger().exception( "Exception occurred while processing push notification for user: {}, datasource_id: {} channel_id: {} - {}".format(
             user_email, datasource_id, channel_id, e))
 
+def remove_file(datasource_id, file_id):
+    Logger().info("Removing file from DB with id - {}".format(file_id))
+    db_session = db_connection().get_session()
+    db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
+                                                             ResourcePermission.resource_id == file_id)).delete()
+    db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id == file_id)).delete()
 
 def handle_change(drive_service, datasource_id, email, file_id):
     try:
