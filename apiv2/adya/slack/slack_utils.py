@@ -16,6 +16,10 @@ from adya.common.utils import messaging
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 SLACK_API_SCOPES = json.load(open(dir_path + "/slack_api_scopes.json"))
+CLIENT_CREDENTIALS_FILE = dir_path + "/client_credentials.json"
+SLACK_CLIENT_JSON_FILE_DATA = json.load(open(CLIENT_CREDENTIALS_FILE))
+SLACK_CLIENT_ID = SLACK_CLIENT_JSON_FILE_DATA['client_id']
+SLACK_CLIENT_SECRET = SLACK_CLIENT_JSON_FILE_DATA['client_secret']
 
 
 def get_slack_client(datasource_id):
