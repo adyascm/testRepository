@@ -9,7 +9,7 @@ from adya.common.utils import aws_utils
 from adya.common.email_templates import adya_emails
 from adya.common.db.connection import db_connection
 
-def validate_permission_change(auth_token, datasource_id, payload):
+def validate_token_activity(auth_token, datasource_id, payload):
     application = json.loads(payload["application"])
     db_session = db_connection().get_session()
     policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
