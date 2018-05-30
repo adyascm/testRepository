@@ -46,7 +46,7 @@ const ResourcePermissions = props => {
                             {permission["email"]}
                         </Table.Cell>
                         <Table.Cell>
-                            <Dropdown fluid selection options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} selectOnBlur={false} />
+                            <Dropdown fluid selection disabled={props.datasourceType != "GSUITE"} options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} selectOnBlur={false} />
                         </Table.Cell>
                     </Table.Row>
                 )

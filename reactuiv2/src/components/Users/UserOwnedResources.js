@@ -143,7 +143,7 @@ class UserOwnedResources extends Component {
         else
             return (
                 <div style={{ marginLeft: '30%' }}>
-                    User is not the owner for any resource
+                    Nothing to display
                 </div>
             )
     }

@@ -56,9 +56,10 @@ class ResourceDetailsSection extends Component {
     render() {
         if(!this.props.rowData)
             return null;
+        let ds = this.props.datasourcesMap[this.props.rowData.datasource_id];
         let panes = [
             { menuItem: 'Permissions', render: () => <Tab.Pane attached={false}><ResourcePermissions
-            rowData={this.props.rowData} onPermissionChange={this.onPermissionChange}
+            rowData={this.props.rowData} onPermissionChange={this.onPermissionChange} datasourceType={ds.datasource_type}
             onRemovePermission={this.onRemovePermission} onAddPermission={this.onAddPermission}
             /></Tab.Pane> }
         ]
