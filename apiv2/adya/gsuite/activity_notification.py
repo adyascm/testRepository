@@ -17,7 +17,6 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
         return
 
     db_session = db_connection().get_session()
-
     subscription = db_session.query(PushNotificationsSubscription).filter(
         PushNotificationsSubscription.channel_id == channel_id).first()
     if not subscription:
@@ -25,36 +24,35 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
             datasource_id, channel_id))
         return
 
-    incoming_activity = body
-
-    #If notification type is adya, then that means its triggered manually
-    #So we need to fetch the last event first to simulate trigger
-    if notification_type == "adya":
-        reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
-        results = reports_service.activities().list(userKey="all", applicationName=subscription.notification_type, maxResults=1).execute()
-        if results and "items" in results:
-            incoming_activity = results["items"][0]
-        else:
-            return
-
+    activities = [body]
     try:
-        app_name = incoming_activity["id"]["applicationName"]
-        actor_email = incoming_activity['actor']['email']
+        #If notification type is adya, then that means its triggered either manually or scheduled sync
+        #So we need to fetch the events from last sync time
+        if notification_type == "adya":
+            reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
+            results = reports_service.activities().list(userKey="all", applicationName=subscription.notification_type, startTime=subscription.page_token).execute()
+            if results and "items" in results:
+                activities = results["items"]
 
-        if app_name == "token":
-            process_token_activity(datasource_id, actor_email, incoming_activity)
-        # elif app_name == "drive":
-        #     process_drive_activity(actor_email, incoming_activity)
-        
-
+        for activity in activities:
+            process_incoming_activity(datasource_id, activity)
+            
         db_session.refresh(subscription)
         subscription.last_accessed = datetime.datetime.utcnow()
         subscription.page_token = datetime.datetime.utcnow().isoformat("T") + "Z"
         db_connection().commit()
-
-
     except Exception as e:
         Logger().exception("Exception occurred while processing activity notification for datasource_id: {} channel_id: {} - {}".format(datasource_id, channel_id, e))
+        
+
+def process_incoming_activity(datasource_id, incoming_activity):
+    app_name = incoming_activity["id"]["applicationName"]
+    actor_email = incoming_activity['actor']['email']
+
+    if app_name == "token":
+        process_token_activity(datasource_id, actor_email, incoming_activity)
+    # elif app_name == "drive":
+    #     process_drive_activity(actor_email, incoming_activity)
 
 def process_token_activity(datasource_id, actor_email, incoming_activity):
     Logger().info("Processing token activity - {}".format(incoming_activity))
