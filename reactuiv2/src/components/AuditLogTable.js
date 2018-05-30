@@ -28,8 +28,8 @@ class AuditLogTable extends Component {
             columnHeaders: [
                 "Id",
                 "Time",
-                "Action Name",
-                "Performed On",
+                "Action",
+                "Performed By",
                 "Status",
                 "Message"
             ]
@@ -58,7 +58,7 @@ class AuditLogTable extends Component {
                         <Table.Cell>{rowData["log_id"]}</Table.Cell>
                         <Table.Cell><DateComponent value={rowData["timestamp"]} /></Table.Cell>
                         <Table.Cell>{rowData["action_name"]}</Table.Cell>
-                        <Table.Cell>{rowData["affected_entity"]}</Table.Cell>
+                        <Table.Cell>{rowData["initiated_by"]}</Table.Cell>
                         <Table.Cell>{rowData["status"]}</Table.Cell>
                         <Table.Cell>{rowData["message"]}</Table.Cell>
                     </Table.Row>
