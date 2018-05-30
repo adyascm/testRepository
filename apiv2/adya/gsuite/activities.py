@@ -1,6 +1,7 @@
 import gutils
 from datetime import datetime, timedelta
 
+from adya.common.constants import constants
 from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 
@@ -16,6 +17,12 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
             return None
 
         reports_service = gutils.get_gdrive_reports_service(auth_token, user_email)
+
+        results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=50).execute()
+        payload = process_user_activity(user_email, results)
+        return payload
+    elif auth_token == constants.INTERNAL_SECRET:
+        reports_service = gutils.get_gdrive_reports_service(None, user_email)
         if not start_time:
             start_time = datetime.today() - timedelta(days=7)
 
@@ -25,6 +32,7 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
                                                     startTime=start_time_string).execute()
         payload = process_user_activity(user_email, results)
         return payload
+
     else:
         Logger().info("get_activities_for_user : auth_token is not present")
         return None
