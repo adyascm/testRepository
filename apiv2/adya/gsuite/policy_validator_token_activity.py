@@ -36,8 +36,7 @@ def validate_policy(db_session, auth_token, datasource_id, policy, application):
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
-                aws_utils.send_email([to_address], "[Adya] A policy is violated in your GSuite account", "A new app install - {} has violated policy - {}".format(application["display_text"], policy.name))
-                #adya_emails.send_policy_violate_email(to_address, policy, resource, new_permissions)
+                adya_emails.send_app_install_policy_violate_email(to_address, policy, application)
         payload = {}
         payload["datasource_id"] = datasource_id
         payload["name"] = policy.name
