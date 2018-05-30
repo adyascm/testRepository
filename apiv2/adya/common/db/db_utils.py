@@ -24,6 +24,8 @@ def get_user_session(auth_token, db_session=None):
             user.is_admin = domain_user.is_admin
         else:
             user.is_admin = True
+        user.refresh_token = ""
+        user.token = ""
     return user
 
 
