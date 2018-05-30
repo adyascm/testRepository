@@ -225,16 +225,11 @@ def gdrive_periodic_changes_poll(datasource_id=None):
     else:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
     for row in subscription_list.all():
+        headers={"X-Goog-Channel-Token": row.datasource_id, "X-Goog-Channel-ID": row.channel_id, 'X-Goog-Resource-State': "adya"}
         if row.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE:
-            requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
-                            headers={"X-Goog-Channel-Token": row.datasource_id,
-                                                    "X-Goog-Channel-ID": row.channel_id,
-                                                    'X-Goog-Resource-State': "change"})
+            messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
         else:
-            requests.post(constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
-                            headers={"X-Goog-Channel-Token": row.datasource_id,
-                                                    "X-Goog-Channel-ID": row.channel_id,
-                                                    'X-Goog-Resource-State': "adya"})
+            messaging.trigger_post_event_with_headers(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
 
 def unsubscribed_all_the_previous_subscription(datasource_id):
     db_session = db_connection().get_session()

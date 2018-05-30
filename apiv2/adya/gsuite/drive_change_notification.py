@@ -97,10 +97,8 @@ def process_notifications(notification_type, datasource_id, channel_id):
         if subscription.stale == 1:
             subscription.stale = 0
             db_connection().commit()
-            response = requests.post(constants.get_url_from_path(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH),
-                                     headers={"X-Goog-Channel-Token": datasource_id,
-                                              "X-Goog-Channel-ID": channel_id,
-                                              'X-Goog-Resource-State': notification_type})
+            headers={"X-Goog-Channel-Token": datasource_id, "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State': notification_type}
+            messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
 
     except Exception as e:
         Logger().exception( "Exception occurred while processing push notification for user: {}, datasource_id: {} channel_id: {} - {}".format(
