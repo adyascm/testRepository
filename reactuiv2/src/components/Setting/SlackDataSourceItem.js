@@ -49,7 +49,7 @@ class SlackDataSourceItem extends Component {
       this.state = {
           datasourceLoading: false
       }
-      
+
       this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
             this.setState({
@@ -102,7 +102,7 @@ class SlackDataSourceItem extends Component {
       if (datasource.total_file_count === 0)
           percent = 0;
       var statusText = "Scan is in progress. Please wait for it to complete."
-      var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+      var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups/channels " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
       var pollIcon = null;
       var status = common.DataSourceUtils.getScanStatus(datasource);
       var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
