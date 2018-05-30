@@ -62,6 +62,8 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
         if event_name == "authorize":
             application = Application()
             application.datasource_id = datasource_id
+            application.anonymous = 1
+            application.timestamp = datetime.datetime.utcnow()
             user_association = ApplicationUserAssociation()
             user_association.user_email = actor_email
             user_association.datasource_id = datasource_id
@@ -80,13 +82,14 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                     application.scopes = ','.join(scopes)
 
             db_session = db_connection().get_session()
-            db_session.add(application)
-            db_session.add(user_association)
+            db_session.execute(Application.__table__.insert().prefix_with("IGNORE").values([application.datasource_id, application.client_id, application.display_text, application.anonymous, application.scopes, application.score, application.timestamp]))
+            db_session.execute(ApplicationUserAssociation.__table__.insert().prefix_with("IGNORE").values([user_association.datasource_id, user_association.client_id, user_association.user_email]))
             db_connection().commit()
 
             #Trigger the policy validation now
             payload = {}
             payload["application"] = json.dumps(application, cls=alchemy_encoder())
+            payload["application"]["user_email"] = user_association.user_email
             policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
             messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
