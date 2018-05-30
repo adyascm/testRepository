@@ -54,6 +54,6 @@ def check_value_violation(policy_condition, value):
             return 1
     elif policy_condition.match_condition == constants.PolicyConditionMatch.CONTAIN and policy_condition.match_value in value:
         return 1
-    elif policy_condition.match_condition == constants.PolicyConditionMatch.GREATER and policy_condition.match_value < value:
+    elif policy_condition.match_condition == constants.PolicyConditionMatch.GREATER and int(policy_condition.match_value) < value:
         return 1        
     return 0
