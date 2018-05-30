@@ -41,7 +41,7 @@ class Alert extends Component {
         this.props.alertsLoaded(agent.Alert.getAlert())
     }
 
-    render () {
+    render() {
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             return (
                 <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
@@ -49,13 +49,17 @@ class Alert extends Component {
         })
 
         let tableRowData = null
-        
+
         if (this.props.alerts && this.props.alerts.length)
             tableRowData = this.props.alerts.map((rowData, index) => {
                 let desc = rowData["description_template"]
                 let payload = JSON.parse(rowData["payload"])
-                desc = Mustache.to_html(desc,payload)
-                
+                if (desc && payload) {
+                    desc = Mustache.to_html(desc, payload)
+                }
+                else {
+                    desc = rowData["name"]
+                }
                 return (
                     <Table.Row key={index}>
                         <Table.Cell>{rowData["name"]}</Table.Cell>

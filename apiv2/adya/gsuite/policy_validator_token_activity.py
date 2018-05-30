@@ -43,6 +43,8 @@ def validate_policy(db_session, auth_token, datasource_id, policy, application):
         payload["name"] = policy.name
         payload["policy_id"] = policy.policy_id
         payload["severity"] = policy.severity
+        payload["description_template"] = "New app install \"{{display_text}}\" has violated policy \"{{policy_name}}\""
+        payload["payload"] = resource
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
