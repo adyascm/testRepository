@@ -21,3 +21,10 @@ CREATE TABLE `trusted_entities` (
   KEY `domain_id` (`domain_id`),
   CONSTRAINT `trusted_entities_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain` (`domain_id`)
 );
+
+ALTER TABLE audit_log
+ADD message varchar(500) DEFAULT NULL,
+ADD status varchar(50) DEFAULT NULL;
+
+ALTER TABLE policy
+ADD severity varchar(255) DEFAULT NULL;
