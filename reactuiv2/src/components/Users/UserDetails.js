@@ -74,7 +74,7 @@ const UserDetails = props => {
         if (action.datasource_type == ds.datasource_type) {
             if (action.action_type == "QUICK_ACTION") {
                 if (action.action_entity == "USER") {
-                    actionMenu.push({ "text": action.description, "value": action.key });
+                    actionMenu.push({ "text": Mustache.render(action.description, props.selectedUserItem), "value": action.key });
                 }
                 else if (action.action_entity == "INTERNAL_USER" && props.selectedUserItem.member_type === 'INT') {
                     actionMenu.push({ "text": Mustache.render(action.description, props.selectedUserItem), "value": action.key });
