@@ -7,7 +7,21 @@ from adya.common.utils.response_messages import Logger
 
 
 def get_activities_for_user(auth_token, user_email, start_time=None):
-    if auth_token:
+    if not auth_token:
+        Logger().info("get_activities_for_user : auth_token is not present")
+        return None
+
+    if auth_token and auth_token == constants.INTERNAL_SECRET:
+        reports_service = gutils.get_gdrive_reports_service(None, user_email)
+        if not start_time:
+            start_time = datetime.today() - timedelta(days=7)
+
+        start_time_string = start_time.isoformat("T") + "Z"
+
+        results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=100,
+                                                    startTime=start_time_string).execute()
+
+    else:
         existing_user = db_utils.get_user_session(auth_token)
         login_user_email = existing_user.email
         is_admin = existing_user.is_admin
@@ -19,23 +33,10 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
         reports_service = gutils.get_gdrive_reports_service(auth_token, user_email)
 
         results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=50).execute()
-        payload = process_user_activity(user_email, results)
-        return payload
-    elif auth_token == constants.INTERNAL_SECRET:
-        reports_service = gutils.get_gdrive_reports_service(None, user_email)
-        if not start_time:
-            start_time = datetime.today() - timedelta(days=7)
 
-        start_time_string = start_time.isoformat("T") + "Z"
+    payload = process_user_activity(user_email, results)
+    return payload
 
-        results = reports_service.activities().list(userKey=user_email, applicationName='drive', maxResults=100,
-                                                    startTime=start_time_string).execute()
-        payload = process_user_activity(user_email, results)
-        return payload
-
-    else:
-        Logger().info("get_activities_for_user : auth_token is not present")
-        return None
 
 
 def process_user_activity(user_email, activities):
