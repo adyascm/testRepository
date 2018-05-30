@@ -89,8 +89,8 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
 
             #Trigger the policy validation now
             payload = {}
+            application.user_email = user_association.user_email
             payload["application"] = json.dumps(application, cls=alchemy_encoder())
-            payload["application"]["user_email"] = user_association.user_email
             policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
             messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
