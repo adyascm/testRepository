@@ -184,7 +184,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         permissions = []
         for permission in new_permissions:
             user_name = permission["email"]
-            permission_str = user_name + " " + permissions_map[permission["permission_type"]]
+            permission_str = user_name + " (" + permissions_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
         template_parameters = {
