@@ -45,3 +45,22 @@ class Actions:
         return self.updated_permissions
 
 
+# remove user from private/public channels
+def delete_user_from_public_channel(datasource_id, channel_id, user_id):
+    slack_client = slack_utils.get_slack_client(datasource_id)
+    removed_user = slack_client.api_call(
+        "channels.kick",
+        channel=channel_id,
+        user=user_id
+    )
+    return removed_user
+
+
+def delete_user_from_private_channel(datasource_id, channel_id, user_id):
+    slack_client = slack_utils.get_slack_client(datasource_id)
+    removed_user = slack_client.api_call(
+        "groups.kick",
+        channel=channel_id,
+        user=user_id
+    )
+    return removed_user
