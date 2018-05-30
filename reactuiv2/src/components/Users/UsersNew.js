@@ -18,7 +18,8 @@ import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
 import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const mapStateToProps = state => ({
-  selectedUserItem: state.users.selectedUserItem
+  selectedUserItem: state.users.selectedUserItem,
+  userShowHierarchy: state.users.userShowHierarchy,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -31,7 +32,7 @@ class UsersNew extends Component {
     super(props);
     
     this.state = {
-      showHierarchy: false
+      showHierarchy: this.props.userShowHierarchy,
     }
   }
 
