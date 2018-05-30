@@ -73,7 +73,8 @@ def validate_policy(db_session, auth_token, datasource_id, policy, resource, new
                 # TODO: add proper email template
                 Logger().info("validate_policy : send email")
                 #aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
-                adya_emails.send_policy_violate_email(to_address, policy, resource, new_permissions)
+                adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions)
+
         payload = {}
         payload["datasource_id"] = datasource_id
         payload["name"] = policy.name

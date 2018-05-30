@@ -42,7 +42,8 @@ const defaultState = {
     nameColumnFilterValue: "",
     emailColumnFilterValue: "",
     typeColumnFilterValue: "EXT",
-    sourceColumnFilterValue: ""
+    sourceColumnFilterValue: "",
+    userShowHierarchy: false
 }
 
 
