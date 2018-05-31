@@ -52,7 +52,7 @@ class PolicyItemDetail extends Component {
     componentWillMount() {
         let datasourceType = []
         this.props.datasources.map((datasource,index) => {
-            datasourceType.push({"text":datasource["display_name"],"value":datasource["datasource_id"]})
+            datasourceType.push({"text":datasource["datasource_type"],"value":datasource["datasource_id"]})
         })
 
         this.setState({
