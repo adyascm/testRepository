@@ -6,7 +6,7 @@ from sqlalchemy import and_, or_
 from adya.common.constants import constants, urls, default_policies
 from adya.common.utils.response_messages import ResponseMessage
 from adya.common.db.connection import db_connection
-from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSource
+from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSource, Alert
 from adya.common.db import db_utils
 from adya.common.utils.response_messages import Logger
 from adya.core.controllers.alert_controller import delete_alert_for_a_policy
@@ -34,8 +34,10 @@ def delete_policy(policy_id):
     db_session = db_connection().get_session()
     existing_policy = db_session.query(Policy).filter(Policy.policy_id == policy_id).first()
     if existing_policy:
+        db_session.query(Alert).filter(Alert.policy_id == policy_id).delete()
         db_session.query(PolicyAction).filter(PolicyAction.policy_id == policy_id).delete()
         db_session.query(PolicyCondition).filter(PolicyCondition.policy_id == policy_id).delete()
+
 
         db_session.delete(existing_policy)
         db_connection().commit()
