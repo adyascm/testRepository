@@ -55,7 +55,9 @@ class AppDetailsSection extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.appDeleted !== this.props.appDeleted) {
+        var oldClientId = this.props.selectedAppItem != null ? this.props.selectedAppItem.client_id : null;
+        var newClientId = nextProps.selectedAppItem != null ? nextProps.selectedAppItem.client_id : null;
+        if (nextProps.appDeleted !== this.props.appDeleted || oldClientId != newClientId) {
             nextProps.appUsersLoadStart()
             nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id, this.props.selectedAppItem.datasource_id))
         }
