@@ -94,13 +94,13 @@ def _subscribe_for_activity(db_session, subscription, is_local_deployment):
                 "address": constants.get_url_from_path(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH),
                 "token": subscription.datasource_id,
                 "payload": "true",
-                "params": {"ttl": 21600}
+                "params": {"ttl": 21300}
             }
 
             watch_response = reports_service.activities().watch(userKey='all', applicationName=subscription.notification_type, body=body).execute()
 
             Logger().info(" watch_response for all users :  {} ".format(watch_response))
-            subscription.expire_at = subscription.last_accessed + timedelta(seconds=21600)
+            subscription.expire_at = subscription.last_accessed + timedelta(seconds=21300)
             if not subscription.resource_id:
                 subscription.resource_id = watch_response['resourceId']
                 subscription.resource_uri = watch_response['resourceUri']
