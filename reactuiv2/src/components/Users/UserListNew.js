@@ -35,18 +35,18 @@ class UserListNew extends Component {
         super(props);
         this.state = {
             columnHeaders: [
-                "",
+                "Source",
                 "Name",
                 "Email",
-                "Source",
+                "",
                 "Is Admin",
                 "Type"
             ],
             columnHeaderDataNameMap: {
-                "Avatar": "",
+                "Source": "datasource_id",
                 "Name": "user_name",
                 "Email": "user_email",
-                "Source": "datasource_id",
+                "Avatar": "",
                 "Type": "user_type",
                 "Is Admin": "is_admin",
             },
@@ -195,10 +195,10 @@ class UserListNew extends Component {
                 
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell textAlign="center" >{avatarImage}</Table.Cell>
+                        <Table.Cell textAlign="center">{dsImage}</Table.Cell>
                         <Table.Cell >{rowData["full_name"]}</Table.Cell>
                         <Table.Cell >{rowData["email"]}</Table.Cell>
-                        <Table.Cell textAlign="center">{dsImage}</Table.Cell>
+                        <Table.Cell textAlign="center" >{avatarImage}</Table.Cell>
                         <Table.Cell textAlign="center">{rowData["is_admin"] ? <Icon name="checkmark" /> : null}</Table.Cell>
                         <Table.Cell textAlign="center">{rowData["member_type"]}</Table.Cell>
                     </Table.Row>
@@ -228,14 +228,7 @@ class UserListNew extends Component {
                                     </Table.Header>
                                     <Table.Body>
                                         <Table.Row>
-                                            <Table.Cell width='1'></Table.Cell>
-                                            <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by name..." icon={this.props.nameColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event,'nameColumnFilterValue')} /> : null} value={this.props.nameColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "nameColumnFilterValue")}/>
-                                            </Table.Cell>
-                                            <Table.Cell width='4'>
-                                                <Input fluid placeholder="Filter by email..." icon={this.props.emailColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'emailColumnFilterValue')} /> : null} value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
-                                            </Table.Cell>
-                                            <Table.Cell >
+                                        <Table.Cell >
                                                 <Dropdown
                                                     fluid
                                                     options={datasourceFilterOptions}
@@ -244,6 +237,14 @@ class UserListNew extends Component {
                                                     onChange={(event, data) => this.handleColumnFilterChange(event, data, "sourceColumnFilterValue")}
                                                 />
                                             </Table.Cell>
+                                            
+                                            <Table.Cell width='4'>
+                                                <Input fluid placeholder="Filter by name..." icon={this.props.nameColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event,'nameColumnFilterValue')} /> : null} value={this.props.nameColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "nameColumnFilterValue")}/>
+                                            </Table.Cell>
+                                            <Table.Cell width='4'>
+                                                <Input fluid placeholder="Filter by email..." icon={this.props.emailColumnFilterValue.length ? <Icon name='close' link onClick={(event) => this.clearFilter(event, 'emailColumnFilterValue')} /> : null} value={this.props.emailColumnFilterValue} onChange={(event, data) => this.handleColumnFilterChange(event, data, "emailColumnFilterValue")} />
+                                            </Table.Cell>
+                                            <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='1'></Table.Cell>
                                             <Table.Cell width='3'>
                                                 <Dropdown
