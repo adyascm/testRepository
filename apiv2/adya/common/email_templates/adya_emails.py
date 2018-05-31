@@ -95,7 +95,7 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
             elif item[0] == constants.DocType.ANYONE_WITH_LINK_COUNT:
                 countAnyoneWithLinkSharedDocs = item[1]
 
-        #countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs
+        countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs
         externalDocsListData = reports_controller.get_widget_data(auth_token,"sharedDocsList", datasource.datasource_id,user_email)
         externalUserListData = reports_controller.get_widget_data(auth_token,"externalUsersList", datasource.datasource_id,user_email)
         filesCount = reports_controller.get_widget_data(auth_token, "filesCount", datasource.datasource_id, user_email)
@@ -117,7 +117,7 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
 
         data = {
             "domainId": domainId,
-            #"countDocuments": countDocuments,
+            "countDocuments": countDocuments,
             #"countExternalData": countExternalSharedDocs,
             "countPublicData": countPublicSharedDocs,
             "externalDocs": externalDocsListData['totalCount'],
