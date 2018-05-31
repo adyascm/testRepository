@@ -63,7 +63,7 @@ def oauth_callback(auth_code, auth_token):
     datasource = DataSource()
     datasource.domain_id = login_user.domain_id
     datasource.datasource_id = datasource_id
-    datasource.display_name = constants.ConnectorTypes.SLACK
+    datasource.display_name = connected_user_domain_id
 
     datasource.creation_time = datetime.datetime.utcnow()
     datasource.datasource_type = constants.ConnectorTypes.SLACK

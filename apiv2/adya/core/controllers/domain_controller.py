@@ -28,19 +28,6 @@ def get_datasource(auth_token, datasource_id=None, db_session=None):
             and_(LoginUser.domain_id == DataSource.domain_id, DataSource.is_async_delete == False)). \
             filter(LoginUser.auth_token == auth_token).all()
 
-        if datasources:
-            datasource_ids = [r.datasource_id for r in datasources]
-            datasource_credentials = db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id.
-                                                                                    in_(datasource_ids)).all()
-            for datasource in datasources:
-                domain_id = datasource.domain_id
-                for credential in datasource_credentials:
-                    if credential.datasource_id == datasource.datasource_id:
-                        credential_data = json.loads(credential.credentials)
-                        credential_domain_id = credential_data['domain_id']
-                        if domain_id != credential_domain_id:
-                            datasource.domain_id = credential_domain_id
-
     return datasources
 
 
@@ -57,10 +44,8 @@ def create_datasource(auth_token, payload):
         datasource.is_dummy_datasource = True if payload.get(
             "isDummyDatasource") else False
 
-        if payload.get("display_name"):
-            datasource.display_name = payload["display_name"]
-        else:
-            datasource.display_name = "Unnamed datasource"
+        #datasource.display_name = payload["display_name"]
+        datasource.display_name = datasource.domain_id
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow()
