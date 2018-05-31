@@ -1,8 +1,11 @@
+from sqlalchemy import and_
+
 import gutils
 from datetime import datetime, timedelta
 
 from adya.common.constants import constants
 from adya.common.db import db_utils
+from adya.common.db.connection import db_connection
 from adya.common.utils.response_messages import Logger
 from adya.common.db.models import DataSource, DomainUser
 
