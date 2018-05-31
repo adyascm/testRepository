@@ -33,7 +33,8 @@ export default (state = defaultState, action) => {
         case APPS_PAGE_LOAD_START:
             return {
                 ...state,
-                isLoadingApps: true
+                isLoadingApps: true,
+                selectedAppItem: undefined
             }
         case APPS_PAGE_LOADED:
             let appPayLoad = !action.error?action.payload:[]
@@ -42,8 +43,7 @@ export default (state = defaultState, action) => {
                 isLoadingApps: false,
                 appPayLoad: appPayLoad,
                 appsSearchPayload: undefined,
-                appDeleted: false,
-                selectedAppItem: undefined
+                appDeleted: false
             }
         case APPS_ITEM_SELECTED:
             return {
