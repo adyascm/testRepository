@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+from sqlalchemy.orm.exc import StaleDataError
 from sqlalchemy import and_
 
 from adya.common.db.models import DomainUser, DomainGroup, Resource, ResourcePermission, DataSource, alchemy_encoder, \
@@ -514,7 +515,8 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
 
             db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
                                                              DirectoryStructure.member_id.in_(member_to_be_deleted))).delete(
-                synchronize_session=False)
+                synchronize_session='fetch'
+            )
 
             # setting channel/group name in resource_permission table
             external_resource_ids = set()
@@ -542,7 +544,11 @@ def get_and_update_scan_count(datasource_id, column_name, column_value, auth_tok
                                         update({ApplicationUserAssociation.user_email : DomainUser.email},synchronize_session='fetch')
 
 
-            db_connection().commit()
+            try:
+                db_connection().commit()
+            except StaleDataError as sde:
+                Logger().info("some other thread already proccessed the data : {}".format(sde.message))
+
             messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
 
 
