@@ -11,7 +11,8 @@ import {
 
 
 const mapStateToProps = state => ({
-    ...state.apps
+    ...state.apps,
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -26,14 +27,14 @@ class UserApps extends Component {
     componentWillMount() {
         if (this.props.selectedUser && this.props.selectedUser.email) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+            this.props.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if ((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email))
+            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
         }
     }
 
@@ -53,12 +54,14 @@ class UserApps extends Component {
         }
         else if (this.props.userApps && this.props.userApps.length)
         {
+            let ds = this.props.datasourcesMap[selectedUser.datasource_id];
             applications = this.props.userApps.map((application,index) => {
                 if (application !== undefined) {
                     let display_text = application["display_text"].length > 25 ? application["display_text"].slice(0,25) : application["display_text"]
                     let score = application["score"]
                     var color = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
-                    let scopes = application["scopes"].split(',').map((scope,index) => {
+                    var scopesString = application["scopes"] || "";
+                    let scopes = scopesString.split(',').map((scope,index) => {
                     return (
                     <Grid.Row textAlign='center' style={{ margin: '0px' }}  key={index}>
                             {scope}
@@ -69,7 +72,7 @@ class UserApps extends Component {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical'
+                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
                                     basic color='red'
                                     onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}>
                                     <Button.Content hidden>Remove</Button.Content>

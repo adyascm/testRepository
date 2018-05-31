@@ -274,7 +274,7 @@ class ResourcesListTable extends Component {
             let filterMetadata = { 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
             return (
                 <div>
-                    <div ref="table" style={{ 'minHeight': this.props.rowData?null:document.body.clientHeight/2, 'maxHeight': document.body.clientHeight/1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                    <div ref="table" style={{ 'minHeight': document.body.clientHeight/1.05, 'maxHeight': document.body.clientHeight/1.05, 'overflow': 'auto', 'cursor': 'pointer' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header style={{'position': 'sticky', 'top': '50px', 'width': '100%'}}>
                                 <Table.Row>

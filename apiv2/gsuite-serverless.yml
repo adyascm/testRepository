@@ -254,7 +254,7 @@ functions:
           cors: true      
 
   post-google-policies-validate:
-    handler: adya.core.services.lambda.policy_validate_handler.validate_policy
+    handler: adya.gsuite.services.lambda.policy_validate_handler.validate_policy
     events:
       - http:
           path: policies/validate

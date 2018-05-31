@@ -196,7 +196,7 @@ def get_all_apps(auth_token):
     return apps_data
 
 
-def get_users_for_app(auth_token, client_id):
+def get_users_for_app(auth_token, datasource_id, client_id):
     db_session = db_connection().get_session()
 
     # check for non-admin user
@@ -205,12 +205,6 @@ def get_users_for_app(auth_token, client_id):
     is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
     login_user_email = existing_user.email
 
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token).all()
-
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
-
     # if servie account and non-admin user, show permission for logged in user only
     if is_service_account_is_enabled and not is_admin:
         domain_user_emails = [[login_user_email]]
@@ -218,26 +212,21 @@ def get_users_for_app(auth_token, client_id):
     else:
         domain_user_emails = db_session.query(ApplicationUserAssociation.user_email).filter(
             and_(ApplicationUserAssociation.client_id == client_id,
-                 ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))).all()
+                 ApplicationUserAssociation.datasource_id == datasource_id)).all()
 
     domain_user_emails = [r for r, in domain_user_emails]
 
     apps_query_data = db_session.query(DomainUser).filter(and_(DomainUser.email.in_(domain_user_emails),
-                                                               DomainUser.datasource_id.in_(
-                                                                   domain_datasource_ids))).all()
+                                                               DomainUser.datasource_id == datasource_id)).all()
     return apps_query_data
 
 
-def get_apps_for_user(auth_token, user_email):
+def get_apps_for_user(auth_token, datasource_id, user_email):
     db_session = db_connection().get_session()
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
     domain_applications = db_session.query(ApplicationUserAssociation.client_id).filter(
         and_(ApplicationUserAssociation.user_email == user_email,
-             ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))).all()
+             ApplicationUserAssociation.datasource_id == datasource_id)).all()
     domain_applications = [r for r, in domain_applications]
     user_apps = db_session.query(Application).filter(and_(Application.client_id.in_(domain_applications),
-                                                          Application.datasource_id.in_(domain_datasource_ids))).order_by(desc(Application.score)).all()
+                                                          Application.datasource_id == datasource_id)).order_by(desc(Application.score)).all()
     return user_apps

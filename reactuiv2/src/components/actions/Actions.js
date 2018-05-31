@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Mustache from 'mustache';
 import { Button, Header, Modal, Form, Message, Dropdown } from 'semantic-ui-react'
 import { RESOURCES_ACTION_CANCEL, RESOURCES_PAGE_LOAD_START, RESOURCES_PAGE_LOADED,
      USERS_RESOURCE_ACTION_CANCEL, USERS_PAGE_LOAD_START, USERS_PAGE_LOADED, USERS_OWNED_RESOURCES_LOAD_START, USERS_OWNED_RESOURCES_LOADED,
@@ -14,7 +15,8 @@ const mapStateToProps = state => ({
     all_actions_list: state.common.all_actions_list,
     action: state.resources.action || state.users.action || state.apps.action,
     selectedUser: state.users.selectedUserItem,
-    datasources: state.common.datasources
+    datasources: state.common.datasources,
+    datasourcesMap: state.common.datasourcesMap
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -81,6 +83,7 @@ class Actions extends Component {
         payload['key'] = this.state['key']
         payload['initiated_by'] = this.props.logged_in_user['email']
         payload['parameters'] = parameters
+        payload['datasource_id'] = action.datasource_id
 
         return JSON.stringify(payload);
     }
@@ -91,7 +94,8 @@ class Actions extends Component {
             ...this.state,
             inProgress: true
         });
-        if (this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
+        var ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        if (ds.datasource_type != "GSUITE" || this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
             this.executeAction(this.build_action_payload(), resp => {
                 this.setState({
                     ...this.state,
@@ -200,6 +204,7 @@ class Actions extends Component {
             return null;
         }
         let actionConfig = this.props.all_actions_list[action.key];
+        let actionDescription = Mustache.render(actionConfig.description, action);
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)
                 return null;
@@ -241,7 +246,7 @@ class Actions extends Component {
                 <Modal.Header>Action - {actionConfig.name}</Modal.Header>
                 <Modal.Content >
                     {message}
-                    <Modal.Description><Header>{actionConfig.description}</Header></Modal.Description>
+                    <Modal.Description><Header>{actionDescription}</Header></Modal.Description>
                     <Form onSubmit={submitAction}>
                         {formFields}
                         {cancelButton}

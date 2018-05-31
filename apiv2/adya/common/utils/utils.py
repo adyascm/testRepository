@@ -18,8 +18,10 @@ def delete_call_with_authorization_header(session, url, auth_token, json):
     return session.delete(url=url, json=json, headers=headers)
 
 
-def post_call_with_authorization_header(session, url, auth_token, json):
+def post_call_with_authorization_header(session, url, auth_token, json, extra_headers = {}):
     headers = {"Authorization": auth_token, "Content-Type": "application/json"}
+    for header in extra_headers:
+        headers[header] = extra_headers[header]
     if not url.startswith('http'):
         url = constants.API_HOST + url
     Logger().info("Making a POST request on the following url - " + url)

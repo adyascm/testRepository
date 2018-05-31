@@ -9,7 +9,7 @@ from adya.common.utils import aws_utils
 from adya.common.email_templates import adya_emails
 from adya.common.db.connection import db_connection
 
-def validate_permission_change(auth_token, datasource_id, payload):
+def validate_token_activity(auth_token, datasource_id, payload):
     application = json.loads(payload["application"])
     db_session = db_connection().get_session()
     policies = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id,
@@ -36,13 +36,14 @@ def validate_policy(db_session, auth_token, datasource_id, policy, application):
         for action in policy.actions:
             if action.action_type == constants.policyActionType.SEND_EMAIL:
                 to_address = json.loads(action.config)["to"]
-                aws_utils.send_email([to_address], "[Adya] A policy is violated in your GSuite account", "A new app install - {} has violated policy - {}".format(application["display_text"], policy.name))
-                #adya_emails.send_policy_violate_email(to_address, policy, resource, new_permissions)
+                adya_emails.send_app_install_policy_violate_email(to_address, policy, application)
         payload = {}
         payload["datasource_id"] = datasource_id
         payload["name"] = policy.name
         payload["policy_id"] = policy.policy_id
         payload["severity"] = policy.severity
+        payload["description_template"] = "New app install \"{{display_text}}\" for \"{{user_email}}\" has violated policy \"{{policy_name}}\""
+        payload["payload"] = application
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # generic function for matching policy condition and corresponding value
@@ -53,6 +54,6 @@ def check_value_violation(policy_condition, value):
             return 1
     elif policy_condition.match_condition == constants.PolicyConditionMatch.CONTAIN and policy_condition.match_value in value:
         return 1
-    elif policy_condition.match_condition == constants.PolicyConditionMatch.GREATER and policy_condition.match_value < value:
+    elif policy_condition.match_condition == constants.PolicyConditionMatch.GREATER and int(policy_condition.match_value) < value:
         return 1        
     return 0

@@ -47,7 +47,7 @@ class UserResourceTable extends Component {
                 { text: 'Can Read', value: 'reader' },
                 { text: 'Can Write', value: 'writer' },
                 { text: 'Owner', value: 'owner' },
-                {text: 'Can Comment', value: 'commenter'}
+                { text: 'Can Comment', value: 'commenter' }
             ]
         }
     }
@@ -56,8 +56,10 @@ class UserResourceTable extends Component {
         if (this.props.selectedUserItem) {
             let filterExposureType = (this.props.selectedUserItem.member_type === 'EXT' ? '' : this.props.filterExposureType)
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUserItem["email"]], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
-                                           'datasourceId': this.props.selectedUserItem.datasource_id}))
+            this.props.onLoad(agent.Resources.getResourcesTree({
+                'userEmails': [this.props.selectedUserItem["email"]], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
+                'datasourceId': this.props.selectedUserItem.datasource_id
+            }))
         }
     }
 
@@ -65,9 +67,11 @@ class UserResourceTable extends Component {
         if ((this.props.selectedUserItem["email"] !== nextProps.selectedUserItem["email"]) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResourcesTree({'userEmails': [nextProps.selectedUserItem["email"]],
-              'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
-            'datasourceId': this.props.selectedUserItem.datasource_id}))
+            nextProps.onLoad(agent.Resources.getResourcesTree({
+                'userEmails': [nextProps.selectedUserItem["email"]],
+                'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+                'datasourceId': this.props.selectedUserItem.datasource_id
+            }))
         }
     }
 
@@ -76,20 +80,24 @@ class UserResourceTable extends Component {
     }
 
     onPermissionChange = (event, resourceData, newValue) => {
-        if(newValue !== resourceData["myPermission"])
+        if (newValue !== resourceData["myPermission"])
             this.props.onChangePermission("update_permission_for_user", resourceData, newValue);
     }
 
     handleNextClick = () => {
-        this.props.setPaginationData(this.props.pageNumber+1,this.props.pageLimit)
+        this.props.setPaginationData(this.props.pageNumber + 1, this.props.pageLimit)
     }
 
     handlePreviousClick = () => {
-        this.props.setPaginationData(this.props.pageNumber-1,this.props.pageLimit)
+        this.props.setPaginationData(this.props.pageNumber - 1, this.props.pageLimit)
     }
 
     render() {
+        let ds = this.props.datasourcesMap[this.props.selectedUserItem.datasource_id];
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
+            if (ds.datasource_type != "GSUITE" && headerName === "Permission") {
+                return null;
+            }
             return (
                 <Table.HeaderCell key={index}>{headerName}</Table.HeaderCell>
             )
@@ -107,12 +115,20 @@ class UserResourceTable extends Component {
 
         if (this.props.selectedUserItem.resources)
             tableRowData = this.props.selectedUserItem.resources.map((rowData, index) => {
+                if (ds.datasource_type != "GSUITE") {
+                    return(<Table.Row key={index}>
+                        <Table.Cell width='5' style={{ 'wordBreak': 'break-word' }}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
+                        <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
+                        <Table.Cell><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
+                    </Table.Row>);
+                }
                 return (
                     <Table.Row key={index}>
-                        <Table.Cell width='5' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='5' style={{ 'wordBreak': 'break-word' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
-                            <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event,data) => this.onPermissionChange(event,rowData,data.value)} />
+                            <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event, data) => this.onPermissionChange(event, rowData, data.value)} />
                         </Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
                         <Table.Cell><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
@@ -145,15 +161,15 @@ class UserResourceTable extends Component {
                             </Table>
                         </div>
                         <div style={{ marginTop: '5px' }} >
-                            {this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length < this.props.pageLimit?null:(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
-                            {this.props.pageNumber > 0?(<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>):null}
+                            {this.props.selectedUserItem.resources && this.props.selectedUserItem.resources.length < this.props.pageLimit ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                            {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                         </div>
                     </div>
                 )
             else
                 return (
                     <div style={{ marginLeft: '30%' }}>
-                        No Resources to display for user
+                        Nothing to display
                     </div>
                 )
         }

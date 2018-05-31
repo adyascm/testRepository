@@ -43,16 +43,17 @@ def get_user_tree_data(event, context):
 
 def get_user_app(event,context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True,optional_params=["clientId","userEmail"])
+    req_error = req_session.validate_authorized_request(True,optional_params=["clientId","userEmail", "datasourceId"])
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
     client_id = req_session.get_req_param('clientId')
     user_email = req_session.get_req_param('userEmail')
+    datasource_id = req_session.get_req_param('datasourceId')
     if client_id:
-        data = directory_controller.get_users_for_app(auth_token,client_id)
+        data = directory_controller.get_users_for_app(auth_token, datasource_id, client_id)
     elif user_email:
-        data = directory_controller.get_apps_for_user(auth_token,user_email)
+        data = directory_controller.get_apps_for_user(auth_token, datasource_id, user_email)
     else:
         data = directory_controller.get_all_apps(auth_token)
 

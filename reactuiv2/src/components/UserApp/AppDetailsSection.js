@@ -50,14 +50,14 @@ class AppDetailsSection extends Component {
     componentWillMount() {
         if (this.props.selectedAppItem && this.props.selectedAppItem.client_id) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+            this.props.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id, this.props.selectedAppItem.datasource_id))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.appDeleted !== this.props.appDeleted) {
             nextProps.appUsersLoadStart()
-            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id))
+            nextProps.appUsersLoaded(agent.Apps.getappusers(this.props.selectedAppItem.client_id, this.props.selectedAppItem.datasource_id))
         }
     }
 
@@ -76,14 +76,15 @@ class AppDetailsSection extends Component {
                 )
             }
             let appUsers = []
+            let ds = this.props.datasourcesMap[this.props.selectedAppItem.datasource_id];
             if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app =this.props.selectedAppItem
                 appUsers = this.props.appUsers.map((user,index) => {
                     return (
                         <Grid.Row key={index}>
                             <Grid.Column width={2}>
-                                <Button animated='vertical' 
-                                        basic color='red' 
+                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                                        basic color='red'
                                         onClick={(event) => this.handleAppAccessRevokeClick(event,app,user.email)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
@@ -100,7 +101,7 @@ class AppDetailsSection extends Component {
             }
 
             let panes = [
-                { menuItem: 'Users', render: () => <Tab.Pane attached={false}> 
+                { menuItem: 'Users', render: () => <Tab.Pane attached={false}>
                                                     <Grid celled='internally'>{appUsers}
                                                     </Grid> </Tab.Pane> }
               ]

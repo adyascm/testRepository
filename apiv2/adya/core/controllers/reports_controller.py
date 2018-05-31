@@ -431,7 +431,7 @@ def update_report(auth_token, payload):
 def generate_csv_report(report_id):
     Logger().info("generate_csv_report :  start")
 
-    report_data, email_list, report_type, report_desc, report_name = run_report(None, report_id)
+    report_data, email_list, report_type, report_desc, report_name = run_report(constants.INTERNAL_SECRET, report_id)
     Logger().info("generate_csv_report : report data : " + str(report_data))
     csv_records = ""
     Logger().info("report type : " + str(report_type))

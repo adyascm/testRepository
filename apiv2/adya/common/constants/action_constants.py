@@ -31,6 +31,12 @@ connectors_to_action_path_mapping = {
     ConnectorTypes.SLACK: urls.SLACK_ACTION_PATH
 }
 
+connector_servicename_map = {
+    ConnectorTypes.GSUITE: 'gsuite',
+    ConnectorTypes.SLACK: 'slack'
+
+}
+
 
 
 

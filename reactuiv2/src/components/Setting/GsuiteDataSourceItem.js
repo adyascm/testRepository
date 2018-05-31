@@ -135,7 +135,6 @@ class GsuiteDataSourceItem extends Component {
                         <Loader inverted content='Deleting...' />
                     </Dimmer>
                     <Card.Content>
-                        <Header >{datasource.domain_id}</Header>
                         {datasourceImage}
                         <Card.Header textAlign='right'>
                             {datasource.display_name}

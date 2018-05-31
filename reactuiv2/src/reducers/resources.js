@@ -72,6 +72,7 @@ export default (state = defaultState, action) => {
                 ...state,
                 action: {
                     key: action.actionType,
+                    datasource_id: state.rowData.datasource_id,
                     resource_id: state.rowData.resource_id,
                     resource_name: state.rowData.resource_name,
                     old_owner_email: state.rowData.resource_owner_id,
@@ -90,7 +91,6 @@ export default (state = defaultState, action) => {
             state[action.property] = action.value
             return {
                 ...state,
-                isLoadingResources: true
             }
         case LOGOUT:
             return {

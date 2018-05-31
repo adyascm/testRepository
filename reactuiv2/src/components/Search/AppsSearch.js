@@ -20,11 +20,11 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     selectAppItem: (payload) =>
         dispatch({ type: APPS_ITEM_SELECTED, payload }),
-    appUsersLoadStart: () => 
+    appUsersLoadStart: () =>
         dispatch({ type: APP_USERS_LOAD_START }),
-    appUsersLoaded: (payload) => 
+    appUsersLoaded: (payload) =>
         dispatch({ type: APP_USERS_LOADED, payload }),
-    setAppsSearchResults: (payload) => 
+    setAppsSearchResults: (payload) =>
         dispatch({ type: APPS_SEARCH_PAYLOAD, payload }),
     onSearchEmpty: () =>
         dispatch({ type: APPS_SEARCH_EMPTY })
@@ -44,7 +44,7 @@ class AppsSearch extends Component {
     }
 
     resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
-    
+
     resultRenderer = (r) => {
         return (
             <div>
@@ -64,10 +64,10 @@ class AppsSearch extends Component {
             })
             return
         }
-        this.setState({ 
-            isLoading: true, 
+        this.setState({
+            isLoading: true,
             value: value,
-            hideSearchMenu: false 
+            hideSearchMenu: false
         })
 
         setTimeout(() => {
@@ -76,7 +76,7 @@ class AppsSearch extends Component {
 
             var results = [];
             var allApps = this.props.appPayLoad
-            
+
             for (let index = 0; index < allApps.length; index++) {
                 if (allApps[index]["display_text"].match(re)) {
                     results.push(allApps[index]);
@@ -94,7 +94,7 @@ class AppsSearch extends Component {
         this.props.setAppsSearchResults(this.state.results)
         this.props.selectAppItem(result)
         this.props.appUsersLoadStart()
-        this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id))
+        this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id, result.datasource_id))
         this.setState({
             value: result.display_text,
             hideSearchMenu: true,
@@ -116,7 +116,7 @@ class AppsSearch extends Component {
         this.props.onSearchEmpty()
         this.setState({
             results: [],
-            value: '', 
+            value: '',
             showNoResults: false
         })
     }

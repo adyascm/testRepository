@@ -15,6 +15,7 @@
     "cron-to-quartz": "^1.4.1",
     "cronstrue": "^1.1.0",
     "moment": "^2.21.0",
+    "mustache": "^2.3.0",
     "npm": "^5.7.1",
     "react": "^16.2.0",
     "react-chartkick": "^0.1.6",

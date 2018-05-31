@@ -1,12 +1,14 @@
 import requests
 import datetime
+import json
 
 from sqlalchemy import and_
 
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
-from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, ApplicationUserAssociation
+from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, ApplicationUserAssociation, alchemy_encoder
 from adya.common.utils.response_messages import Logger
+from adya.common.utils import messaging
 from adya.gsuite import gutils
 
 
@@ -15,7 +17,6 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
         return
 
     db_session = db_connection().get_session()
-
     subscription = db_session.query(PushNotificationsSubscription).filter(
         PushNotificationsSubscription.channel_id == channel_id).first()
     if not subscription:
@@ -23,43 +24,45 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
             datasource_id, channel_id))
         return
 
-    incoming_activity = body
-
-    #If notification type is adya, then that means its triggered manually
-    #So we need to fetch the last event first to simulate trigger
-    if notification_type == "adya":
-        reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
-        results = reports_service.activities().list(userKey="all", applicationName=subscription.notification_type, maxResults=1).execute()
-        if results and "items" in results:
-            incoming_activity = results["items"][0]
-        else:
-            return
-
+    activities = [body]
     try:
-        app_name = incoming_activity["id"]["applicationName"]
-        actor_email = incoming_activity['actor']['email']
-        if app_name == "drive":
-            process_drive_activity(actor_email, incoming_activity)
-        elif app_name == "token":
-            process_token_activity(datasource_id, actor_email, incoming_activity)
+        #If notification type is adya, then that means its triggered either manually or scheduled sync
+        #So we need to fetch the events from last sync time
+        if notification_type == "adya":
+            reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
+            results = reports_service.activities().list(userKey="all", applicationName=subscription.notification_type, startTime=subscription.page_token).execute()
+            if results and "items" in results:
+                activities = results["items"]
 
+        for activity in activities:
+            process_incoming_activity(datasource_id, activity)
+            
         db_session.refresh(subscription)
         subscription.last_accessed = datetime.datetime.utcnow()
         subscription.page_token = datetime.datetime.utcnow().isoformat("T") + "Z"
         db_connection().commit()
-
-
     except Exception as e:
         Logger().exception("Exception occurred while processing activity notification for datasource_id: {} channel_id: {} - {}".format(datasource_id, channel_id, e))
+        
+
+def process_incoming_activity(datasource_id, incoming_activity):
+    app_name = incoming_activity["id"]["applicationName"]
+    actor_email = incoming_activity['actor']['email']
+
+    if app_name == "token":
+        process_token_activity(datasource_id, actor_email, incoming_activity)
+    # elif app_name == "drive":
+    #     process_drive_activity(actor_email, incoming_activity)
 
 def process_token_activity(datasource_id, actor_email, incoming_activity):
-
+    Logger().info("Processing token activity - {}".format(incoming_activity))
     for event in incoming_activity['events']:
         event_name = event['name']
-        event_type = event['type']
         if event_name == "authorize":
             application = Application()
             application.datasource_id = datasource_id
+            application.anonymous = 1
+            application.timestamp = datetime.datetime.utcnow()
             user_association = ApplicationUserAssociation()
             user_association.user_email = actor_email
             user_association.datasource_id = datasource_id
@@ -78,12 +81,13 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                     application.scopes = ','.join(scopes)
 
             db_session = db_connection().get_session()
-            db_session.add(application)
-            db_session.add(user_association)
+            db_session.execute(Application.__table__.insert().prefix_with("IGNORE").values([application.datasource_id, application.client_id, application.display_text, application.anonymous, application.scopes, application.score, application.timestamp]))
+            db_session.execute(ApplicationUserAssociation.__table__.insert().prefix_with("IGNORE").values([user_association.datasource_id, user_association.client_id, user_association.user_email]))
             db_connection().commit()
 
             #Trigger the policy validation now
             payload = {}
+            application.user_email = user_association.user_email
             payload["application"] = json.dumps(application, cls=alchemy_encoder())
             policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
             messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")

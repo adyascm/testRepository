@@ -32,7 +32,7 @@ const UserStats = props => {
         
     }
     return (
-        <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.05}} fluid>
+        <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25}} fluid>
             {stats}
         </Menu>
     )

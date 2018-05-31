@@ -68,7 +68,7 @@ def send_gdrive_scan_completed_email(auth_token, datasource):
         user_list = list(user_list)
         Logger().info("send_gdrive_scan_completed_email : user email list : {}".format(user_list))
 
-        email_subject="Your gdrive scan has completed!"
+        email_subject="[Adya] Your GSuite account is ready for review"
         aws_utils.send_email(user_list, email_subject, rendered_html)
     except Exception as e:
         Logger().exception("Exception occurred sending gdrive scan completed email")
@@ -164,18 +164,18 @@ def send_clean_files_email(datasource_id,user_email):
         template_name = "clean_files"
         template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject="CleanUp Your Files!"
+        email_subject="[Adya] You are requested to audit your GSuite account"
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
         Logger().exception("Exception occurred sending clean files email")
         return False
 
-def send_policy_violate_email(user_email,policy,resource,new_permissions):
+def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions):
     try:
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
-        template_name = "policy_violation"
+        template_name = "permission_change_policy_violation"
         permissions_map = {
             "owner": "Owner",
             "writer": "Can Write",
@@ -184,7 +184,7 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
         permissions = []
         for permission in new_permissions:
             user_name = permission["email"]
-            permission_str = user_name + " " + permissions_map[permission["permission_type"]]
+            permission_str = user_name + " (" + permissions_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
         template_parameters = {
@@ -195,11 +195,28 @@ def send_policy_violate_email(user_email,policy,resource,new_permissions):
             "permissions": permissions
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "A policy on Adya platform is violated - " + policy.name
+        email_subject = "[Adya] A policy is violated in your GSuite account"
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
         Logger().exception("Exception occured while sending policy violation email")
         return False
 
+
+def send_app_install_policy_violate_email(user_email,policy,application):
+    try:
+        template_name = "app_install_policy_violation"
+        template_parameters = {
+            "policy_name": policy.name,
+            "app_name": application["display_text"],
+            "user_name":application["user_email"]
+        } 
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "[Adya] A policy is violated in GSuite account"
+        aws_utils.send_email([user_email], email_subject, rendered_html)
+        return True
+    except Exception as e:
+        Logger().exception("Exception occured while sending app install policy violation email")
+        return False
+       
 

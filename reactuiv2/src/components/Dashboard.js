@@ -29,7 +29,7 @@ class Dashboard extends Component {
   constructor() {
     super();
     this.simpleWidgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'ALL'}} },
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: ''}} },
       { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" , states: {users: {userShowHierarchy: true, userFilterType: 'ALL'}} },
       { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" , states: {resources: {filterExposureType: '', filterResourceType: ''}} },
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: 'folder'}}},
@@ -40,15 +40,15 @@ class Dashboard extends Component {
       { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}}
     ];
     this.gridWidgetConfigs = [
-      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'EXT'}}},
-      {id: "internalUserList", header: "Internal users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, userFilterType: 'DOMAIN'}}}
+      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: 'EXT'}}},
+      {id: "internalUserList", header: "Users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: 'INT'}}}
     ];
   }
 
   componentWillMount() {
     window.scrollTo(0, 0)
   }
-  
+
   render() {
     return (
       <Container fluid>

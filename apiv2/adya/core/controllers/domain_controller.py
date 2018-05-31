@@ -44,10 +44,8 @@ def create_datasource(auth_token, payload):
         datasource.is_dummy_datasource = True if payload.get(
             "isDummyDatasource") else False
 
-        if payload.get("display_name"):
-            datasource.display_name = payload["display_name"]
-        else:
-            datasource.display_name = "Unnamed datasource"
+        #datasource.display_name = payload["display_name"]
+        datasource.display_name = datasource.domain_id
         # we are fixing the datasoure type this can be obtained from the frontend
         datasource.datasource_type = "GSUITE"
         datasource.creation_time = datetime.datetime.utcnow()

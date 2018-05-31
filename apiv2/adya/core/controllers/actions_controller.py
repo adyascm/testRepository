@@ -2,14 +2,15 @@ import traceback
 from sqlalchemy import and_, or_
 import json
 from datetime import datetime
+import pystache
 
 from adya.common.constants import constants, action_constants, urls
-from adya.common.constants.action_constants import connectors_to_action_path_mapping
-from adya.common.db import db_utils
+from adya.common.constants.action_constants import connectors_to_action_path_mapping, connector_servicename_map
+from adya.common.db import db_utils, action_definitions
 from adya.common.db.db_utils import get_datasource
 from adya.common.utils import messaging, response_messages
 from adya.common.db.models import AuditLog, Action, Application, ApplicationUserAssociation, ResourcePermission, \
-    Resource, DirectoryStructure, DomainUser, DataSource
+    Resource, DirectoryStructure, DomainUser, DataSource, LoginUser
 from adya.common.db.connection import db_connection
 from adya.common.utils.response_messages import ResponseMessage, Logger
 from adya.gsuite import actions, gutils
@@ -165,8 +166,7 @@ def get_actions():
                removeUserForApp
                ]
 
-    return actions
-
+    return action_definitions.actions
 
 def instantiate_action(datasource_type, key, name, description, parameters, is_admin_only):
     actionObject = Action()
@@ -180,26 +180,31 @@ def instantiate_action(datasource_type, key, name, description, parameters, is_a
     return actionObject
 
 
-def get_action(action_to_take):
+def get_action(action_key):
     actions_list = get_actions()
     for action in actions_list:
-        if action.key == action_to_take:
+        if action["key"] == action_key:
             return action
     return None
 
 
-def initiate_action(auth_token, domain_id, datasource_id, action_payload):
+def initiate_action(auth_token, action_payload):
     try:
-        action_to_take = action_payload['key']
+        action_key = action_payload['key']
         initiated_by = action_payload['initiated_by']
         action_parameters = action_payload['parameters']
+        datasource_id = action_payload['datasource_id']
 
-        action_config = get_action(action_to_take)
+        db_session = db_connection().get_session()
+        login_user_info = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+        domain_id = login_user_info.domain_id
+
+        action_config = get_action(action_key)
 
         if not action_config or not validate_action_parameters(action_config, action_parameters):
             return ResponseMessage(400, "Failed to execute action - Validation failed")
         log_entry = audit_action(domain_id, datasource_id,
-                              initiated_by, action_to_take, action_parameters)
+                              initiated_by, action_config, action_parameters)
         execution_status = execute_action(
             auth_token, domain_id, datasource_id, action_config, action_payload, log_entry)
         db_connection().commit()
@@ -208,8 +213,7 @@ def initiate_action(auth_token, domain_id, datasource_id, action_payload):
 
     except Exception as e:
         Logger().exception(
-            "Exception occurred while initiating action using payload " + str(action_payload) + " on domain: " + str(
-                domain_id) + " and datasource: " + str(datasource_id))
+            "Exception occurred while initiating action using payload " + str(action_payload))
         return ResponseMessage(500, "Failed to execute action - {}".format(e))
 
 
@@ -251,7 +255,7 @@ def add_resource_permission(auth_token, datasource_id, action_payload, log_entry
     query_params = {"user_email": resource_owner, "datasource_id": datasource_id,"initiated_by_email": action_payload['initiated_by'], "log_id": str(log_entry.log_id)}
     body = json.dumps([permission], cls=alchemy_encoder())
     response = messaging.trigger_post_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_params,
-                                            {"permissions": json.loads(body)}, "gsuite", constants.TriggerType.SYNC)
+                                            {"permissions": json.loads(body)}, connector_servicename_map[datasource_type], constants.TriggerType.SYNC)
     return response
 
 
@@ -293,10 +297,10 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     if action_payload['key'] == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         response = messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param, {"permissions": body},
-                                                  "gsuite", constants.TriggerType.SYNC)
+                                                  connector_servicename_map[datasource_type], constants.TriggerType.SYNC)
     else:
         response = messaging.trigger_update_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param, {"permissions": body},
-                                                  "gsuite", constants.TriggerType.SYNC)
+                                                  connector_servicename_map[datasource_type], constants.TriggerType.SYNC)
 
     return response
 
@@ -304,7 +308,8 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type, log_entry):
     db_session = db_connection().get_session()
     # By default we remove all external access i.e. PUBLIC and EXTERNAL
-    permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC]
+    permission_type = [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC,
+                       constants.ResourceExposureType.ANYONEWITHLINK]
     # Other option is to also remove all access i.e. DOMAIN and INTERNAL also
     if not removal_type == constants.ResourceExposureType.EXTERNAL:
         permission_type.append(constants.ResourceExposureType.DOMAIN)
@@ -346,8 +351,9 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
     has_domain_sharing = False
     for permission in resource.permissions:
         if removal_type == constants.ResourceExposureType.EXTERNAL:
-            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == constants.ResourceExposureType.PUBLIC:
-                permissions_to_update.append(permission)
+            if permission.exposure_type == constants.ResourceExposureType.EXTERNAL or permission.exposure_type == \
+                    constants.ResourceExposureType.PUBLIC or permission.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK:
+                    permissions_to_update.append(permission)
             elif permission.exposure_type == constants.ResourceExposureType.DOMAIN:
                 has_domain_sharing = True
 
@@ -407,12 +413,12 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
 
         if permissions_to_update_count < BATCH_COUNT:
             sync_response = messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param,
-                                                           {"permissions": json.loads(body)}, "gsuite",
+                                                           {"permissions": json.loads(body)}, connector_servicename_map[datasource_type],
                                                            constants.TriggerType.SYNC)
         else:
             messaging.trigger_delete_event(connectors_to_action_path_mapping[datasource_type], auth_token, query_param,
                                            {"permissions": json.loads(body)},
-                                           "gsuite")
+                                           connector_servicename_map[datasource_type])
         sent_perms_count += BATCH_COUNT
 
     if permissions_to_update_count < BATCH_COUNT:
@@ -460,14 +466,14 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
 
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload, log_entry):
     action_parameters = action_payload['parameters']
-    db_session = db_connection().get_session()
     response_msg = ''
+    action_key = action_config["key"]
     # Watch report action
-    if action_config.key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
+    if action_key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
         response_msg = create_watch_report(auth_token, datasource_id, action_payload, log_entry)
 
     # Trigger mail for cleaning files
-    elif action_config.key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
+    elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
         user_email = action_parameters['user_email']
         status_message = "Notification sent to {} for cleanUp".format(user_email)
         log_entry.status = action_constants.ActionStatus.SUCCESS
@@ -480,12 +486,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         response_msg = ResponseMessage(status_code,status_message)
 
     # Directory change actions
-    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_config.key == action_constants.ActionNames.ADD_USER_TO_GROUP:
-        response_msg = modify_group_membership(auth_token, datasource_id, action_config.key, action_parameters, log_entry)
+    elif action_key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP or action_key == action_constants.ActionNames.ADD_USER_TO_GROUP:
+        response_msg = modify_group_membership(auth_token, datasource_id, action_key, action_parameters, log_entry)
 
     # Transfer ownership 
     # part of batch action
-    elif action_config.key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+    elif action_key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
         old_owner_email = action_parameters["old_owner_email"]
         new_owner_email = action_parameters["new_owner_email"]
         response = actions.transfer_ownership(
@@ -502,43 +508,43 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         response_msg = response_messages.ResponseMessage(status_code, status_message)
 
     # Bulk permission change actions for user
-    elif action_config.key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, "ALL", log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                              constants.ResourceExposureType.EXTERNAL, log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+    elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
         response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by, log_entry)
 
     # Bulk permission change actions for resource
-    elif action_config.key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, 'ALL',log_entry)
-    elif action_config.key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload,
                                           constants.ResourceExposureType.EXTERNAL, log_entry)
 
     # Single Resource permission change actions
-    elif action_config.key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         action_parameters['new_permission_role'] = ''
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
+    elif action_key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
         response_msg = add_resource_permission(auth_token, datasource_id, action_payload, log_entry)
-    elif action_config.key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+    elif action_key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         action_parameters['new_permission_role'] = constants.Role.OWNER
         action_parameters['resource_owner_id'] = action_parameters["old_owner_email"]
         action_parameters['user_email'] = action_parameters["new_owner_email"]
         response_msg = update_or_delete_resource_permission(auth_token, datasource_id, action_payload, log_entry)
 
     # Uninstalling an app for a user
-    elif action_config.key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
+    elif action_key == action_constants.ActionNames.REMOVE_USER_FROM_APP:
         user_email = action_parameters['user_email']
         client_id = action_parameters['client_id']
         response_msg = revoke_user_app_access(auth_token, datasource_id, user_email, client_id, log_entry)
@@ -546,7 +552,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     return response_msg
 
 def validate_action_parameters(action_config, action_parameters):
-    config_params = action_config.parameters
+    config_params = action_config["parameters"]
     for param in config_params:
         key = param['key']
         if key not in action_parameters:
@@ -554,59 +560,60 @@ def validate_action_parameters(action_config, action_parameters):
     return True
 
 
-def audit_action(domain_id, datasource_id, initiated_by, action_to_take, action_parameters):
+def audit_action(domain_id, datasource_id, initiated_by, action_config, action_parameters):
     db_session = db_connection().get_session()
     audit_log = AuditLog()
     audit_log.domain_id = domain_id
     audit_log.datasource_id = datasource_id
     audit_log.initiated_by = initiated_by
-    audit_log.action_name = action_to_take
+    audit_log.action_name = pystache.render(action_config["description"], action_parameters) 
     audit_log.parameters = json.dumps(action_parameters) 
     audit_log.timestamp = str(datetime.utcnow().isoformat())
     audit_log.affected_entity = ""
     audit_log.affected_entity_type = ""
     audit_log.status = action_constants.ActionStatus.STARTED
     audit_log.message = "Action execution in progress"
-    if action_to_take == action_constants.ActionNames.ADD_USER_TO_GROUP:
+    action_key = action_config["key"]
+    if action_key == action_constants.ActionNames.ADD_USER_TO_GROUP:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "User"
-    elif action_to_take == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
+    elif action_key == action_constants.ActionNames.REMOVE_USER_FROM_GROUP:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "User"
-    elif action_to_take == action_constants.ActionNames.TRANSFER_OWNERSHIP:
+    elif action_key == action_constants.ActionNames.TRANSFER_OWNERSHIP:
         audit_log.affected_entity = action_parameters['old_owner_email']
         audit_log.affected_entity_type = "User"
-    elif action_to_take == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
+    elif action_key == action_constants.ActionNames.CHANGE_OWNER_OF_FILE:
         audit_log.affected_entity = action_parameters['old_owner_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE:
         audit_log.affected_entity = action_parameters['resource_id']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
+    elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE:
         audit_log.affected_entity = action_parameters['resource_id']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
+    elif action_key == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
+    elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
+    elif action_key == action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "User"
-    elif action_to_take == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
+    elif action_key == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "Document"
-    elif action_to_take == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
+    elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "User"
 

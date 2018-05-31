@@ -38,7 +38,7 @@ SCOPE_DICT = {
 
 SCOPE_CSV = 'profile,email,https://www.googleapis.com/auth/admin.directory.user.readonly,https://www.googleapis.com/auth/admin.directory.group.readonly,https://www.googleapis.com/auth/admin.directory.group.member.readonly,https://www.googleapis.com/auth/admin.directory.domain.readonly,https://www.googleapis.com/auth/admin.reports.audit.readonly,https://www.googleapis.com/auth/admin.directory.user.security,https://www.googleapis.com/auth/drive.metadata.readonly,https://www.googleapis.com/auth/admin.directory.group.member,https://www.googleapis.com/auth/admin.directory.group,https://www.googleapis.com/auth/admin.directory.user,https://www.googleapis.com/auth/drive,https://www.googleapis.com/auth/admin.datatransfer.readonly,https://www.googleapis.com/auth/admin.datatransfer'
 
-SLACK_READ_SCOPE = 'users.profile:read users:read admin channels:read channels:history groups:read groups:history users:read.email files:read team:read links:read usergroups:read mpim:history'
+SLACK_READ_SCOPE = 'users.profile:read users:read admin channels:read channels:history groups:read groups:history users:read.email files:read team:read links:read usergroups:read files:write:user'
 
 SLACK_SCOPE_DICT = {
     "slack_read_scopes" : SLACK_READ_SCOPE
