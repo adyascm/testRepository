@@ -61,7 +61,7 @@ class UserListNew extends Component {
         this.exposureFilterOptions = [
             {
                 text: 'All',
-                value: ''
+                value: 'ALL'
             },
             {
                 text: 'External',
@@ -103,12 +103,18 @@ class UserListNew extends Component {
     }
 
     handleColumnFilterChange = (event, data, filterType) => {
-        this.props.changeFilter(filterType, data.value)
+        //this.props.changeFilter(filterType, data.value)
         if (filterType === 'typeColumnFilterValue') {
+            if (data.value === 'ALL')
+                this.props.changeFilter(filterType, '')
+            else
+                this.props.changeFilter(filterType, data.value)
             this.setState({
                 typeColumnFilterValue: data.value
             })
         }
+        else 
+            this.props.changeFilter(filterType, data.value)
     }
 
     clearFilter = (event, filterType) => {
