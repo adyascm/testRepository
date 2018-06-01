@@ -54,14 +54,14 @@ class UserListNew extends Component {
             sortOrder: undefined,
             nameColumnFilterValue: this.props.nameColumnFilterValue,
             emailColumnFilterValue: this.props.emailColumnFilterValue,
-            typeColumnFilterValue: this.props.typeColumnFilterValue,
-            sourceColumnFilterValue: this.props.sourceColumnFilterValue
+            typeColumnFilterValue: this.props.typeColumnFilterValue === '' ? 'ALL' : this.props.typeColumnFilterValue,
+            sourceColumnFilterValue: this.props.sourceColumnFilterValue === '' ? 'ALL' : this.props.sourceColumnFilterValue
         }
 
         this.exposureFilterOptions = [
             {
                 text: 'All',
-                value: ''
+                value: 'ALL'
             },
             {
                 text: 'External',
@@ -103,12 +103,23 @@ class UserListNew extends Component {
     }
 
     handleColumnFilterChange = (event, data, filterType) => {
-        this.props.changeFilter(filterType, data.value)
-        if (filterType === 'typeColumnFilterValue') {
-            this.setState({
-                typeColumnFilterValue: data.value
-            })
+        //this.props.changeFilter(filterType, data.value)
+        if (filterType === 'typeColumnFilterValue' || filterType === 'sourceColumnFilterValue') {
+            if (data.value === 'ALL')
+                this.props.changeFilter(filterType, '')
+            else
+                this.props.changeFilter(filterType, data.value)
+            if (filterType === 'typeColumnFilterValue')
+                this.setState({
+                    typeColumnFilterValue: data.value
+                })
+            else 
+                this.setState({
+                    sourceColumnFilterValue: data.value
+                })
         }
+        else 
+            this.props.changeFilter(filterType, data.value)
     }
 
     clearFilter = (event, filterType) => {
@@ -159,7 +170,7 @@ class UserListNew extends Component {
 
     render() {
 
-        let datasourceFilterOptions = [{text:"All", value:""}];
+        let datasourceFilterOptions = [{text:"All", value: 'ALL'}];
         for (var index in this.props.datasources) {
             let ds = this.props.datasources[index];
             datasourceFilterOptions.push({text:ds.datasource_type, value:ds.datasource_id});
@@ -233,7 +244,7 @@ class UserListNew extends Component {
                                                     fluid
                                                     options={datasourceFilterOptions}
                                                     selection
-                                                    value={this.props.sourceColumnFilterValue}
+                                                    value={this.state.sourceColumnFilterValue}
                                                     onChange={(event, data) => this.handleColumnFilterChange(event, data, "sourceColumnFilterValue")}
                                                 />
                                             </Table.Cell>
