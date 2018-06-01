@@ -32,7 +32,8 @@ class UserApps extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if ((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) {
+        if (((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) || 
+            nextProps.selectedUser !== this.props.selectedUser) {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
         }
