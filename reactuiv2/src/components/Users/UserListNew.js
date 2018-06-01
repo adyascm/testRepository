@@ -54,8 +54,8 @@ class UserListNew extends Component {
             sortOrder: undefined,
             nameColumnFilterValue: this.props.nameColumnFilterValue,
             emailColumnFilterValue: this.props.emailColumnFilterValue,
-            typeColumnFilterValue: this.props.typeColumnFilterValue,
-            sourceColumnFilterValue: this.props.sourceColumnFilterValue
+            typeColumnFilterValue: this.props.typeColumnFilterValue === '' ? 'ALL' : this.props.typeColumnFilterValue,
+            sourceColumnFilterValue: this.props.sourceColumnFilterValue === '' ? 'ALL' : this.props.sourceColumnFilterValue
         }
 
         this.exposureFilterOptions = [
