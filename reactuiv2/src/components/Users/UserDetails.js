@@ -43,11 +43,11 @@ const UserDetails = props => {
 
     var parentGroups = []
     for (let index = 0; index < props.selectedUserItem.groups.length; index++) {
-        let parentKey = props.selectedUserItem.groups[index];
+        let parentGroup = props.selectedUserItem.groups[index];
         parentGroups.push((
             <Label key={index} as='a' color='blue'>
-                {parentKey.name}
-                <Icon name='close' onClick={() => props.onUserGroupAction('remove_user_from_group', parentKey)} />
+                {parentGroup.name}
+                <Icon name='close' onClick={() => props.onUserGroupAction('remove_user_from_group', parentGroup.email)} />
             </Label>
         ))
     }
