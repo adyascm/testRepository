@@ -132,10 +132,23 @@ export default (state = defaultState, action) => {
         datasourceLoading: false
       }
     case CREATE_DATASOURCE:
+      var dsList = action.error ? null : [...state.datasources,action.payload]
+      var map = {};
+      if (dsList) {
+        for (var index in dsList) {
+          let ds = dsList[index];
+          if (ds.datasource_type == "GSUITE")
+            ds.logo = "/images/google_logo.png";
+          else if (ds.datasource_type == "SLACK")
+            ds.logo = "/images/slack_logo.jpeg";
+          map[ds.datasource_id] = ds;
+        }
+      }
       return {
         ...state,
         datasourceLoading: false,
-        datasources: action.error ? null : [...state.datasources,action.payload]
+        datasources: dsList,
+        datasourcesMap: map,
       };
     case DELETE_DATASOURCE_START:
       if (state.datasources[0] && action.payload.datasource_id === state.datasources[0].datasource_id) {
