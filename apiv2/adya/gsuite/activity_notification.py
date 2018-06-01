@@ -1,8 +1,5 @@
-import requests
 import datetime
 import json
-
-from sqlalchemy import and_
 
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
@@ -10,6 +7,7 @@ from adya.common.db.models import PushNotificationsSubscription, Resource, Resou
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import messaging
 from adya.gsuite import gutils
+from sqlalchemy.exc import IntegrityError
 
 
 def process_notifications(notification_type, datasource_id, channel_id, body):
@@ -67,6 +65,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
             user_association.user_email = actor_email
             user_association.datasource_id = datasource_id
             event_parameters = event['parameters']
+            app_name = None
             for param in event_parameters:
                 param_name = param["name"]
                 param_value = None
@@ -74,6 +73,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                     application.client_id = param["value"]
                     user_association.client_id = application.client_id
                 elif param_name == "app_name":
+                    app_name = param["value"]
                     application.display_text = param["value"]
                 elif param_name == "scope":
                     scopes = param["multiValue"]
@@ -82,15 +82,20 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
 
             db_session = db_connection().get_session()
             db_session.execute(Application.__table__.insert().prefix_with("IGNORE").values([application.datasource_id, application.client_id, application.display_text, application.anonymous, application.scopes, application.score, application.timestamp]))
-            db_session.execute(ApplicationUserAssociation.__table__.insert().prefix_with("IGNORE").values([user_association.datasource_id, user_association.client_id, user_association.user_email]))
-            db_connection().commit()
+            db_session.execute(ApplicationUserAssociation.__table__.insert().values([user_association.datasource_id, user_association.client_id, user_association.user_email]))
+            try:
+                db_connection().commit()
+                #Trigger the policy validation now
+                payload = {}
+                application.user_email = user_association.user_email
+                payload["application"] = json.dumps(application, cls=alchemy_encoder())
+                policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
+                messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
-            #Trigger the policy validation now
-            payload = {}
-            application.user_email = user_association.user_email
-            payload["application"] = json.dumps(application, cls=alchemy_encoder())
-            policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
-            messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
+            except IntegrityError as ie:
+                Logger().info(ie)
+                Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
+                db_session.rollback()
 
 
 
