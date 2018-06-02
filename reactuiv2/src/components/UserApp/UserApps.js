@@ -12,7 +12,8 @@ import {
 
 const mapStateToProps = state => ({
     ...state.apps,
-    ...state.common
+    ...state.common,
+    selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -35,7 +36,7 @@ class UserApps extends Component {
         if (((nextProps.deleteApp !== this.props.deleteApp) && !nextProps.deleteApp) || 
             nextProps.selectedUser !== this.props.selectedUser) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Apps.getuserapps(this.props.selectedUser.email, this.props.selectedUser.datasource_id))
+            nextProps.onLoad(agent.Apps.getuserapps(nextProps.selectedUser.email, nextProps.selectedUser.datasource_id))
         }
     }
 
