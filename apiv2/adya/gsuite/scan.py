@@ -83,7 +83,7 @@ def get_resources(auth_token, domain_id, datasource_id,owner_email, next_page_to
                 update_and_get_count(datasource_id, DataSource.file_scan_status, 1, auth_token, True)
                 break
     except Exception as ex:
-        update_and_get_count(datasource_id, DataSource.file_scan_status, 10001, auth_token, True)
+        update_and_get_count(datasource_id, DataSource.file_scan_status, 1, auth_token, True)
         Logger().exception("Exception occurred while getting data for drive resources using email: {} next_page_token: {}".
                          format(user_email, next_page_token))
 
