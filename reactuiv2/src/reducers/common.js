@@ -60,15 +60,9 @@ export default (state = defaultState, action) => {
         currentUser: action.error ? null : action.payload,
       };
     case GET_ALL_ACTIONS:
-      var actions = action.payload;
-      var actionsMap = {}
-      for (var index in actions) {
-        var quickAction = actions[index];
-        actionsMap[quickAction.key] = quickAction;
-      }
       return {
         ...state,
-        all_actions_list: actionsMap
+        all_actions_list: action.error ? [] : action.payload
       }
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
