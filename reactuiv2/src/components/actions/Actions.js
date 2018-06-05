@@ -75,7 +75,7 @@ class Actions extends Component {
         var ds = this.props.datasourcesMap[action.datasource_id];
         let parameters = {};
         let all_actions_list = this.props.all_actions_list;
-        let config_params = ''
+        let config_params = []
         for(let i in all_actions_list){
             if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
                 config_params = all_actions_list[i]['parameters'] 
@@ -208,8 +208,9 @@ class Actions extends Component {
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;
         }
-        var ds = this.props.datasourcesMap[this.props.action.datasource_id];
-        let actionConfig = ''
+        let ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        let actionConfig = {}
+        let all_actions_list = this.props.all_actions_list;
 
         for(let i in all_actions_list){
             if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
