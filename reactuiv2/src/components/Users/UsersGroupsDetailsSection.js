@@ -147,7 +147,7 @@ class UsersGroupsDetailsSection extends Component {
                 panes.push({ menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> });
                 if(ds.datasource_type === "GSUITE")
                     panes.push({ menuItem: 'Activity', render: () => <Tab.Pane attached={false}><UserActivityTable /></Tab.Pane> });
-                panes.push({ menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps selectedUser={this.props.selectedUserItem} handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> });
+                panes.push({ menuItem: 'Apps', render: () => <Tab.Pane attached={false}><UserApps handleAppAccessRevokeClick={this.handleAppAccessRevokeClick} loading={this.state.isLoading} deleteApp={this.state.deleteApp} /></Tab.Pane> });
             }
 
             return (
