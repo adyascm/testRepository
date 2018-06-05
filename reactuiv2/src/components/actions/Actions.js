@@ -72,12 +72,17 @@ class Actions extends Component {
 
     build_action_payload = () => {
         let action = this.props.action;
-
+        var ds = this.props.datasourcesMap[action.datasource_id];
         let parameters = {};
-        let config_params = this.props.all_actions_list[action.key].parameters;
+        let all_actions_list = this.props.all_actions_list;
+        let config_params = ''
+        for(let i in all_actions_list){
+            if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
+                config_params = all_actions_list[i]['parameters'] 
+            }   
+        }
 
         config_params.map(e => { let key = e['key']; parameters[[key]] = this.state[e['key']]; });
-
 
         let payload = {}
         payload['key'] = this.state['key']
@@ -203,7 +208,16 @@ class Actions extends Component {
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;
         }
-        let actionConfig = this.props.all_actions_list[action.key];
+        var ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        let actionConfig = ''
+
+        for(let i in all_actions_list){
+            if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
+                actionConfig = all_actions_list[i] 
+            }   
+        }
+
+
         let actionDescription = Mustache.render(actionConfig.description, action);
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)

@@ -67,10 +67,10 @@ const UserDetails = props => {
     }
 
     var actionMenu = []; //props.selectedUserItem.member_type === 'EXT' ? quickActionsforExtUser : quickActions
-    var actionKeys = Object.keys(props.all_actions_list)
+    var all_actions_list = props.all_actions_list
     var ds = props.datasourcesMap[props.selectedUserItem.datasource_id];
-    for (var ii = 0; ii < actionKeys.length; ii++) {
-        var action = props.all_actions_list[actionKeys[ii]];
+    for (var ii = 0; ii < all_actions_list.length; ii++) {
+        var action = all_actions_list[ii];
         if (action.datasource_type == ds.datasource_type) {
             if (action.action_type == "QUICK_ACTION") {
                 if (action.action_entity == "USER") {
