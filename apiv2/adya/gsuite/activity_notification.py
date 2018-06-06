@@ -80,6 +80,9 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                     application.score = gutils.get_app_score(scopes)
                     application.scopes = ','.join(scopes)
 
+            #Ignore Adya install
+            if "Adya" in application.display_text:
+                continue
             db_session = db_connection().get_session()
             db_session.execute(Application.__table__.insert().prefix_with("IGNORE").values([application.datasource_id, application.client_id, application.display_text, application.anonymous, application.scopes, application.score, application.timestamp]))
             try:
