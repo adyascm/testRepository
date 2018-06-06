@@ -20,11 +20,11 @@ def handle_channel_expiration():
 
         #If the subscription is not yet expired and expiry is more than 6 hours, dont resubscribe
         #It will happen in the next 6 hourly check
-        if row.expire_at > access_time and row.expire_at > (access_time + timedelta(seconds=21600)):
+        if row.expire_at and row.expire_at > access_time and row.expire_at > (access_time + timedelta(seconds=21600)):
             continue
 
         #If the subscription is not yet expired and is going to expire in next 6 hours, then first unsubscribe
-        if row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=21600)):
+        if row.expire_at and row.expire_at > access_time and row.expire_at < (access_time + timedelta(seconds=21600)):
             unsubscribe_subscription(row)
 
         #If subscription is in progress, then dont renew it in this cycle
@@ -40,6 +40,7 @@ def handle_channel_expiration():
 
             _subscribe_for_drive_change(db_session, auth_token, row, False)
         else:
+            row.channel_id = str(uuid.uuid4())
             _subscribe_for_activity(db_session, row, False)
 
     db_connection().commit()
