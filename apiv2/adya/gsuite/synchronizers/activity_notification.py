@@ -76,7 +76,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
         
         if event_name == "authorize":
             #Ignore Adya install
-            if "Adya" in application.display_text:
+            if "Adya" in app_name:
                 continue
 
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
