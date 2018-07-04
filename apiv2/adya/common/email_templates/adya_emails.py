@@ -47,10 +47,10 @@ def send_gdrive_scan_completed_email(auth_token, datasource):
 
         session = db_connection().get_session()
         login_user = session.query(LoginUser).filter(and_(LoginUser.auth_token == auth_token, LoginUser.is_enabled == True)).first()
-        login_user_first_name = login_user.first_name
         if not login_user:
             Logger().info("No user to send an email to, so aborting...")
             return
+        login_user_first_name = login_user.first_name
         template_name = "gdrive_scan_completed"
         template_parameters=get_gdrive_scan_summary(datasource,login_user_first_name,auth_token,None)
         rendered_html = get_rendered_html(template_name, template_parameters)
