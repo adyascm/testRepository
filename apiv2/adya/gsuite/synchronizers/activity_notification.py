@@ -59,17 +59,21 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
         domain_id = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first().domain_id
         event_name = event['name']
         event_parameters = event['parameters']
+        scopes = None
+        client_id = None
+        app_name = None
         for param in event_parameters:
             param_name = param["name"]
-            scopes = None
-            client_id = None
-            app_name = None
             if param_name == "app_name":
                 app_name = param["value"]
             elif param_name == "client_id":
                 client_id = param["value"]
             elif param_name == "scope":
                 scopes = param["multiValue"]
+        
+        if not app_name:
+            app_name = client_id
+            
         if event_name == "authorize":
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
             application = db_session.query(Application).filter(Application.display_text == app_name, Application.domain_id == domain_id).first()
