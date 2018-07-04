@@ -73,10 +73,11 @@ def request_scanner_data(auth_token, query_params):
     in_progress = 0 if fetched_entities_count < 1 else 1
     db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.total_count: DatasourceScanners.total_count + fetched_entities_count, 
-            DatasourceScanners.query_status: DatasourceScanners.query_status + 1,
-            DatasourceScanners.in_progress: in_progress})
+            DatasourceScanners.query_status: DatasourceScanners.query_status + 1})
     
     if in_progress == 0:
+        db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
+            update({DatasourceScanners.in_progress: in_progress})
         db_connection().commit()
         messaging.trigger_post_event(urls.SCAN_SLACK_UPDATE, auth_token, query_params, {}, "slack")
         return
@@ -117,10 +118,13 @@ def process_scanner_data(auth_token, query_params, scanner_data):
     in_progress = 1
     if not next_page_token:
         in_progress = 0
+        db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
+            update({DatasourceScanners.in_progress: in_progress})
+
     db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.process_status: DatasourceScanners.process_status + 1, DatasourceScanners.processed_count: DatasourceScanners.processed_count + processed_results,
-            DatasourceScanners.updated_at: datetime.utcnow(), DatasourceScanners.in_progress: in_progress})
-    
+            DatasourceScanners.updated_at: datetime.utcnow()})
+
     datasource_metric_column = get_datasource_column(scanner.scanner_type, False)
     if datasource_metric_column:
         db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
