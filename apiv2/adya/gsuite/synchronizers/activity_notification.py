@@ -73,8 +73,12 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
         
         if not app_name:
             app_name = client_id
-            
+        
         if event_name == "authorize":
+            #Ignore Adya install
+            if "Adya" in application.display_text:
+                continue
+
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
             application = db_session.query(Application).filter(Application.display_text == app_name, Application.domain_id == domain_id).first()
             inventory_app_id = inventory_app.id if inventory_app else None
@@ -96,10 +100,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
             user_association.datasource_id = datasource_id
             if client_id:
                 user_association.client_id = client_id
-
-            #Ignore Adya install
-            if "Adya" in application.display_text:
-                continue
+            
             db_session = db_connection().get_session()
             db_session.add(application)
             try:
@@ -115,7 +116,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                 messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
             except IntegrityError as ie:
-                Logger().exception("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
+                Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
                 db_session.rollback()
 
 
