@@ -133,8 +133,8 @@ def process(db_session, auth_token, query_params, scanner_data):
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)
         
-        db_session.bulk_insert_mappings(Resource, resourceList)
-        db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
+        db_session.execute(Resource.__table__.insert().prefix_with("IGNORE").values(resourceList))
+        db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(data_for_permission_table))
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()
