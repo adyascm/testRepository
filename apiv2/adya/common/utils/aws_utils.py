@@ -153,7 +153,7 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
         Logger().exception("Exception occurred sending  email to: " + str(user_list))
 
 
-def invoke_lambda(function_name, auth_token, body, trigger_type=constants.TriggerType.ASYNC):
+def invoke_lambda(function_name, auth_token, body, trigger_type=constants.TriggerType.ASYNC.value):
     if not body:
         body = {}
     body['Authorization'] = auth_token

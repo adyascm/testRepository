@@ -18,7 +18,7 @@ def get_activities_for_user(auth_token, user_email, start_time=None):
     login_user = db_utils.get_user_session(auth_token, db_session)
     admin_user = login_user
     if not login_user.is_admin:
-        datasource = db_session.query(DataSource).filter(and_(DataSource.domain_id == admin_user.domain_id, DataSource.datasource_type == constants.ConnectorTypes.GSUITE)).first()
+        datasource = db_session.query(DataSource).filter(and_(DataSource.domain_id == admin_user.domain_id, DataSource.datasource_type == constants.ConnectorTypes.GSUITE.value)).first()
         admin_user = db_session.query(DomainUser).filter(and_(DomainUser.is_admin == True, DomainUser.datasource_id == datasource.datasource_id)).first()
 
     results = []
