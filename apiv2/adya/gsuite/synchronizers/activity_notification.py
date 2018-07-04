@@ -44,6 +44,9 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
         
 
 def process_incoming_activity(datasource_id, incoming_activity):
+    if not "id" in incoming_activity:
+        Logger().info("Incoming activity is not valid type - {}".format(incoming_activity))
+        return
     app_name = incoming_activity["id"]["applicationName"]
     actor_email = incoming_activity['actor']['email']
 
@@ -112,7 +115,7 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
                 payload = {}
                 application.user_email = user_association.user_email
                 payload["application"] = json.dumps(application, cls=alchemy_encoder())
-                policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
+                policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
                 messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
             except IntegrityError as ie:
