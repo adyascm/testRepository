@@ -19,7 +19,7 @@ def get_user_session(auth_token, db_session=None):
         LoginUser.auth_token == auth_token).first()
     if user:
         domain_user = db_session.query(DomainUser).filter(and_(
-            DomainUser.member_type == constants.UserMemberType.INTERNAL, DomainUser.email == user.email)).first()
+            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).first()
         if domain_user:
             user.is_admin = domain_user.is_admin
         else:

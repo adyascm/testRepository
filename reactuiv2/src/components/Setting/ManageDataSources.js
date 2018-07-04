@@ -17,6 +17,7 @@ import {
 } from '../../constants/actionTypes';
 import GsuiteDataSourceItem from './GsuiteDataSourceItem';
 import SlackDataSourceItem from './SlackDataSourceItem';
+import GithubDataSourceItem from './GithubDataSourceItem'
 
 const mapStateToProps = state => ({
   ...state.auth,
@@ -75,19 +76,25 @@ class ManageDataSources extends Component {
     else {
       disconnectedSources.push(<SlackDataSourceItem key={2} item={undefined} />)
     }
+
+    if (connectedSourcesMap["GITHUB"])
+      connectedSources.push(<GithubDataSourceItem key={3} item={connectedSourcesMap["GITHUB"]} />)
+    else
+      disconnectedSources.push(<GithubDataSourceItem key={3} item={undefined} />)
+
     let moreConnectors = null;
     if (disconnectedSources.length > 0) {
       moreConnectors = (
         <div>
           <Divider horizontal>Available Connectors</Divider>
-          <Card.Group itemsPerRow='1'>
+          <Card.Group itemsPerRow='2'>
             {disconnectedSources}
           </Card.Group>
         </div>);
     }
     return (
       <Container>
-        <Card.Group itemsPerRow='1'>
+        <Card.Group itemsPerRow='2'>
           {connectedSources}
         </Card.Group>
         {moreConnectors}

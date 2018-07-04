@@ -35,7 +35,7 @@ class GsuiteResource:
 
         #1. Set resource exposure type based on highest exposure from all permissions
         #2. Collect all external users
-        resource_exposure_type = constants.ResourceExposureType.PRIVATE
+        resource_exposure_type = constants.EntityExposureType.PRIVATE.value
         external_user_map = {}
         permissions_payload = self._payload.get('permissions')
         self._resource.permissions = []
@@ -89,29 +89,29 @@ class GsuitePermission:
             return
         self._permission.is_deleted = is_deleted
 
-        permission_exposure = constants.ResourceExposureType.PRIVATE
+        permission_exposure = constants.EntityExposureType.PRIVATE.value
         if email_address:
             db_session = db_connection().get_session()
             datasource = db_session.query(DataSource).filter(DataSource.datasource_id == self._datasource_id).first()
             if gutils.check_if_external_user(db_session, datasource.domain_id,email_address):
-                permission_exposure = constants.ResourceExposureType.EXTERNAL
+                permission_exposure = constants.EntityExposureType.EXTERNAL.value
                 self.set_external_user(email_address, display_name)
             elif not email_address == self._resource_owner:
-                permission_exposure = constants.ResourceExposureType.INTERNAL
+                permission_exposure = constants.EntityExposureType.INTERNAL.value
         #Shared with everyone in domain
         elif display_name:
             email_address = "__ANYONE__@"+ display_name
-            permission_exposure = constants.ResourceExposureType.DOMAIN
+            permission_exposure = constants.EntityExposureType.DOMAIN.value
 
         #  Shared with anyone with link
         elif permission_id == 'anyoneWithLink':
-            email_address = constants.ResourceExposureType.ANYONEWITHLINK
-            permission_exposure = constants.ResourceExposureType.ANYONEWITHLINK
+            email_address = constants.EntityExposureType.ANYONEWITHLINK.value
+            permission_exposure = constants.EntityExposureType.ANYONEWITHLINK.value
 
         #Shared with everyone in public
         else:
-            email_address = constants.ResourceExposureType.PUBLIC
-            permission_exposure = constants.ResourceExposureType.PUBLIC
+            email_address = constants.EntityExposureType.PUBLIC.value
+            permission_exposure = constants.EntityExposureType.PUBLIC.value
         
         self._permission.email = email_address
         self._permission.exposure_type = permission_exposure
@@ -130,7 +130,7 @@ class GsuitePermission:
             self._external_user.first_name = name_list[0]
             if len(name_list) > 1:
                 self._external_user.last_name = name_list[1]
-        self._external_user.member_type = constants.UserMemberType.EXTERNAL
+        self._external_user.member_type = constants.EntityExposureType.EXTERNAL.value
 
     def get_external_user(self):
         return self._external_user

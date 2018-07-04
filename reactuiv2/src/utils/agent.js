@@ -12,7 +12,7 @@ const responseBody = res => res.body;
 
 let token = null;
 const tokenPlugin = req => {
-    if(!req.url.startsWith("http://127.0.0.1:5000"))
+    if(req.url.startsWith("https://api.adya.io"))
         ReactGA.pageview(req.url);
     req.set('Content-Type', 'application/json');
     if (token) {
@@ -74,20 +74,28 @@ const Dashboard = {
 const Users = {
     getUserStats: () =>
         requests.get('/common/users/stats'),
-    getUsersList: (userName, userEmail, userType, userSource, sortColumnName, sortOrder, userPrivileges) =>
-        requests.get('/common/users?userName=' + userName + '&userEmail=' + userEmail + '&userType=' + userType + '&userSource=' + userSource + '&sortColumnName=' + sortColumnName + '&sortOrder=' + sortOrder + '&userPrivileges=' + userPrivileges),
+    getUsersList: (full_name, email, member_type, datasource_id, is_admin, type, sort_column, sort_order, page_number) =>
+        requests.get('/common/users?full_name=' + full_name + '&email=' + email + '&member_type=' + member_type + '&datasource_id=' + datasource_id + '&is_admin=' + is_admin +'&type=' + type + '&sort_column=' + sort_column + '&sort_order=' + sort_order + '&page_number=' + page_number),
     getUsersTree: () =>
-        requests.get('/common/getusergrouptree')
+        requests.get('/common/getusergrouptree'),
+    getGroupMembers: (groupEmail, datasourceId) =>
+        requests.get('/common/getgroupmembers?groupEmail=' + groupEmail + '&datasourceId=' + datasourceId)
 }
 
 const Apps = {
     getapps: () => requests.get('/common/getappsdata'),
-    getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?userEmail=' + userEmail + '&datasourceId=' + datasourceId),
-    getappusers: (clientId, datasourceId) => requests.get('/common/getappsdata?clientId=' + clientId + '&datasourceId=' + datasourceId),
+    getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&userEmail=' + userEmail + '&datasourceId=' + datasourceId),
+    getappusers: (appId, domainId) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&appId=' + appId +'&domainId='+ domainId),
+    updateApps:(plan) => requests.put('/common/getappsdata', plan),
+    insertApps: (apps) => requests.post('/common/getappsdata', apps),
+    getInstalledApps: (pageNum, sortCol, sortOrder, appName) =>
+        requests.get('/common/getappsdata?filterType='+ 'INSTALLED_APPS'+ '&pageNumber=' + pageNum + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&appName=' + (appName || "")),
+    getAvailableApps: (pageNum, appName) => 
+        requests.get('/common/getappsdata?filterType='+ 'INVENTORY_APPS'+ '&pageNumber=' + pageNum + '&appName=' + (appName || ""))      
 }
 
 const Resources = {
-    getResourcesTree: (parentId) =>
+    getResources: (parentId) =>
         requests.post('/common/getresourcetree',parentId),
     searchResources: (prefix) =>
         requests.get('/common/getresourcetree?prefix=' + prefix)
@@ -130,5 +138,9 @@ const Alert = {
         requests.get('/common/alerts/count')
 }
 
+const AppsPrice = {
+    getPriceStats: () => 
+        requests.get('/common/categoryexpenses')
+}
 
-export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, setToken: _token => { token = _token; } };
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, AppsPrice, setToken: _token => { token = _token; } };

@@ -3,16 +3,15 @@ import datetime
 import uuid
 from sqlalchemy import func, or_, and_
 
-from adya.core.controllers import domain_controller
-from adya.common.db.models import LoginUser, DomainGroup, DomainUser, Resource, Report, ResourcePermission, DataSource, \
-    Application, DirectoryStructure, ApplicationUserAssociation, alchemy_encoder
+from adya.core.controllers import domain_controller, directory_controller, app_controller
+from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
+    Application, DirectoryStructure, ApplicationUserAssociation,AppInventory, alchemy_encoder
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite import activities
 from adya.common.utils.response_messages import Logger
-
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if not (auth_token or datasource_id):
@@ -50,7 +49,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
                 ResourcePermission.resource_id == Resource.resource_id,
                 DomainUser.email == ResourcePermission.email,
                 DomainUser.datasource_id.in_(domain_datasource_ids),
-                DomainUser.member_type == constants.UserMemberType.EXTERNAL)).distinct().count()
+                DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).distinct().count()
             # add 1 for loggin user
             user_count_query += 1
         else:
@@ -59,13 +58,13 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 
         data = user_count_query
     elif widget_id == 'groupsCount':
-        group_count_query = db_session.query(DomainGroup).filter(
-            DomainGroup.datasource_id.in_(domain_datasource_ids))
+        group_count_query = db_session.query(DomainUser).filter(
+            DomainUser.datasource_id.in_(domain_datasource_ids)).filter(DomainUser.type != constants.DirectoryEntityType.USER.value)
 
         if is_service_account_is_enabled and not is_admin:
-            group_count_query = group_count_query.filter(DirectoryStructure.datasource_id == DomainGroup.datasource_id,
+            group_count_query = group_count_query.filter(DirectoryStructure.datasource_id == DomainUser.datasource_id,
                                                          DirectoryStructure.member_email == login_user_email,
-                                                         DirectoryStructure.parent_email == DomainGroup.email)
+                                                         DirectoryStructure.parent_email == DomainUser.email)
 
         data = group_count_query.count()
     elif widget_id == 'filesCount':
@@ -87,9 +86,9 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = {}
 
         shared_docsByType_query = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
-            and_(Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
+            and_(Resource.exposure_type != constants.EntityExposureType.INTERNAL.value,
                  Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(Resource.exposure_type)
+                 Resource.exposure_type != constants.EntityExposureType.PRIVATE.value)).group_by(Resource.exposure_type)
 
         if is_service_account_is_enabled and not is_admin:
             shared_docsByType_query = shared_docsByType_query.filter(Resource.resource_owner_id == login_user_email)
@@ -99,35 +98,40 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         external_count = 0
         domain_count = 0
         anyone_with_link_count = 0
+        trusted_count = 0
         for share_type in shared_docs_by_type:
-            if share_type[0] == constants.ResourceExposureType.EXTERNAL:
+            if share_type[0] == constants.EntityExposureType.EXTERNAL.value:
                 external_count = share_type[1]
-            elif share_type[0] == constants.ResourceExposureType.ANYONEWITHLINK:
+            elif share_type[0] == constants.EntityExposureType.ANYONEWITHLINK.value:
                 anyone_with_link_count = share_type[1]
-            elif share_type[0] == constants.ResourceExposureType.PUBLIC:
+            elif share_type[0] == constants.EntityExposureType.PUBLIC.value:
                 public_count = share_type[1]
-            elif share_type[0] == constants.ResourceExposureType.DOMAIN:
+            elif share_type[0] == constants.EntityExposureType.DOMAIN.value:
                 domain_count = share_type[1]
+            elif share_type[0] == constants.EntityExposureType.TRUSTED.value:
+                trusted_count = share_type[1]
 
-        data["rows"] = [[constants.DocType.PUBLIC_COUNT, public_count],
-                        [constants.DocType.ANYONE_WITH_LINK_COUNT, anyone_with_link_count],
-                        [constants.DocType.EXTERNAL_COUNT, external_count],
-                        [constants.DocType.DOMAIN_COUNT, domain_count]]
-        data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count
+
+        data["rows"] = [[constants.DocType.PUBLIC_COUNT.value, public_count],
+                        [constants.DocType.ANYONE_WITH_LINK_COUNT.value, anyone_with_link_count],
+                        [constants.DocType.EXTERNAL_COUNT.value, external_count],
+                        [constants.DocType.DOMAIN_COUNT.value, domain_count],
+                        [constants.DocType.TRUSTED.value, trusted_count]]
+        data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count + trusted_count
 
     elif widget_id == 'sharedDocsList':
         data = {}
         shared_docs_list_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
-                     Resource.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK)))
+                 or_(Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value,
+                     Resource.exposure_type == constants.EntityExposureType.PUBLIC.value,
+                     Resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value)))
 
         shared_docs_totalcount_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 or_(Resource.exposure_type == constants.ResourceExposureType.EXTERNAL,
-                     Resource.exposure_type == constants.ResourceExposureType.PUBLIC,
-                     Resource.exposure_type == constants.ResourceExposureType.ANYONEWITHLINK)))
+                 or_(Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value,
+                     Resource.exposure_type == constants.EntityExposureType.PUBLIC.value,
+                     Resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value)))
 
         if is_service_account_is_enabled and not is_admin:
             shared_docs_list_query = shared_docs_list_query.filter(Resource.resource_owner_id == login_user_email)
@@ -139,7 +143,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     elif widget_id == 'externalUsersList':
         data = {}
         external_user_list = db_session.query(ResourcePermission.email, func.count(ResourcePermission.email)).filter(
-            and_(ResourcePermission.exposure_type == constants.UserMemberType.EXTERNAL,
+            and_(ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value,
                  ResourcePermission.datasource_id.in_(domain_datasource_ids), )).group_by(
             ResourcePermission.email).order_by(
             func.count(ResourcePermission.email).desc())
@@ -158,7 +162,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             directory_struct = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.parent_email == email,
                                                                   DirectoryStructure.datasource_id.in_(domain_datasource_ids),
                                                                   DomainUser.email == DirectoryStructure.member_email,
-                                                                  DomainUser.member_type == constants.UserMemberType.EXTERNAL)).all()
+                                                                  DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
             if directory_struct:
                 for memberdetails in directory_struct:
                     user = memberdetails.member_email
@@ -188,14 +192,11 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data["totalCount"] = external_user_list.count()
     elif widget_id == 'userAppAccess':
         data = {}
-        querydata = {}
-        apps = db_session.query(Application).distinct(Application.client_id).filter(
-            Application.datasource_id.in_(domain_datasource_ids))
+        apps = db_session.query(Application).distinct(Application.id).filter(Application.id == ApplicationUserAssociation.application_id,
+            ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))
 
         if is_service_account_is_enabled and not is_admin:
-            apps = apps.filter(and_(Application.client_id == ApplicationUserAssociation.client_id,
-                                    ApplicationUserAssociation.user_email == login_user_email,
-                                    ApplicationUserAssociation.datasource_id == Application.datasource_id))
+            apps = apps.filter(ApplicationUserAssociation.user_email == login_user_email)
 
         severity = {}
         low = apps.filter(Application.score < 4).count()
@@ -210,8 +211,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = {}
         file_type_query = db_session.query(Resource.resource_type, func.count(Resource.resource_type)).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type != constants.ResourceExposureType.INTERNAL,
-                 Resource.exposure_type != constants.ResourceExposureType.PRIVATE)).group_by(
+                 Resource.exposure_type != constants.EntityExposureType.INTERNAL.value,
+                 Resource.exposure_type != constants.EntityExposureType.PRIVATE.value)).group_by(
             Resource.resource_type).order_by(
             func.count(Resource.resource_type).desc())
 
@@ -238,7 +239,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         internal_user_list = db_session.query(Resource.resource_owner_id, func.count(Resource.resource_id)).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids),
                  Resource.exposure_type.in_(
-                     [constants.ResourceExposureType.EXTERNAL, constants.ResourceExposureType.PUBLIC])
+                     [constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.PUBLIC.value])
                  )).group_by(Resource.resource_owner_id).order_by(func.count(Resource.resource_id).desc())
 
         if is_service_account_is_enabled and not is_admin:
@@ -246,9 +247,9 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 
         data["rows"] = internal_user_list.limit(5).all()
         data["totalCount"] = internal_user_list.count()
-
+    elif widget_id == 'expensesByCategory':
+        data = app_controller.get_app_stats(auth_token)
     return data
-
 
 def create_report(auth_token, payload):
     db_session = db_connection().get_session()
@@ -433,45 +434,48 @@ def generate_csv_report(report_id):
 
     report_data, email_list, report_type, report_desc, report_name = run_report(constants.INTERNAL_SECRET, report_id)
     Logger().info("generate_csv_report : report data : " + str(report_data))
-    csv_records = ""
     Logger().info("report type : " + str(report_type))
-    if report_type == "Permission":
+    csv_records = ""
+    if len(report_data) > 0:
+        if report_type == "Permission":
 
-        perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
-                                   "File Exposure", "User Email", "Permission"]
+            perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
+                                       "File Exposure", "User Email", "Permission"]
 
-        perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
-                                   "last_modified_time", "creation_time",
-                                   "exposure_type", "user_email", "permission_type"]
+            perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
+                                       "last_modified_time", "creation_time",
+                                       "exposure_type", "user_email", "permission_type"]
 
-        Logger().info("making csv ")
+            Logger().info("making csv ")
 
-        csv_records += ",".join(perm_csv_display_header) + "\n"
-        for data in report_data:
-            for i in range(len(perm_report_data_header)):
-                if i == len(perm_report_data_header) - 1:
-                    csv_records += (str(data[perm_report_data_header[i]]))
-                else:
-                    csv_records += (str(data[perm_report_data_header[i]])) + ','
-            csv_records += "\n"
+            csv_records += ",".join(perm_csv_display_header) + "\n"
+            for data in report_data:
+                for i in range(len(perm_report_data_header)):
+                    if i == len(perm_report_data_header) - 1:
+                        csv_records += (str(data[perm_report_data_header[i]]))
+                    else:
+                        csv_records += (str(data[perm_report_data_header[i]])) + ','
+                csv_records += "\n"
 
-        Logger().info(str(csv_records))
+            Logger().info(str(csv_records))
 
-    elif report_type == "Activity":
+        elif report_type == "Activity":
 
-        activity_csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
+            activity_csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
 
-        activity_report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
+            activity_report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
 
-        csv_records += ",".join(activity_csv_display_header) + "\n"
-        for data in report_data:
-            for i in range(len(activity_report_data_header)):
-                if i == len(activity_report_data_header) - 1:
-                    csv_records += (str(data[activity_report_data_header[i]]))
-                else:
-                    csv_records += (str(data[activity_report_data_header[i]])) + ','
-            csv_records += "\n"
-        Logger().info(str(csv_records))
+            csv_records += ",".join(activity_csv_display_header) + "\n"
+            for data in report_data:
+                for i in range(len(activity_report_data_header)):
+                    if i == len(activity_report_data_header) - 1:
+                        csv_records += (str(data[activity_report_data_header[i]]))
+                    else:
+                        csv_records += (str(data[activity_report_data_header[i]])) + ','
+                csv_records += "\n"
+            Logger().info(str(csv_records))
 
-    Logger().info("csv_ record " + str(csv_records))
+        Logger().info("csv_ record " + str(csv_records))
+
     return csv_records, email_list, report_desc, report_name
+

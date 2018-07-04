@@ -4,6 +4,8 @@ import uuid
 from sqlalchemy import and_, or_
 
 from adya.common.constants import constants, urls, default_policies
+from adya.common.constants.constants import datasource_to_default_policy_map
+from adya.common.db.db_utils import get_datasource
 from adya.common.utils.response_messages import ResponseMessage
 from adya.common.db.connection import db_connection
 from adya.common.db.models import Policy, PolicyCondition, PolicyAction, DataSource, Alert
@@ -94,11 +96,17 @@ def update_policy(auth_token, policy_id, payload):
     return policy
     
 def create_default_policies(auth_token, datasource_id):
-    login_user = db_utils.get_user_session(auth_token).email    
-    for policy in default_policies.default_policies:
-        policy['datasource_id'] = datasource_id
-        if len(policy["actions"]) > 0:
-            policy["actions"][0]["config"]["to"] = login_user
-        policy["created_by"] = login_user
-        create_policy(auth_token, policy)
+    login_user = db_utils.get_user_session(auth_token).email
+    datasource_obj = get_datasource(datasource_id)
+    datasource_type = datasource_obj.datasource_type
+    db_session = db_connection().get_session()
+    default_policies = datasource_to_default_policy_map[datasource_type]
+    for policy in default_policies:
+        existing_policy = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, Policy.name == policy.name)).first()
+        if not existing_policy:
+            policy['datasource_id'] = datasource_id
+            if len(policy["actions"]) > 0:
+                policy["actions"][0]["config"]["to"] = login_user
+            policy["created_by"] = login_user
+            create_policy(auth_token, policy)
     return

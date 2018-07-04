@@ -1,181 +1,176 @@
 from sqlalchemy import and_, desc, asc
 import json
-from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, DomainGroup, Application, \
-    ApplicationUserAssociation, Resource, ResourcePermission
+from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
+    ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.utils import utils
 from adya.common.constants import constants
+from datetime import datetime
+import os, uuid
+from adya.common.utils.response_messages import Logger
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+GOOGLE_API_SCOPES = json.load(open(dir_path + "/../../gsuite/google_api_scopes.json"))
+SLACK_API_SCOPES = json.load(open(dir_path + "/../../slack/slack_api_scopes.json"))
+
 
 def get_user_stats(auth_token):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
-    login_user_email = login_user.email
     is_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-    
-    datasource_ids = db_session.query(DataSource.datasource_id).filter(
-            DataSource.domain_id == user_domain_id).all()
-    domain_datasource_ids = [r for r, in datasource_ids]
-    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids)).all()
 
-    stats = {}
+    datasources = db_session.query(DataSource).filter(
+        DataSource.domain_id == user_domain_id).all()
+    domain_datasource_ids = []
+    datasources_map = {}
+    source_stats = {}
+    for ds in datasources:
+        domain_datasource_ids.append(ds.datasource_id)
+        datasources_map[ds.datasource_id] = ds
+        source_stats[ds.datasource_type] = {"count": 0, "value": ds.datasource_id}
+    users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+
+    shared_files_with_external_users =[]
+    if is_service_account_is_enabled and not is_admin:
+        shared_files_with_external_users = users.filter(and_(Resource.resource_owner_id == login_user.email,
+                                                                   ResourcePermission.resource_id == Resource.resource_id,
+                                                                   DomainUser.email == ResourcePermission.email,
+                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
+
+        users = users.filter(DomainUser.email == login_user.email)
+
+    users = users.all() + shared_files_with_external_users
     domain_stats = {}
-    admin_stats = {"Admin": 0, "Non-Admin": 0}
-    exposure_stats = {"Internal": 0, "External": 0, "Trusted": 0}
+    admin_stats = {"Admin": {"count": 0, "value": 1}, "Non-Admin": {"count": 0, "value": 0}}
+    exposure_stats = {"Internal": {"count": 0, "value": constants.EntityExposureType.INTERNAL.value},
+                      "External": {"count": 0, "value": constants.EntityExposureType.EXTERNAL.value},
+                      "Trusted": {"count": 0, "value": constants.EntityExposureType.TRUSTED.value}}
+    type_stats = {}
+
     for user in users:
         domain_name = utils.get_domain_name_from_email(user.email)
-        if domain_name in domain_stats:
-            domain_stats[domain_name] = domain_stats[domain_name] + 1
-        else:
-            domain_stats[domain_name] = 1
-
+        if domain_name:
+            if domain_name in domain_stats:
+                domain_stats[domain_name]["count"] = domain_stats[domain_name]["count"] + 1
+            else:
+                domain_stats[domain_name] = {"count": 1, "value": domain_name}
+        ds = datasources_map[user.datasource_id]
+        source_stats[ds.datasource_type]["count"] = source_stats[ds.datasource_type]["count"] + 1
         if user.is_admin == 1:
-            admin_stats["Admin"] = admin_stats["Admin"] + 1
+            admin_stats["Admin"]["count"] = admin_stats["Admin"]["count"] + 1
         else:
-            admin_stats["Non-Admin"] = admin_stats["Non-Admin"] + 1
+            admin_stats["Non-Admin"]["count"] = admin_stats["Non-Admin"]["count"] + 1
 
-        if user.member_type == constants.UserMemberType.INTERNAL:
-            exposure_stats["Internal"] = exposure_stats["Internal"] + 1
-        elif user.member_type == constants.UserMemberType.EXTERNAL:
-            exposure_stats["External"] = exposure_stats["External"] + 1
-        elif user.member_type == constants.UserMemberType.TRUSTED:
-            exposure_stats["Trusted"] = exposure_stats["Trusted"] + 1
-        
-    stats["Domains"] = domain_stats
-    stats["Privileges"] = admin_stats
-    stats["Access"] = exposure_stats
+        if user.member_type == constants.EntityExposureType.INTERNAL.value:
+            exposure_stats["Internal"]["count"] = exposure_stats["Internal"]["count"] + 1
+        elif user.member_type == constants.EntityExposureType.EXTERNAL.value:
+            exposure_stats["External"]["count"] = exposure_stats["External"]["count"] + 1
+        elif user.member_type == constants.EntityExposureType.TRUSTED.value:
+            exposure_stats["Trusted"]["count"] = exposure_stats["Trusted"]["count"] + 1
+
+        if user.type in type_stats:
+            type_stats[user.type]["count"] = type_stats[user.type]["count"] + 1
+        else:
+            type_stats[user.type] = {"count": 1, "value": user.type}
+    stats = []
+    stats.append({"display_name": "Access", "field_name": "member_type", "stats": exposure_stats})
+    stats.append({"display_name": "Privileges", "field_name": "is_admin", "stats": admin_stats})
+    stats.append({"display_name": "Type", "field_name": "type", "stats": type_stats})
+    stats.append({"display_name": "Connectors", "field_name": "datasource_id", "stats": source_stats})
+    stats.append({"display_name": "Domains", "field_name": "email", "stats": domain_stats})
     return stats
 
 
-def get_users_list(auth_token, user_name=None, user_email=None, user_type=None, user_source=None, column_header_name=None, sort_order=None, user_privileges=None):
+def get_users_list(auth_token, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
+                   sort_order=None, is_admin=None, type=None, page_number=0):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     user_domain_id = login_user.domain_id
     login_user_email = login_user.email
-    is_admin = login_user.is_admin
+    is_login_user_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-    
-    if user_source:
-        datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).filter(DataSource.datasource_id == user_source).all()
-    else:
-        datasource_ids = db_session.query(DataSource.datasource_id).filter(
+
+    users_query = db_session.query(DomainUser)
+
+    if not datasource_id:
+        datasources = db_session.query(DataSource).filter(
             DataSource.domain_id == user_domain_id).all()
-    domain_datasource_ids = [r for r, in datasource_ids]
-    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
-    if user_name or column_header_name == 'user_name':
-        if sort_order == 'desc':
-            users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.desc())
+        domain_datasource_ids = []
+        for ds in datasources:
+            domain_datasource_ids.append(ds.datasource_id)
+        users_query = users_query.filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+
+    shared_files_with_external_users = []
+    if is_service_account_is_enabled and not is_login_user_admin:
+        shared_files_with_external_users = users_query.filter(and_(Resource.resource_owner_id == login_user_email,
+                                                                   ResourcePermission.resource_id == Resource.resource_id,
+                                                                   DomainUser.email == ResourcePermission.email,
+                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value))
+
+        shared_files_with_external_users = filter_on_get_user_list(shared_files_with_external_users, full_name, email,
+                                            member_type, datasource_id, sort_column, sort_order, is_admin, type, page_number)
+
+        shared_files_with_external_users = shared_files_with_external_users.all()
+
+        users_query = users_query.filter(DomainUser.email == login_user_email)
+
+    users_query = filter_on_get_user_list(users_query, full_name, email, member_type,
+                            datasource_id, sort_column, sort_order, is_admin, type, page_number)
+    users_list = users_query.all()
+    return users_list + shared_files_with_external_users
+
+
+def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
+                   sort_order=None, is_admin=None, type=None, page_number=0):
+    if datasource_id:
+        entity = entity.filter(DomainUser.datasource_id == datasource_id)
+    if full_name:
+        entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
+    if email:
+        entity = entity.filter(DomainUser.email.ilike("%" + email + "%"))
+    if is_admin:
+        entity = entity.filter(DomainUser.is_admin == is_admin)
+    if member_type:
+        entity = entity.filter(DomainUser.member_type == member_type)
+    if type:
+        entity = entity.filter(DomainUser.type == type)
+
+    sort_column_obj = None
+    if sort_column == "datasource_id":
+        sort_column_obj = DomainUser.datasource_id
+    elif sort_column == "full_name":
+        sort_column_obj = DomainUser.full_name
+    elif sort_column == "email":
+        sort_column_obj = DomainUser.email
+    elif sort_column == "is_admin":
+        sort_column_obj = DomainUser.is_admin
+    elif sort_column == "member_type":
+        sort_column_obj = DomainUser.member_type
+    elif sort_column == "type":
+        sort_column_obj = DomainUser.type
+
+    if sort_column_obj:
+        if sort_order == "asc":
+            sort_column_obj = sort_column_obj.asc()
         else:
-            users_query = users_query.filter(DomainUser.first_name.ilike("%" + user_name + "%")).order_by(DomainUser.first_name.asc())
-    if user_email or column_header_name == 'user_email':
-        if sort_order == 'desc':
-            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.desc())
-        else:
-            users_query = users_query.filter(DomainUser.email.ilike("%" + user_email + "%")).order_by(DomainUser.email.asc())
-    if user_type or column_header_name == 'user_type':
-        if user_type != '':
-            users_query = users_query.filter(DomainUser.member_type == user_type)
-        if sort_order == 'desc':
-            users_query = users_query.order_by(DomainUser.member_type.desc())
-        else:
-            users_query = users_query.order_by(DomainUser.member_type.asc())
-    if user_privileges:
-        if user_privileges == "Admin":
-            users_query = users_query.filter(DomainUser.is_admin == True)
-        else:
-            users_query = users_query.filter(DomainUser.is_admin == False)
-
-    users = users_query.all()
-    return users
-
-def get_user_group_tree(auth_token):
-    db_session = db_connection().get_session()
-    login_user = db_utils.get_user_session(auth_token)
-    user_domain_id = login_user.domain_id
-    login_user_email = login_user.email
-    is_admin = login_user.is_admin
-    is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-    
-    datasource_id_list_data = db_session.query(DataSource.datasource_id).filter(
-        DataSource.domain_id == user_domain_id).all()
-
-    users_groups = {}
-    for datasource in datasource_id_list_data:
-        datasource_id = datasource.datasource_id
-
-        if is_service_account_is_enabled and not is_admin:
-                extUsers = db_session.query(DomainUser).filter(and_(Resource.resource_owner_id == login_user_email,
-                               ResourcePermission.datasource_id == datasource_id,
-                               ResourcePermission.resource_id == Resource.resource_id,
-                               DomainUser.datasource_id == datasource_id,
-                               DomainUser.email == ResourcePermission.email,
-                               DomainUser.member_type == constants.UserMemberType.EXTERNAL
-                               )).all()
-
-                for extusr in extUsers :
-                    extusr.parents = []
-                    users_groups[extusr.email] =extusr
-
-                loginuser_data = db_session.query(DomainUser) \
-                                .filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == login_user_email)).first()
-                loginuser_data.parents = []
-                users_groups[loginuser_data.email] = loginuser_data
-
-                groupsData = db_session.query(DomainGroup).filter(DomainGroup.datasource_id == datasource_id).filter(
-                    LoginUser.auth_token == auth_token).filter(
-                    DirectoryStructure.datasource_id == DomainGroup.datasource_id,
-                    DirectoryStructure.member_email == login_user_email,
-                    DirectoryStructure.parent_email == DomainGroup.email).all()
-
-                if len(groupsData) > 1:
-                    for groupdata in groupsData:
-                        groupdata.parents = []
-                        groupdata.children = []
-                        users_groups[groupdata.email] = groupdata
-                elif len(groupsData) > 0:
-                        groupsData[0].parents = []
-                        groupsData[0].children = []
-                        users_groups[groupsData[0].email] = groupsData[0]
-        else:
-            getUsersData(users_groups, db_session, domain_id=user_domain_id, datasource_id=datasource_id)
-            getGroupData(users_groups, db_session, domain_id=user_domain_id, datasource_id=datasource_id)
-
-        parent_child_data_array = db_session.query(DirectoryStructure.parent_email, DirectoryStructure.member_email) \
-            .filter(DirectoryStructure.datasource_id == datasource_id).all()
-
-        for parent_child_data in parent_child_data_array:
-            parent_email = parent_child_data.parent_email
-            child_email = parent_child_data.member_email
-            if child_email in users_groups:
-                users_groups[child_email].parents.append(parent_email)
-                if parent_email in users_groups:
-                    users_groups[parent_email].children.append(child_email)
-                # userGrouptrees[datasource_id] = users_groups
-    return users_groups
+            sort_column_obj = sort_column_obj.desc()
+        entity = entity.order_by(sort_column_obj)
 
 
-def getUsersData(users_groups, db_session, domain_id, datasource_id):
-    usersData = db_session.query(DomainUser) \
-        .filter(and_(DomainUser.datasource_id == datasource_id)).order_by(asc(DomainUser.first_name)).all()
-    for userdata in usersData:
-        userdata.parents = []
-        users_groups[userdata.email] = userdata
+    if page_number:
+        page_number = (int)(page_number)
+        entity = entity.offset(page_number * 50).limit(50)
 
-
-def getGroupData(users_groups, db_session, domain_id, datasource_id):
-    groupsData = db_session.query(DomainGroup) \
-        .filter(DomainGroup.datasource_id == datasource_id).all()
-    for groupdata in groupsData:
-        groupdata.parents = []
-        groupdata.children = []
-        users_groups[groupdata.email] = groupdata
-
+    return entity
 
 def get_all_apps(auth_token):
     db_session = db_connection().get_session()
-    datasources = db_session.query(DataSource).filter(DataSource.domain_id == LoginUser.domain_id).filter(LoginUser.auth_token == auth_token).all()
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == LoginUser.domain_id).filter(
+        LoginUser.auth_token == auth_token).all()
     domain_datasource_ids = [r.datasource_id for r in datasources]
     domain_user = db_session.query(DomainUser).filter(
         DataSource.domain_id == LoginUser.domain_id). \
@@ -186,17 +181,32 @@ def get_all_apps(auth_token):
     if domain_user:
         is_admin = domain_user.is_admin
         login_user_email = domain_user.email
-        
-    apps_query_data = db_session.query(Application).filter(Application.datasource_id.in_(domain_datasource_ids))
+
+    apps_query_data = db_session.query(Application).filter(Application.domain_id == LoginUser.domain_id,
+                                                           LoginUser.auth_token == auth_token)
     if not is_admin:
-        apps_query_data = apps_query_data.filter(Application.client_id == ApplicationUserAssociation.client_id,
-                                            ApplicationUserAssociation.datasource_id == Application.datasource_id,
-                                            ApplicationUserAssociation.user_email == login_user_email)
+        apps_query_data = apps_query_data.filter(Application.id == ApplicationUserAssociation.application_id,
+                                                 ApplicationUserAssociation.user_email == login_user_email)
+        # verify
     apps_data = apps_query_data.order_by(desc(Application.score)).all()
+    for app in apps_data:
+        scopes = app.scopes
+        if scopes:
+            scope_list = scopes.split(",")
+            descriptive_scope_list = []
+            for scope in scope_list:
+                if scope in GOOGLE_API_SCOPES:
+                    descriptive_scope = GOOGLE_API_SCOPES[scope]['name']
+                    descriptive_scope_list.append(descriptive_scope)
+                elif scope in SLACK_API_SCOPES:
+                    descriptive_scope = SLACK_API_SCOPES[scope]['name']
+                    descriptive_scope_list.append(descriptive_scope)
+            descriptive_scope_list = (",").join(descriptive_scope_list)
+            app.scopes = descriptive_scope_list
     return apps_data
 
 
-def get_users_for_app(auth_token, datasource_id, client_id):
+def get_users_for_app(auth_token, domain_id, app_id):
     db_session = db_connection().get_session()
 
     # check for non-admin user
@@ -204,29 +214,94 @@ def get_users_for_app(auth_token, datasource_id, client_id):
     is_admin = existing_user.is_admin
     is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
     login_user_email = existing_user.email
-
+    datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == domain_id).all()
+    datasource_ids = [r for r, in datasource_ids]
     # if servie account and non-admin user, show permission for logged in user only
     if is_service_account_is_enabled and not is_admin:
         domain_user_emails = [[login_user_email]]
-
     else:
         domain_user_emails = db_session.query(ApplicationUserAssociation.user_email).filter(
-            and_(ApplicationUserAssociation.client_id == client_id,
-                 ApplicationUserAssociation.datasource_id == datasource_id)).all()
+            and_(ApplicationUserAssociation.application_id == app_id,
+                 ApplicationUserAssociation.datasource_id.in_(datasource_ids)
+                 )).all()
 
     domain_user_emails = [r for r, in domain_user_emails]
 
-    apps_query_data = db_session.query(DomainUser).filter(and_(DomainUser.email.in_(domain_user_emails),
-                                                               DomainUser.datasource_id == datasource_id)).all()
+    apps_query_data = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
+    )).all()
+
     return apps_query_data
 
 
 def get_apps_for_user(auth_token, datasource_id, user_email):
     db_session = db_connection().get_session()
-    domain_applications = db_session.query(ApplicationUserAssociation.client_id).filter(
+    domain_applications = db_session.query(ApplicationUserAssociation.application_id).filter(
         and_(ApplicationUserAssociation.user_email == user_email,
              ApplicationUserAssociation.datasource_id == datasource_id)).all()
     domain_applications = [r for r, in domain_applications]
-    user_apps = db_session.query(Application).filter(and_(Application.client_id.in_(domain_applications),
-                                                          Application.datasource_id == datasource_id)).order_by(desc(Application.score)).all()
+    user_apps = db_session.query(Application).filter(and_(Application.id.in_(domain_applications),
+                                                          ApplicationUserAssociation.datasource_id == datasource_id)).order_by(
+        desc(Application.score)).all()
+
+    for app in user_apps:
+        scope = app.scopes
+        if scope:
+            scope_list = scope.split(",")
+            descriptive_scope_list = []
+            for scope in scope_list:
+                if scope in GOOGLE_API_SCOPES:
+                    descriptive_scope = GOOGLE_API_SCOPES[scope]['name']
+                    descriptive_scope_list.append(descriptive_scope)
+                elif scope in SLACK_API_SCOPES:
+                    descriptive_scope = SLACK_API_SCOPES[scope]['name']
+                    descriptive_scope_list.append(descriptive_scope)
+            descriptive_scope_list = (",").join(descriptive_scope_list)
+            app.scopes = descriptive_scope_list
     return user_apps
+
+
+def get_group_members(auth_token, group_email, datasource_id):
+    db_session = db_connection().get_session()
+
+    group_members = db_session.query(DomainUser). \
+        filter(DomainUser.datasource_id == DirectoryStructure.datasource_id,
+               DomainUser.email == DirectoryStructure.member_email). \
+        filter(DirectoryStructure.datasource_id == datasource_id, DirectoryStructure.parent_email == group_email).all()
+
+    return group_members
+
+
+def update_apps(auth_token, payload):
+    db_session = db_connection().get_session()
+    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    if existing_user:
+        app = {}
+        app["unit_num"] = payload["unit_num"]
+        app["unit_price"] = payload["unit_price"]
+        app["pricing_model"] = payload["pricing_model"]
+        db_session.query(Application).filter(Application.id == payload["application_id"]).update(app)
+        db_connection().commit()
+        return payload
+    else:
+        return None
+
+
+def insert_apps(auth_token, payload):
+    db_session = db_connection().get_session()
+    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    domain_id = existing_user.domain_id
+    if existing_user:
+        app_ids = payload["app_ids"]
+        for id in app_ids:
+            app = Application()
+            inventory_app = db_session.query(AppInventory).filter(AppInventory.id == id).first()
+            app.domain_id = domain_id
+            app.display_text = inventory_app.name
+            app.inventory_app_id = id
+            app.timestamp = str(datetime.utcnow().isoformat())
+            app.unit_num = 0
+            db_session.add(app)
+        db_connection().commit()
+        return payload
+    else:
+        return None

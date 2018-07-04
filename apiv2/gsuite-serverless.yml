@@ -88,101 +88,53 @@ custom:
 
 functions:
   get-google-oauthlogin:
-    handler: adya.gsuite.services.lambda.oauth_handler.google_oauth_request
+    handler: adya.gsuite.services.oauth_handler.google_oauth_request
     events:
       - http:
           path: oauthlogin
           method: get
 
   get-google-oauthcallback:
-    handler: adya.gsuite.services.lambda.oauth_handler.google_oauth_callback
+    handler: adya.gsuite.services.oauth_handler.google_oauth_callback
     events:
       - http:
           path: oauthcallback
           method: get
 
-  post-google-scan-start:
-    handler: adya.gsuite.services.lambda.scan_handler.start_scan
+  get-google-scan:
+    handler: adya.gsuite.services.scan_handler.start_scan
     events:
       - http:
-          path: scan/start
-          method: post
-          cors: true
-
-  get-google-scan-resources:
-    handler: adya.gsuite.services.lambda.scan_handler.get_drive_resources
-    events:
-      - http:
-          path: scan/resources
+          path: scan
           method: get
           cors: true
 
-  post-google-scan-resources:
-    handler: adya.gsuite.services.lambda.scan_handler.process_drive_resources
+  post-google-scan:
+    handler: adya.gsuite.services.scan_handler.update_scan
     events:
       - http:
-          path: scan/resources
+          path: scan
           method: post
           cors: true
 
-  post-google-scan-permisssions:
-    handler: adya.gsuite.services.lambda.scan_handler.process_resource_permissions
+  get-google-scan-entities:
+    handler: adya.gsuite.services.scan_handler.request_scanner_data
     events:
       - http:
-          path: scan/permisssions
-          method: post
-          cors: true
-
-  get-google-scan-domainusers:
-    handler: adya.gsuite.services.lambda.scan_handler.get_domain_users
-    events:
-      - http:
-          path: scan/domainusers
+          path: scan/entities
           method: get
           cors: true
 
-  post-google-scan-domainusers:
-    handler: adya.gsuite.services.lambda.scan_handler.process_domain_users
+  post-google-scan-entities:
+    handler: adya.gsuite.services.scan_handler.process_scanner_data
     events:
       - http:
-          path: scan/domainusers
-          method: post
-          cors: true
-
-  get-google-scan-domaingroups:
-    handler: adya.gsuite.services.lambda.scan_handler.get_domain_groups
-    events:
-      - http:
-          path: scan/domaingroups
-          method: get
-          cors: true
-
-  post-google-scan-domaingroups:
-    handler: adya.gsuite.services.lambda.scan_handler.process_domain_groups
-    events:
-      - http:
-          path: scan/domaingroups
-          method: post
-          cors: true
-
-  post-google-scan-usersapp:
-    handler: adya.gsuite.services.lambda.scan_handler.get_user_app
-    events:
-      - http:
-          path: scan/usersapp
-          method: post
-          cors: true
-
-  post-google-scan-groupmembers:
-    handler: adya.gsuite.services.lambda.scan_handler.get_group_members
-    events:
-      - http:
-          path: scan/groupmembers
+          path: scan/entities
           method: post
           cors: true
 
   get-google-scan-handlechannelexpiration:
-    handler: adya.gsuite.services.lambda.scan_handler.handle_channel_expiration
+    handler: adya.gsuite.services.scan_handler.handle_channel_expiration
     events:
       - http:
           path: handlechannelexpiration
@@ -190,7 +142,7 @@ functions:
           cors: true
 
   get-google-scan-polldrivechanges:
-    handler: adya.gsuite.services.lambda.scan_handler.gdrive_periodic_changes_poll
+    handler: adya.gsuite.services.scan_handler.gdrive_periodic_changes_poll
     events:
       - http:
           path: scan/polldrivechanges
@@ -198,7 +150,7 @@ functions:
           cors: true
 
   post-google-scan-processdrivenotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_drive_change_notifications
+    handler: adya.gsuite.services.scan_handler.process_drive_change_notifications
     events:
       - http:
           path: scan/processdrivenotifications
@@ -206,7 +158,7 @@ functions:
           cors: true
 
   post-google-scan-processactivitynotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.process_activity_notifications
+    handler: adya.gsuite.services.scan_handler.process_activity_notifications
     events:
       - http:
           path: scan/processactivitynotifications
@@ -214,7 +166,7 @@ functions:
           cors: true        
 
   post-google-scan-subscribenotifications:
-    handler: adya.gsuite.services.lambda.scan_handler.subscribe_gdrive_notifications
+    handler: adya.gsuite.services.scan_handler.subscribe_gdrive_notifications
     events:
       - http:
           path: scan/subscribenotifications
@@ -222,41 +174,26 @@ functions:
           cors: true
 
   get-google-getactivitiesforuser:
-    handler: adya.gsuite.services.lambda.activities_handler.get_activities_for_user
+    handler: adya.gsuite.services.activities_handler.get_activities_for_user
     events:
       - http:
           path: getactivitiesforuser
           method: get
           cors: true
 
-  post-google-actions:
-    handler: adya.gsuite.services.lambda.action_handler.add_permissions_action
-    events:
-      - http:
-          path: actions
-          method: post
-          cors: true
-
-  put-google-actions:
-    handler: adya.gsuite.services.lambda.action_handler.update_permissions_action
-    events:
-      - http:
-          path: actions
-          method: put
-          cors: true
-
-  delete-google-actions:
-    handler: adya.gsuite.services.lambda.action_handler.delete_permissions_action
-    events:
-      - http:
-          path: actions
-          method: delete
-          cors: true      
-
   post-google-policies-validate:
-    handler: adya.gsuite.services.lambda.policy_validate_handler.validate_policy
+    handler: adya.gsuite.services.policy_validate_handler.validate_policy
     events:
       - http:
           path: policies/validate
           method: post
-          cors: true  
+          cors: true
+
+  post-google-execute-actions:
+    handler: adya.gsuite.services.actions_handler.execute_gsuite_actions
+    events:
+      - http:
+          path: actions
+          method: post
+          cors: true
+

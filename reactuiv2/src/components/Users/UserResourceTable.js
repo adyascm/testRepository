@@ -56,8 +56,8 @@ class UserResourceTable extends Component {
         if (this.props.selectedUserItem) {
             let filterExposureType = (this.props.selectedUserItem.member_type === 'EXT' ? '' : this.props.filterExposureType)
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({
-                'userEmails': [this.props.selectedUserItem["email"]], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
+            this.props.onLoad(agent.Resources.getResources({
+                'accessibleBy': this.props.selectedUserItem["email"], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
                 'datasourceId': this.props.selectedUserItem.datasource_id
             }))
         }
@@ -67,8 +67,8 @@ class UserResourceTable extends Component {
         if ((this.props.selectedUserItem["email"] !== nextProps.selectedUserItem["email"]) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResourcesTree({
-                'userEmails': [nextProps.selectedUserItem["email"]],
+            nextProps.onLoad(agent.Resources.getResources({
+                'accessibleBy': nextProps.selectedUserItem["email"],
                 'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
                 'datasourceId': this.props.selectedUserItem.datasource_id
             }))

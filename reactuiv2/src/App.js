@@ -13,13 +13,13 @@ import ManageDataSources from './components/Setting/Setting.js'
 import Reports from './components/Reports/Reports.js'
 import Resources from './components/Resources/Resources.js'
 import UsersNew from './components/Users/UsersNew.js'
-import Apps from './components/UserApp/Apps.js'
 import Policy from './components/Policy/Policy.js'
 import Alert from './components/Alert'
 import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/Setting/DataSourceVerifiedView'
 import AuditLogTable from './components/AuditLogTable'
 import GlobalMessage from './GlobalMessage';
+import Apps from './components/UserApp/Apps.js'
 
 import { Container, Message } from 'semantic-ui-react'
 
@@ -79,7 +79,7 @@ class App extends Component {
         <div className="App">
           <Header appName={this.props.appName} currentUser={this.props.currentUser}/>
           <Switch>
-            <Container fluid style={{ marginTop: '6em', height: '100%' }}>
+            <Container fluid style={{padding: '1em', marginTop: '5em', height: '100%' }}>
             <GlobalMessage />
             <Message header='Important!' content={this.props.appMessage} hidden={!this.props.appMessage} style={{ marginTop: '6em'}} floating/>
               <Route exact path="/login" component={NewLogin} />

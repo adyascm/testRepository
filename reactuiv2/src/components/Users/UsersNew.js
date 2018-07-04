@@ -14,12 +14,13 @@ import {
 
 import UsersTree from './UsersTree';
 import UserListNew from './UserListNew'
-import UsersGroupsDetailsSection from './UsersGroupsDetailsSection';
+import UsersDetails from './UsersDetails';
+import GroupsDetails from './GroupsDetails';
+
 import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
 
 const mapStateToProps = state => ({
   selectedUserItem: state.users.selectedUserItem,
-  userShowHierarchy: state.users.userShowHierarchy,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -30,10 +31,6 @@ const mapDispatchToProps = dispatch => ({
 class UsersNew extends Component {
   constructor(props) {
     super(props);
-    
-    this.state = {
-      showHierarchy: this.props.userShowHierarchy,
-    }
   }
 
   componentWillMount() {
@@ -41,56 +38,40 @@ class UsersNew extends Component {
     this.props.selectUserItem(undefined)
   }
 
-  toggleHierarchyView = () => {
-    this.props.selectUserItem(undefined)
-    this.setState({
-      ...this.state,
-      showHierarchy: !this.state.showHierarchy
-    });
-  }
-
   render() {
     let containerStyle = {
       height: "100%",
-      textAlign: "left"
     };
 
     var gridWidth = 16;
 
     if (this.props.selectedUserItem) {
-      gridWidth = 4;
+      gridWidth = 5;
     }
 
-    let toggleCheckbox = (
-      <Checkbox toggle
-        label='Show groups tree'
-        onChange={this.toggleHierarchyView}
-        checked={this.state.showHierarchy}
-      />
-    )
+    let detailsSection = null;
+    if (this.props.selectedUserItem) {
+      if (this.props.selectedUserItem.type == "USER") {
+        detailsSection = (<Grid.Column width='11'><UsersDetails {...this.props.selectedUserItem} /></Grid.Column>);
+      }
+
+      else {
+        detailsSection = (<Grid.Column width='11'><GroupsDetails {...this.props.selectedUserItem} /></Grid.Column>);
+      }
+    }
 
     return (
-        <Container fluid style={containerStyle}>
-            <Grid divided='vertically' stretched>
-              <Grid.Row >
-                <Grid.Column stretched floated='right' width="5">
-                  {toggleCheckbox}
-                </Grid.Column>
-              </Grid.Row>
-              <Grid.Row stretched>
-                  <Grid.Column stretched width={gridWidth}>
-                      { !this.state.showHierarchy ? <UserListNew /> : <UsersTree /> }
-                  </Grid.Column>
-                  {
-                  this.props.selectedUserItem ?
-                      (<Grid.Column width='12'>
-                      <UsersGroupsDetailsSection {...this.props.selectedUserItem} />
-                      </Grid.Column>) : null
-                  }
-              </Grid.Row>
-            </Grid>
-            <Actions />
-        </Container >
+      <div style={containerStyle}>
+        <Grid divided='vertically'>
+          <Grid.Row>
+            <Grid.Column fluid width={gridWidth}>
+              <UserListNew />
+            </Grid.Column>
+            {detailsSection}
+          </Grid.Row>
+        </Grid>
+        <Actions />
+      </div >
     )
   }
 }

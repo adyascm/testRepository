@@ -43,11 +43,11 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
 
     if not existing_user:
         # Update the exposure type of the permission
-        updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
+        updated_permission['exposure_type'] = constants.EntityExposureType.EXTERNAL.value
         domainUser = DomainUser()
         domainUser.datasource_id = datasource_id
         domainUser.email = updated_permission['email']
-        domainUser.member_type = constants.UserMemberType.EXTERNAL
+        domainUser.member_type = constants.EntityExposureType.EXTERNAL.value
         display_name = updated_permission['displayName']
         name = display_name.split(' ')
         if len(name) > 0 and name[0]:
@@ -61,8 +61,8 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
         db_connection().commit()
     else:
         # case: add permission to external user if that user already exist , than exposure type of permission should also be external
-        if existing_user.member_type == constants.UserMemberType.EXTERNAL:
-            updated_permission['exposure_type'] = constants.ResourceExposureType.EXTERNAL
+        if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
+            updated_permission['exposure_type'] = constants.EntityExposureType.EXTERNAL.value
 
     permission = ResourcePermission()
     permission.datasource_id = datasource_id
@@ -76,19 +76,19 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
     # Update the exposure type of the resource based on the updated permission
     existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
                                                                Resource.datasource_id == datasource_id)).first()
-    if permission.exposure_type == constants.ResourceExposureType.EXTERNAL:
+    if permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
         if not (
-                existing_resource.exposure_type == constants.ResourceExposureType.EXTERNAL and existing_resource.exposure_type == constants.ResourceExposureType.PUBLIC):
-            existing_resource.exposure_type = constants.ResourceExposureType.EXTERNAL
+                existing_resource.exposure_type == constants.EntityExposureType.EXTERNAL.value and existing_resource.exposure_type == constants.EntityExposureType.PUBLIC.value):
+            existing_resource.exposure_type = constants.EntityExposureType.EXTERNAL.value
 
     else:
-        if existing_resource.exposure_type == constants.ResourceExposureType.PRIVATE:
-            existing_resource.exposure_type = constants.ResourceExposureType.INTERNAL
+        if existing_resource.exposure_type == constants.EntityExposureType.PRIVATE.value:
+            existing_resource.exposure_type = constants.EntityExposureType.INTERNAL.value
 
     existing_resource.last_modifying_user_email = initiated_by_email
     existing_resource.last_modified_time = datetime.datetime.utcnow()
 
-    if role == constants.Role.OWNER:
+    if role == constants.Role.OWNER.value:
         existing_resource.resource_owner_id = updated_permission['email']
         update_old_owner_permission(db_session, datasource_id, resource_id, updated_permission['email'])
 
@@ -100,8 +100,9 @@ def update_old_owner_permission(db_session, datasource_id, resource_id, updated_
     resource_permission = db_session.query(ResourcePermission).filter(
         and_(ResourcePermission.resource_id == resource_id,
              ResourcePermission.datasource_id == datasource_id, ResourcePermission.email <> updated_email,
-             ResourcePermission.permission_type == constants.Role.OWNER)).update(
-        {ResourcePermission.permission_type: constants.Role.WRITER})
+             ResourcePermission.permission_type == constants.Role.OWNER.value)).update(
+        {ResourcePermission.permission_type: constants.Role.WRITER.value,
+         ResourcePermission.exposure_type: constants.EntityExposureType.INTERNAL.value})
 
     return resource_permission
 
@@ -112,7 +113,7 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
     for resource_id in updated_permissions:
         deleted_permissions = updated_permissions[resource_id]
         for perm in deleted_permissions:
-            if perm["exposure_type"] == constants.ResourceExposureType.EXTERNAL and not perm['email'] in external_users:
+            if perm["exposure_type"] == constants.EntityExposureType.EXTERNAL.value and not perm['email'] in external_users:
                 external_users[perm['email']] = 1
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
@@ -120,7 +121,7 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
         db_connection().commit()
         updated_resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                                                                   Resource.resource_id == resource_id)).first()
-        highest_exposure = constants.ResourceExposureType.PRIVATE
+        highest_exposure = constants.EntityExposureType.PRIVATE.value
         for resource_perm in updated_resource.permissions:
             highest_exposure = gutils.get_resource_exposure_type(resource_perm.exposure_type, highest_exposure)
 
@@ -139,7 +140,7 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
         if permissions_count < 1:
             db_session.query(DomainUser).filter(
                 and_(DomainUser.email == external_user, DomainUser.datasource_id == datasource_id,
-                     DomainUser.member_type == constants.UserMemberType.EXTERNAL)).delete()
+                     DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).delete()
             anything_changed = True
 
     if anything_changed:

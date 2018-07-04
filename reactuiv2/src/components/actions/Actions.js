@@ -11,6 +11,7 @@ import oauth from '../../utils/oauth';
 
 const mapStateToProps = state => ({
     ...state.resources,
+    ...state.apps,
     logged_in_user: state.common.currentUser,
     all_actions_list: state.common.all_actions_list,
     action: state.resources.action || state.users.action || state.apps.action,
@@ -72,12 +73,17 @@ class Actions extends Component {
 
     build_action_payload = () => {
         let action = this.props.action;
-        var ds = this.props.datasourcesMap[action.datasource_id];
+        var ds = undefined;
+        if(action.datasource_id){
+            ds = this.props.datasourcesMap[action.datasource_id];
+        }
         let parameters = {};
         let all_actions_list = this.props.all_actions_list;
         let config_params = []
         for(let i in all_actions_list){
-            if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
+            if(ds && all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
+                config_params = all_actions_list[i]['parameters'] 
+            }else if(!ds){ //The case when action is not datasource specific
                 config_params = all_actions_list[i]['parameters'] 
             }   
         }
@@ -99,20 +105,23 @@ class Actions extends Component {
             ...this.state,
             inProgress: true
         });
-        var ds = this.props.datasourcesMap[this.props.action.datasource_id];
-        if (ds.datasource_type != "GSUITE" || this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
+        var ds = undefined
+        if(this.props.action.datasource_id){
+            ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        }
+        if ((!ds || ds.datasource_type != "GSUITE") || this.props.logged_in_user.is_serviceaccount_enabled || this.props.logged_in_user.authorize_scope_name === "drive_action_scope") {
             this.executeAction(this.build_action_payload(), resp => {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    successMessage: resp['message'],
+                    successMessage: resp.message,
                     logId:resp['id']
                 });
             }, errorRes => {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    errorMessage: errorRes['message'],
+                    errorMessage: errorRes.message,
                     logId:errorRes['id']
                 });
             });
@@ -126,14 +135,14 @@ class Actions extends Component {
                     this.setState({
                         ...this.state,
                         inProgress: false,
-                        successMessage: resp['message'],
+                        successMessage: resp.message,
                         logId:resp['id']
                     });
                 }, errorRes => {
                     this.setState({
                         ...this.state,
                         inProgress: false,
-                        errorMessage: errorRes['message'],
+                        errorMessage: errorRes.message,
                         logId:errorRes['id']
                     });
                 });
@@ -141,7 +150,7 @@ class Actions extends Component {
                 this.setState({
                     ...this.state,
                     inProgress: false,
-                    errorMessage: error['message']
+                    errorMessage: error.message,
                 });
             });
         }
@@ -169,23 +178,24 @@ class Actions extends Component {
     }
 
     onCloseAction = () => {
-        var usersPayload = agent.Users.getUsersTree();
+        // var usersPayload = agent.Users.getUsersTree();
+        var usersPayload = {}
         var userOwnedResources = undefined;
         var userAccessibleResources = undefined;
         if(this.props.selectedUser)
         {
             if(this.props.selectedUser.ownedResources)
             {
-                userOwnedResources = agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUser["key"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUser["key"] });
+                userOwnedResources = agent.Resources.getResources({ 'accessibleBy': this.props.selectedUser["key"], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUser["key"] });
 
             }if(this.props.selectedUser.resources)
             {
-                userAccessibleResources = agent.Resources.getResourcesTree({'userEmails': [this.props.selectedUser["key"]], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});
+                userAccessibleResources = agent.Resources.getResources({'accessibleBy': this.props.selectedUser["key"], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});
             }
         }
 
-        var resourcesPayload = agent.Resources.getResourcesTree({ 'userEmails': [], 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
-        var appsPayload = agent.Apps.getapps()
+        var resourcesPayload = agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
+        var appsPayload = agent.Apps.getInstalledApps(0,"","")
 
         this.props.onCloseAction(usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload, appsPayload);
     }
@@ -208,17 +218,22 @@ class Actions extends Component {
             this.props.onActionNotAllowed("Actions are not allowed, please contact your administrator.")
             return null;
         }
-        let ds = this.props.datasourcesMap[this.props.action.datasource_id];
+        let ds = undefined
+        if(action.datasource_id){
+            ds = this.props.datasourcesMap[action.datasource_id];
+        }
+        
         let actionConfig = {}
         let all_actions_list = this.props.all_actions_list;
 
         for(let i in all_actions_list){
-            if(all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
-                actionConfig = all_actions_list[i] 
-            }   
+            if(ds && all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
+                actionConfig = all_actions_list[i]
+            }else if(!ds){
+                actionConfig = all_actions_list[i]
+            }
         }
-
-
+        
         let actionDescription = Mustache.render(actionConfig.description, action);
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)
@@ -233,10 +248,10 @@ class Actions extends Component {
         let logmsg = (<div></div>)
         let submitAction = this.takeAction;
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
-        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit'  />);
+        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' disabled={ds.datasource_type === "GITHUB"} />);
         if (this.state.successMessage) {
             if(this.state.logId){
-                logmsg = (<a href="/auditlog">(Log:{this.state.logId})</a>)
+                logmsg = (<a target="_blank" href="/auditlog">(Log:{this.state.logId})</a>)
             }
             message = (<Message
                 success
@@ -247,7 +262,7 @@ class Actions extends Component {
         }
         else if (this.state.errorMessage) {
             if(this.state.logId){
-                logmsg = (<a href="/auditlog">(Log:{this.state.logId})</a>)
+                logmsg = (<a target="_blank" href="/auditlog">(Log:{this.state.logId})</a>)
             }
             message = (<Message
                 error

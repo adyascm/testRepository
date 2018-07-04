@@ -88,104 +88,71 @@ custom:
 
 functions:
   get-slack-oauthlogin:
-    handler: adya.slack.services.lambda.slack_oauth_handler.slack_oauth_request
+    handler: adya.slack.services.oauth_handler.slack_oauth_request
     events:
       - http:
           path: oauthlogin
           method: get
 
   get-slack-oauthcallback:
-    handler: adya.slack.services.lambda.slack_oauth_handler.slack_oauth_callback
+    handler: adya.slack.services.oauth_handler.slack_oauth_callback
     events:
       - http:
           path: oauthcallback
           method: get
 
-  post-slack-scan-start:
-    handler: adya.slack.services.lambda.slack_scan_handler.start_scan
+  get-slack-scan:
+    handler: adya.slack.services.scan_handler.start_scan
     events:
       - http:
-          path: scan/start
-          method: post
-          cors: true
-
-  get-slack-scan-resources:
-    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_resources
-    events:
-      - http:
-          path: scan/resources
+          path: scan
           method: get
           cors: true
 
-  post-slack-scan-resources:
-    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_resources
+  post-slack-scan:
+    handler: adya.slack.services.scan_handler.update_scan
     events:
       - http:
-          path: scan/resources
+          path: scan
           method: post
           cors: true
 
-  get-slack-scan-users:
-    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_users
+  get-slack-scan-entities:
+    handler: adya.slack.services.scan_handler.request_scanner_data
     events:
       - http:
-          path: scan/users
+          path: scan/entities
           method: get
           cors: true
 
-  post-slack-scan-users:
-    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_users
+  post-slack-scan-entities:
+    handler: adya.slack.services.scan_handler.process_scanner_data
     events:
       - http:
-          path: scan/users
+          path: scan/entities
           method: post
-          cors: true
-
-  get-slack-scan-channels:
-    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_channels
-    events:
-      - http:
-          path: scan/channels
-          method: get
-          cors: true
-
-  post-slack-scan-channels:
-    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_channels
-    events:
-      - http:
-          path: scan/channels
-          method: post
-          cors: true
-
-  post-slack-scan-apps:
-    handler: adya.slack.services.lambda.slack_scan_handler.process_slack_apps
-    events:
-      - http:
-          path: scan/apps
-          method: post
-          cors: true
-
-  get-slack-scan-apps:
-    handler: adya.slack.services.lambda.slack_scan_handler.get_slack_apps
-    events:
-      - http:
-          path: scan/apps
-          method: get
           cors: true
 
   post-slack-scan-processnotifications:
-    handler: adya.slack.services.lambda.slack_incremental_scan_handler.process_slack_notifications
+    handler: adya.slack.services.notifications_handler.receive_slack_notifications
     events:
       - http:
           path: scan/processnotifications
           method: post
           cors: true
 
-  delete-slack-actions:
-    handler: adya.slack.services.lambda.slack_actions_handler.delete_permissions_action
+  post-slack-execute-actions:
+    handler: adya.slack.services.actions_handler.execute_slack_actions
     events:
       - http:
           path: actions
-          method: delete
+          method: post
           cors: true
 
+  post-slack-policies-validate:
+    handler: adya.slack.services.policy_validate_handler.validate_policy
+    events:
+      - http:
+          path: policies/validate
+          method: post
+          cors: true

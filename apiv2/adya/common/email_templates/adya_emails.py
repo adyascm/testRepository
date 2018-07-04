@@ -86,13 +86,13 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
         countAnyoneWithLinkSharedDocs = 0
 
         for item in countSharedDocumentsByType:
-            if item[0] == constants.DocType.DOMAIN_COUNT:
+            if item[0] == constants.DocType.DOMAIN_COUNT.value:
                 countDomainSharedDocs = item[1]
-            elif item[0] == constants.DocType.EXTERNAL_COUNT:
+            elif item[0] == constants.DocType.EXTERNAL_COUNT.value:
                 countExternalSharedDocs = item[1]
-            elif item[0] == constants.DocType.PUBLIC_COUNT:
+            elif item[0] == constants.DocType.PUBLIC_COUNT.value:
                 countPublicSharedDocs = item[1]
-            elif item[0] == constants.DocType.ANYONE_WITH_LINK_COUNT:
+            elif item[0] == constants.DocType.ANYONE_WITH_LINK_COUNT.value:
                 countAnyoneWithLinkSharedDocs = item[1]
 
         countDocuments = countDomainSharedDocs + countExternalSharedDocs + countPublicSharedDocs + countAnyoneWithLinkSharedDocs

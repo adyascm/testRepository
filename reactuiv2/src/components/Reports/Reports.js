@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-// import '../../App.css';
 import { Redirect } from 'react-router-dom';
 import {Icon, Button, Modal, Loader, Dimmer, Container} from 'semantic-ui-react'
 import { connect } from 'react-redux';

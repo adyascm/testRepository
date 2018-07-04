@@ -12,6 +12,18 @@ const DataSourceUtils = {
                 status = 'success' //Complete
         }
         return status;
+    },
+
+    getGithubScanStatus: (datasource) => {
+        var status = 'active';//In Progress  
+        if (datasource.user_scan_status > 1 || datasource.file_scan_status > 1)
+            status = 'error' //Failed
+        else {
+            if ((datasource.user_scan_status === 1 && datasource.total_user_count === datasource.processed_user_count) && 
+                (datasource.file_scan_status === 1 && datasource.total_file_count === datasource.processed_file_count))
+                status = 'success' //Complete
+        }
+        return status;
     }
 }
 

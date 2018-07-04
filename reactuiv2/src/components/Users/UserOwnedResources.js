@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Dropdown, Form, Input, Label, Icon } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Form, Input, Label, Icon , Container, Grid} from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 
@@ -46,7 +46,8 @@ class UserOwnedResources extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUserItem["email"],
+            this.props.onLoad(agent.Resources.getResources({ 'pageNumber': 0, 'pageSize': 100, 
+            'ownerEmailId': this.props.selectedUserItem["email"],
                                                   'datasourceId': this.props.selectedUserItem["datasource_id"]}))
         }
     }
@@ -54,8 +55,7 @@ class UserOwnedResources extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResourcesTree({ 'userEmails': [this.props.selectedUserItem["email"]],
-              'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+            nextProps.onLoad(agent.Resources.getResources({ 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
               'ownerEmailId': this.props.selectedUserItem["email"], 'datasourceId': this.props.selectedUserItem["datasource_id"] }))
         }
     }
@@ -121,7 +121,8 @@ class UserOwnedResources extends Component {
 
         if (this.props.selectedUserItem.ownedResources && this.props.selectedUserItem.ownedResources.length)
             return (
-                <div>
+                <Container stretched="true">
+                <Grid stretched style={{ 'marginTop': '5px', 'marginBottom': '5px' }}>
                     <div>
                         <Table celled selectable striped>
                             <Table.Header>
@@ -138,7 +139,8 @@ class UserOwnedResources extends Component {
                         {this.props.selectedUserItem.ownedResources.length < this.props.pageLimit? null : (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
                         {this.props.pageNumber > 0? (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                     </div>
-                </div>
+                    </Grid>
+            </Container>
             )
         else
             return (

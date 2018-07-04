@@ -111,7 +111,7 @@ custom:
 
 functions:
   get-common-currentuser:
-    handler: adya.core.services.lambda.auth_handler.current_user
+    handler: adya.core.services.auth_handler.current_user
     events:
       - http:
           path: user
@@ -119,7 +119,7 @@ functions:
           cors: true
 
   get-common-datasources:
-    handler: adya.core.services.lambda.domain_handler.get_datasource
+    handler: adya.core.services.domain_handler.get_datasource
     events:
       - http:
           path: datasources
@@ -127,7 +127,7 @@ functions:
           cors: true
 
   post-common-datasources:
-    handler: adya.core.services.lambda.domain_handler.post_datasource
+    handler: adya.core.services.domain_handler.post_datasource
     events:
       - http:
           path: datasources
@@ -135,7 +135,7 @@ functions:
           cors: true
 
   delete-common-datasources:
-    handler: adya.core.services.lambda.domain_handler.delete_datasource
+    handler: adya.core.services.domain_handler.delete_datasource
     events:
       - http:
           path: datasources
@@ -143,7 +143,7 @@ functions:
           cors: true
 
   delete-common-asyncdatasourcedelete:
-    handler: adya.core.services.lambda.domain_handler.async_datasource_delete
+    handler: adya.core.services.domain_handler.async_datasource_delete
     events:
       - http:
           path: asyncdatasourcedelete
@@ -151,7 +151,7 @@ functions:
           cors: true
 
   get-common-widgets:
-    handler: adya.core.services.lambda.reports_handler.get_widget_data
+    handler: adya.core.services.reports_handler.get_widget_data
     events:
       - http:
           path: widgets
@@ -159,7 +159,7 @@ functions:
           cors: true
 
   get-common-users:
-    handler: adya.core.services.lambda.reports_handler.get_users_list
+    handler: adya.core.services.reports_handler.get_users_list
     events:
       - http:
           path: users
@@ -167,31 +167,47 @@ functions:
           cors: true
 
   get-common-users-stats:
-    handler: adya.core.services.lambda.reports_handler.get_user_stats
+    handler: adya.core.services.reports_handler.get_user_stats
     events:
       - http:
           path: users/stats
           method: get
           cors: true
-
-  get-common-getusertreedata:
-    handler: adya.core.services.lambda.reports_handler.get_user_tree_data
+  
+  get-common-groupmembers:
+    handler: adya.core.services.reports_handler.get_group_members
     events:
       - http:
-          path: getusergrouptree
+          path: getgroupmembers
           method: get
           cors: true
 
   get-common-getappsdata:
-    handler: adya.core.services.lambda.reports_handler.get_user_app
+    handler: adya.core.services.app_handler.get_user_app
     events:
       - http:
           path: getappsdata
           method: get
           cors: true
 
+  post-common-getappsdata:
+    handler: adya.core.services.app_handler.post_user_app
+    events:
+      - http:
+          path: getappsdata
+          method: post
+          cors: true        
+
+  put-common-getappsdata:
+    handler: adya.core.services.app_handler.modify_user_app
+    events:
+      - http:
+          path: getappsdata
+          method: put
+          cors: true   
+          
   get-common-getresourcetree:
-    handler: adya.core.services.lambda.reports_handler.get_resources
+    handler: adya.core.services.resource_handler.get_resources
     events:
       - http:
           path: getresourcetree
@@ -199,7 +215,7 @@ functions:
           cors: true
 
   post-common-getresourcetree:
-    handler: adya.core.services.lambda.reports_handler.get_resource_tree_data
+    handler: adya.core.services.resource_handler.get_resource_tree_data
     events:
       - http:
           path: getresourcetree
@@ -207,7 +223,7 @@ functions:
           cors: true
 
   get-common-scheduledreport:
-    handler: adya.core.services.lambda.reports_handler.get_scheduled_reports
+    handler: adya.core.services.reports_handler.get_scheduled_reports
     events:
       - http:
           path: scheduledreport
@@ -215,7 +231,7 @@ functions:
           cors: true
 
   post-common-scheduledreport:
-    handler: adya.core.services.lambda.reports_handler.post_scheduled_report
+    handler: adya.core.services.reports_handler.post_scheduled_report
     events:
       - http:
           path: scheduledreport
@@ -223,45 +239,45 @@ functions:
           cors: true
 
   get-common-getauditlog:
-    handler: adya.core.services.lambda.auditlog_handler.get_audit_log
+    handler: adya.core.services.auditlog_handler.get_audit_log
     events:
       - http:
           path: getauditlog
           method: get
           cors: true
   get-common-executescheduledreport:
-     handler: adya.core.services.lambda.reports_handler.execute_cron_report
+     handler: adya.core.services.reports_handler.execute_cron_report
 
   delete-common-scheduledreport:
-    handler: adya.core.services.lambda.reports_handler.delete_scheduled_report
+    handler: adya.core.services.reports_handler.delete_scheduled_report
     events:
       - http:
           path: scheduledreport
           method: delete
           cors: true
   get-common-runscheduledreport:
-    handler: adya.core.services.lambda.reports_handler.run_scheduled_report
+    handler: adya.core.services.reports_handler.run_scheduled_report
     events:
       - http:
           path: scheduledreport/runreport
           method: get
           cors: true
   put-common-modifyscheduledreport:
-    handler: adya.core.services.lambda.reports_handler.modify_scheduled_report
+    handler: adya.core.services.reports_handler.modify_scheduled_report
     events:
       - http:
           path: scheduledreport
           method: put
           cors: true
   get-common-getallactions:
-    handler: adya.core.services.lambda.actions_handler.get_all_actions
+    handler: adya.core.services.actions_handler.get_all_actions
     events:
       - http:
           path: getallactions
           method: get
           cors: true
   post-common-initiateaction:
-    handler: adya.core.services.lambda.actions_handler.initiate_action
+    handler: adya.core.services.actions_handler.initiate_action
     events:
       - http:
           path: initiateaction
@@ -269,7 +285,7 @@ functions:
           cors: true
 
   post-common-policies:
-    handler: adya.core.services.lambda.policy_handler.post_policy
+    handler: adya.core.services.policy_handler.post_policy
     events:
       - http:
           path: policies
@@ -277,7 +293,7 @@ functions:
           cors: true
 
   get-common-policies:
-    handler: adya.core.services.lambda.policy_handler.get_policies
+    handler: adya.core.services.policy_handler.get_policies
     events:
       - http:
           path: policies
@@ -285,7 +301,7 @@ functions:
           cors: true
 
   put-common-policies:
-    handler: adya.core.services.lambda.policy_handler.update_policy
+    handler: adya.core.services.policy_handler.update_policy
     events:
       - http:
           path: policies
@@ -293,7 +309,7 @@ functions:
           cors: true
 
   delete-common-policies:
-    handler: adya.core.services.lambda.policy_handler.delete_policy
+    handler: adya.core.services.policy_handler.delete_policy
     events:
       - http:
           path: policies
@@ -301,7 +317,7 @@ functions:
           cors: true
 
   post-common-policies-default:
-    handler: adya.core.services.lambda.policy_handler.create_default_policies
+    handler: adya.core.services.policy_handler.create_default_policies
     events:
       - http:
           path: policies/default
@@ -309,7 +325,7 @@ functions:
           cors: true        
   
   get-common-alerts:
-    handler: adya.core.services.lambda.alert_handler.get_alert
+    handler: adya.core.services.alert_handler.get_alert
     events:
       - http:
           path: alerts
@@ -317,7 +333,7 @@ functions:
           cors: true
 
   post-common-alerts:
-    handler: adya.core.services.lambda.alert_handler.post_alert
+    handler: adya.core.services.alert_handler.post_alert
     events:
       - http:
           path: alerts
@@ -325,7 +341,7 @@ functions:
           cors: true
   
   get-common-alerts-count:
-    handler: adya.core.services.lambda.alert_handler.get_alert_count
+    handler: adya.core.services.alert_handler.get_alert_count
     events:
       - http:
           path: alerts/count
@@ -333,7 +349,7 @@ functions:
           cors: true
 
   post-common-trustedentities:
-    handler: adya.core.services.lambda.domain_handler.post_trusted_entities
+    handler: adya.core.services.domain_handler.post_trusted_entities
     events:
       - http:
           path: trustedentities
@@ -341,9 +357,17 @@ functions:
           cors: true
 
   get-common-trustedentities:
-    handler: adya.core.services.lambda.domain_handler.get_trusted_entities
+    handler: adya.core.services.domain_handler.get_trusted_entities
     events:
       - http:
           path: trustedentities
+          method: get
+          cors: true
+
+  get-common-categoryexpenses:
+    handler: adya.core.services.app_handler.get_app_stats
+    events:
+      - http:
+          path: categoryexpenses
           method: get
           cors: true

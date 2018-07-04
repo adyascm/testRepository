@@ -1,6 +1,8 @@
 import os
 from enum import Enum
 
+from adya.common.constants import default_policies
+
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
@@ -15,6 +17,12 @@ DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
 DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
+ACTIVITY_DB_HOST = os.environ.get('ACTIVITY_DB_HOST', 'localhost')
+ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', 8086)
+ACTIVITY_DB_USERNAME = os.environ.get('ACTIVITY_DB_USERNAME', 'root')
+ACTIVITY_DB_PWD = os.environ.get('ACTIVITY_DB_PWD', 'root')
+ACTIVITY_DB_NAME = os.environ.get('ACTIVITY_DB_NAME', 'dev')
+
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 INTERNAL_SECRET = "dfskdjfsd-sdfkjsdhfsdfk-sdfksdf"
 
@@ -25,7 +33,7 @@ SUCCESS_STATUS_CODE = 200
 
 REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
-class ResourceExposureType(Enum):
+class EntityExposureType(Enum):
     PRIVATE = "PVT"
     INTERNAL = "INT"
     DOMAIN = "DOMAIN"
@@ -34,29 +42,12 @@ class ResourceExposureType(Enum):
     ANYONEWITHLINK = 'ANYONEWITHLINK'
     TRUSTED = 'TRUST'
 
-
-class PermissionType(Enum):
-    READ = "R"
-    WRITE = "W"
-
-
-class UserMemberType(Enum):
-    INTERNAL = "INT"
-    EXTERNAL = "EXT"
-    TRUSTED = 'TRUST'
-
-
-class GroupMemberType(Enum):
-    INTERNAL = "INT"
-    EXTERNAL = "EXT"
-
-
-class EmailType(Enum):
-    USER = 'user'
-    GROUP = 'group'
-    DOMAIN = 'domain'
-    ANYONE = 'anyone'
-
+class DirectoryEntityType(Enum):
+    USER = "USER"
+    GROUP = "GROUP"
+    CHANNEL = "CHANNEL"
+    BOT = "BOT"
+    ORGANIZATION = "ORGANIZATION"
 
 class Role(Enum):
     ORGANIZER = 'organizer'
@@ -64,13 +55,16 @@ class Role(Enum):
     WRITER = 'writer'
     COMMENTER = 'commenter'
     READER = 'reader'
+    ADMIN = 'admin'
 
 class ActionType(Enum):
     ADD = 'add'
     CHANGE = 'change'
     DELETE = 'delete'
 
-PAGE_LIMIT = 100
+PAGE_LIMIT = 50
+INVENTORY_APPS_PAGE_LIMIT = 10
+INSTALLED_APPS_PAGE_LIMIT = 50
 
 
 class PolicyConditionMatch(Enum):
@@ -81,6 +75,7 @@ class PolicyConditionMatch(Enum):
 
 class ResponseType(Enum):
     ERROR = 'error'
+    SUCCESS = 'success'
 
 
 class DocType(Enum):
@@ -102,7 +97,7 @@ class PolicyMatchType(Enum):
     APP_NAME = 'APP_NAME'
     APP_RISKINESS = 'APP_RISKINESS'
 
-class policyActionType(Enum):
+class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
 
 class TriggerType(Enum):
@@ -134,3 +129,23 @@ class GSuiteNotificationType(Enum):
 class ConnectorTypes(Enum):
     GSUITE = "GSUITE"
     SLACK = "SLACK"
+    GITHUB = "GITHUB"
+
+datasource_to_default_policy_map = {
+    ConnectorTypes.SLACK.value: default_policies.default_policies_slack,
+    ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
+}
+
+class BillingCycle(Enum):
+    MONTHLY = "MONTHLY"
+    YEARLY = "YEARLY"
+
+class PricingModel(Enum):
+    MONTHLY = "MONTHLY"
+    YEARLY = "YEARLY"
+
+datasource_to_installed_app_map = {
+    'GSUITE' : 'G Suite',
+    'SLACK' : 'Slack',
+    'GITHUB': 'Github'
+}

@@ -8,23 +8,22 @@ const UserStats = props => {
         return null;
     var stats = []
     var statTypes = Object.keys(props.userStats)
-    for (let index = 0; index < statTypes.length; index++) {
-        let statType = statTypes[index];
-        let statSubTypes = props.userStats[statTypes[index]];
-        var statSubTypesKeys = Object.keys(statSubTypes)
+    for (let index = 0; index < props.userStats.length; index++) {
+        let stat = props.userStats[index];
+        var statSubTypesKeys = Object.keys(stat.stats)
         var subTypeMenu = []
         for (let stIndex = 0; stIndex < statSubTypesKeys.length; stIndex++) {
             let statSubType = statSubTypesKeys[stIndex];
-            let statNumber = statSubTypes[statSubType];
+            let statNumber = stat.stats[statSubType]["count"];
             subTypeMenu.push((
-                <Menu.Item as='a' onClick={(event) => props.handleStatsClick(event,statType,statSubType)}>
+                <Menu.Item as='a' style={props.statSubType === stat.stats[statSubType]["value"] ? {'backgroundColor': 'lightgray'} : null} onClick={(event) => props.handleStatsClick(event,stat.field_name,statSubType,stat.stats[statSubType]["value"])}>
                     <Label key={index} color='blue'>{statNumber}</Label>
-                    {statSubType}
+                    <div style={props.statSubType === stat.stats[statSubType]["value"] ? {'color': 'blue'} : null} >{statSubType}</div>
                 </Menu.Item>
             ))
         }
         stats.push(<Menu.Item>
-            <Menu.Header>{statType}</Menu.Header>
+            <Menu.Header>{stat.display_name}</Menu.Header>
             <Menu.Menu>
                 {subTypeMenu}
             </Menu.Menu>

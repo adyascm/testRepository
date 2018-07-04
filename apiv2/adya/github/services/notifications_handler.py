@@ -1,0 +1,11 @@
+
+from adya.common.utils.request_session import RequestSession
+from adya.github.synchronizers import notifications_receiver
+
+def receive_github_notifications(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True)
+    if req_error:
+        return
+    notifications_receiver.receive_notification(req_session.get_auth_token(), req_session.get_body())
+    return req_session.generate_response(202) 

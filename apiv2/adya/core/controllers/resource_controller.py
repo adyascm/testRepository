@@ -6,7 +6,7 @@ from adya.common.db import db_utils
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain, DomainUser
 from adya.common.constants import constants
 
-def get_resources(auth_token, page_number, page_limit, user_emails=None, exposure_type='EXT', resource_type='None', prefix='',
+def get_resources(auth_token, page_number, page_limit, accessible_by=None, exposure_type='EXT', resource_type='None', prefix='',
                   owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None, datasource_id=None, source_type=None):
     if not auth_token:
         return None
@@ -25,106 +25,69 @@ def get_resources(auth_token, page_number, page_limit, user_emails=None, exposur
         domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user_domain_id).all()
         domain_datasource_ids = [r for r, in domain_datasource_ids]
     resources = []
-    selectedUser = None
     resource_alias = aliased(Resource)
     parent_alias = aliased(Resource)
     resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
-    if source_type or sort_column_name == "source_type":
-        if sort_column_name == "source_type" and sort_type == "desc":
-            if source_type != "":
-                resources_query = resources_query.filter(resource_alias.datasource_id == source_type).order_by(resource_alias.datasource_id.desc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.datasource_id.desc())
-        else:
-            if source_type != "":
-                resources_query = resources_query.filter(resource_alias.datasource_id == source_type).order_by(resource_alias.datasource_id.asc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.datasource_id.asc())
-    if user_emails:
-        users_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.email == user_emails)).all()
+    if source_type:
+        resources_query = resources_query.filter(resource_alias.datasource_id == source_type)
+    if accessible_by and not owner_email_id:
+        users_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.email == accessible_by)).all()
         parent_ids = []
         for user in users_info:
             for group in user.groups:
                 parent_ids.append(group.email)
 
-        email_list = parent_ids + user_emails
+        email_list = parent_ids + [accessible_by]
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
         resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
-        selectedUser = user_emails[0]
-    if selected_date or sort_column_name == 'last_modified_time':
-        if selected_date:
-            resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
-        if sort_column_name == 'last_modified_time':
-            if sort_type == 'desc':
-                resources_query = resources_query.order_by(resource_alias.last_modified_time.desc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.last_modified_time.asc())
-    if parent_folder or sort_column_name == 'parent_name':
-        if parent_folder:
-            resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
-        if sort_column_name == 'parent_name':
-            if sort_type == 'desc':
-                resources_query = resources_query.order_by(parent_alias.resource_name.desc())
-            else:
-                resources_query = resources_query.order_by(parent_alias.resource_name.asc())
-    if owner_email_id or sort_column_name == 'resource_owner_id':
-        if owner_email_id:
-            resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
-        if sort_column_name == 'resource_owner_id':
-            if sort_type == 'desc':
-                resources_query = resources_query.order_by(resource_alias.resource_owner_id.desc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.resource_owner_id.asc())
-    elif selectedUser:
-        resources_query = resources_query.filter(resource_alias.resource_owner_id != selectedUser)
-    if resource_type or sort_column_name == 'resource_type':
-        if resource_type:
-            resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
-        if sort_column_name == 'resource_type':
-            if sort_type == 'desc':
-                resources_query = resources_query.order_by(resource_alias.resource_type.desc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.resource_type.asc())
-    if exposure_type or sort_column_name == 'exposure_type':
-            if exposure_type:
-                resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
-            else:
-                if sort_type == 'desc':
-                    resources_query = resources_query.order_by(resource_alias.exposure_type.desc())
-                else:
-                    resources_query = resources_query.order_by(resource_alias.exposure_type.asc())
-    if prefix or sort_column_name == 'resource_name':
-        if prefix and sort_column_name == 'resource_name':
-            page_limit = 10
-            if sort_type == 'desc':
-                resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.desc())
-            else:
-                resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.asc())
-        elif prefix:
-            page_limit = 10
-            resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
-        else:
-            if sort_type == 'desc':
-                resources_query = resources_query.order_by(resource_alias.resource_name.desc())
-            else:
-                resources_query = resources_query.order_by(resource_alias.resource_name.asc())
-
+        resources_query = resources_query.filter(resource_alias.resource_owner_id != accessible_by)
+    if selected_date:
+        resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
+    if parent_folder:
+        resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
+    if owner_email_id:
+        resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner_email_id + "%"))
+            
+    if resource_type:
+        resources_query = resources_query.filter(resource_alias.resource_type == resource_type)
+    if exposure_type:
+        resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
+    if prefix :
+        resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%"))
     if not is_admin:
         resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
 
-    # if sort_column_name == 'resource_name':
-    #     if sort_type == 'desc':
-    #         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.desc())
-    #     else:
-    #         resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + prefix + "%")).order_by(resource_alias.resource_name.asc())
+    resources_query = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids))
+    if not sort_column_name:
+        sort_column_name = "last_modified_time"
 
-    resources = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids)).order_by(desc(resource_alias.last_modified_time)).offset(page_number * page_limit).limit(page_limit).all()
+    sort_column_obj = None
+    if sort_column_name == "last_modified_time":
+        sort_column_obj = resource_alias.last_modified_time
+    elif sort_column_name == "resource_owner_id":
+        sort_column_obj = resource_alias.resource_owner_id
+    elif sort_column_name == "resource_name":
+        sort_column_obj = resource_alias.resource_name
+    elif sort_column_name == "exposure_type":
+        sort_column_obj = resource_alias.exposure_type
+    elif sort_column_name == "resource_type":
+        sort_column_obj = resource_alias.resource_type
+    elif sort_column_name == "datasource_id":
+        sort_column_obj = resource_alias.datasource_id
+
+    if sort_column_obj:
+        if sort_type == "asc":
+            sort_column_obj = sort_column_obj.asc()
+        else:
+            sort_column_obj = sort_column_obj.desc()
+        resources_query = resources_query.order_by(sort_column_obj)
+
+    resources = resources_query.offset(page_number * page_limit).limit(page_limit).all()
     result = []
     for resource in resources:
         resource[0].parent_name = resource.resource_name
         result.append(resource[0])
     return result
-
 
 def search_resources(auth_token, prefix):
     if not auth_token:

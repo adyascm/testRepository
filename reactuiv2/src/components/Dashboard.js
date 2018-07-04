@@ -28,20 +28,21 @@ const mapDispatchToProps = dispatch => ({
 class Dashboard extends Component {
   constructor() {
     super();
-    this.simpleWidgetConfigs = [
-      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: ''}} },
-      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" , states: {users: {userShowHierarchy: true, userFilterType: 'ALL'}} },
+    this.statWidgets = [
+      { id: "usersCount", header: "Users", footer: "", renderType: "SimpleNumberWidget", link: "/users", states: {users: {listFilters: {type: {'text': 'USER', 'value': 'USER'}}}} },
+      { id: "groupsCount", header: "Groups", footer: "", renderType: "SimpleNumberWidget", link: "/users" , states: {users: {listFilters: {type: {'text': 'GROUP', 'value': 'GROUP'}}}} },
       { id: "filesCount", header: "Files", footer: "", renderType: "SimpleNumberWidget", link: "/resources" , states: {resources: {filterExposureType: '', filterResourceType: ''}} },
       { id: "foldersCount", header: "Folders", footer: "", renderType: "SimpleNumberWidget", link: "/resources", states: {resources: {filterExposureType: '', filterResourceType: 'folder'}}},
     ];
-    this.chartWidgetConfigs = [
+    this.exposureWidgets = [
       { id: "sharedDocsByType", header: "", footer: "Shared documents", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}},
-      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {scopeExposure: 0}}},
-      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}}
+      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {listFilters: {type: {'text': 'USER', 'value': 'USER'}, member_type: {'text': 'EXTERNAL', 'value': 'EXT'}}}}},
+      {id: "internalUserList", header: "Users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {listFilters: {type: {'text': 'USER', 'value': 'USER'}, member_type: {'text': 'INTERNAL', 'value': 'INT'}}}}},
+      { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}},
     ];
-    this.gridWidgetConfigs = [
-      { id: "externalUsersList", header: "External users with most access", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: 'EXT'}}},
-      {id: "internalUserList", header: "Users with most exposed documents", renderType: "ListWidget", link: "/users", states: {users: {userShowHierarchy: false, typeColumnFilterValue: 'INT'}}}
+    this.appWidgets = [
+      { id: "expensesByCategory", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {}},
+      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {scopeExposure: 0}}},
     ];
   }
 
@@ -54,30 +55,48 @@ class Dashboard extends Component {
       <Container fluid>
       <Card.Group itemsPerRow='4'>
           {
-            this.simpleWidgetConfigs.map(config => {
+            this.statWidgets.map(config => {
               return (
                 <SimpleNumberWidget key={config["id"]} config={config} />
               )
             })
           }
         </Card.Group>
-        <Card.Group itemsPerRow='3'>
+        <Card.Group itemsPerRow='4'>
           {
-            this.chartWidgetConfigs.map(config => {
-              return (
-                <ChartWidget key={config["id"]} config={config} />
-              )
+            this.exposureWidgets.map(config => {
+              if(config.renderType === "ChartWidget")
+              {
+                return (
+                  <ChartWidget key={config["id"]} config={config} />
+                )
+              }else if(config.renderType === "ListWidget"){
+                return (
+                  <ListWidget key={config["id"]} config={config} />
+                )
+              }
+              
             })
           }
         </Card.Group>
         <Card.Group itemsPerRow='2'>
           {
-            this.gridWidgetConfigs.map(config => {
-              return (
-                <ListWidget key={config["id"]} config={config} />
-              )
+            this.appWidgets.map(config => {
+              if(config.renderType === "ChartWidget")
+              {
+                return (
+                  <ChartWidget key={config["id"]} config={config} />
+                )
+              }else if(config.renderType === "ListWidget"){
+                return (
+                  <ListWidget key={config["id"]} config={config} />
+                )
+              }
             })
           }
+        </Card.Group>
+        <Card.Group itemsPerRow='2'>
+          
         </Card.Group>
       </Container>
     )

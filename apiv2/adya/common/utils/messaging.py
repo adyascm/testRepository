@@ -18,7 +18,7 @@ def send_push_notification(queue_name, string_payload):
     session.post(url=constants.REAL_TIME_URL, json=push_message)
 
 
-def trigger_get_event(endpoint, auth_token, query_params, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_get_event(endpoint, auth_token, query_params, service_name="core", trigger_type=constants.TriggerType.ASYNC.value):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -26,7 +26,7 @@ def trigger_get_event(endpoint, auth_token, query_params, service_name="core", t
         Logger().info("Making a GET request on the following url - " + str(endpoint))
         response = utils.get_call_with_authorization_header(
             session, endpoint, auth_token)
-        if trigger_type == constants.TriggerType.SYNC:
+        if trigger_type == constants.TriggerType.SYNC.value:
             api_response = response.result()
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
@@ -38,7 +38,7 @@ def trigger_get_event(endpoint, auth_token, query_params, service_name="core", t
     return result
 
 
-def trigger_post_event(endpoint, auth_token, query_params, body, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_post_event(endpoint, auth_token, query_params, body, service_name="core", trigger_type=constants.TriggerType.ASYNC.value):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -46,7 +46,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
         Logger().info("Making a POST request on the following url - " + str(endpoint))
         response = utils.post_call_with_authorization_header(
             session, endpoint, auth_token, body)
-        if trigger_type == constants.TriggerType.SYNC:
+        if trigger_type == constants.TriggerType.SYNC.value:
             api_response = response.result()
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
 
@@ -60,7 +60,7 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
             endpoint, auth_token, body, trigger_type)
     return result
 
-def trigger_post_event_with_headers(endpoint, auth_token, query_params, headers, body, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_post_event_with_headers(endpoint, auth_token, query_params, headers, body, service_name="core", trigger_type=constants.TriggerType.ASYNC.value):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -68,7 +68,7 @@ def trigger_post_event_with_headers(endpoint, auth_token, query_params, headers,
         Logger().info("Making a POST request on the following url - " + str(endpoint))
         response = utils.post_call_with_authorization_header(
             session, endpoint, auth_token, body, headers)
-        if trigger_type == constants.TriggerType.SYNC:
+        if trigger_type == constants.TriggerType.SYNC.value:
             api_response = response.result()
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
 
@@ -84,7 +84,7 @@ def trigger_post_event_with_headers(endpoint, auth_token, query_params, headers,
     return result
 
 
-def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_name="core", trigger_type=constants.TriggerType.ASYNC.value):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -92,7 +92,7 @@ def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_na
         Logger().info("Making a DELETE lambda invoke on the following function - " + str(endpoint))
         response = utils.delete_call_with_authorization_header(
             session, endpoint, auth_token, body)
-        if trigger_type == constants.TriggerType.SYNC:
+        if trigger_type == constants.TriggerType.SYNC.value:
             api_response = response.result()
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
@@ -104,7 +104,7 @@ def trigger_delete_event(endpoint, auth_token, query_params, body={}, service_na
     return result
 
 
-def trigger_update_event(endpoint, auth_token, query_params, body=None, service_name="core", trigger_type=constants.TriggerType.ASYNC):
+def trigger_update_event(endpoint, auth_token, query_params, body=None, service_name="core", trigger_type=constants.TriggerType.ASYNC.value):
     result = None
     if constants.DEPLOYMENT_ENV == 'local':
         session = FuturesSession()
@@ -112,7 +112,7 @@ def trigger_update_event(endpoint, auth_token, query_params, body=None, service_
         Logger().info("Making a UPDATE lambda invoke on the following function - " + str(endpoint))
         response = utils.update_call_with_authorization_header(
             session, endpoint, auth_token, body)
-        if trigger_type == constants.TriggerType.SYNC:
+        if trigger_type == constants.TriggerType.SYNC.value:
             api_response = response.result()
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
     else:
@@ -128,7 +128,7 @@ def _add_query_params_to_url(endpoint, query_params):
     query_string = ""
     if query_params:
         for qp in query_params.keys():
-            query_string = query_string + qp + "=" + query_params[qp] + "&"
+            query_string = query_string + qp + "=" + ("" if not query_params[qp] else str(query_params[qp])) + "&"
     if query_string:
         endpoint = endpoint + "?" + query_string[:-1]
     return endpoint

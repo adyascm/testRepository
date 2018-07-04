@@ -1,8 +1,13 @@
 import json
-from sqlalchemy import Column, Sequence, Integer, String, DateTime, BigInteger, ForeignKey, Boolean, Text, ForeignKeyConstraint, Float, and_
-from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
-from sqlalchemy.orm import relationship
 from datetime import date, datetime
+
+from sqlalchemy import (BigInteger, Boolean, Column, DateTime, Float,
+                        ForeignKey, ForeignKeyConstraint, Integer, Sequence,
+                        String, Text, and_)
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+from sqlalchemy.orm import relationship
+
+from adya.common.constants import constants
 
 Base = declarative_base()
 
@@ -40,6 +45,7 @@ def alchemy_encoder(fields_to_expand={"depth": 0}):
                 # a json-encodable dict
                 return fields
             return json.JSONEncoder.default(self, obj)
+
     return AlchemyEncoder
 
 
@@ -75,6 +81,7 @@ class DataSource(Base):
     datasource_id = Column(String(36), primary_key=True)
     display_name = Column(String(255))
     datasource_type = Column(String(50))
+    source_id = Column(String(255))
     creation_time = Column(DateTime)
     total_file_count = Column(BigInteger, default=0)
     processed_file_count = Column(BigInteger, default=0)
@@ -91,29 +98,103 @@ class DataSource(Base):
     is_dummy_datasource = Column(Boolean, default=False)
     is_async_delete = Column(Boolean, default=False)
 
+class DatasourceCredentials(Base):
+    __tablename__ = 'datasource_credentials'
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    credentials = Column(Text)
+    created_user = Column(String(320))
+
+class DatasourceScanners(Base):
+    __tablename__ = 'datasource_scanners'
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'), primary_key=True)
+    channel_id = Column(String(100), primary_key=True)
+    scanner_type = Column(String(50))
+    user_email = Column(String(255))
+    page_token = Column(String(225))
+    total_count = Column(BigInteger, default=0)
+    processed_count = Column(BigInteger, default=0)
+    in_progress = Column(Boolean)
+    stale = Column(Boolean)
+    query_status = Column(Integer, default=0)
+    process_status = Column(Integer, default=0)
+    started_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    expire_at = Column(DateTime)
+    resource_id = Column(String(255))
+    resource_uri = Column(String(255))
+
+class PushNotificationsSubscription(Base):
+    __tablename__ = 'push_notifications_subscription'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    datasource_id = Column(String(36), primary_key=True)
+    channel_id = Column(String(100), primary_key=True)
+    drive_root_id = Column(String(255))
+    user_email = Column(String(255))
+    page_token = Column(String(225))
+    in_progress = Column(Boolean)
+    stale = Column(Boolean)
+    last_accessed = Column(DateTime)
+    expire_at = Column(DateTime)
+    resource_id = Column(String(255))
+    resource_uri = Column(String(255))
+    notification_type = Column(String(30))
+
 
 class DomainUser(Base):
     __tablename__ = 'domain_user'
     datasource_id = Column(String(36), ForeignKey(
         'datasource.datasource_id'), primary_key=True)
     email = Column(String(320), primary_key=True)
+    type = Column(String(50), default=constants.DirectoryEntityType.USER.value)
     # we can't put constraint for firstname and lastname null
     # because if we get External user from other domain provider that might not have Names
     first_name = Column(String(255))
     last_name = Column(String(255))
     full_name = Column(String(255))
+    description = Column(Text)
     is_admin = Column(Boolean, default=False)
     creation_time = Column(DateTime)
+    last_updated = Column(DateTime)
     is_suspended = Column(Boolean, default=False)
-    primary_email = Column(String(320))
     user_id = Column(String(260))
     photo_url = Column(Text)
     aliases = Column(Text)
-    member_type = Column(String(6))
-    customer_id = Column(String(255))
-    
-    groups = relationship("DomainGroup", secondary="domain_directory_structure", primaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DomainUser.email==DirectoryStructure.member_email)", 
-    secondaryjoin="and_(DirectoryStructure.datasource_id==DomainGroup.datasource_id, DirectoryStructure.parent_email==DomainGroup.email)")
+    member_type = Column(String(50))
+    config = Column(Text)
+
+    groups = relationship("DomainUser", secondary="domain_directory_structure",
+                          primaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DomainUser.email==DirectoryStructure.member_email)",
+                          secondaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DirectoryStructure.parent_email==DomainUser.email)")
+
+
+class DirectoryStructure(Base):
+    __tablename__ = 'domain_directory_structure'
+    datasource_id = Column(String(36), primary_key=True)
+    parent_email = Column(String(320), primary_key=True)
+    member_email = Column(String(320), primary_key=True)
+    member_id = Column(String(260), nullable=False)
+    member_role = Column(String(10), nullable=False)
+    member_type = Column(String(10), nullable=False)
+    __table_args__ = (
+        ForeignKeyConstraint(['datasource_id', 'parent_email'], [
+            'domain_user.datasource_id', 'domain_user.email']),
+    )
+
+
+class DomainGroup(Base):
+    __tablename__ = 'domain_group'
+    datasource_id = Column(String(36), ForeignKey(
+        'datasource.datasource_id'), primary_key=True)
+    group_id = Column(String(260), nullable=False)
+    email = Column(String(320), primary_key=True)
+    name = Column(String(255))
+    direct_members_count = Column(Integer, default=0)
+    description = Column(Text)
+    include_all_user = Column(Boolean, default=False)
+    aliases = Column(Text)
+    is_external = Column(Boolean, default=False)
 
 
 class Resource(Base):
@@ -163,35 +244,6 @@ class ResourcePermission(Base):
     )
 
 
-class DomainGroup(Base):
-    __tablename__ = 'domain_group'
-    datasource_id = Column(String(36), ForeignKey(
-        'datasource.datasource_id'), primary_key=True)
-    group_id = Column(String(260), nullable=False)
-    email = Column(String(320), primary_key=True)
-    name = Column(String(255))
-    direct_members_count = Column(Integer, default=0)
-    description = Column(Text)
-    include_all_user = Column(Boolean, default=False)
-    aliases = Column(Text)
-    is_external = Column(Boolean, default=False)
-
-
-class DirectoryStructure(Base):
-    __tablename__ = 'domain_directory_structure'
-    datasource_id = Column(String(36), primary_key=True)
-    parent_email = Column(String(320), primary_key=True)
-    member_email = Column(String(320), primary_key=True)
-    member_id = Column(String(260), nullable=False)
-    member_role = Column(String(10), nullable=False)
-    member_type = Column(String(10), nullable=False)
-    __table_args__ = (
-        ForeignKeyConstraint(['datasource_id', 'parent_email'], [
-                         'domain_group.datasource_id', 'domain_group.email']),
-    )
-    
-
-
 class Report(Base):
     __tablename__ = 'report'
     domain_id = Column(String(255), ForeignKey('domain.domain_id'))
@@ -204,23 +256,6 @@ class Report(Base):
     creation_time = Column(DateTime)
     last_trigger_time = Column(DateTime)
     is_active = Column(Boolean, default=False)
-
-
-class PushNotificationsSubscription(Base):
-    __tablename__ = 'push_notifications_subscription'
-    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
-    datasource_id = Column(String(36), primary_key=True)
-    channel_id = Column(String(100), primary_key=True)
-    drive_root_id = Column(String(255))
-    user_email = Column(String(255))
-    page_token = Column(String(225))
-    in_progress = Column(Boolean)
-    stale = Column(Boolean)
-    last_accessed = Column(DateTime)
-    expire_at = Column(DateTime)
-    resource_id = Column(String(255))
-    resource_uri = Column(String(255))
-    notification_type = Column(String(30))
 
 
 class Action(Base):
@@ -250,26 +285,28 @@ class AuditLog(Base):
 
 class Application(Base):
     __tablename__ = 'application'
-    datasource_id = Column(String(36), ForeignKey(
-        'datasource.datasource_id'), primary_key=True)
-    client_id = Column(String(255), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    domain_id = Column(String(255), ForeignKey(
+        'domain.domain_id'))
     display_text = Column(String(255))
     anonymous = Column(Boolean, default=True)
     scopes = Column(Text)
     score = Column(Float)
     timestamp = Column(DateTime)
-
+    inventory_app_id = Column(Integer, ForeignKey('app_inventory.id'), nullable=True)
+    inventory_license_id = Column(Integer, nullable=True)
+    unit_num = Column(Integer)
+    unit_price = Column(Float)
+    pricing_model = Column(String(36), default = constants.PricingModel.MONTHLY.value)
+    billing_cycle = Column(String(36), default = constants.BillingCycle.MONTHLY.value)
+    purchased_date = Column(DateTime)
 
 class ApplicationUserAssociation(Base):
     __tablename__ = 'app_user_association'
-    datasource_id = Column(String(36), primary_key=True)
+    application_id = Column(Integer, ForeignKey('application.id'), primary_key=True)
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'), primary_key=True)
     client_id = Column(String(255), primary_key=True)
     user_email = Column(String(320), primary_key=True)
-    __table_args__ = (
-        ForeignKeyConstraint(['datasource_id', 'client_id'], [
-                         'application.datasource_id', 'application.client_id']),
-    )
-    
 
 
 def get_table(tablename):
@@ -277,8 +314,6 @@ def get_table(tablename):
         return Resource
     elif tablename == 'user':
         return DomainUser
-    elif tablename == 'group':
-        return DomainGroup
     elif tablename == 'directory_structure':
         return DirectoryStructure
     elif tablename == 'resource_permission':
@@ -288,11 +323,12 @@ def get_table(tablename):
     elif tablename == 'app_user_association':
         return ApplicationUserAssociation
 
+
 class Alert(Base):
-    __tablename__= 'alert'
+    __tablename__ = 'alert'
     alert_id = Column(String(255), primary_key=True)
     policy_id = Column(String(255), ForeignKey('policy.policy_id'))
-    datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'))
     name = Column(String(255))
     description_template = Column(Text)
     payload = Column(Text)
@@ -301,12 +337,12 @@ class Alert(Base):
     isOpen = Column(Boolean)
     last_updated = Column(DateTime)
     number_of_violations = Column(Integer)
-   
+
 
 class Policy(Base):
     __tablename__ = 'policy'
     policy_id = Column(String(255), primary_key=True)
-    datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
+    datasource_id = Column(String(36), ForeignKey('datasource.datasource_id'))
     name = Column(String(255))
     description = Column(String(255))
     trigger_type = Column(String(200), index=True)
@@ -316,7 +352,8 @@ class Policy(Base):
         "PolicyCondition", backref="policy")
     actions = relationship(
         "PolicyAction", backref="policy")
-    severity = Column(String(255), default="HIGH")   
+    severity = Column(String(255), default="HIGH")
+
 
 class PolicyCondition(Base):
     __tablename__ = 'policy_condition'
@@ -328,8 +365,9 @@ class PolicyCondition(Base):
     match_value = Column(String(255))
     __table_args__ = (
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
-                         'policy.datasource_id', 'policy.policy_id']),
+            'policy.datasource_id', 'policy.policy_id']),
     )
+
 
 class PolicyAction(Base):
     __tablename__ = 'policy_action'
@@ -340,16 +378,8 @@ class PolicyAction(Base):
     config = Column(Text)
     __table_args__ = (
         ForeignKeyConstraint(['datasource_id', 'policy_id'], [
-                         'policy.datasource_id', 'policy.policy_id']),
+            'policy.datasource_id', 'policy.policy_id']),
     )
-
-
-class DatasourceCredentials(Base):
-    __tablename__ = 'datasource_credentials'
-    datasource_id = Column(String(36), ForeignKey(
-        'datasource.datasource_id'), primary_key=True)
-    credentials = Column(Text)
-    created_user = Column(String(320))
 
 
 class TrustedEntities(Base):
@@ -359,3 +389,49 @@ class TrustedEntities(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     trusted_domains = Column(Text)
     trusted_apps = Column(Text)
+
+
+class AppInventory(Base):
+    __tablename__ = "app_inventory"
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    name = Column(String(255))
+    desc_name = Column(String(255))
+    description = Column(Text)
+    category = Column(String(255))
+    sub_category = Column(String(255))
+    sub_sub_category = Column(String(255))
+    rating = Column(Integer,default = 0)
+    image_url = Column(Text)
+    price_page_url = Column(Text)
+    publisher_name = Column(String(255))
+    publisher_url = Column(Text)
+    applications = relationship("Application", backref="inventory")
+
+class AppLicenseInventory(Base):
+    __tablename__ = "app_license_inventory"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255))
+    app_id = Column(Integer, ForeignKey('app_inventory.id'), nullable=True)
+    price = Column(Float,default=0.0) # in dollars
+    billing_cycle = Column(String(50))
+    max_users = Column(Integer,default=1)
+    custom_plan = Column(Boolean, default=False)
+    
+# class DefaultActivities(Base):
+#     __tablename__ = 'default_activities'
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     datasource_type = Column(String(50))
+#     activity_type = Column(String(255))
+#     display_name = Column(String(255))
+#     description = Column(Text)
+#     description_template = Column(Text)
+
+# class ActivitiesSettings(Base):
+#     __tablename__ = 'activities_settings'
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     default_activity_id = Column(Integer, ForeignKey('default_activities.id'))
+#     datasource_id = Column(String(255), ForeignKey('datasource.datasource_id'))
+#     is_enabled = Column(Boolean, default=False)
+#     last_updated = Column(DateTime)
+
+

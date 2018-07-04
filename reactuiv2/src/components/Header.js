@@ -35,20 +35,24 @@ const LoggedInView = props => {
                     <Menu.Item onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
-                    <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item>
+                    {/* <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item> */}
                 </Menu.Menu>
 
                 <Menu.Menu position='right'>
-                    <Menu.Item>
+                <Menu.Item >
+                {props.currentUser.first_name} ({props.currentUser.email})
+                </Menu.Item>
+                
+                    {/* <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
-                    </Menu.Item>
+                    </Menu.Item> */}
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
                         {!props.openAlertsCount ? null : <Label color='red' floating>{props.openAlertsCount}</Label>}
                         {/* {!props.openAlertsCount ? null : (<span style={{'marginLeft': '-12px', 'position': 'relative', 'top': '-5px', 'color': 'red'}}>{props.openAlertsCount}</span>)} */}
                     </Menu.Item>
                     <Menu.Item icon='settings' onClick={() => props.handleClick("/datasources")} active={props.currLocation === '/datasources'} />
-                    <Menu.Item icon position="right" onClick={props.onClickLogout} >{props.currentUser.first_name}  <Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
+                    <Menu.Item icon position="right" onClick={props.onClickLogout} ><Icon name='sign out' style={{ 'marginLeft': '6px'}}/></Menu.Item>
                 </Menu.Menu>
             </Container>
         );

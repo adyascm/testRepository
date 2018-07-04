@@ -1,6 +1,7 @@
 import logging
 import sys
 from adya.common.constants import constants
+import boto3
 
 
 class ResponseMessage():
@@ -36,6 +37,26 @@ class Logger:
 
         def exception(self, message):
             self.logger.exception("**Adya** " + message)
+            if not constants.DEPLOYMENT_ENV == "local":
+                session = boto3.Session()
+                ses_client = session.client('ses')
+                ses_client.send_email(
+                    Source='engg@adya.io',
+                    Destination={'ToAddresses': ["engg@adya.io"]},
+                    Message={
+                        'Subject': {
+                            'Data': "An exception occurred in - {}".format(constants.DEPLOYMENT_ENV)
+                        },
+                        'Body': {
+                            'Text': {
+                                'Data': "An exception occurred in - {}".format(constants.DEPLOYMENT_ENV)
+                            },
+                            'Html': {
+                                'Data': "Following exception occurred - {}".format(message)
+                            }
+                        }
+                    }
+                )
 
         def debug(self, message):
             self.logger.debug("**Adya** " + message)

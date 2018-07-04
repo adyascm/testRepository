@@ -20,21 +20,27 @@ class ActionNames(Enum):
     ADD_PERMISSION_FOR_A_FILE = "add_permission_for_a_File"
     NOTIFY_USER_FOR_CLEANUP = "notify_user_for_clean_up"
     REMOVE_USER_FROM_APP = "remove_user_from_app"
+    REMOVE_APP_FOR_DOMAIN = "remove_app_for_domain"
+    DELETE_REPOSITORY = "delete_repository"
+    REMOVE_MEMBER_FROM_ORGANIZATION = "remove_member_from_organization"
+    REMOVE_USER_AS_COLLABORATOR = "remove_user_as_collaborator"
+    REMOVE_EXTERNAL_USER_AS_COLLABORATOR = "remove_external_user_as_collaborator"
 
 class ActionStatus(Enum):
     STARTED = 'STARTED'
     SUCCESS = 'SUCCESS'
     FAILED = 'FAILED'
 
-connectors_to_action_path_mapping = {
-    ConnectorTypes.GSUITE : urls.ACTION_PATH,
-    ConnectorTypes.SLACK: urls.SLACK_ACTION_PATH
+connector_servicename_map = {
+    ConnectorTypes.GSUITE.value: 'gsuite',
+    ConnectorTypes.SLACK.value: 'slack',
+    ConnectorTypes.GITHUB.value: 'github'
 }
 
-connector_servicename_map = {
-    ConnectorTypes.GSUITE: 'gsuite',
-    ConnectorTypes.SLACK: 'slack'
-
+datasource_execute_action_map = {
+    ConnectorTypes.GSUITE.value: urls.EXECUTE_GSUITE_ACTION,
+    ConnectorTypes.SLACK.value: urls.EXECUTE_SLACK_ACTION,
+    ConnectorTypes.GITHUB.value: urls.EXECUTE_GITHUB_ACTION
 }
 
 

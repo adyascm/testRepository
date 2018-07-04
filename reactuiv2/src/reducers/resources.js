@@ -18,7 +18,7 @@ const defaultState = {
     rowData: undefined,
     resourceSearchPayload: undefined,
     action: undefined,
-    filterExposureType: 'EXT',
+    filterExposureType: '',
     filterResourceName: '',
     filterResourceType: '',
     filterEmailId: '',

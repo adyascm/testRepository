@@ -50,5 +50,11 @@ function authenticateSlack(scope, authtoken) {
       let popup = openPopup(url, "_blank");
       return listenForCredentials(popup);
     }
+  
+function authenticateGithub(authToken) {
+  var url = API_ROOT + "/github/oauthlogin?authToken=" + authToken
+  let popup = openPopup(url, "_blank")
+  return listenForCredentials(popup)
+}
 
-export default {authenticateGsuite, authenticateSlack}
+export default {authenticateGsuite, authenticateSlack, authenticateGithub}

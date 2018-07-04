@@ -82,7 +82,7 @@ class ResourceSearch extends Component {
 
             if (this.props.filterMetadata) {
                 this.props.filterMetadata['prefix'] = this.state.value
-                agent.Resources.getResourcesTree(this.props.filterMetadata).then(res => {
+                agent.Resources.getResources(this.props.filterMetadata).then(res => {
                     this.setState({
                         isLoading: false,
                         results: res,

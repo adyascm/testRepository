@@ -12,38 +12,44 @@ import {
     APPS_SEARCH_EMPTY,
     SET_REDIRECT_PROPS,
     UPDATE_APPS_DELETE_FLAG,
+    DELETE_APP_ACTION_LOAD,
     LOGOUT
-} from '../constants/actionTypes';
+}   from '../constants/actionTypes';
+
 
 const defaultState = {
-    appPayLoad: undefined,
     appsSearchPayload: undefined,
     appUsers: undefined,
-    isLoadingApps: false,
+    isLoadingApps:false,
     isLoadingAppUsers: false,
     isLoadingUserApps: false,
     appDetailsViewActive: false,
     selectedAppItem: undefined,
     appDeleted: false,
-    action: undefined
-  };
+    action: undefined,
+    lastPage:undefined,
+    appsPayload:undefined
+};
 
 export default (state = defaultState, action) => {
     switch (action.type) {
         case APPS_PAGE_LOAD_START:
-            return {
+            return{
                 ...state,
-                isLoadingApps: true,
-                selectedAppItem: undefined
+                isLoadingApps:true
             }
         case APPS_PAGE_LOADED:
-            let appPayLoad = !action.error?action.payload:[]
+            let payload = []
+            let lastPage = null
+            if(!action.error){
+                lastPage = action.payload.last_page ? action.payload.last_page : null
+                payload = action.payload.apps
+            }
             return {
                 ...state,
-                isLoadingApps: false,
-                appPayLoad: appPayLoad,
-                appsSearchPayload: undefined,
-                appDeleted: false
+                lastPage:lastPage,
+                isLoadingApps:false,
+                appsPayload: payload
             }
         case APPS_ITEM_SELECTED:
             return {
@@ -57,10 +63,10 @@ export default (state = defaultState, action) => {
                 appDeleted: action.payload
             }
         case USER_APPS_LOAD_START:
-        return {
-            ...state,
-            isLoadingUserApps: true,
-        }
+            return {
+                ...state,
+                isLoadingUserApps: true,
+            }
         case USER_APPS_LOADED:
             return {
                 ...state,
@@ -68,17 +74,16 @@ export default (state = defaultState, action) => {
                 userApps: action.error ? [] : action.payload
             }
         case APP_USERS_LOAD_START:
-        return {
-            ...state,
-            isLoadingAppUsers: true,
-        }
+            return {
+                ...state,
+                isLoadingAppUsers: true,
+            }
         case APP_USERS_LOADED:
-            if (action.payload.length === 0)
-                state.selectedAppItem = undefined
+            var users = action.error ? [] : action.payload
             return {
                 ...state,
                 isLoadingAppUsers:false,
-                appUsers: action.error ? [] : action.payload
+                appUsers: (state.selectedAppItem && action.appId === state.selectedAppItem.id) ? users : state.appUsers
             }
         case APPS_SEARCH_PAYLOAD:
             return {
@@ -97,13 +102,23 @@ export default (state = defaultState, action) => {
                 action: {
                     key: action.actionType,
                     user_email: action.email,
-                    client_id: action.clientId
+                    app_id: action.appId,
+                    datasource_id: action.datasourceId
                 }
             }
         case APPS_ACTION_CANCEL:
             return {
                 ...state,
                 action: undefined
+            }
+        case DELETE_APP_ACTION_LOAD:
+            return {
+                ...state,
+                action: {
+                    key: action.payload.actionType,
+                    app_id: action.payload.app_id,
+                    app_name: action.payload.app_name
+                }
             }
         case SET_REDIRECT_PROPS:
             var states = {};
@@ -118,12 +133,12 @@ export default (state = defaultState, action) => {
               ...state,
               currentUrl: action.redirectUrl,
               ...states
-            }
+            }     
         case LOGOUT:
             return {
-                ...defaultState,
+                ...defaultState
             }
         default:
-            return state;
+            return state
     }
 };

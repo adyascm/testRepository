@@ -7,7 +7,6 @@ google-auth-httplib2
 requests
 pymysql
 passlib
-enum
 flask-restful
 flask-cors
 sqlalchemy
@@ -18,3 +17,7 @@ pystache
 python-slugify
 python-dateutil
 slackclient
+enum34
+pylint
+pygithub
+influxdb

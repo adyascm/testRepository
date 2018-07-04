@@ -77,6 +77,8 @@ export default (state = defaultState, action) => {
             ds.logo = "/images/google_logo.png";
           else if (ds.datasource_type == "SLACK")
             ds.logo = "/images/slack_logo.jpeg";
+          else if (ds.datasource_type == "GITHUB")
+            ds.logo = "/images/github_logo.png"
           map[ds.datasource_id] = ds;
         }
       }
@@ -100,11 +102,10 @@ export default (state = defaultState, action) => {
         }
         var oldDS = state.datasources[currDatasourceIndex]
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
-          if (newDS.file_scan_status > oldDS.file_scan_status || newDS.total_file_count > oldDS.total_file_count
-            || newDS.processed_file_count > oldDS.processed_file_count
-            || newDS.user_scan_status > oldDS.user_scan_status || newDS.group_scan_status > oldDS.group_scan_status ||
-            newDS.total_group_count > oldDS.total_group_count || newDS.processed_group_count > oldDS.processed_group_count ||
-            newDS.total_user_count > oldDS.total_user_count || newDS.processed_user_count > oldDS.processed_user_count) {
+          if (newDS.processed_file_count > oldDS.processed_file_count
+            || newDS.processed_group_count > oldDS.processed_group_count 
+            || newDS.processed_user_count > oldDS.processed_user_count
+            || newDS.is_push_notifications_enabled > oldDS.is_push_notifications_enabled) {
             //state.datasources[0] = newDS;
             //state.datasourcesMap[newDS["datasource_id"]] = newDS
             state.datasources[currDatasourceIndex] = newDS
@@ -135,6 +136,8 @@ export default (state = defaultState, action) => {
             ds.logo = "/images/google_logo.png";
           else if (ds.datasource_type == "SLACK")
             ds.logo = "/images/slack_logo.jpeg";
+          else if (ds.datasource_type == "GITHUB")
+            ds.logo = "/images/github_logo.png"
           map[ds.datasource_id] = ds;
         }
       }
@@ -172,21 +175,21 @@ export default (state = defaultState, action) => {
         trustedEntities: action.error ? [] : action.payload,
         errorMessage: action.error
       };
-    // case USERS_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/users"
-    //   };
-    // case RESOURCES_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/resources"
-    //   };
-    // case APPS_PAGE_LOADED:
-    //   return {
-    //     ...state,
-    //     currentView: "/apps"
-    //   };
+    case USERS_PAGE_LOADED:
+      return {
+        ...state,
+        currentView: "/users"
+      };
+    case RESOURCES_PAGE_LOADED:
+      return {
+        ...state,
+        currentView: "/resources"
+      };
+    case APPS_PAGE_LOADED:
+      return {
+        ...state,
+        currentView: "/apps"
+      };
     case SET_REDIRECT_PROPS:
       var states = {};
       if (action.reducerStates) {

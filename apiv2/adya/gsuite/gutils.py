@@ -10,7 +10,7 @@ from sqlalchemy import Boolean
 
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainGroup, DomainUser
+from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants import constants
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
@@ -76,7 +76,7 @@ def get_delegated_credentials(emailid):
         SERVICE_OBJECT = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_SECRETS_FILE, SERVICE_ACCOUNT_SCOPE)
     credentials = SERVICE_OBJECT.create_delegated(emailid)
     http = credentials.authorize(httplib2.Http())
-    credentials.refresh(http)
+    #credentials.refresh(http)
     return credentials
 
 
@@ -150,16 +150,16 @@ def check_if_external_user(db_session, domain_id, email):
 
 
 def get_resource_exposure_type(permission_exposure, highest_exposure):
-    if permission_exposure == constants.ResourceExposureType.PUBLIC:
-        highest_exposure = constants.ResourceExposureType.PUBLIC
-    elif permission_exposure == constants.ResourceExposureType.ANYONEWITHLINK and not highest_exposure == constants.ResourceExposureType.PUBLIC:
-        highest_exposure = constants.ResourceExposureType.ANYONEWITHLINK
-    elif permission_exposure == constants.ResourceExposureType.EXTERNAL and not (highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.PUBLIC):
-        highest_exposure = constants.ResourceExposureType.EXTERNAL
-    elif permission_exposure == constants.ResourceExposureType.DOMAIN and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL):
-        highest_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (highest_exposure == constants.ResourceExposureType.PUBLIC or highest_exposure == constants.ResourceExposureType.ANYONEWITHLINK or highest_exposure == constants.ResourceExposureType.EXTERNAL or highest_exposure == constants.ResourceExposureType.DOMAIN):
-        highest_exposure = constants.ResourceExposureType.INTERNAL
+    if permission_exposure == constants.EntityExposureType.PUBLIC.value:
+        highest_exposure = constants.EntityExposureType.PUBLIC.value
+    elif permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value and not highest_exposure == constants.EntityExposureType.PUBLIC.value:
+        highest_exposure = constants.EntityExposureType.ANYONEWITHLINK.value
+    elif permission_exposure == constants.EntityExposureType.EXTERNAL.value and not (highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.PUBLIC.value):
+        highest_exposure = constants.EntityExposureType.EXTERNAL.value
+    elif permission_exposure == constants.EntityExposureType.DOMAIN.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value):
+        highest_exposure = constants.EntityExposureType.DOMAIN.value
+    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value or highest_exposure == constants.EntityExposureType.DOMAIN.value):
+        highest_exposure = constants.EntityExposureType.INTERNAL.value
     return highest_exposure
 
 

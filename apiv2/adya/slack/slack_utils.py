@@ -5,11 +5,11 @@ import uuid
 import datetime
 
 from enum import Enum
-
+import slack_constants
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
 
-from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials
+from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials, DatasourceScanners
 from slackclient import SlackClient
 
 from adya.common.utils import messaging
@@ -48,47 +48,48 @@ def check_for_admin_user(authtoken, user_id):
     return is_admin
 
 
-def create_datasource(auth_token, db_session, existing_user, payload):
+def create_datasource(auth_token, access_token, scopes, team_id, domain, email_domain_id):
+    now = datetime.datetime.utcnow()
+    db_session = db_connection().get_session()
+    login_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     datasource_id = str(uuid.uuid4())
     datasource = DataSource()
-    datasource.domain_id = existing_user.domain_id
+    datasource.domain_id = login_user.domain_id
     datasource.datasource_id = datasource_id
-
-    if payload.get("display_name"):
-        datasource.display_name = payload["display_name"]
-    else:
-        datasource.display_name = "Unnamed datasource"
-
-    datasource.creation_time = datetime.datetime.utcnow()
-    datasource.datasource_type = payload["datasource_type"]
-
+    datasource.display_name = domain
+    datasource.creation_time = now
+    datasource.is_push_notifications_enabled = 0
+    datasource.datasource_type = constants.ConnectorTypes.SLACK.value
+    datasource.source_id = team_id
     db_session.add(datasource)
     db_connection().commit()
 
+    datasource_credentials = DatasourceCredentials()
+    datasource_credentials.datasource_id = datasource.datasource_id
+    datasource_credentials.credentials = json.dumps({'team_id': team_id, 'domain_id': email_domain_id, 'domain_name': domain, 'authorize_scope_name': scopes, 'token': access_token})
+    datasource_credentials.created_user = login_user.email
+    db_session.add(datasource_credentials)
+    db_connection().commit()
+
     query_params = {"domainId": datasource.domain_id,
-                    "dataSourceId": datasource.datasource_id,
-                    }
-    messaging.trigger_post_event(urls.SCAN_SLACK_START, auth_token, query_params, {}, "slack")
+                            "dataSourceId": datasource.datasource_id,
+                            "userEmail": login_user.email}
+    messaging.trigger_get_event(urls.SCAN_SLACK_UPDATE, auth_token, query_params, "slack")
+            
     return datasource
 
-
 def get_resource_exposure_type(permission_exposure, resource_exposure):
-    if permission_exposure == constants.ResourceExposureType.ANYONEWITHLINK:
+    if permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value:
         return permission_exposure
-    if permission_exposure == constants.ResourceExposureType.EXTERNAL and not(resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK):
-        resource_exposure = constants.ResourceExposureType.EXTERNAL
-    if permission_exposure == constants.ResourceExposureType.DOMAIN and not (resource_exposure == constants.ResourceExposureType.EXTERNAL or
-                                                                                     resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK):
-        resource_exposure = constants.ResourceExposureType.DOMAIN
-    elif permission_exposure == constants.ResourceExposureType.INTERNAL and not (resource_exposure == constants.ResourceExposureType.EXTERNAL or
-            resource_exposure == constants.ResourceExposureType.ANYONEWITHLINK or resource_exposure == constants.ResourceExposureType.DOMAIN):
-        resource_exposure = constants.ResourceExposureType.INTERNAL
+    if permission_exposure == constants.EntityExposureType.EXTERNAL.value and not(resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value):
+        resource_exposure = constants.EntityExposureType.EXTERNAL.value
+    if permission_exposure == constants.EntityExposureType.DOMAIN.value and not (resource_exposure == constants.EntityExposureType.EXTERNAL.value or
+                                                                                     resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value):
+        resource_exposure = constants.EntityExposureType.DOMAIN.value
+    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (resource_exposure == constants.EntityExposureType.EXTERNAL.value or
+            resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or resource_exposure == constants.EntityExposureType.DOMAIN.value):
+        resource_exposure = constants.EntityExposureType.INTERNAL.value
     return resource_exposure
-
-
-class AppChangedTypes(Enum):
-    ADDED = "added"
-    REMOVED = "removed"
 
 
 def get_app_score(scopes):

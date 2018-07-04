@@ -111,17 +111,13 @@ class GsuiteDataSourceItem extends Component {
             if (datasource.total_file_count === 0)
                 percent = 0;
             var statusText = "Scan is in progress. Please wait for it to complete."
-            var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files/folders " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
+            var statusCount = "Scanned " + datasource.processed_file_count + " documents, " + datasource.processed_group_count + " groups, and " + datasource.processed_user_count + " users"
             var pollIcon = null;
-            var status = common.DataSourceUtils.getScanStatus(datasource);
-            var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
-            if (status == 'error') {
-                statusText = "Scan has failed. Please delete and try again."
-                progressBar = (<Progress size='small' precision='0' percent={percent} error />);
-            }
-            else if (status == 'success') {
+            // var status = common.DataSourceUtils.getScanStatus(datasource);
+            // var progressBar = (<Progress size='small' precision='0' percent={percent} />);
+            if (datasource.is_push_notifications_enabled) {
                 statusText = "Scan is complete."
-                progressBar = (<Progress size='small' precision='0' percent={percent} success />);
+                //progressBar = (<Progress size='small' precision='0' percent={percent} success />);
                 pollIcon = <Button style={{ margin: "5px" }} circular basic icon='refresh' onClick={this.onPollChanges(datasource)} />;
             }
 
@@ -141,7 +137,7 @@ class GsuiteDataSourceItem extends Component {
                             {pollIcon}
                         </Card.Header>
                         <Card.Meta textAlign='right'>
-                            Created on: <strong><IntlProvider locale='en'  >
+                            Connected on: <IntlProvider locale='en'  >
                                 <FormattedDate
                                     value={new Date(datasource.creation_time)}
                                     year='numeric'
@@ -152,18 +148,18 @@ class GsuiteDataSourceItem extends Component {
                                     second='2-digit'
                                 />
                             </IntlProvider>
-                            </strong>
                         </Card.Meta>
                         <Card.Description>
                             {statusCount}
-                            {progressBar}
-                            {statusText}
+                            {/* {progressBar} */}
+                            <Header as='h5'>{statusText}</Header>
+                            
                         </Card.Description>
                     </Card.Content>
                     <Card.Content extra>
                         <div className='ui buttons'>
                             <Button basic color='red' loading={this.state.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
-                            {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
+                            {datasource.is_push_notifications_enabled ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
                         </div>
                     </Card.Content>
                 </Card>

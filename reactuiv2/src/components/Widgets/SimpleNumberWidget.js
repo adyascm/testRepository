@@ -41,7 +41,7 @@ class SimpleNumberWidget extends Component {
                 return (
                     <Card onClick={data > 0 ? this.widgetClick : null} >
                         <Card.Content>
-                            <Statistic label={this.props.config.header} value={data} />
+                            <Statistic horizontal size="mini" label={this.props.config.header} value={data} />
                         </Card.Content>
                         <Card.Content extra>
                         </Card.Content>

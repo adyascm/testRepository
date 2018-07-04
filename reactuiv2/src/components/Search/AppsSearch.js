@@ -22,8 +22,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: APPS_ITEM_SELECTED, payload }),
     appUsersLoadStart: () =>
         dispatch({ type: APP_USERS_LOAD_START }),
-    appUsersLoaded: (payload) =>
-        dispatch({ type: APP_USERS_LOADED, payload }),
+    appUsersLoaded: (appId, payload) =>
+        dispatch({ type: APP_USERS_LOADED, appId: appId, payload: payload }),
     setAppsSearchResults: (payload) =>
         dispatch({ type: APPS_SEARCH_PAYLOAD, payload }),
     onSearchEmpty: () =>
@@ -94,7 +94,7 @@ class AppsSearch extends Component {
         this.props.setAppsSearchResults(this.state.results)
         this.props.selectAppItem(result)
         this.props.appUsersLoadStart()
-        this.props.appUsersLoaded(agent.Apps.getappusers(result.client_id, result.datasource_id))
+        this.props.appUsersLoaded(result.id, agent.Apps.getappusers(result.id, result.domain_id))
         this.setState({
             value: result.display_text,
             hideSearchMenu: true,

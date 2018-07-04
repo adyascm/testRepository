@@ -9,7 +9,6 @@ import {
     USER_APPS_LOADED
 } from '../../constants/actionTypes';
 
-
 const mapStateToProps = state => ({
     ...state.apps,
     ...state.common,
@@ -76,7 +75,7 @@ class UserApps extends Component {
                             <Grid.Column width={2}>
                                 <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
                                     basic color='red'
-                                    onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email)}>
+                                    onClick={(event) => this.props.handleAppAccessRevokeClick(event,application,selectedUser.email,ds.datasource_id)}>
                                     <Button.Content hidden>Remove</Button.Content>
                                     <Button.Content visible>
                                         <Icon name='remove' />

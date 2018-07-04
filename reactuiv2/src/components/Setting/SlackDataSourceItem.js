@@ -20,7 +20,7 @@ import {
 } from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
-  ...state.common
+    ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -32,10 +32,10 @@ const mapDispatchToProps = dispatch => ({
     },
     onDataSourceLoad: () =>
         dispatch({ type: DATASOURCE_LOAD_START }),
-   onDataSourceLoadError: () =>
-          dispatch({ type: DATASOURCE_LOAD_END }),
-   displayErrorMessage: (error) =>
-          dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] }),
+    onDataSourceLoadError: () =>
+        dispatch({ type: DATASOURCE_LOAD_END }),
+    displayErrorMessage: (error) =>
+        dispatch({ type: ASYNC_END, errors: error.message ? error.message : error['Failed'] }),
     goToDashboard: (url) =>
         dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url }),
     setDataSources: (datasources) =>
@@ -43,14 +43,14 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class SlackDataSourceItem extends Component {
-  constructor() {
-      super();
+    constructor() {
+        super();
 
-      this.state = {
-          datasourceLoading: false
-      }
+        this.state = {
+            datasourceLoading: false
+        }
 
-      this.addNewDatasource = (datasourceName, datasorceType) => ev => {
+        this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
             this.setState({
                 datasourceLoading: true
@@ -62,125 +62,120 @@ class SlackDataSourceItem extends Component {
                     datasourceLoading: false
                 })
             }).catch(({ errors }) => {
-            this.props.onDataSourceLoadError()
-            this.props.displayErrorMessage(errors)
-            this.setState({
-                datasourceLoading: false
-            })
+                this.props.onDataSourceLoadError()
+                this.props.displayErrorMessage(errors)
+                this.setState({
+                    datasourceLoading: false
+                })
             });
-      };
+        };
 
-      this.deleteDataSource = (datasource) => ev => {
-          ev.preventDefault();
-          this.setState({
-            datasourceLoading: true
-          })
-          //this.props.onDeleteDataSource(datasource);
-          agent.Setting.deleteDataSource(datasource).then(res => {
-              this.props.setDataSources(agent.Setting.getDataSources());
-              this.setState({
-                datasourceLoading: false
-              })
-          });
-      };
+        this.deleteDataSource = (datasource) => ev => {
+            ev.preventDefault();
+            this.setState({
+                datasourceLoading: true
+            })
+            //this.props.onDeleteDataSource(datasource);
+            agent.Setting.deleteDataSource(datasource).then(res => {
+                this.props.setDataSources(agent.Setting.getDataSources());
+                this.setState({
+                    datasourceLoading: false
+                })
+            });
+        };
 
-      this.handleClick = () => ev => {
-          ev.preventDefault();
-          this.props.goToDashboard("/")
-          this.props.history.push("/")
-      };
-  }
+        this.handleClick = () => ev => {
+            ev.preventDefault();
+            this.props.goToDashboard("/")
+            this.props.history.push("/")
+        };
+    }
 
 
     render() {
 
-    const datasource = this.props.item;
+        const datasource = this.props.item;
 
-    if (datasource && datasource.datasource_id) {
+        if (datasource && datasource.datasource_id) {
 
-      var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
-      if (datasource.total_file_count === 0)
-          percent = 0;
-      var statusText = "Scan is in progress. Please wait for it to complete."
-      var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_group_count + "/" + datasource.total_group_count + " groups/channels " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
-      var pollIcon = null;
-      var status = common.DataSourceUtils.getScanStatus(datasource);
-      var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
-      if (status == 'error') {
-          statusText = "Scan has failed. Please delete and try again."
-          progressBar = (<Progress size='small' precision='0' percent={percent} error />);
-      }
-      else if (status == 'success') {
-          statusText = "Scan is complete."
-          progressBar = (<Progress size='small' precision='0' percent={percent} success />);
-      }
-      var datasourceImage = <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
-      return (
-          <Card fluid >
-              <Dimmer active={this.state.datasourceLoading} inverted>
-                  <Loader inverted content='Deleting...' />
-              </Dimmer>
-              <Card.Content>
-                  {datasourceImage}
-                  <Card.Header textAlign='right'>
-                      {datasource.display_name}
-                      {pollIcon}
-                  </Card.Header>
-                  <Card.Meta textAlign='right'>
-                      Created on: <strong><IntlProvider locale='en'  >
-                          <FormattedDate
-                              value={new Date(datasource.creation_time)}
-                              year='numeric'
-                              month='long'
-                              day='2-digit'
-                              hour='2-digit'
-                              minute='2-digit'
-                              second='2-digit'
-                          />
-                      </IntlProvider>
-                      </strong>
-                  </Card.Meta>
-                  <Card.Description>
-                      {statusCount}
-                      {progressBar}
-                      {statusText}
-                  </Card.Description>
-              </Card.Content>
-              <Card.Content extra>
-                  <div className='ui buttons'>
-                      <Button basic color='red' loading={this.state.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
-                      {status == 'success' ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
-                  </div>
-              </Card.Content>
-          </Card>
-      );
+            var percent = ((datasource.processed_file_count / datasource.total_file_count) * 100)
+            if (datasource.total_file_count === 0)
+                percent = 0;
+            var statusText = "Scan is in progress. Please wait for it to complete."
+            var statusCount = "Scanned " + datasource.processed_file_count + " files, " + datasource.processed_group_count + " groups/channels and " + datasource.processed_user_count + " users"
+            var pollIcon = null;
+            //   var status = common.DataSourceUtils.getScanStatus(datasource);
+            //   var progressBar = (<Progress size='small' precision='0' percent={percent} active />);
+            if (datasource.is_push_notifications_enabled) {
+                statusText = "Scan is complete."
+            }
+            var datasourceImage = <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
+            return (
+                <Card fluid >
+                    <Dimmer active={this.state.datasourceLoading} inverted>
+                        <Loader inverted content='Deleting...' />
+                    </Dimmer>
+                    <Card.Content>
+                        {datasourceImage}
+                        <Card.Header textAlign='right'>
+                            {datasource.display_name}
+                            {pollIcon}
+                        </Card.Header>
+                        <Card.Meta textAlign='right'>
+                            Created on: <strong><IntlProvider locale='en'  >
+                                <FormattedDate
+                                    value={new Date(datasource.creation_time)}
+                                    year='numeric'
+                                    month='long'
+                                    day='2-digit'
+                                    hour='2-digit'
+                                    minute='2-digit'
+                                    second='2-digit'
+                                />
+                            </IntlProvider>
+                            </strong>
+                        </Card.Meta>
+                        <Card.Description>
+                            {statusCount}
+                            {/* {progressBar} */}
+                            <Header as='h5'>{statusText}</Header>
+                        </Card.Description>
+                    </Card.Content>
+                    <Card.Content extra>
+                        <div className='ui buttons'>
+                            <Button basic color='red' loading={this.state.datasourceLoading} onClick={this.deleteDataSource(datasource)}>Delete</Button>
+                            {datasource.is_push_notifications_enabled ? (<Button basic color='green' style={{ marginLeft: '5px' }} onClick={this.handleClick()} >Go To Dashboard</Button>) : null}
+                        </div>
+                    </Card.Content>
+                </Card>
+            );
 
 
+        }
+        else {
+            var header = (<Header>Adya for Slack </Header>);
+            var detail = (<Container>
+                Learn more about Adya for slack <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
+            </Container>)
+
+            return (
+                <Card>
+                    <Card.Content>
+                        {header}
+                        <Card.Description>
+                            <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
+                            {detail}
+                        </Card.Description>
+                    </Card.Content>
+                    <Card.Content extra>
+                        <div className='ui buttons'>
+                            <Button basic color='green' onClick={this.addNewDatasource()} loading={this.state.datasourceLoading}>Connect</Button>
+                        </div>
+                    </Card.Content>
+                </Card>
+            )
+        }
     }
-    else{
-        var header = (<Header>Adya for Slack </Header>);
-        var detail = (<Container>
-            Learn more about Adya for slack <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
-        </Container>)
-
-        return (
-            <Card>
-                <Card.Content>
-                    {header}
-                    <Card.Description>
-                        <Image floated='left' size='mini' src='/images/slack_logo.jpeg' />
-                        {detail}
-                    </Card.Description>
-                </Card.Content>
-                <Card.Content extra>
-                    <div className='ui buttons'>
-                        <Button basic color='green' onClick={this.addNewDatasource()} loading={this.state.datasourceLoading}>Connect</Button>
-                    </div>
-                </Card.Content>
-            </Card>
-        )
-    }
-  }
 };
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SlackDataSourceItem));

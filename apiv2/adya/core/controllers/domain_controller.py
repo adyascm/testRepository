@@ -9,12 +9,12 @@ from adya.common.utils.response_messages import Logger
 from adya.common.utils import utils, messaging
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, DomainGroup, \
+from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStructure, \
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
     Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
-    Alert, DatasourceCredentials
+    Alert, DatasourceCredentials, DatasourceScanners
 
-from adya.gsuite import gutils
+from adya.gsuite import gutils, gsuite_constants
 
 
 def get_datasource(auth_token, datasource_id=None, db_session=None):
@@ -39,6 +39,7 @@ def create_datasource(auth_token, payload):
         LoginUser.auth_token == auth_token).first()
     if existing_user:
         datasource = DataSource()
+        datasource.is_push_notifications_enabled = 0
         datasource.domain_id = existing_user.domain_id
         datasource.datasource_id = datasource_id
         datasource.is_dummy_datasource = True if payload.get(
@@ -82,74 +83,96 @@ def create_datasource(auth_token, payload):
                 db_session, existing_user.domain_id, datasource_id)
         else:
             Logger().info("Starting the scan")
-            query_params = {"isAdmin": str(is_admin_user), "domainId": datasource.domain_id,
+            query_params = {"domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id,
-                            "serviceAccountEnabled": str(datasource.is_serviceaccount_enabled)}
-            messaging.trigger_post_event(urls.SCAN_START, auth_token, query_params, {}, "gsuite")
-            print "Received the response of start scan api"
+                            "userEmail": existing_user.email}
+            messaging.trigger_get_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, "gsuite")
+            
+    
         return datasource
     else:
         return None
 
 
-def async_delete_datasource(auth_token, datasource_id):
+def async_delete_datasource(auth_token, datasource_id, complete_delete):
+    complete_delete = complete_delete if complete_delete else 1
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
     try:
+        app_name = constants.datasource_to_installed_app_map[existing_datasource.datasource_type]
+        
         db_session.query(DirectoryStructure).filter(
             DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(DomainGroup).filter(
-            DomainGroup.datasource_id == datasource_id).delete(synchronize_session=False)
         db_session.query(ResourcePermission).filter(
             ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
         db_session.query(Resource).filter(
             Resource.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(ApplicationUserAssociation).filter(
-            ApplicationUserAssociation.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(Application).filter(
-            Application.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(AuditLog).filter(
-            AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
+        app_query = db_session.query(ApplicationUserAssociation).filter(
+            ApplicationUserAssociation.datasource_id == datasource_id)
+        app_ids = [r.application_id for r in app_query.all()]
+        app_query.delete(synchronize_session=False) 
+        try:
+            db_session.query(Application).filter(Application.id.in_(app_ids)).delete(synchronize_session=False)
+            # delete app wrt to datasource
+            db_session.query(Application).filter(Application.display_text == app_name).delete(synchronize_session=False)
+        except:
+            Logger().exception('App is present corresponding to other datasource')    
+        
         db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
                                                                datasource_id).delete(synchronize_session=False)
         db_session.query(DomainUser).filter(
             DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
 
-        db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
-        # Delete Alert
-        db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
-        #Delete Policies
-        db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-        db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-        db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-
-        db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
-        db_session.delete(existing_datasource)
+        db_session.query(DatasourceScanners).filter(DatasourceScanners.datasource_id == datasource_id).delete(synchronize_session= False)
+        #If its not complete delete, then just clear out the scan entities, and reset the scan state 
+        if complete_delete:
+            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
+            db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
+            db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
+            #Delete Policies
+            db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+            db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+            db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
+            
+            db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
+            db_session.delete(existing_datasource)
+        else:
+            existing_datasource.processed_file_count = 0
+            existing_datasource.processed_group_count = 0
+            existing_datasource.processed_user_count = 0
+            existing_datasource.total_file_count = 0
+            existing_datasource.total_group_count = 0
+            existing_datasource.total_user_count = 0
+            existing_datasource.file_scan_status = 0
+            existing_datasource.group_scan_status = 0
+            existing_datasource.user_scan_status = 0
+            existing_datasource.is_push_notifications_enabled = 0
         db_connection().commit()
         Logger().info("Datasource deleted successfully")
-    except Exception as ex:
-        Logger().exception("Exception occurred during datasource data delete - ")
+    except:
+        Logger().exception("Exception occurred during datasource data delete")
 
 
-def delete_datasource(auth_token, datasource_id):
+def delete_datasource(auth_token, datasource_id, complete_delete):
+    complete_delete = complete_delete if complete_delete else 1
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
-    domain_id = existing_datasource.domain_id
     if existing_datasource:
-        db_session.query(DataSource).filter(
-            DataSource.datasource_id == datasource_id).update({"is_async_delete": True})
-        db_connection().commit()
-        query_params = {"datasourceId": datasource_id}
-        messaging.trigger_delete_event(
-            urls.ASYNC_DELETE_DATASOURCE_PATH, auth_token, query_params)
+        if complete_delete:
+            db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({"is_async_delete": True})
+            db_connection().commit()
+        query_params = {"datasourceId": datasource_id, "completeDelete": complete_delete}
+        messaging.trigger_delete_event(urls.ASYNC_DELETE_DATASOURCE_PATH, auth_token, query_params)
 
-        try:
-            gutils.revoke_appaccess(
-                auth_token, user_email=None, db_session=db_session)
-        except Exception as ex:
-            Logger().exception("Exception occurred while revoking the app access")
+        #Revoke the token only when its an GSuite App
+        if existing_datasource.datasource_type == constants.ConnectorTypes.GSUITE.value and complete_delete:
+            try:
+                gutils.revoke_appaccess(
+                    auth_token, user_email=None, db_session=db_session)
+            except:
+                Logger().exception("Exception occurred while revoking the app access")
 
 
 def create_dummy_datasource(db_session, domain_id, datasource_id):
@@ -193,16 +216,14 @@ def update_datasource_column_count(db_session, domain_id, datasource_id):
     datasouorce = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
     filecount = db_session.query(Resource.resource_id).distinct(Resource.resource_id). \
         filter(Resource.datasource_id == datasource_id).count()
-    group_count = db_session.query(DomainGroup).distinct(DomainGroup.group_id). \
-        filter(DomainGroup.datasource_id == datasource_id).count()
     user_count = db_session.query(DomainUser).distinct(DomainUser.user_id). \
         filter(DomainUser.datasource_id == datasource_id).count()
     datasouorce.total_file_count = filecount
     datasouorce.processed_file_count = filecount
     datasouorce.file_scan_status = user_count
 
-    datasouorce.total_group_count = group_count
-    datasouorce.processed_group_count = group_count
+    datasouorce.total_group_count = 1
+    datasouorce.processed_group_count = 1
     datasouorce.group_scan_status = 1
 
     datasouorce.total_user_count = user_count
@@ -256,12 +277,12 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
 
         if len(add_domains) > 0:
             for new_trusted_domain in add_domains:
-                update_data_for_trusted_domains(db_session, datasource_ids, new_trusted_domain)
+                utils.update_data_for_trusted_domains(db_session, datasource_ids, new_trusted_domain)
 
         if len(add_apps) > 0:
             for apps_name in add_apps:
                 db_session.query(Application).filter(
-                    and_(Application.datasource_id.in_(datasource_ids), Application.display_text == apps_name)) \
+                    and_(Application.id == ApplicationUserAssociation.application_id, ApplicationUserAssociation.datasource_id.in_(datasource_ids), Application.display_text == apps_name)) \
                     .update({Application.score: 0})
 
         if get_entities_for_domain:
@@ -315,29 +336,29 @@ def delete_trusted_entities_for_domain(auth_token, domain_id, domain_name=None, 
 
     if domain_name:
         db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
-                                                 DomainUser.member_type == constants.UserMemberType.TRUSTED)). \
+                                                 DomainUser.member_type == constants.EntityExposureType.TRUSTED.value)). \
             filter(DomainUser.email.endswith("%{0}".format(domain_name))).update(
-            {DomainUser.member_type: constants.UserMemberType.EXTERNAL}
+            {DomainUser.member_type: constants.EntityExposureType.EXTERNAL.value}
             , synchronize_session='fetch')
 
         resource_perms = db_session.query(ResourcePermission).filter(
             and_(ResourcePermission.datasource_id.in_(domain_datasource_ids),
-                 ResourcePermission.exposure_type == constants.ResourceExposureType.TRUSTED)). \
+                 ResourcePermission.exposure_type == constants.EntityExposureType.TRUSTED.value)). \
             filter(ResourcePermission.email.endswith("%{0}".format(domain_name))).all()
 
         resource_ids = set()
         for perms in resource_perms:
             resource_ids.add(perms.resource_id)
-            perms.exposure_type = constants.ResourceExposureType.EXTERNAL
+            perms.exposure_type = constants.EntityExposureType.EXTERNAL.value
 
         db_session.query(Resource).filter(
             and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.exposure_type ==
-                 constants.ResourceExposureType.TRUSTED)).filter(Resource.resource_id.in_(resource_ids)). \
-            update({Resource.exposure_type: constants.ResourceExposureType.EXTERNAL}, synchronize_session='fetch')
+                 constants.EntityExposureType.TRUSTED.value)).filter(Resource.resource_id.in_(resource_ids)). \
+            update({Resource.exposure_type: constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
 
     elif app_name:
         apps_info = db_session.query(Application).filter(
-            and_(Application.datasource_id.in_(domain_datasource_ids), Application.display_text ==
+            and_(Application.domain_id == domain_id, Application.display_text ==
                  app_name)).all()
 
         for apps in apps_info:
@@ -347,32 +368,3 @@ def delete_trusted_entities_for_domain(auth_token, domain_id, domain_name=None, 
     db_connection().commit()
 
 
-def update_data_for_trusted_domains(db_session, datasource_ids, new_trusted_domain):
-    # update the domain user table ; make the user as trusted if he belongs to given trusted domain
-    db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids),
-                                             DomainUser.email.endswith("%{0}".format(new_trusted_domain)))). \
-        update({DomainUser.member_type: constants.UserMemberType.TRUSTED}
-               , synchronize_session='fetch')
-
-    resource_perms = db_session.query(ResourcePermission).filter(
-        and_(ResourcePermission.datasource_id.in_(datasource_ids),
-             ResourcePermission.email.endswith(
-                 "%{0}".format(new_trusted_domain)))).all()
-
-    resource_ids = set()
-    for perm in resource_perms:
-        perm.exposure_type = constants.ResourceExposureType.TRUSTED
-        resource_ids.add(perm.resource_id)
-
-    db_connection().commit()
-
-    for resource_id in resource_ids:
-        external_permission_check = db_session.query(ResourcePermission).filter(
-            and_(ResourcePermission.datasource_id.in_(datasource_ids),
-                 ResourcePermission.resource_id == resource_id,
-                 ResourcePermission.exposure_type == constants.ResourceExposureType.EXTERNAL)).count()
-
-        if external_permission_check <= 0:
-            db_session.query(Resource).filter(
-                and_(Resource.datasource_id.in_(datasource_ids), Resource.resource_id == resource_id)). \
-                update({Resource.exposure_type: constants.ResourceExposureType.TRUSTED}, synchronize_session='fetch')

@@ -55,6 +55,9 @@ class RequestSession():
     def get_req_param(self, param):
         return self.params[param]
 
+    def get_all_req_param(self):
+        return self.params
+
     def get_req_header(self, header):
         return self.headers[header]
 
