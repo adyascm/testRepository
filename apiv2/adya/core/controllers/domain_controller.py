@@ -95,7 +95,11 @@ def create_datasource(auth_token, payload):
 
 
 def async_delete_datasource(auth_token, datasource_id, complete_delete):
+<<<<<<< HEAD
     complete_delete = complete_delete if complete_delete else 1
+=======
+    complete_delete = 0 if complete_delete == 0 else 1
+>>>>>>> 96f6d209... Correct the delete datasource condition
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
@@ -155,7 +159,11 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
 
 
 def delete_datasource(auth_token, datasource_id, complete_delete):
+<<<<<<< HEAD
     complete_delete = complete_delete if complete_delete else 1
+=======
+    complete_delete = 0 if complete_delete == 0 else 1
+>>>>>>> 96f6d209... Correct the delete datasource condition
     db_session = db_connection().get_session()
     existing_datasource = db_session.query(DataSource).filter(
         DataSource.datasource_id == datasource_id).first()
