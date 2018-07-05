@@ -48,15 +48,16 @@ def process_incoming_activity(datasource_id, incoming_activity):
         Logger().info("Incoming activity is not valid type - {}".format(incoming_activity))
         return
     app_name = incoming_activity["id"]["applicationName"]
-    actor_email = incoming_activity['actor']['email']
+    
 
     if app_name == "token":
-        process_token_activity(datasource_id, actor_email, incoming_activity)
+        process_token_activity(datasource_id, incoming_activity)
     # elif app_name == "drive":
-    #     process_drive_activity(actor_email, incoming_activity)
+    #     process_drive_activity(datasource_id, incoming_activity)
 
-def process_token_activity(datasource_id, actor_email, incoming_activity):
+def process_token_activity(datasource_id, incoming_activity):
     Logger().info("Processing token activity - {}".format(incoming_activity))
+    actor_email = incoming_activity['actor']['email']
     db_session = db_connection().get_session()
     for event in incoming_activity['events']:
         domain_id = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first().domain_id
@@ -125,7 +126,10 @@ def process_token_activity(datasource_id, actor_email, incoming_activity):
 
 
 
-def process_drive_activity(actor_email, incoming_activity):
+def process_drive_activity(datasource_id, incoming_activity):
+    actor = incoming_activity['actor']
+    #Sometimes email does not come, when the event is triggered by a service (Ex- Google Support for DLP)
+    actor_email = actor['email'] if 'email' in actor else ""
     resource = {}
     resource_permission = {}
     last_modifying_user_email = actor_email

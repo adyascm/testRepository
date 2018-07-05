@@ -71,7 +71,7 @@ def create_datasource(auth_token, access_token, scopes, team_id, domain, email_d
     db_session.add(datasource_credentials)
     db_connection().commit()
 
-    query_params = {"domainId": datasource.domain_id,
+    query_params = {"domainId": email_domain_id,
                             "dataSourceId": datasource.datasource_id,
                             "userEmail": login_user.email}
     messaging.trigger_get_event(urls.SCAN_SLACK_UPDATE, auth_token, query_params, "slack")
