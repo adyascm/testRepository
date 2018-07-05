@@ -279,7 +279,8 @@ export default (state = defaultState, action) => {
                 ...state,
                 listFilters: newFilter,
                 userStatSubType: action.filterValue,
-                pageNumber: 0
+                pageNumber: 0,
+                selectedUserItem: undefined
             }
         case LOGOUT:
             return {
