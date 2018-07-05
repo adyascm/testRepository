@@ -54,7 +54,7 @@ def subscribe_gdrive_notifications(event, context):
     if req_error:
         return req_error
 
-    incremental_scan.subscribe(req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
+    incremental_scan.subscribe(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
     return req_session.generate_response(202)
 
 

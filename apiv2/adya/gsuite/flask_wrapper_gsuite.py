@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from adya.gsuite.services import actions_handler, activities_handler, oauth_handler, policy_validate_handler, scan_handler, incremental_scan_handler
+from adya.gsuite.services import actions_handler, activities_handler, oauth_handler, policy_validate_handler, scan_handler
 
 class ExecuteActions(Resource):
     def post(self):
@@ -36,22 +36,22 @@ class GSuiteEntities(Resource):
 
 class subscribe(Resource):
     def post(self):
-        return incremental_scan_handler.subscribe(request, None)
+        return scan_handler.subscribe_gdrive_notifications(request, None)
 
 class process_drive_notifications(Resource):
     def post(self):
-        return incremental_scan_handler.process_drive_notifications(request, None)
+        return scan_handler.process_drive_change_notifications(request, None)
 
 class process_activity_notifications(Resource):
     def post(self):
-        return incremental_scan_handler.process_activity_notifications(request, None)
+        return scan_handler.process_activity_notifications(request, None)
 
 class handle_channel_expiration(Resource):
     def get(self):
-        return incremental_scan_handler.handle_channel_expiration(request, None)
+        return scan_handler.handle_channel_expiration(request, None)
 
 class PollChanges(Resource):
     def get(self):
-        return incremental_scan_handler.poll_changes(request, None)
+        return scan_handler.gdrive_periodic_changes_poll(request, None)
 
 
