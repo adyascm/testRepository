@@ -48,7 +48,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
         should_mark_in_progress = True
 
         if not subscription.page_token:
-            Logger().info("Start page token not set for user, hence ignoring notification {} - {}".format(subscription.user_email, response))
+            Logger().info("Start page token not set for user, hence ignoring notification {}".format(subscription.user_email))
             return
 
         page_token = subscription.page_token
