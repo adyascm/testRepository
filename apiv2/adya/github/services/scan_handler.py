@@ -43,7 +43,7 @@ from adya.github.scanners import scan, members_scanner, repository_scanner, scan
 
 def request_scanner_data(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True, ['datasource_id', 'domain_id', 'scanner_id', 'change_type'], ['repo_name', 'org_name'])
+    req_error = req_session.validate_authorized_request(True, ['datasource_id', 'domain_id', 'scanner_id', 'change_type'], ['repo_name', 'org_name', 'repo_id'])
     if req_error:
         return req_error
     
@@ -52,7 +52,7 @@ def request_scanner_data(event, context):
 
 def process_scanner_data(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True, ['datasource_id', 'domain_id', 'scanner_id', 'change_type'], ['repo_name', 'org_name'])
+    req_error = req_session.validate_authorized_request(True, ['datasource_id', 'domain_id', 'scanner_id', 'change_type'], ['repo_name', 'org_name', 'repo_id'])
     if req_error:
         return req_error
 
