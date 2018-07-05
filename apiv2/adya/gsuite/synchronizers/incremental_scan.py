@@ -62,8 +62,15 @@ def _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_d
         
         if not subscription.page_token:
             response = drive_service.changes().getStartPageToken().execute()
+            if response and not 'startPageToken' in response:
+                Logger().info("Start page token not received for user {} - {}".format(subscription.user_email, response))
+                return
             subscription.page_token = response.get('startPageToken')
 
+        if not subscription.page_token:
+            Logger().info("Start page token not received for user {} - {}".format(subscription.user_email, response))
+            return
+            
         if not is_local_deployment:
             body = {
                 "id": subscription.channel_id,
