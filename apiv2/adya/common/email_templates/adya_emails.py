@@ -155,16 +155,24 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
-def send_clean_files_email(datasource_id,user_email):
+def send_clean_files_email(datasource_id,user_email,full_name):
     try:
         if not datasource_id:
             return "Invalid datasource! Aborting..."
         db_session = db_connection().get_session()
         datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
+        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
+        admin_user = login_user.first_name + " " + login_user.last_name
+        
         template_name = "clean_files"
-        template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
+        #template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
+        template_parameters = {
+            "user_name": full_name,
+            "admin_user": admin_user,
+            "user_first_name": full_name.split(" ")[0]
+        }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject="[Adya] You are requested to audit your GSuite account"
+        email_subject="Please log in to Adya to manage your G Suite data"
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
