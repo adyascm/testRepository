@@ -544,6 +544,25 @@ def delete_repository(auth_token, datasource_id, action_key, action_parameters, 
     db_connection().commit()
     return response_messages.ResponseMessage(200, status_message)
 
+def remove_external_collaborators(auth_token, datasource_id, action_key, action_parameters, log_entry):
+    datasource_obj = get_datasource(datasource_id)
+    datasource_type = datasource_obj.datasource_type
+    status_message = "Action submitted successfully"
+
+    payload = {
+        "resource_name": action_parameters["resource_name"],
+        "action_type": action_key,
+        "datasource_id": datasource_id,
+        "domain_id": datasource_obj.domain_id
+    }
+    messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
+                                    payload, connector_servicename_map[datasource_type])
+    
+    log_entry.status = action_constants.ActionNames.SUCCESS.value
+    log_entry.message = status_message
+    db_connection().commit()
+    return response_messages.ResponseMessage(200, status_message)
+
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload, log_entry):
     action_parameters = action_payload['parameters']
     response_msg = ''
@@ -625,6 +644,10 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     #Deleting a repository
     elif action_key == action_constants.ActionNames.DELETE_REPOSITORY.value:
         response_msg = delete_repository(auth_token, datasource_id, action_key, action_parameters, log_entry)
+
+    #Removing external users as collaborator
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_USER_AS_COLLABORATOR.value:
+        response_msg = remove_external_collaborators(auth_token, datasource_id, action_key, action_parameters, log_entry)
 
     return response_msg
 

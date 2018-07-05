@@ -248,7 +248,7 @@ class Actions extends Component {
         let logmsg = (<div></div>)
         let submitAction = this.takeAction;
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
-        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' disabled={ds.datasource_type === "GITHUB"} />);
+        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
         if (this.state.successMessage) {
             if(this.state.logId){
                 logmsg = (<a target="_blank" href="/auditlog">(Log:{this.state.logId})</a>)
