@@ -184,7 +184,7 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
                     'dataSourceId': datasource_id}
     Logger().info("Trying for push notification subscription for domain_id: {} datasource_id: {}".format(
         datasource.domain_id, datasource_id))
-    messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
+    messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, auth_token,
                                  query_params, {}, "gsuite")
 
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
@@ -202,7 +202,7 @@ def update_resource_exposure_type(db_session, domain_id, datasource_id):
         external_group_subquery = db_session.query(DomainUser.email).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.type == constants.DirectoryEntityType.GROUP.value,
                                                                                         DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).subquery()
         all_resource_sub_query = db_session.query(ResourcePermission.resource_id).distinct(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id == datasource_id,
-                                                                                                                                                     ResourcePermission.email.in_(external_group_subquery))).all()
+                                                                                                                                                     ResourcePermission.email.in_(external_group_subquery))).subquery()
         db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                                                       Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type': constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
         db_connection().commit()
