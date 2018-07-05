@@ -110,18 +110,19 @@ def process(db_session, auth_token, query_params, scanner_data):
         owner_email = "{0}+{1}@users.noreply.github.com".format(repo["owner"]["id"], repo["owner"]["login"])
         repo_dict["resource_owner_id"] = owner_email
         repo_dict["exposure_type"] = constants.EntityExposureType.PRIVATE.value if repo["private"] else constants.EntityExposureType.PUBLIC.value
+        repo_dict["resource_type"] = "repository"
 
         repo_permission_dict = {}
         repo_permission_dict["datasource_id"] = datasource_id
         repo_permission_dict["resource_id"] = repo["id"]
         repo_permission_dict["email"] = owner_email
         repo_permission_dict["permission_id"] = repo["owner"]["id"]
-        repo_permission_dict["exposure_type"] = constants.EntityExposureType.PRIVATE.value if repo["private"] else constants.EntityExposureType.PUBLIC.value
+        repo_permission_dict["exposure_type"] = constants.EntityExposureType.INTERNAL.value
 
         if repo["permissions"]:
             permissions = repo["permissions"]
             if permissions["admin"]:
-                repo_permission_dict["permission_type"] = constants.Role.ADMIN.value
+                repo_permission_dict["permission_type"] = constants.Role.OWNER.value
             elif permissions["push"]:
                 repo_permission_dict["permission_type"] = constants.Role.WRITER.value
             else:
@@ -141,7 +142,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         scanner.in_progress = 1
         db_session.add(scanner)
         db_connection().commit()
-        query_params = {"datasource_id": datasource_id, "domain_id": domain_id, "repo_name": repo["full_name"], "scanner_id": scanner.id, "change_type": github_constants.AppChangedTypes.ADDED.value}
+        query_params = {"datasource_id": datasource_id, "domain_id": domain_id, "repo_name": repo["full_name"], "scanner_id": scanner.id, "change_type": github_constants.AppChangedTypes.ADDED.value, "repo_id": repo["id"]}
         messaging.trigger_get_event(urls.GITHUB_SCAN_ENTITIES, auth_token, query_params, "github")
         time.sleep(0.01)
 
@@ -173,7 +174,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         org_email = "{0}+{1}@users.noreply.github.com".format(org["id"], org["login"])
         org_info["email"] = org["email"] if org["email"] else org_email
         org_info["description"] = org["description"]
-        org_info["type"] = constants.DirectoryEntityType.ORGANIZATION.value
+        org_info["type"] = constants.DirectoryEntityType.GROUP.value
         org_info["creation_time"] = datetime.datetime.strptime(org["created_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["last_updated"] = datetime.datetime.strptime(org["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["user_id"] = org["id"]

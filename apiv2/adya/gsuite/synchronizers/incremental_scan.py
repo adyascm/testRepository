@@ -2,6 +2,8 @@ import requests
 import uuid
 import datetime
 from datetime import timedelta
+
+from adya.common.db import db_utils
 from adya.gsuite import gutils
 from sqlalchemy import and_
 
@@ -62,8 +64,15 @@ def _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_d
         
         if not subscription.page_token:
             response = drive_service.changes().getStartPageToken().execute()
+            if response and not 'startPageToken' in response:
+                Logger().info("Start page token not received for user {} - {}".format(subscription.user_email, response))
+                return
             subscription.page_token = response.get('startPageToken')
 
+        if not subscription.page_token:
+            Logger().info("Start page token not received for user {} - {}".format(subscription.user_email, response))
+            return
+            
         if not is_local_deployment:
             body = {
                 "id": subscription.channel_id,
@@ -115,7 +124,7 @@ def _subscribe_for_activity(db_session, subscription, is_local_deployment):
             subscription.notification_type, subscription.domain_id, subscription.datasource_id, subscription.channel_id, ex))
 
 
-def subscribe(domain_id, datasource_id):
+def subscribe(auth_token, domain_id, datasource_id):
 
     is_local_deployment = constants.DEPLOYMENT_ENV == "local"
 
@@ -137,16 +146,21 @@ def subscribe(domain_id, datasource_id):
     datasource.is_push_notifications_enabled = False
     db_connection().commit()
 
-    login_user = db_session.query(LoginUser).filter(
-        LoginUser.domain_id == datasource.domain_id).first()
 
-    #Try subscribing for various activity notifications
-    activities_to_track = [constants.GSuiteNotificationType.DRIVE_ACTIVITY.value, constants.GSuiteNotificationType.ADMIN_ACTIVITY.value, constants.GSuiteNotificationType.TOKEN_ACTIVITY.value, constants.GSuiteNotificationType.LOGIN_ACTIVITY.value]
-    for activity in activities_to_track:
-        subscription = prepare_new_subscription(datasource, login_user.email)
-        subscription.notification_type = activity
-        _subscribe_for_activity(db_session, subscription, is_local_deployment)    
-        db_session.add(subscription)
+    #check for admin user
+    existing_user = db_utils.get_user_session(auth_token)
+    login_user_email = existing_user.email
+    is_admin = existing_user.is_admin
+    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+
+    if is_service_account_is_enabled and is_admin:
+        #Try subscribing for various activity notifications
+        activities_to_track = [constants.GSuiteNotificationType.DRIVE_ACTIVITY.value, constants.GSuiteNotificationType.ADMIN_ACTIVITY.value, constants.GSuiteNotificationType.TOKEN_ACTIVITY.value, constants.GSuiteNotificationType.LOGIN_ACTIVITY.value]
+        for activity in activities_to_track:
+            subscription = prepare_new_subscription(datasource, login_user_email)
+            subscription.notification_type = activity
+            _subscribe_for_activity(db_session, subscription, is_local_deployment)
+            db_session.add(subscription)
 
     #Try subscribing for drive change notifications
     if datasource.is_serviceaccount_enabled:
@@ -156,14 +170,14 @@ def subscribe(domain_id, datasource_id):
         for user in domain_users:
             subscription = prepare_new_subscription(datasource, user.email)
             subscription.drive_root_id = "SVC"
-            _subscribe_for_drive_change(db_session, login_user.auth_token, subscription, is_local_deployment)
+            _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_deployment)
             db_session.add(subscription)
             db_connection().commit()
     else:
         Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
-        subscription = prepare_new_subscription(datasource, login_user.email)
+        subscription = prepare_new_subscription(datasource, login_user_email)
         subscription.drive_root_id = ""
-        _subscribe_for_drive_change(db_session, login_user.auth_token, subscription, is_local_deployment)
+        _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_deployment)
         db_session.add(subscription)
 
     datasource.is_push_notifications_enabled = True

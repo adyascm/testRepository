@@ -176,17 +176,6 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     Logger().info("Scan completed")
 
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
-    # update data for trusted entities
-    utils.update_data_for_trutsted_entities(db_session, datasource_id, datasource.domain_id)
-    update_resource_exposure_type(db_session, datasource.domain_id, datasource_id)
-    messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
-
-    utils.add_license_for_scanned_app(db_session, datasource)
-
-    Logger().info("Send email after scan complete")
-    adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
-
-    
     query_params = {'dataSourceId': datasource_id}
     messaging.trigger_post_event(urls.CREATE_DEFAULT_POLICES_PATH, auth_token, query_params, {})
 
@@ -198,13 +187,22 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, "Internal-Secret",
                                  query_params, {}, "gsuite")
 
+    messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
+
+    utils.add_license_for_scanned_app(db_session, datasource)
+    Logger().info("Send email after scan complete")
+    adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
+
+    # update data for trusted entities
+    utils.update_data_for_trutsted_entities(db_session, datasource_id, datasource.domain_id)
+    update_resource_exposure_type(db_session, datasource.domain_id, datasource_id)
+
 def update_resource_exposure_type(db_session, domain_id, datasource_id):
-    db_session = db_connection().get_session()
     try:
-        external_group_subquery = db_session.query(DomainUser.email).filter(and_(DomainUser.datasource_id == datasource_id,
+        external_group_subquery = db_session.query(DomainUser.email).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.type == constants.DirectoryEntityType.GROUP.value,
                                                                                         DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).subquery()
         all_resource_sub_query = db_session.query(ResourcePermission.resource_id).distinct(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id == datasource_id,
-                                                                                                                                                     ResourcePermission.email.in_(external_group_subquery))).subquery()
+                                                                                                                                                     ResourcePermission.email.in_(external_group_subquery))).all()
         db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                                                       Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type': constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
         db_connection().commit()

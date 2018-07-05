@@ -102,7 +102,7 @@ def create_default_policies(auth_token, datasource_id):
     db_session = db_connection().get_session()
     default_policies = datasource_to_default_policy_map[datasource_type]
     for policy in default_policies:
-        existing_policy = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, Policy.name == policy.name)).first()
+        existing_policy = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, Policy.name == policy["name"])).first()
         if not existing_policy:
             policy['datasource_id'] = datasource_id
             if len(policy["actions"]) > 0:

@@ -48,6 +48,10 @@ def request_scanner_data(auth_token, query_params):
     
     scanner_data = {}
     scanner_data["entities"] = entities_list
+    try:
+        scanner_data["permissions"] = response["permissions"] if response["permissions"] else None
+    except Exception as ex:
+        print ex
     messaging.trigger_post_event(urls.GITHUB_SCAN_ENTITIES, auth_token, query_params, scanner_data, "github")
 
 def process_scanner_data(auth_token, query_params, scanner_data):
