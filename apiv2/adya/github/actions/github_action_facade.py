@@ -56,4 +56,24 @@ def execute_github_actions(auth_token, payload):
             db_session.rollback()
             response["action_status"] = constants.ResponseType.ERROR.value
 
+    elif action_type == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER.value:
+        #Delete the collaborator from the repository
+        permissions = json.loads(payload["permissions"])
+        permissions_obj = permissions[0]
+        response = github_actions.remove_collaborator(auth_token, resource_name, datasource_id, permissions_obj)
+
+        #Delete the collaborator from the Resource Permissions table
+        db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == permissions_obj["datasource_id"],
+            ResourcePermission.resource_id == permissions_obj["resource_id"], ResourcePermission.email == permissions_obj["email"]).delete()
+        
+        response = {}
+
+        try:
+            db_connection().commit()
+            response["action_status"] = constants.ResponseType.SUCCESS.value
+        except Exception as ex:
+            print ex
+            db_session.rollback()
+            response["action_status"] = constants.ResponseType.ERROR.value
+
     return response
