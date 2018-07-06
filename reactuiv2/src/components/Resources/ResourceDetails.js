@@ -57,8 +57,8 @@ const ResourceDetails = props => {
                         <div style={{ marginBottom: '10px' }}>Last modified <IntlProvider locale='en'><FormattedRelative value={props.rowData['last_modified_time']} /></IntlProvider > by {props.rowData['last_modifying_user_email']}</div>
 
                         <div style={{ marginBottom: "10px" }}>
-                            <Label as='a' color='blue' active onClick={openLink(props.rowData['web_view_link'])}>View</Label>
-                            {props.rowData['web_content_link'] ?
+                            { props.rowData['web_view_link'] ? <Label as='a' color='blue' active onClick={openLink(props.rowData['web_view_link'])}>View</Label> : null }
+                            { props.rowData['web_content_link'] ?
                                 <Label as='a' color='orange' active onClick={openLink(props.rowData['web_content_link'])}>Download</Label>
                                 : null
                             }

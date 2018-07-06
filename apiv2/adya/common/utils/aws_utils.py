@@ -50,17 +50,28 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                 ]
             )
             Logger().info("Attached the cloud watch event target to the lambda - " + \
-                str(targetresponse))
+                    str(targetresponse))
 
-            response = lambda_client.add_permission(
-                Action='lambda:InvokeFunction',
-                FunctionName=function_name,
-                Principal='events.amazonaws.com',
-                SourceArn=response['RuleArn'],
-                StatementId=str(uuid.uuid4()),
-            )
+            policy = lambda_client.get_policy(FunctionName=function_name)['Policy']
+            if policy:
+                policy = json.loads(policy)
+                policy_exists = False
+                Logger().info("policy - {} for lambda function - {}".format(policy, function_name))
+                for stmt in policy['Statement']:
+                    if stmt['Action'] == 'lambda:InvokeFunction':
+                        policy_exists = True
 
-            Logger().info("adding permission for lambda - " + str(response))
+                Logger().info("check policy exist - {} for lambda - {}".format(policy_exists, function_name))
+                if not policy_exists:
+                    response = lambda_client.add_permission(
+                        Action='lambda:InvokeFunction',
+                        FunctionName=function_name,
+                        Principal='events.amazonaws.com',
+                        SourceArn=response['RuleArn'],
+                        StatementId=str(uuid.uuid4()),
+                    )
+                    Logger().info("Added permission for lambda - " + str(response))
+
 
             return True
         else:

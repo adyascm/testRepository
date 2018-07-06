@@ -36,8 +36,11 @@ class ChartWidget extends Component {
                 if (!this.props[this.props.config.id].data.totalCount)
                     return null
                 let chart = null    
+                let maxLimit = null
                 if(this.props.config.id == 'expensesByCategory'){
-                    chart = <BarChart min={0} prefix="$" thousands="," label="Annual Cost/Category" legend="bottom"  data={this.props[this.props.config.id].data.rows} />
+                    if(! Number(this.props[this.props.config.id].data.totalCount))
+                        maxLimit = 10
+                    chart = <BarChart min={0} max={maxLimit} prefix="$" thousands="," label="Annual Cost/Category" legend="bottom"  data={this.props[this.props.config.id].data.rows} />
                 }
                 else if (this.props.config.id === 'filesWithFileType') {
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />

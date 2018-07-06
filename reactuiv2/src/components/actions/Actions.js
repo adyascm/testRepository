@@ -83,11 +83,10 @@ class Actions extends Component {
         for(let i in all_actions_list){
             if(ds && all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
                 config_params = all_actions_list[i]['parameters'] 
-            }else if(!ds){ //The case when action is not datasource specific
+            }else if(!ds && all_actions_list[i]['key'] == action.key){ //The case when action is not datasource specific
                 config_params = all_actions_list[i]['parameters'] 
             }   
         }
-
         config_params.map(e => { let key = e['key']; parameters[[key]] = this.state[e['key']]; });
 
         let payload = {}
@@ -229,7 +228,7 @@ class Actions extends Component {
         for(let i in all_actions_list){
             if(ds && all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
                 actionConfig = all_actions_list[i]
-            }else if(!ds){
+            }else if(!ds && all_actions_list[i]['key'] == action.key ){
                 actionConfig = all_actions_list[i]
             }
         }

@@ -13,6 +13,7 @@ from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
 from adya.gsuite import gutils
 from adya.gsuite.mappers.resource import GsuiteResource
+from googleapiclient import HttpError
 
 
 def process_notifications(notification_type, datasource_id, channel_id):
@@ -54,11 +55,15 @@ def process_notifications(notification_type, datasource_id, channel_id):
         page_token = subscription.page_token
         while True:
             try:
+                quotaUser = user_email[0:41]
                 response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
-                                                        spaces='drive').execute()
-            except Exception as ex:
-                Logger().exception( "Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
-                    user_email, datasource_id, channel_id, ex))
+                                                        spaces='drive', quotaUser=quotaUser).execute()
+            except HttpError as ex:
+                if ex.reason == 'Invalid Credentials':
+                    Logger().info("Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(user_email, datasource_id, channel_id, ex))
+                else:
+                    Logger().exception( "Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
+                            user_email, datasource_id, channel_id, ex))
                 break
             Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
             changes = response.get('changes')
@@ -116,11 +121,12 @@ def remove_file(datasource_id, file_id):
 
 def handle_change(drive_service, datasource_id, email, file_id):
     try:
+        quotaUser = email[0:41] #TODO: TEMP SOLUTION , NEED TO FIX THIS
         results = drive_service.files() \
             .get(fileId=file_id, fields="id, name, webContentLink, webViewLink, iconLink, "
                                         "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                                         "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
-                                        "owners,size,createdTime, modifiedTime").execute()
+                                        "owners,size,createdTime, modifiedTime", quotaUser=quotaUser).execute()
         Logger().info("Updated resource for change notification is - {}".format(results))
 
         if results and results['owners'][0]['emailAddress'] != email:
@@ -141,9 +147,14 @@ def handle_change(drive_service, datasource_id, email, file_id):
         # messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
         update_resource(datasource_id, email, results)
 
-    except Exception as e:
-        Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
-            datasource_id, email, file_id, e))
+
+    except HttpError as ex:
+        if ex.reason == 'Invalid Credentials':
+                Logger().info("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+                        datasource_id, email, file_id, ex))
+        else:
+             Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+                    datasource_id, email, file_id, ex))
 
 
 def update_resource(datasource_id, user_email, updated_resource):
@@ -215,3 +226,4 @@ def update_resource(datasource_id, user_email, updated_resource):
     except Exception as ex:
         Logger().exception("Exception occurred while processing incremental update for drive resource using email: {}".format(user_email))
         db_session.rollback()
+
