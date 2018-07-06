@@ -28,3 +28,6 @@ ADD status varchar(50) DEFAULT NULL;
 
 ALTER TABLE policy
 ADD severity varchar(255) DEFAULT NULL;
+
+ALTER TABLE domain_user 
+ADD last_login_time DateTime;
