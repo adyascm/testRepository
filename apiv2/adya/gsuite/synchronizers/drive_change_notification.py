@@ -13,7 +13,7 @@ from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
 from adya.gsuite import gutils
 from adya.gsuite.mappers.resource import GsuiteResource
-from googleapiclient import HttpError
+from googleapiclient.errors import HttpError
 
 
 def process_notifications(notification_type, datasource_id, channel_id):
