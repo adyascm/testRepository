@@ -36,7 +36,7 @@ const ResourcePermissions = props => {
                 return (
                     <Table.Row key={index}>
                         <Table.Cell>
-                            <Button animated='vertical' basic color='red' onClick={(event) => props.onRemovePermission(event, permission)}>
+                            <Button animated='vertical' basic color='red' disabled={props.datasourceType == "SLACK"} onClick={(event) => props.onRemovePermission(event, permission)}>
                                 <Button.Content hidden>Remove</Button.Content>
                                 <Button.Content visible>
                                     <Icon name='remove' />
@@ -74,7 +74,7 @@ const ResourcePermissions = props => {
             <Table.Body>
                 <Table.Row>
                     <Table.Cell>
-                        <Button animated='vertical' basic color='green' onClick={(event) => props.onAddPermission(event,newPermission,newPermissionType)}>
+                        <Button animated='vertical' basic disabled={props.datasourceType != "GSUITE"} color='green' onClick={(event) => props.onAddPermission(event,newPermission,newPermissionType)}>
                             <Button.Content hidden>Add</Button.Content>
                             <Button.Content visible>
                                 <Icon name='plus' />
@@ -82,10 +82,10 @@ const ResourcePermissions = props => {
                         </Button>
                     </Table.Cell>
                     <Table.Cell>
-                        <Input fluid placeholder='Enter the new user email' onChange={handleEmailChange} />
+                        <Input fluid placeholder='Enter the new user email' disabled={props.datasourceType != "GSUITE"} onChange={handleEmailChange} />
                     </Table.Cell>
                     <Table.Cell>
-                        <Dropdown fluid selection options={permissionOptions} onChange={(event,data) => handleDropDownChange(event,data.value)} selectOnBlur={false} />
+                        <Dropdown fluid selection options={permissionOptions} disabled={props.datasourceType != "GSUITE"} onChange={(event,data) => handleDropDownChange(event,data.value)} selectOnBlur={false} />
                     </Table.Cell>
                 </Table.Row>
                 {permissionUsers}
