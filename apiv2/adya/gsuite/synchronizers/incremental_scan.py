@@ -14,7 +14,7 @@ from adya.common.constants import constants, urls
 from adya.common.utils import aws_utils, messaging
 
 
-def handle_channel_expiration(page_num=0):
+def handle_channel_expiration(page_num):
     page_num = page_num if page_num else 0
     db_session = db_connection().get_session()
     subscription_list = db_session.query(PushNotificationsSubscription).offset(page_num*50).limit(50).all()
@@ -124,63 +124,68 @@ def _subscribe_for_activity(db_session, subscription, is_local_deployment):
             subscription.notification_type, subscription.domain_id, subscription.datasource_id, subscription.channel_id, ex))
 
 
-def subscribe(auth_token, domain_id, datasource_id):
-
-    is_local_deployment = constants.DEPLOYMENT_ENV == "local"
-
-    if not is_local_deployment:
-        # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
-        aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
-                                            aws_utils.get_lambda_name("get",
-                                                                    urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
-
-        # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
-        aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
-                                            aws_utils.get_lambda_name("get",
-                                                                    urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
+def subscribe(auth_token, domain_id, datasource_id, page_num):
+    page_num = page_num if page_num else 0
 
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
-    db_session.query(PushNotificationsSubscription).filter(
-        PushNotificationsSubscription.datasource_id == datasource_id).delete()
-    datasource.is_push_notifications_enabled = False
-    db_connection().commit()
+    if not datasource:
+        return
 
+    if page_num == 0:
+        is_local_deployment = constants.DEPLOYMENT_ENV == "local"
+        if not is_local_deployment:
+            # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
+            aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
+                                                aws_utils.get_lambda_name("get",
+                                                                        urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "gsuite"))
 
-    #check for admin user
-    existing_user = db_utils.get_user_session(auth_token)
-    login_user_email = existing_user.email
-    is_admin = existing_user.is_admin
-    is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+            # since we dont always get notification for changes, adding an event which will run every hour and check for drive changes
+            aws_utils.create_cloudwatch_event("gdrive_periodic_changes_poll", "cron(0 0/1 * * ? *)",
+                                                aws_utils.get_lambda_name("get",
+                                                                        urls.GDRIVE_PERIODIC_CHANGES_POLL, "gsuite"))
 
-    if is_service_account_is_enabled and is_admin:
-        #Try subscribing for various activity notifications
-        activities_to_track = [constants.GSuiteNotificationType.DRIVE_ACTIVITY.value, constants.GSuiteNotificationType.ADMIN_ACTIVITY.value, constants.GSuiteNotificationType.TOKEN_ACTIVITY.value, constants.GSuiteNotificationType.LOGIN_ACTIVITY.value]
-        for activity in activities_to_track:
-            subscription = prepare_new_subscription(datasource, login_user_email)
-            subscription.notification_type = activity
-            _subscribe_for_activity(db_session, subscription, is_local_deployment)
-            db_session.add(subscription)
+        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id == datasource_id).delete()
+
+        #check for admin user
+        existing_user = db_utils.get_user_session(auth_token)
+        login_user_email = existing_user.email
+        is_admin = existing_user.is_admin
+        is_service_account_is_enabled = existing_user.is_serviceaccount_enabled
+
+        if is_service_account_is_enabled and is_admin:
+            #Try subscribing for various activity notifications
+            activities_to_track = [constants.GSuiteNotificationType.DRIVE_ACTIVITY.value, constants.GSuiteNotificationType.ADMIN_ACTIVITY.value, constants.GSuiteNotificationType.TOKEN_ACTIVITY.value, constants.GSuiteNotificationType.LOGIN_ACTIVITY.value]
+            for activity in activities_to_track:
+                subscription = prepare_new_subscription(datasource, login_user_email)
+                subscription.notification_type = activity
+                _subscribe_for_activity(db_session, subscription, is_local_deployment)
+                db_session.add(subscription)
 
     #Try subscribing for drive change notifications
     if datasource.is_serviceaccount_enabled:
         domain_users = db_session.query(DomainUser).filter(
             and_(DomainUser.datasource_id == datasource.datasource_id, DomainUser.type == constants.DirectoryEntityType.USER.value,
-            DomainUser.member_type == 'INT')).all()
+            DomainUser.member_type == 'INT')).offset(page_num*25).limit(25).all()
         for user in domain_users:
             subscription = prepare_new_subscription(datasource, user.email)
             subscription.drive_root_id = "SVC"
             _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_deployment)
             db_session.add(subscription)
             db_connection().commit()
-    else:
+        #If there are more users, call the api again with next page number
+        if len(domain_users) == 25:
+            query_params = {'domainId': domain_id,'dataSourceId': datasource_id, 'pageNum': page_num+1}
+            messaging.trigger_post_event(urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH, auth_token,
+                                        query_params, {}, "gsuite")
+        
+    elif page_num == 0:
         Logger().info("Service account is not enabled, subscribing for push notification using logged in user's creds")
         subscription = prepare_new_subscription(datasource, login_user_email)
         subscription.drive_root_id = ""
         _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_deployment)
         db_session.add(subscription)
 
-    datasource.is_push_notifications_enabled = True
     db_connection().commit()
 
 def prepare_new_subscription(datasource, user_email):

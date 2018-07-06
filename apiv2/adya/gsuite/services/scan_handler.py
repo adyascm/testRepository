@@ -50,11 +50,11 @@ def process_scanner_data(event, context):
 
 def subscribe_gdrive_notifications(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True, ["domainId", "dataSourceId"])
+    req_error = req_session.validate_authorized_request(True, ["domainId", "dataSourceId"], ["pageNum"])
     if req_error:
         return req_error
 
-    incremental_scan.subscribe(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'))
+    incremental_scan.subscribe(req_session.get_auth_token(), req_session.get_req_param('domainId'), req_session.get_req_param('dataSourceId'), req_session.get_req_param('pageNum'))
     return req_session.generate_response(202)
 
 
