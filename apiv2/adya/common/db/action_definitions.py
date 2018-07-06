@@ -43,10 +43,6 @@ actions = [
         "description": "Add user to a channel/group", "parameters": [{"key": "user_email", "label": "User Email", "editable": 0}, {"key": "group_email", "label": "To Channel/Group", "editable": 1}], "is_admin_only": False},
     {"datasource_type": "ALL", "action_type": "INLINE", "action_entity": "APP", "key": action_constants.ActionNames.REMOVE_APP_FOR_DOMAIN.value, "name": "Uninstall App ",
         "description": "Uninstall application from domain", "parameters": [{"key": "app_id", "label": "AppId", "editable": 0, "hidden": 1}, {"key": "app_name", "label": "Application Name", "editable": 0}], "is_admin_only": True},
-    {"datasource_type": "GITHUB", "action_type": "QUICK_ACTION", "action_entity": "USER", "key": action_constants.ActionNames.REMOVE_MEMBER_FROM_ORGANIZATION.value, "name": "Remove Member from Organization",
-        "description": "Remove member from organization", "parameters": [{"key": "user_email", "label": "Member Email", "editable": 0}], "is_admin_only": False},
-    {"datasource_type": "GITHUB", "action_type": "QUICK_ACTION", "action_entity": "INTERNAL_USER", "key": action_constants.ActionNames.REMOVE_USER_AS_COLLABORATOR.value, "name": "Remove user as collaborator",
-        "description": "Remove user as a collaborator", "parameters": [{"key": "user_email", "label": "Collaborator Email", "editable": 0}], "is_admin_only": False},
     {"datasource_type": "GITHUB", "action_type": "QUICK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.REMOVE_EXTERNAL_USER_AS_COLLABORATOR.value, "name": "Remove all external users as collaborator",
         "description": "Remove all external users as a collaborator", "parameters": [{"key": "resource_name", "label": "For Repository", "editable": 0}], "is_admin_only": False}
 ]
