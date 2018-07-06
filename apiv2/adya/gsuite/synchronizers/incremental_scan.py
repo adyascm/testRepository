@@ -40,7 +40,7 @@ def handle_channel_expiration(page_num):
                 user = db_session.query(LoginUser).filter(
                     and_(LoginUser.domain_id == row.domain_id, LoginUser.email == row.user_email)).first()
                 auth_token = user.auth_token
-
+            row.channel_id = str(uuid.uuid4())
             _subscribe_for_drive_change(db_session, auth_token, row, False)
         else:
             row.channel_id = str(uuid.uuid4())
