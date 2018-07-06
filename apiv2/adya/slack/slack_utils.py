@@ -9,7 +9,7 @@ import slack_constants
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
 
-from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials, DatasourceScanners
+from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials, DatasourceScanners, TrustedEntities
 from slackclient import SlackClient
 
 from adya.common.utils import messaging
@@ -66,7 +66,9 @@ def create_datasource(auth_token, access_token, scopes, team_id, domain, email_d
 
     datasource_credentials = DatasourceCredentials()
     datasource_credentials.datasource_id = datasource.datasource_id
-    datasource_credentials.credentials = json.dumps({'team_id': team_id, 'domain_id': email_domain_id, 'domain_name': domain, 'authorize_scope_name': scopes, 'token': access_token})
+    datasource_credentials.credentials = json.dumps(
+        {'team_id': team_id, 'domain_id': email_domain_id, 'domain_name': domain, 'authorize_scope_name': scopes,
+         'token': access_token})
     datasource_credentials.created_user = login_user.email
     db_session.add(datasource_credentials)
     db_connection().commit()
@@ -77,19 +79,6 @@ def create_datasource(auth_token, access_token, scopes, team_id, domain, email_d
     messaging.trigger_get_event(urls.SCAN_SLACK_UPDATE, auth_token, query_params, "slack")
             
     return datasource
-
-def get_resource_exposure_type(permission_exposure, resource_exposure):
-    if permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value:
-        return permission_exposure
-    if permission_exposure == constants.EntityExposureType.EXTERNAL.value and not(resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value):
-        resource_exposure = constants.EntityExposureType.EXTERNAL.value
-    if permission_exposure == constants.EntityExposureType.DOMAIN.value and not (resource_exposure == constants.EntityExposureType.EXTERNAL.value or
-                                                                                     resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value):
-        resource_exposure = constants.EntityExposureType.DOMAIN.value
-    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (resource_exposure == constants.EntityExposureType.EXTERNAL.value or
-            resource_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or resource_exposure == constants.EntityExposureType.DOMAIN.value):
-        resource_exposure = constants.EntityExposureType.INTERNAL.value
-    return resource_exposure
 
 
 def get_app_score(scopes):
@@ -102,10 +91,3 @@ def get_app_score(scopes):
                 max_score = score
 
     return max_score
-
-
-def is_external_user(domain_id, email):
-    if email.endswith(domain_id):
-            return False
-    else:
-        return True

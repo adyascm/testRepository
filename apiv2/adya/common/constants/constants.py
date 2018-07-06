@@ -149,3 +149,7 @@ datasource_to_installed_app_map = {
     'SLACK' : 'Slack',
     'GITHUB': 'Github'
 }
+
+class TrustedTypes(Enum):
+    DOMAINS = 'DOMAINS'
+    APPS = 'APPS'

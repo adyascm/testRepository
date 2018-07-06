@@ -14,7 +14,6 @@ from adya.common.utils import messaging, utils
 from adya.common.constants import urls, constants
 from adya.common.utils.response_messages import Logger
 from adya.slack import slack_utils, slack_constants
-from adya.slack.slack_utils import is_external_user
 from adya.slack.scanners import users_scanner, channels_scanner, apps_scanner, files_scanner
 
 def start_scan(auth_token, datasource_id, domain_id, user_email):
@@ -169,8 +168,6 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
 
     db_connection().commit()
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
-    # update data for trusted entities
-    utils.update_data_for_trutsted_entities(db_session, datasource_id, datasource.domain_id)
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
     utils.add_license_for_scanned_app(db_session, datasource)
     query_params = {'dataSourceId': datasource_id}

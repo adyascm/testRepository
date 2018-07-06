@@ -253,7 +253,7 @@ def add_resource_permission(auth_token, datasource_id, action_payload, log_entry
     datasource_type = datasource_obj.datasource_type
 
     body = json.dumps([permission], cls=alchemy_encoder())
-    payload = {"permissions": body, "datasource_id": datasource_id,
+    payload = {"permissions": body, "datasource_id": datasource_id, "domain_id": datasource_obj.domain_id,
                "initiated_by_email": action_payload['initiated_by'],
                "log_id": str(log_entry.log_id), "user_email": resource_owner, "action_type": action_payload['key']}
     response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
@@ -304,7 +304,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     datasource_obj = get_datasource(datasource_id)
     datasource_type = datasource_obj.datasource_type
 
-    payload = {"permissions": body, "datasource_id": datasource_id,
+    payload = {"permissions": body, "datasource_id": datasource_id, "domain_id": datasource_obj.domain_id,
                "initiated_by_email": action_payload['initiated_by'],
                "log_id": str(log_entry.log_id), "user_email": resource_owner, "action_type": action_payload['key']}
     response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
@@ -441,7 +441,7 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         datasource_obj = get_datasource(datasource_id)
         datasource_type = datasource_obj.datasource_type
 
-        payload = {"permissions": body, "datasource_id": datasource_id,
+        payload = {"permissions": body, "datasource_id": datasource_id, "domain_id": datasource_obj.domain_id,
                    "initiated_by_email": initiated_by,
                    "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
@@ -472,7 +472,7 @@ def modify_group_membership(auth_token, datasource_id, action_name, action_param
     datasource_type = datasource_obj.datasource_type
 
     payload = {"log_id": str(log_entry.log_id), "action_type": action_name, "user_email": user_email,
-               "group_email": group_email, 'datasource_id': datasource_id}
+               "group_email": group_email, 'datasource_id': datasource_id, "domain_id": datasource_obj.domain_id}
     response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
                                  payload, connector_servicename_map[datasource_type], constants.TriggerType.SYNC.value)
 
@@ -517,7 +517,8 @@ def transfer_ownership(auth_token, datasource_id, action_name, action_parameters
     datasource_type = datasource_obj.datasource_type
 
     payload = {"log_id": str(log_entry.log_id), "action_type": action_name, "user_email": action_parameters["old_owner_email"],
-               "new_owner_email": action_parameters["new_owner_email"], 'datasource_id': datasource_id}
+               "new_owner_email": action_parameters["new_owner_email"], 'datasource_id': datasource_id,
+                                                    "domain_id": datasource_obj.domain_id}
     messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
                                             payload, connector_servicename_map[datasource_type])
 

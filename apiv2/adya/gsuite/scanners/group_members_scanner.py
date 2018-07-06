@@ -44,19 +44,23 @@ def process(db_session, auth_token, query_params, scanner_data):
                 #         models.DomainUser.email == group_key)).update({'include_all_user': True})
                 continue
             else:
-                group = models.DirectoryStructure()
-                group.datasource_id = datasource_id
-                group.member_email = group_data["email"]
-                group.parent_email = group_key
-                group.member_id = group_data.get("id")
-                group.member_role = group_data.get("role")
-                group.member_type = member_type
+                member = models.DirectoryStructure()
+                member.datasource_id = datasource_id
+                member.member_email = group_data["email"]
+                member.parent_email = group_key
+                member.member_id = group_data.get("id")
+                member.member_role = group_data.get("role")
+                member.member_type = member_type
+                db_session.add(member)
 
-                if not is_external and gutils.check_if_external_user(db_session, domain_id, group.member_email):
+                exposure_type = utils.check_if_external_user(db_session, domain_id, member.member_email)
+                if exposure_type == constants.EntityExposureType.EXTERNAL.value:
                     is_external = True
-                    db_session.query(models.DomainUser).filter(and_(models.DomainUser.datasource_id == datasource_id,
-                                                                    models.DomainUser.email ==  group_key)).update({"member_type":constants.EntityExposureType.EXTERNAL.value})
-                db_session.add(group)
+
+        if is_external == True:
+            db_session.query(models.DomainUser).filter(and_(models.DomainUser.datasource_id == datasource_id,
+                models.DomainUser.email == group_key)).update({"member_type": constants.EntityExposureType.EXTERNAL.value})
+
         db_connection().commit()
     return members_count
     

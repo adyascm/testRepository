@@ -4,6 +4,7 @@ from __future__ import division  # necessary
 import uuid,json,time,datetime,sys
 from sqlalchemy import and_
 
+from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.gsuite import gutils
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
@@ -30,6 +31,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     now = datetime.datetime.utcnow()
     apps_count = 0
     if scanner_data and "entities" in scanner_data:
+        trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
         for app in scanner_data["entities"]:
             apps_count += 1
             app_name = app.get("displayText")
@@ -46,8 +48,11 @@ def process(db_session, auth_token, query_params, scanner_data):
                 application.timestamp = now
                 application.purchased_date = now
                 scopes = app["scopes"]
-                max_score = gutils.get_app_score(scopes)
-                application.score = max_score
+                if app_name in trusted_domain_apps:
+                    application.score = 0
+                else:
+                    max_score = gutils.get_app_score(scopes)
+                    application.score = max_score
                 application.scopes = ','.join(scopes)
                 application.unit_num = 1
                 db_session.add(application)

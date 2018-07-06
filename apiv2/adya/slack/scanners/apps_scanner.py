@@ -14,7 +14,6 @@ from adya.common.constants import urls, constants
 from adya.common.utils.response_messages import Logger
 from adya.slack import slack_utils, slack_constants
 from adya.slack.mappers import entities
-from adya.slack.slack_utils import is_external_user
 
 def query(auth_token, query_params, scanner):
     next_page_token = query_params["nextPageNumber"]

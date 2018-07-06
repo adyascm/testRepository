@@ -10,7 +10,7 @@ from sqlalchemy import Boolean
 
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser
+from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser, TrustedEntities
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants import constants
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
@@ -136,32 +136,6 @@ def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
         ex_msg = json.loads(ex.content)["error"]["message"]
         Logger().exception("Exception occurred while checking if user is admin")
         return ex_msg
-
-
-def check_if_external_user(db_session, domain_id, email):
-    domain_name = db_session.query(Domain.domain_name).filter(Domain.domain_id == domain_id).first()
-    if not '@' in domain_name:
-        if email.endswith(domain_name):
-            return False
-    else:
-        if email == domain_name:
-            return False
-    return True
-
-
-def get_resource_exposure_type(permission_exposure, highest_exposure):
-    if permission_exposure == constants.EntityExposureType.PUBLIC.value:
-        highest_exposure = constants.EntityExposureType.PUBLIC.value
-    elif permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value and not highest_exposure == constants.EntityExposureType.PUBLIC.value:
-        highest_exposure = constants.EntityExposureType.ANYONEWITHLINK.value
-    elif permission_exposure == constants.EntityExposureType.EXTERNAL.value and not (highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.PUBLIC.value):
-        highest_exposure = constants.EntityExposureType.EXTERNAL.value
-    elif permission_exposure == constants.EntityExposureType.DOMAIN.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value):
-        highest_exposure = constants.EntityExposureType.DOMAIN.value
-    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value or highest_exposure == constants.EntityExposureType.DOMAIN.value):
-        highest_exposure = constants.EntityExposureType.INTERNAL.value
-    return highest_exposure
-
 
 
 def get_app_score(scopes):
