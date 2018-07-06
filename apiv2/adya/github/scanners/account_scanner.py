@@ -118,15 +118,14 @@ def process(db_session, auth_token, query_params, scanner_data):
         repo_permission_dict["email"] = owner_email
         repo_permission_dict["permission_id"] = repo["owner"]["id"]
         repo_permission_dict["exposure_type"] = constants.EntityExposureType.INTERNAL.value
+        repo_permission_dict["permission_type"] = constants.Role.READER.value
 
         if repo["permissions"]:
             permissions = repo["permissions"]
             if permissions["admin"]:
                 repo_permission_dict["permission_type"] = constants.Role.OWNER.value
             elif permissions["push"]:
-                repo_permission_dict["permission_type"] = constants.Role.WRITER.value
-            else:
-                repo_permission_dict["permission_type"] = constants.Role.READER.value
+                repo_permission_dict["permission_type"] = constants.Role.WRITER.value                
         
         repo_list.append(repo_dict)
         repo_permission_list.append(repo_permission_dict)
