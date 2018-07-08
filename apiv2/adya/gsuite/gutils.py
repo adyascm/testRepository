@@ -133,7 +133,7 @@ def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
         users = directory_service.users().get(userKey=user_email).execute()
         return ""
     except Exception as ex:
-        ex_msg = json.loads(ex.content)["error"]["message"]
+        ex_msg = ex.args[0]
         Logger().exception("Exception occurred while checking if user is admin")
         return ex_msg
 

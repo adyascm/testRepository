@@ -14,10 +14,17 @@ from adya.gsuite import gutils, gsuite_constants
 from adya.gsuite.scanners import users_scanner, groups_scanner, apps_scanner, files_scanner, group_members_scanner
 from adya.common.email_templates import adya_emails
 
-def start_scan(auth_token, datasource_id, domain_id, user_email):
+def start_scan(auth_token, datasource_id, domain_id, user_email, is_admin, is_seriveaccount_enabled):
     db_session = db_connection().get_session()
-    scanner_types = [gsuite_constants.ScannerTypes.USERS.value, 
+    query_params = {"dataSourceId": datasource_id, "domainId": domain_id}
+    if is_seriveaccount_enabled == 'True' or is_admin == 'True':
+        scanner_types = [gsuite_constants.ScannerTypes.USERS.value,
                 gsuite_constants.ScannerTypes.GROUPS.value]
+    else:
+        query_params["ownerEmail"] = user_email
+        query_params["userEmail"] = user_email
+        scanner_types = [gsuite_constants.ScannerTypes.FILES.value]
+
     for scanner_type in scanner_types:
         scanner = DatasourceScanners()
         scanner.datasource_id = datasource_id
@@ -28,7 +35,7 @@ def start_scan(auth_token, datasource_id, domain_id, user_email):
         scanner.in_progress = 1
         db_session.add(scanner)
         db_connection().commit()
-        query_params = {"dataSourceId": datasource_id, "domainId": domain_id, "scannerId": scanner.id }
+        query_params["scannerId"] = scanner.id
         messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
 
 def update_scan(auth_token, datasource_id, domain_id):

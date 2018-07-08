@@ -83,9 +83,12 @@ def create_datasource(auth_token, payload):
                 db_session, existing_user.domain_id, datasource_id)
         else:
             Logger().info("Starting the scan")
-            query_params = {"domainId": datasource.domain_id,
+            query_params = { "is_serviceaccount_enabled": str(datasource.is_serviceaccount_enabled),
+                            "is_admin_user": str(is_admin_user),
+                            "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id,
-                            "userEmail": existing_user.email}
+                            "userEmail": existing_user.email
+                           }
             messaging.trigger_get_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, "gsuite")
             
     
