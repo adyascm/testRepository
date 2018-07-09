@@ -118,7 +118,7 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
             # delete app wrt to datasource
             db_session.query(Application).filter(Application.display_text == app_name).delete(synchronize_session=False)
         except:
-            Logger().exception('App is present corresponding to other datasource')    
+            Logger().info('App is present corresponding to other datasource')
         
         db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
                                                                datasource_id).delete(synchronize_session=False)
