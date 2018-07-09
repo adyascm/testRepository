@@ -48,6 +48,7 @@ provider:
         - "ec2:CreateNetworkInterface"
         - "ec2:DescribeNetworkInterfaces"
         - "ec2:DeleteNetworkInterface"
+        - "lambda:GetPolicy"
       Resource:
         "*"
   vpc: 
