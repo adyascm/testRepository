@@ -4,6 +4,8 @@ import uuid
 import datetime
 from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
+from googleapiclient.errors import HttpError
+
 import json
 import requests
 from sqlalchemy import Boolean
@@ -116,26 +118,28 @@ def get_oauth_service(credentials):
 
 
 def check_if_serviceaccount_enabled(emailid):
-    profile_info = None
     try:
         credentials = get_delegated_credentials(emailid)
         drive = discovery.build('drive', 'v3', credentials=credentials)
-        profile_info = drive.about().get(fields="user").execute()
+        drive.about().get(fields="user").execute()
         return True
     except Exception as e:
-        Logger().exception("Exception occurred while checking if service account is enabled")
+        Logger().info("Could not check service account status, hence not assuming that its installed from marketplace - {}".format(e.message))
     return False
 
 
 def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
     try:
         directory_service = get_directory_service(auth_token, user_email, db_session)
-        users = directory_service.users().get(userKey=user_email).execute()
+        directory_service.users().get(userKey=user_email).execute()
         return ""
-    except Exception as ex:
+    except HttpError as ex:
         ex_msg = json.loads(ex.content)["error"]["message"]
-        Logger().exception("Exception occurred while checking if user is admin")
+        Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex_msg))
         return ex_msg
+    except Exception as ex:
+        Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex.message))
+        return ex.message
 
 
 def check_if_external_user(db_session, domain_id, email):

@@ -16,7 +16,7 @@ from adya.common.email_templates import adya_emails
 
 def start_scan(auth_token, datasource_id, domain_id, user_email):
     db_session = db_connection().get_session()
-    scanner_types = [gsuite_constants.ScannerTypes.USERS.value, 
+    scanner_types = [gsuite_constants.ScannerTypes.USERS.value,
                 gsuite_constants.ScannerTypes.GROUPS.value]
     for scanner_type in scanner_types:
         scanner = DatasourceScanners()

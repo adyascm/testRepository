@@ -69,7 +69,6 @@ def oauth_callback(oauth_code, scopes,state, error):
     Logger().info("Credentials received for {} are token: {}, refresh_token: {}, scopes: {}".format(login_email, credentials.token, credentials.refresh_token, credentials.scopes))
     domain_id = login_email
     db_session = db_connection().get_session()
-    creation_time = datetime.datetime.utcnow()
     login_user = db_utils.get_login_user_from_email(login_email, db_session)
     is_serviceaccount_enabled = gutils.check_if_serviceaccount_enabled(login_email)
     if is_serviceaccount_enabled:
@@ -78,7 +77,9 @@ def oauth_callback(oauth_code, scopes,state, error):
 
     if login_user:
         if not login_user.is_serviceaccount_enabled == is_serviceaccount_enabled:
-            domain = db_utils.create_domain(db_session, domain_id, domain_id)
+            db_utils.create_domain(db_session, domain_id, domain_id)
+            login_user.delete()
+            db_connection().commit()
             login_user = db_utils.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,
                                                      is_serviceaccount_enabled,scope_name, token, db_session=db_session)

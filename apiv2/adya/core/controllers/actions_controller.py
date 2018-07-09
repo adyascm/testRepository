@@ -306,7 +306,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
     payload = {"permissions": body, "datasource_id": datasource_id,
                "initiated_by_email": action_payload['initiated_by'],
-               "log_id": str(log_entry.log_id), "user_email": resource_owner, "action_type": action_payload['key']}
+               "log_id": str(log_entry.log_id), "user_email": resource_owner, "action_type": action_payload['key'], "resource_name": action_parameters["resource_name"]}
     response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
                                             payload, connector_servicename_map[datasource_type],
                                             constants.TriggerType.SYNC.value)
