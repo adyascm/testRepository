@@ -8,13 +8,11 @@ from adya.core.controllers import actions_controller
 def start_scan(event, context):
     req_session = RequestSession(event)
     req_error = req_session.validate_authorized_request(
-        True, ['dataSourceId', 'domainId', 'userEmail', 'is_admin_user', 'is_serviceaccount_enabled'])
+        True, ['dataSourceId', 'domainId', 'userEmail'])
     if req_error:
         return req_error
-
     scanner_facade.start_scan(req_session.get_auth_token(), req_session.get_req_param('dataSourceId'),
-                          req_session.get_req_param('domainId'), req_session.get_req_param('userEmail'),
-                            req_session.get_req_param('is_admin_user'), req_session.get_req_param('is_serviceaccount_enabled'))
+                          req_session.get_req_param('domainId'), req_session.get_req_param('userEmail'))
 
     return req_session.generate_response(200)
 
