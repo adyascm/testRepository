@@ -9,19 +9,29 @@ from adya.gsuite import gutils, gsuite_constants
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
-from adya.common.db import models
+from adya.common.db import models, db_utils
 from adya.common.db.models import DataSource,Resource,LoginUser,DomainUser, DatasourceScanners
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
 from adya.common.utils.response_messages import Logger
+from google.auth.exceptions import RefreshError
+from googleapiclient.errors import HttpError
 
 def query(auth_token, query_params, scanner):
     domain_id = query_params["domainId"]
     next_page_token = query_params["nextPageNumber"]
     directory_service = gutils.get_directory_service(auth_token)
     users = []
-    results = directory_service.users().list(customer='my_customer', maxResults=50, pageToken=next_page_token,
+    try:
+        results = directory_service.users().list(customer='my_customer', maxResults=50, pageToken=next_page_token,
                                                 orderBy='email').execute()
+    except RefreshError as ex:
+        Logger().info("User query : Not able to refresh credentials")
+        results = gutils.create_user_payload_for_nonadmin_nonserviceaccount(auth_token)
+    except HttpError as ex:
+        Logger().info("User query : Domain not found error")
+        results = gutils.create_user_payload_for_nonadmin_nonserviceaccount(auth_token)
+
     if results and "users" in results:
         for user in results["users"]:
             user_email = user.get("primaryEmail")

@@ -11,6 +11,7 @@ import requests
 from sqlalchemy import Boolean
 
 from adya.common.constants import constants, urls
+from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
 from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser
 from oauth2client.service_account import ServiceAccountCredentials
@@ -177,3 +178,23 @@ def get_app_score(scopes):
                 max_score = score
 
     return max_score
+
+
+def create_user_payload_for_nonadmin_nonserviceaccount(auth_token):
+    user_info = db_utils.get_user_session(auth_token)
+
+    results = {"users": [{"primaryEmail": user_info.email,
+                          "name": {
+                              "givenName": user_info.first_name,
+                              "familyName": user_info.last_name,
+                              "fullName": user_info.first_name + " " + user_info.last_name
+                          },
+                          "isAdmin": False,
+                          "creationTime": str(datetime.datetime.utcnow()),
+                          "suspended": False,
+                          "id": user_info.email,
+                          "thumbnailPhotoUrl": "",
+                          "aliases": [],
+                          "customerId": ""
+                          }]}
+    return results
