@@ -58,13 +58,19 @@ def process_notifications(notification_type, datasource_id, channel_id):
                 quotaUser = user_email[0:41]
                 response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                         spaces='drive', quotaUser=quotaUser).execute()
+
             except HttpError as ex:
-                if ex.reason == 'Invalid Credentials':
-                    Logger().info("Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(user_email, datasource_id, channel_id, ex))
+                if ex.resp.status == 401:
+                    Logger().info("Invalid credentials error while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(user_email, datasource_id, channel_id, ex))
                 else:
                     Logger().exception( "Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
                             user_email, datasource_id, channel_id, ex))
                 break
+            except Exception as ex:
+                Logger().exception("Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
+                            user_email, datasource_id, channel_id, ex))
+                break
+
             Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
             changes = response.get('changes')
 
@@ -147,15 +153,18 @@ def handle_change(drive_service, datasource_id, email, file_id):
         # messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
         update_resource(datasource_id, email, results)
 
-
     except HttpError as ex:
-        if ex.reason == 'Invalid Credentials':
-                Logger().info("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+        if ex.resp.status == 401:
+            Logger().info(
+                "Invalid credentials error while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
                         datasource_id, email, file_id, ex))
         else:
-             Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
-                    datasource_id, email, file_id, ex))
-
+            Logger().exception(
+                "Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+                        datasource_id, email, file_id, ex))
+    except Exception as ex:
+        Logger().exception("Exception occurred while processing the change notification for datasource_id: {} email: {} file_id: {} - {}".format(
+                        datasource_id, email, file_id, ex))
 
 def update_resource(datasource_id, user_email, updated_resource):
     try:
