@@ -20,12 +20,12 @@ class PolicyCondition extends Component {
 
         this.state = {
             filterTypeOptions: [
-                { text: 'Document.Name', value: 'DOCUMENT_NAME' },
-                { text: 'Document.Owner', value: 'DOCUMENT_OWNER' },
-                { text: 'Document.Exposure', value: 'DOCUMENT_EXPOSURE' },
-                { text: 'Permission.Email', value: 'PERMISSION_EMAIL' },
-                { text: 'Application.Name', value: 'APP_NAME' },
-                { text: 'Application.Riskiness', value: 'APP_RISKINESS' }
+                { text: 'Document Name', value: 'DOCUMENT_NAME' },
+                { text: 'Document Owner', value: 'DOCUMENT_OWNER' },
+                { text: 'Document Exposure', value: 'DOCUMENT_EXPOSURE' },
+                { text: 'Document Shared With', value: 'PERMISSION_EMAIL' },
+                { text: 'Application Name', value: 'APP_NAME' },
+                { text: 'Application Riskiness', value: 'APP_RISKINESS' }
             ],
             filterConditionOptions: [
                 { text: 'Equals', value: 'equal' },
