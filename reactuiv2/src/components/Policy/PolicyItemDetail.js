@@ -58,7 +58,7 @@ class PolicyItemDetail extends Component {
         this.setState({
             policyTriggerType: [
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' },
-                { text: 'App Install', value: 'APP_INSTALL' }],
+                { text: 'Application Install', value: 'APP_INSTALL' }],
             disableEmailField: true,
             severityType: [
                 { text: 'High', value: 'HIGH' },
@@ -282,7 +282,7 @@ class PolicyItemDetail extends Component {
                                 <Segment>
                                 <Form.Group widths='equal'>
                                   <Form.Field>
-                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='IsActive' width={2}
+                                    <Checkbox checked={this.state.isActive} onChange={(event, data) => this.handlePolicyActiveType(event, data)} label='Active' width={2}
                                     /></Form.Field>
                                     <Form.Field inline control={Select} label="Connector" options={this.state.datasourceType} placeholder='Select connector...' value={this.state.datasource_id} onChange={(event, data) => this.handleDataSourceChange(event, data)} />
                                     <Form.Field inline control={Select} label="Severity" options={this.state.severityType} placeholder='Select severity level...' value={this.state.severity} onChange={(event, data) => this.handleSeverityChange(event, data)} />
@@ -303,7 +303,7 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>
-                                    <Form.Field control={Checkbox} label='Send Email' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
+                                    <Form.Field control={Checkbox} label='Send Email To' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                     {this.state.disableEmailField ? null : emailFieldInput}
                                 </Segment>
                             </Segment.Group>
