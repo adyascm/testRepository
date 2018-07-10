@@ -47,8 +47,16 @@ def execute_action(auth_token, payload):
         current_log = db_session.query(AuditLog).filter(and_(AuditLog.log_id == log_id, AuditLog.status != action_constants.ActionStatus.FAILED.value)).first()
         if current_log:
             response_code = response.get_response_code()
-            current_log.status = action_constants.ActionStatus.SUCCESS.value if response_code == 200 else action_constants.ActionStatus.FAILED.value
-            current_log.message = "Action completed successfully" if response_code == 200 else "Action failed"
+            if response_code == 200:
+                current_log.success_count += 1
+                if current_log.success_count == current_log.total_count:
+                    current_log.status = action_constants.ActionStatus.SUCCESS.value
+                    current_log.message = "Action completed successfully"
+            else:
+                current_log.failed_count += 1
+                current_log.status = action_constants.ActionStatus.FAILED.value
+                current_log.message = "Action failed"
+            
             db_connection().commit()
 
     return response

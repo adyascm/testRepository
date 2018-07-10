@@ -30,6 +30,7 @@ def get_url_from_path(path):
     return API_HOST + path
 
 SUCCESS_STATUS_CODE = 200
+ACCEPTED_STATUS_CODE = 202
 
 REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
