@@ -6,6 +6,7 @@ from datetime import timedelta
 from adya.common.db import db_utils
 from adya.gsuite import gutils
 from sqlalchemy import and_
+from googleapiclient.errors import HttpError
 
 from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
@@ -91,6 +92,16 @@ def _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_d
                 subscription.resource_id = watch_response['resourceId']
                 subscription.resource_uri = watch_response['resourceUri']
 
+    except HttpError as ex:
+        if ex.resp.status == 401:
+            #Set in progess to 1, so that next time we shall not try to resubscribe
+            #TODO: May be delete this subscription
+            subscription.in_progress = 1
+            Logger().warn("Invalid credentials while subscribing for drive change notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+                subscription.domain_id, subscription.datasource_id, subscription.channel_id, ex))
+        else:
+            Logger().exception("HTTP error while subscribing for drive change notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
+                subscription.domain_id, subscription.datasource_id, subscription.channel_id, ex))
     except Exception as ex:
         Logger().exception("Exception occurred while subscribing for drive change notifications for domain_id: {} datasource_id: {} channel_id: {} - {}".format(
             subscription.domain_id, subscription.datasource_id, subscription.channel_id, ex))
