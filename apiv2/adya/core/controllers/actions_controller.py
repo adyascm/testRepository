@@ -621,14 +621,14 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num']
+        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                                      "ALL", log_entry, action_key, page_num)
 
     elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num']
+        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                                      constants.EntityExposureType.EXTERNAL.value, log_entry,
                                                      action_key, page_num)
@@ -636,7 +636,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num']
+        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                                        log_entry, action_key, page_num)
     # Bulk permission change actions for resource
