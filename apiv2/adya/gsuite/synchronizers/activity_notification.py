@@ -126,7 +126,7 @@ def process_token_activity(datasource_id, incoming_activity):
 
                 if application.score != 0:
                     payload["application"] = json.dumps(application, cls=alchemy_encoder())
-                    policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL}
+                    policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
                     messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
             except IntegrityError as ie:
