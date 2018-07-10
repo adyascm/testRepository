@@ -33,6 +33,7 @@ def query(auth_token, query_params, scanner):
     all_orgs_dict = {}
     repos = {}
     orgs = {}
+    repo_owner = {}
     fetched_repos_count = 0
 
     #Fetching the repositories under the authenticated_user
@@ -53,8 +54,18 @@ def query(auth_token, query_params, scanner):
                 repo.create_hook(name="web", config=config, events=events, active=True)
             except Exception as ex:
                 print ex
+        
+        if repo.id not in repo_owner:
+            owner_email = ''
+            if repo.owner.email:
+                owner_email = repo.owner.email
+            else:
+                owner_email = "{0}+{1}@users.noreply.github.com".format(repo.owner.id, repo.owner.login)
+            repo_owner[repo.id] = owner_email
+    
     repos["repo"] = all_repos_dict
-
+    repos["owner"] = repo_owner
+    
     #Fetching the organisations under the authenticated_user
     print "Scanning organizations"
     for org in authenticated_user.get_orgs():
@@ -76,6 +87,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     domain_id = query_params["domain_id"]
     repos = {}
     orgs = {}
+    repo_owner = {}
 
     print "All entities : {}".format(all_entities)
     for entity in all_entities:
@@ -84,6 +96,8 @@ def process(db_session, auth_token, query_params, scanner_data):
                 repos = entity[entity_key]
             elif entity_key == "org":
                 orgs = entity[entity_key]
+            elif entity_key == "owner":
+                repo_owner = entity[entity_key]
     
     github_client = github_utils.get_github_client(datasource_id)
     authenticated_user = github_client.get_user()
@@ -108,14 +122,16 @@ def process(db_session, auth_token, query_params, scanner_data):
         repo_dict["description"] = repo["description"]
         repo_dict["parent_id"] = repo["parent"]["id"] if repo["fork"] else None
         owner_email = "{0}+{1}@users.noreply.github.com".format(repo["owner"]["id"], repo["owner"]["login"])
-        repo_dict["resource_owner_id"] = owner_email
+        #repo_dict["resource_owner_id"] = owner_email
+        repo_dict["resource_owner_id"] = repo_owner[str(repo["id"])]
         repo_dict["exposure_type"] = constants.EntityExposureType.PRIVATE.value if repo["private"] else constants.EntityExposureType.PUBLIC.value
         repo_dict["resource_type"] = "repository"
 
         repo_permission_dict = {}
         repo_permission_dict["datasource_id"] = datasource_id
         repo_permission_dict["resource_id"] = repo["id"]
-        repo_permission_dict["email"] = owner_email
+        #repo_permission_dict["email"] = owner_email
+        repo_permission_dict["email"] = repo_owner[str(repo["id"])]
         repo_permission_dict["permission_id"] = repo["owner"]["id"]
         repo_permission_dict["exposure_type"] = constants.EntityExposureType.INTERNAL.value
         repo_permission_dict["permission_type"] = constants.Role.READER.value
