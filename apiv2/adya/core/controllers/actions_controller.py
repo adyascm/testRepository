@@ -18,7 +18,7 @@ from adya.gsuite import actions, gutils
 from adya.common.email_templates import adya_emails
 from adya.common.db.models import alchemy_encoder
 
-BATCH_COUNT = 50
+BATCH_COUNT = 100.0
 
 
 def get_actions():
@@ -353,9 +353,9 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
 
     if page_num == 0:
         total_update_permissions_count = shared_resource_query.count()
-        log_entry.total_count = math.ceil((total_update_permissions_count)/1000.0)
+        log_entry.total_count = math.ceil((total_update_permissions_count)/BATCH_COUNT)
 
-    permissions_to_update = shared_resource_query.offset(page_num * 1000).limit(1000).all()
+    permissions_to_update = shared_resource_query.offset(page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
     if len(permissions_to_update) < 1:
         log_entry.message = 'Action completed successfully'
         log_entry.status = 'SUCCESS'
@@ -423,9 +423,9 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
 
     if page_num == 0:
         total_update_permissions_count = resource_permissions.count()
-        log_entry.total_count = math.ceil((total_update_permissions_count)/1000.0)
+        log_entry.total_count = math.ceil((total_update_permissions_count)/(int(BATCH_COUNT)))
 
-    resource_permissions = resource_permissions.offset(page_num * 1000).limit(1000).all()
+    resource_permissions = resource_permissions.offset(page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
 
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
@@ -451,34 +451,28 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update, log_entry,
                          action_type, page_num=0):
-    permissions_to_update_count = len(permissions_to_update)
-    sent_perms_count = 0
     sync_response = None
     datasource_obj = get_datasource(datasource_id)
     datasource_type = datasource_obj.datasource_type
-    
-    while sent_perms_count < permissions_to_update_count:
-        permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
-        body = json.dumps(permissions_to_send, cls=alchemy_encoder())
 
-        payload = {"permissions": body, "datasource_id": datasource_id,
-                   "domain_id": datasource_obj.domain_id,
-                   "initiated_by_email": initiated_by,
-                   "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
+    body = json.dumps(permissions_to_update, cls=alchemy_encoder())
 
-        if permissions_to_update_count < BATCH_COUNT:
-            sync_response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
-                                     payload, connector_servicename_map[datasource_type], constants.TriggerType.SYNC.value)
+    payload = {"permissions": body, "datasource_id": datasource_id,
+               "domain_id": datasource_obj.domain_id,
+               "initiated_by_email": initiated_by,
+               "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
-        else:
-            messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
-                                         payload, connector_servicename_map[datasource_type])
+    if page_num == 0:
+        sync_response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
+                                 payload, connector_servicename_map[datasource_type], constants.TriggerType.SYNC.value)
 
-        sent_perms_count += BATCH_COUNT
+    else:
+        messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
+                                     payload, connector_servicename_map[datasource_type])
 
-    if permissions_to_update_count < BATCH_COUNT and sync_response.response_code == constants.SUCCESS_STATUS_CODE:
+    if page_num == 0 and sync_response.response_code == constants.SUCCESS_STATUS_CODE:
         return response_messages.ResponseMessage(200, 'Action completed successfully')
-    elif permissions_to_update_count < BATCH_COUNT and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
+    elif page_num == 0 and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
         return sync_response
     elif log_entry.total_count > page_num+1:
         return response_messages.ResponseMessage(constants.ACCEPTED_STATUS_CODE, 'Action submitted successfully')
