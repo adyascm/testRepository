@@ -1,6 +1,8 @@
 from sqlalchemy import and_, or_
 import json
 from datetime import datetime
+
+import math
 import pystache
 
 from adya.common.constants import constants, action_constants, urls
@@ -193,6 +195,7 @@ def initiate_action(auth_token, action_payload):
         action_key = action_payload['key']
         initiated_by = action_payload['initiated_by']
         action_parameters = action_payload['parameters']
+        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         datasource_id = action_payload['datasource_id'] if 'datasource_id' in action_payload else 'MANUAL'
 
         db_session = db_connection().get_session()
@@ -203,12 +206,25 @@ def initiate_action(auth_token, action_payload):
 
         if not action_config or not validate_action_parameters(action_config, action_parameters):
             return ResponseMessage(400, "Failed to execute action - Validation failed")
-        log_entry = audit_action(domain_id, datasource_id,
-                                 initiated_by, action_config, action_parameters)
+
+        log_id = action_payload['log_id'] if 'log_id' in action_payload else None
+        if log_id:
+            log_entry = db_session.query(AuditLog).filter(
+                and_(AuditLog.log_id == log_id)).first()
+        else:
+            log_entry = audit_action(domain_id, datasource_id,
+                                     initiated_by, action_config, action_parameters)
+
         execution_status = execute_action(
             auth_token, domain_id, datasource_id, action_config, action_payload, log_entry)
         db_connection().commit()
         execution_status.get_response_body()['id'] = log_entry.log_id
+
+        if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
+            action_payload['page_num'] = page_num+1
+            action_payload['log_id'] = log_entry.log_id
+            messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, action_payload)
+
         return execution_status
 
     except Exception as e:
@@ -316,8 +332,9 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
     else:
         return response_messages.ResponseMessage(response.response_code, response.response_body['message'])
 
+
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type,
-                                  log_entry, action_key):
+                                  log_entry, action_key, page_num):
     db_session = db_connection().get_session()
     # By default we remove all external access i.e. PUBLIC and EXTERNAL
     permission_type = [constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.PUBLIC.value,
@@ -327,29 +344,27 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
         permission_type.append(constants.EntityExposureType.DOMAIN.value)
         permission_type.append(constants.EntityExposureType.INTERNAL.value)
 
-    shared_resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
-                                                              Resource.resource_owner_id == user_email,
-                                                              Resource.exposure_type.in_(permission_type))).all()
+    shared_resource_query = db_session.query(ResourcePermission).filter(and_(Resource.datasource_id == datasource_id,
+                                                              Resource.resource_owner_id == user_email)).filter(and_(
+                                                              ResourcePermission.datasource_id == Resource.datasource_id,
+                                                              ResourcePermission.resource_id == Resource.resource_id,
+                                                              ResourcePermission.email != user_email,
+                                                              ResourcePermission.exposure_type.in_(permission_type)))
 
-    permissions_to_update = []
-    response_data = {}
-    for resource in shared_resources:
-        has_domain_sharing = False
-        permission_changes = []
-        for permission in resource.permissions:
-            if permission.exposure_type in permission_type and permission.email != user_email:
-                permissions_to_update.append(permission)
+    if page_num == 0:
+        total_update_permissions_count = shared_resource_query.count()
+        log_entry.total_count = math.ceil((total_update_permissions_count)/1000.0)
 
-            if permission.exposure_type == constants.EntityExposureType.DOMAIN.value:
-                has_domain_sharing = True
-
-    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update,
-                                    log_entry, action_key)
+    permissions_to_update = shared_resource_query.offset(page_num * 1000).limit(1000).all()
     if len(permissions_to_update) < 1:
         log_entry.message = 'Action completed successfully'
         log_entry.status = 'SUCCESS'
-        return response_messages.ResponseMessage(200, 'Action impermissible : No files found')
+        return response_messages.ResponseMessage(200, 'Action complete : Nothing to update')
 
+    response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update,
+                                    log_entry, action_key, page_num)
+
+    
     return response
 
 
@@ -391,7 +406,7 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
 
 
 def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by, log_entry,
-                                    action_key):
+                                    action_key, page_num):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     login_user_email = login_user.email
@@ -406,7 +421,11 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         resource_permissions = resource_permissions.filter(and_(Resource.resource_id == ResourcePermission.resource_id,
                                                                 Resource.resource_owner_id == login_user_email))
 
-    resource_permissions = resource_permissions.all()
+    if page_num == 0:
+        total_update_permissions_count = resource_permissions.count()
+        log_entry.total_count = math.ceil((total_update_permissions_count)/1000.0)
+
+    resource_permissions = resource_permissions.offset(page_num * 1000).limit(1000).all()
 
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
@@ -416,32 +435,33 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         else:
             permissions_to_update_by_resource_owner[owner] = [permission]
 
+    if len(permissions_to_update_by_resource_owner) < 1:
+        log_entry.message = 'Action completed successfully'
+        log_entry.status = 'SUCCESS'
+        return response_messages.ResponseMessage(200, 'Action completed : Nothing to update')
+    
     response = response_messages.ResponseMessage(200, 'Action submitted successfully')
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
         response = execute_batch_delete(
-            auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key)
+            auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key, page_num)
 
-    if len(permissions_to_update_by_resource_owner) < 1:
-        log_entry.message = 'Action completed successfully'
-        log_entry.status = 'SUCCESS'
-        return response_messages.ResponseMessage(200, 'Action impermissible : No files found')
     return response
 
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update, log_entry,
-                         action_type):
+                         action_type, page_num=0):
     permissions_to_update_count = len(permissions_to_update)
     sent_perms_count = 0
     sync_response = None
+    datasource_obj = get_datasource(datasource_id)
+    datasource_type = datasource_obj.datasource_type
+    
     while sent_perms_count < permissions_to_update_count:
         permissions_to_send = permissions_to_update[sent_perms_count:sent_perms_count + BATCH_COUNT]
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
 
-        datasource_obj = get_datasource(datasource_id)
-        datasource_type = datasource_obj.datasource_type
-
-        payload = {"permissions": body, "datasource_id": datasource_id, "domain_id": datasource_obj.domain_id,
+        payload = {"permissions": body, "datasource_id": datasource_id,
                    "initiated_by_email": initiated_by,
                    "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
@@ -459,8 +479,10 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         return response_messages.ResponseMessage(200, 'Action completed successfully')
     elif permissions_to_update_count < BATCH_COUNT and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
         return sync_response
+    elif log_entry.total_count > page_num+1:
+        return response_messages.ResponseMessage(constants.ACCEPTED_STATUS_CODE, 'Action submitted successfully')
     else:
-        return response_messages.ResponseMessage(200, 'Action submitted successfully')
+        return response_messages.ResponseMessage(200, 'Action completed successfully')
 
 
 def modify_group_membership(auth_token, datasource_id, action_name, action_parameters, log_entry):
@@ -599,20 +621,24 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
+        page_num = action_payload['page_num']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                     "ALL", log_entry, action_key)
+                                                     "ALL", log_entry, action_key, page_num)
+
     elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
+        page_num = action_payload['page_num']
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                                      constants.EntityExposureType.EXTERNAL.value, log_entry,
-                                                     action_key)
+                                                     action_key, page_num)
+
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
+        page_num = action_payload['page_num']
         response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                       log_entry, action_key)
-
+                                                       log_entry, action_key, page_num)
     # Bulk permission change actions for resource
     elif action_key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE.value:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, 'ALL',
@@ -774,4 +800,6 @@ def remove_app_for_domain(auth_token,app_id, log_entry):
     status_message = "Action completed successfully"
     log_entry.message = status_message
     db_connection().commit()
-    return response_messages.ResponseMessage(200, status_message)    
+    return response_messages.ResponseMessage(200, status_message)
+
+
