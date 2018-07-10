@@ -462,6 +462,7 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         body = json.dumps(permissions_to_send, cls=alchemy_encoder())
 
         payload = {"permissions": body, "datasource_id": datasource_id,
+                   "domain_id": datasource_obj.domain_id,
                    "initiated_by_email": initiated_by,
                    "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
