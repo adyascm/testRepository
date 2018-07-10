@@ -1,5 +1,6 @@
 from adya.common.constants import constants
 from adya.common.db.connection import db_connection
+from adya.common.utils import utils
 from adya.gsuite import gutils
 from adya.common.db.models import Resource, ResourcePermission, DomainUser, DataSource
 
@@ -46,7 +47,7 @@ class GsuiteResource:
                 if not permission_model:
                     continue
                 self._resource.permissions.append(permission_model)
-                resource_exposure_type = gutils.get_resource_exposure_type(permission_model.exposure_type, resource_exposure_type)
+                resource_exposure_type = utils.get_highest_exposure_type(permission_model.exposure_type, resource_exposure_type)
                 if (not permission_model.email in external_user_map) and permission.get_external_user():
                     external_user_map[permission_model.email]= permission.get_external_user()
 
@@ -89,15 +90,17 @@ class GsuitePermission:
             return
         self._permission.is_deleted = is_deleted
 
-        permission_exposure = constants.EntityExposureType.PRIVATE.value
         if email_address:
             db_session = db_connection().get_session()
             datasource = db_session.query(DataSource).filter(DataSource.datasource_id == self._datasource_id).first()
-            if gutils.check_if_external_user(db_session, datasource.domain_id,email_address):
-                permission_exposure = constants.EntityExposureType.EXTERNAL.value
-                self.set_external_user(email_address, display_name)
-            elif not email_address == self._resource_owner:
-                permission_exposure = constants.EntityExposureType.INTERNAL.value
+
+            if email_address == self._resource_owner:
+                permission_exposure = constants.EntityExposureType.PRIVATE.value
+            else:
+                permission_exposure = utils.check_if_external_user(db_session, datasource.domain_id, email_address)
+            if permission_exposure == constants.EntityExposureType.EXTERNAL.value or permission_exposure == constants.EntityExposureType.TRUSTED.value:
+                self.set_external_user(email_address, display_name, permission_exposure)
+
         #Shared with everyone in domain
         elif display_name:
             email_address = "__ANYONE__@"+ display_name
@@ -119,7 +122,7 @@ class GsuitePermission:
     def get_model(self):
         return self._permission
 
-    def set_external_user(self, email, display_name):
+    def set_external_user(self, email, display_name, permission_exposure):
         self._external_user = DomainUser()
         self._external_user.datasource_id = self._datasource_id
         self._external_user.email = email
@@ -130,7 +133,7 @@ class GsuitePermission:
             self._external_user.first_name = name_list[0]
             if len(name_list) > 1:
                 self._external_user.last_name = name_list[1]
-        self._external_user.member_type = constants.EntityExposureType.EXTERNAL.value
+        self._external_user.member_type = permission_exposure
 
     def get_external_user(self):
         return self._external_user

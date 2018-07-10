@@ -79,7 +79,7 @@ def transfer_ownership(auth_token, old_owner_email, new_owner_email):
         return ResponseMessage(500, None, content)
 
 
-def add_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id):
+def add_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id, domain_id):
     is_success = True
     exception_messages = ""
     drive_service = gutils.get_gdrive_service(auth_token, owner_email)
@@ -113,10 +113,8 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
 
             Logger().info("Add permission response from google is - {}".format(response))
             permission['permission_id'] = response['id']
-            permission['exposure_type'] = constants.EntityExposureType.PRIVATE.value if role == 'owner' else \
-                                                constants.EntityExposureType.INTERNAL.value
 
-            add_new_permission_to_db(permission, resource_id, datasource_id, initiated_by_email, role)
+            add_new_permission_to_db(permission, resource_id, datasource_id, initiated_by_email, role, domain_id)
 
         except Exception as ex:
             Logger().exception("Exception occurred while adding a new permission")

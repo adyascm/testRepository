@@ -5,8 +5,7 @@ from sqlalchemy import and_
 from adya.common.constants import constants
 from adya.common.db.connection import db_connection
 from adya.common.db.models import ResourcePermission, Resource, DomainUser
-from adya.gsuite import gutils
-
+from adya.common.utils import utils
 
 def update_resource_permissions(initiated_by_email, datasource_id, updated_permissions):
     db_session = db_connection().get_session()
@@ -17,7 +16,7 @@ def update_resource_permissions(initiated_by_email, datasource_id, updated_permi
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
                                                              ResourcePermission.resource_id == resource_id)). \
-                                                             update({"permission_type": perm["permission_type"]})
+                update({"permission_type": perm["permission_type"]})
             if perm["permission_type"] == "owner":
                 new_owner = perm['email']
 
@@ -33,8 +32,9 @@ def update_resource_permissions(initiated_by_email, datasource_id, updated_permi
 
     db_connection().commit()
 
+
 # adding a new permission in db
-def add_new_permission_to_db(updated_permission, resource_id, datasource_id, initiated_by_email, role):
+def add_new_permission_to_db(updated_permission, resource_id, datasource_id, initiated_by_email, role, domain_id):
     # If the user does not exist in DomainUser table add now
     db_session = db_connection().get_session()
     existing_user = db_session.query(DomainUser).filter(
@@ -43,11 +43,13 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
 
     if not existing_user:
         # Update the exposure type of the permission
-        updated_permission['exposure_type'] = constants.EntityExposureType.EXTERNAL.value
+        new_user_email = updated_permission['email']
+        exposure_type = utils.check_if_external_user(db_session, domain_id, new_user_email)
+        updated_permission['exposure_type'] = exposure_type
         domainUser = DomainUser()
         domainUser.datasource_id = datasource_id
-        domainUser.email = updated_permission['email']
-        domainUser.member_type = constants.EntityExposureType.EXTERNAL.value
+        domainUser.email = new_user_email
+        domainUser.member_type = exposure_type
         display_name = updated_permission['displayName']
         name = display_name.split(' ')
         if len(name) > 0 and name[0]:
@@ -61,8 +63,10 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
         db_connection().commit()
     else:
         # case: add permission to external user if that user already exist , than exposure type of permission should also be external
-        if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
-            updated_permission['exposure_type'] = constants.EntityExposureType.EXTERNAL.value
+        updated_permission['exposure_type'] = existing_user.member_type
+
+    if role == 'owner':
+        updated_permission['exposure_type'] = constants.EntityExposureType.PRIVATE.value
 
     permission = ResourcePermission()
     permission.datasource_id = datasource_id
@@ -76,14 +80,23 @@ def add_new_permission_to_db(updated_permission, resource_id, datasource_id, ini
     # Update the exposure type of the resource based on the updated permission
     existing_resource = db_session.query(Resource).filter(and_(Resource.resource_id == resource_id,
                                                                Resource.datasource_id == datasource_id)).first()
-    if permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
-        if not (
-                existing_resource.exposure_type == constants.EntityExposureType.EXTERNAL.value and existing_resource.exposure_type == constants.EntityExposureType.PUBLIC.value):
-            existing_resource.exposure_type = constants.EntityExposureType.EXTERNAL.value
-
-    else:
-        if existing_resource.exposure_type == constants.EntityExposureType.PRIVATE.value:
-            existing_resource.exposure_type = constants.EntityExposureType.INTERNAL.value
+    existing_resource.exposure_type = utils.get_highest_exposure_type(permission.exposure_type, existing_resource.exposure_type)
+    # if permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
+    #     if not (existing_resource.exposure_type == constants.EntityExposureType.EXTERNAL.value and
+    #                     existing_resource.exposure_type == constants.EntityExposureType.PUBLIC.value and
+    #                     existing_resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value):
+    #         existing_resource.exposure_type = constants.EntityExposureType.EXTERNAL.value
+    #
+    # elif permission.exposure_type == constants.EntityExposureType.TRUSTED.value:
+    #     if not(existing_resource.exposure_type == constants.EntityExposureType.EXTERNAL.value and
+    #                 existing_resource.exposure_type == constants.EntityExposureType.PUBLIC.value and
+    #                existing_resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value and
+    #                existing_resource.exposure_type == constants.EntityExposureType.TRUSTED.value):
+    #          existing_resource.exposure_type = constants.EntityExposureType.TRUSTED.value
+    #
+    # else:
+    #     if existing_resource.exposure_type == constants.EntityExposureType.PRIVATE.value:
+    #         existing_resource.exposure_type = constants.EntityExposureType.INTERNAL.value
 
     existing_resource.last_modifying_user_email = initiated_by_email
     existing_resource.last_modified_time = datetime.datetime.utcnow()
@@ -113,7 +126,8 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
     for resource_id in updated_permissions:
         deleted_permissions = updated_permissions[resource_id]
         for perm in deleted_permissions:
-            if perm["exposure_type"] == constants.EntityExposureType.EXTERNAL.value and not perm['email'] in external_users:
+            if perm["exposure_type"] == constants.EntityExposureType.EXTERNAL.value and not perm[
+                'email'] in external_users:
                 external_users[perm['email']] = 1
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
@@ -123,7 +137,7 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
                                                                   Resource.resource_id == resource_id)).first()
         highest_exposure = constants.EntityExposureType.PRIVATE.value
         for resource_perm in updated_resource.permissions:
-            highest_exposure = gutils.get_resource_exposure_type(resource_perm.exposure_type, highest_exposure)
+            highest_exposure = utils.get_highest_exposure_type(resource_perm.exposure_type, highest_exposure)
 
         # Update the resource with highest exposure
         if not updated_resource.exposure_type == highest_exposure:
