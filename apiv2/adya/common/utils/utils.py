@@ -6,10 +6,11 @@ from sqlalchemy import and_
 from adya.common.constants import constants
 import os
 
+from adya.common.constants.constants import TrustedTypes
 from adya.common.db import models
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DomainUser, ResourcePermission, Resource, Application, ApplicationUserAssociation, \
-    AppInventory, AppLicenseInventory
+    AppInventory, AppLicenseInventory, TrustedEntities
 from adya.common.utils.response_messages import Logger
 
 def get_call_with_authorization_header(session, url, auth_token):
@@ -76,18 +77,19 @@ def update_data_for_trutsted_entities(db_session, datasource_id, domain_id):
     if not trusted_entities:
         return
     trusted_domains = trusted_entities.trusted_domains
-    trusted_apps = trusted_entities.trusted_apps
+    trusted_domains_list = trusted_domains.split(',') if trusted_domains else []
 
-    if len(trusted_domains) > 0:
-        trusted_domains = [trusted_domains]
-        for trusted_domain in trusted_domains:
+    trusted_apps = trusted_entities.trusted_apps
+    trusted_apps_list = trusted_apps.split(',') if trusted_apps else []
+
+    if len(trusted_domains_list) > 0:
+        for trusted_domain in trusted_domains_list:
             update_data_for_trusted_domains(db_session, [datasource_id], trusted_domain)
     # update apps data
-    if len(trusted_apps) > 0:
-       trusted_apps = [trusted_apps]
+    if len(trusted_apps_list) > 0:
        db_session.query(Application).filter(and_(Application.id == ApplicationUserAssociation.application_id,
                                 ApplicationUserAssociation.datasource_id == datasource_id,
-                                Application.display_text.in_(trusted_apps))).update({Application.score: 0})
+                                Application.display_text.in_(trusted_apps_list))).update({Application.score: 0})
 
     db_connection().commit()
 
@@ -150,3 +152,56 @@ def add_license_for_scanned_app(db_session, datasource):
         application.purchased_date = now
         application.unit_num = datasource.total_user_count
     db_connection().commit()
+
+
+def get_trusted_entity_for_domain(db_session, domain_id):
+    trusted_entities_data = db_session.query(TrustedEntities).filter(TrustedEntities.domain_id == domain_id).first()
+    trusted_domains_list = []
+    trusted_apps_list = []
+
+    if trusted_entities_data:
+        trusted_domains = trusted_entities_data.trusted_domains
+        trusted_domains_list = trusted_domains.split(',') if trusted_domains else []
+
+        trusted_apps = trusted_entities_data.trusted_apps
+        trusted_apps_list = trusted_apps.split(',') if trusted_apps else []
+
+    return {'trusted_domains': trusted_domains_list, 'trusted_apps': trusted_apps_list}
+
+
+def check_if_external_user(db_session, domain_id, email):
+    exposure_type = constants.EntityExposureType.INTERNAL.value
+    if '@' in email and not email.endswith(domain_id):
+        exposure_type = constants.EntityExposureType.EXTERNAL.value
+        trusted_domains_list = (get_trusted_entity_for_domain(db_session, domain_id))['trusted_domains']
+        for trusted_domain in trusted_domains_list:
+            if email.endswith(trusted_domain):
+                exposure_type = constants.EntityExposureType.TRUSTED.value
+                break
+
+    return exposure_type
+
+
+def get_highest_exposure_type(permission_exposure, highest_exposure):
+    if permission_exposure == constants.EntityExposureType.PUBLIC.value:
+        highest_exposure = constants.EntityExposureType.PUBLIC.value
+    elif permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value and not highest_exposure == constants.EntityExposureType.PUBLIC.value:
+        highest_exposure = constants.EntityExposureType.ANYONEWITHLINK.value
+    elif permission_exposure == constants.EntityExposureType.EXTERNAL.value and not (highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.PUBLIC.value):
+        highest_exposure = constants.EntityExposureType.EXTERNAL.value
+    elif permission_exposure == constants.EntityExposureType.TRUSTED.value and not \
+                (highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value
+                 or highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value):
+        highest_exposure = constants.EntityExposureType.TRUSTED.value
+    elif permission_exposure == constants.EntityExposureType.DOMAIN.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or
+                                                    highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or
+                                                highest_exposure == constants.EntityExposureType.EXTERNAL.value or
+                                                highest_exposure == constants.EntityExposureType.TRUSTED.value):
+        highest_exposure = constants.EntityExposureType.DOMAIN.value
+    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or
+                                                highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or
+                                            highest_exposure == constants.EntityExposureType.EXTERNAL.value or
+                                        highest_exposure == constants.EntityExposureType.DOMAIN.value or
+                                     highest_exposure == constants.EntityExposureType.TRUSTED.value):
+        highest_exposure = constants.EntityExposureType.INTERNAL.value
+    return highest_exposure

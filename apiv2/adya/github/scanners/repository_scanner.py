@@ -82,6 +82,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         repo_permission_dict["email"] = collaborator_info["email"]
         repo_permission_dict["permission_id"] = collaborator["id"]
         repo_permission_dict["exposure_type"] = collaborator_info["member_type"]
+        repo_permission_dict["permission_type"] = constants.Role.READER.value
 
         if collaborator["id"] in collaborators_permissions_dict:
             collaborator_permission = collaborators_permissions_dict[collaborator["id"]]
@@ -89,9 +90,7 @@ def process(db_session, auth_token, query_params, scanner_data):
                 repo_permission_dict["permission_type"] = constants.Role.OWNER.value
             elif collaborator_permission["push"]:
                 repo_permission_dict["permission_type"] = constants.Role.WRITER.value
-            else:
-                repo_permission_dict["permission_type"] = constants.Role.READER.value
-
+                
         if collaborator_info["member_type"] == constants.EntityExposureType.INTERNAL.value:
             if not resource_exposure:
                 resource_exposure = constants.EntityExposureType.INTERNAL.value

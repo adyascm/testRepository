@@ -81,7 +81,7 @@ class NewLogin extends Component {
                             <img src="/images/logo.png" width="200px" height="100%"/>
                             <h1 className="orange-color">Manage and secure your SaaS Apps</h1>
                             <div>
-                            <input type="checkbox" style={{"marginRight":"10px"}} defaultChecked={this.state.chkbox} onChange={this.enableGoogleSignIn()} />
+                            <input type="checkbox" style={{"marginRight":"10px", "fontSize":"2em"}} defaultChecked={this.state.chkbox} onChange={this.enableGoogleSignIn()} />
                             <p style={{"color":"gray","fontSize":"12pt","display":"inline"}}>I agree to <a href="https://www.adya.io/terms-of-service-agreement/" target="_blank">Terms Of Service </a>and <a href="https://www.adya.io/privacy-policy/" target="_blank">Privacy Policy</a></p>
                             </div>    
                             <div className="text-center scan-button p-b-30" style={divStyle}>

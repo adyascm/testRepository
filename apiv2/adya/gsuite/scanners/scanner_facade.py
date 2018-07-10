@@ -16,7 +16,7 @@ from adya.common.email_templates import adya_emails
 
 def start_scan(auth_token, datasource_id, domain_id, user_email):
     db_session = db_connection().get_session()
-    scanner_types = [gsuite_constants.ScannerTypes.USERS.value, 
+    scanner_types = [gsuite_constants.ScannerTypes.USERS.value,
                 gsuite_constants.ScannerTypes.GROUPS.value]
     for scanner_type in scanner_types:
         scanner = DatasourceScanners()
@@ -192,9 +192,6 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     utils.add_license_for_scanned_app(db_session, datasource)
     Logger().info("Send email after scan complete")
     adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
-
-    # update data for trusted entities
-    utils.update_data_for_trutsted_entities(db_session, datasource_id, datasource.domain_id)
     update_resource_exposure_type(db_session, datasource.domain_id, datasource_id)
 
 def update_resource_exposure_type(db_session, domain_id, datasource_id):

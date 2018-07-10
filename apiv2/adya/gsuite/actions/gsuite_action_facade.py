@@ -11,6 +11,7 @@ def execute_action(auth_token, payload):
     action_type = payload['action_type']
     user_email = payload['user_email']
     datasource_id = payload['datasource_id']
+    domain_id = payload['domain_id']
     initiated_by_email = payload['initiated_by_email'] if 'initiated_by_email' in payload else None
     permissions = json.loads(payload['permissions']) if 'permissions' in payload else None
     exceptions = None
@@ -32,7 +33,7 @@ def execute_action(auth_token, payload):
 
     elif action_type == action_constants.ActionNames.ADD_PERMISSION_FOR_A_FILE.value or \
                     action_type ==  action_constants.ActionNames.CHANGE_OWNER_OF_FILE.value:
-        response = gsuite_actions.add_permissions(auth_token, permissions, user_email, initiated_by_email, datasource_id)
+        response = gsuite_actions.add_permissions(auth_token, permissions, user_email, initiated_by_email, datasource_id, domain_id)
 
     elif action_type == action_constants.ActionNames.UPDATE_PERMISSION_FOR_USER.value:
         response = gsuite_actions.update_permissions(auth_token, permissions, user_email, initiated_by_email, datasource_id)

@@ -113,7 +113,7 @@ class ResourcesListTable extends Component {
             if (nextProps.filterExposureType !== this.props.filterExposureType || nextProps.filterResourceType !== this.props.filterResourceType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.selectedUser !== this.props.selectedUser || nextProps.filterParentFolder !== this.props.filterParentFolder || nextProps.filterByDate !== this.props.filterByDate ||
                 ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined) || nextProps.filterSourceType !== this.props.filterSourceType) {
-                let ownerEmailId = nextProps.selectedUser ? nextProps.selectedUser.email : ''
+                let ownerEmailId = nextProps.selectedUser && (nextProps.selectedUser !== this.props.selectedUser) ? nextProps.selectedUser.email : ''
                 nextProps.onLoadStart()
                 nextProps.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc', 'sourceType': nextProps.filterSourceType }))
             }

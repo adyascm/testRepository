@@ -83,9 +83,10 @@ def create_datasource(auth_token, payload):
                 db_session, existing_user.domain_id, datasource_id)
         else:
             Logger().info("Starting the scan")
-            query_params = {"domainId": datasource.domain_id,
+            query_params = { "domainId": datasource.domain_id,
                             "dataSourceId": datasource.datasource_id,
-                            "userEmail": existing_user.email}
+                            "userEmail": existing_user.email
+                           }
             messaging.trigger_get_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, "gsuite")
             
     
@@ -117,7 +118,7 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
             # delete app wrt to datasource
             db_session.query(Application).filter(Application.display_text == app_name).delete(synchronize_session=False)
         except:
-            Logger().exception('App is present corresponding to other datasource')    
+            Logger().info('App is present corresponding to other datasource')
         
         db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
                                                                datasource_id).delete(synchronize_session=False)

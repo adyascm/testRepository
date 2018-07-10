@@ -11,7 +11,6 @@ def start_scan(event, context):
         True, ['dataSourceId', 'domainId', 'userEmail'])
     if req_error:
         return req_error
-
     scanner_facade.start_scan(req_session.get_auth_token(), req_session.get_req_param('dataSourceId'),
                           req_session.get_req_param('domainId'), req_session.get_req_param('userEmail'))
 

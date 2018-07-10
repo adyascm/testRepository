@@ -4,13 +4,16 @@ import uuid
 import datetime
 from google.oauth2.credentials import Credentials
 import googleapiclient.discovery as discovery
+from googleapiclient.errors import HttpError
+
 import json
 import requests
 from sqlalchemy import Boolean
 
 from adya.common.constants import constants, urls
+from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
-from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser
+from adya.common.db.models import LoginUser, Domain, DataSource, get_table, Resource, DomainUser, TrustedEntities
 from oauth2client.service_account import ServiceAccountCredentials
 from adya.common.constants import constants
 from adya.common.constants.scopeconstants import DRIVE_SCAN_SCOPE, SERVICE_ACCOUNT_SCOPE, SERVICE_ACCOUNT_READONLY_SCOPE
@@ -116,52 +119,28 @@ def get_oauth_service(credentials):
 
 
 def check_if_serviceaccount_enabled(emailid):
-    profile_info = None
     try:
         credentials = get_delegated_credentials(emailid)
         drive = discovery.build('drive', 'v3', credentials=credentials)
-        profile_info = drive.about().get(fields="user").execute()
+        drive.about().get(fields="user").execute()
         return True
     except Exception as e:
-        Logger().exception("Exception occurred while checking if service account is enabled")
+        Logger().info("Could not check service account status, hence not assuming that its installed from marketplace - {}".format(e.message))
     return False
 
 
 def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
     try:
         directory_service = get_directory_service(auth_token, user_email, db_session)
-        users = directory_service.users().get(userKey=user_email).execute()
+        directory_service.users().get(userKey=user_email).execute()
         return ""
-    except Exception as ex:
+    except HttpError as ex:
         ex_msg = json.loads(ex.content)["error"]["message"]
-        Logger().exception("Exception occurred while checking if user is admin")
+        Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex_msg))
         return ex_msg
-
-
-def check_if_external_user(db_session, domain_id, email):
-    domain_name = db_session.query(Domain.domain_name).filter(Domain.domain_id == domain_id).first()
-    if not '@' in domain_name:
-        if email.endswith(domain_name):
-            return False
-    else:
-        if email == domain_name:
-            return False
-    return True
-
-
-def get_resource_exposure_type(permission_exposure, highest_exposure):
-    if permission_exposure == constants.EntityExposureType.PUBLIC.value:
-        highest_exposure = constants.EntityExposureType.PUBLIC.value
-    elif permission_exposure == constants.EntityExposureType.ANYONEWITHLINK.value and not highest_exposure == constants.EntityExposureType.PUBLIC.value:
-        highest_exposure = constants.EntityExposureType.ANYONEWITHLINK.value
-    elif permission_exposure == constants.EntityExposureType.EXTERNAL.value and not (highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.PUBLIC.value):
-        highest_exposure = constants.EntityExposureType.EXTERNAL.value
-    elif permission_exposure == constants.EntityExposureType.DOMAIN.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value):
-        highest_exposure = constants.EntityExposureType.DOMAIN.value
-    elif permission_exposure == constants.EntityExposureType.INTERNAL.value and not (highest_exposure == constants.EntityExposureType.PUBLIC.value or highest_exposure == constants.EntityExposureType.ANYONEWITHLINK.value or highest_exposure == constants.EntityExposureType.EXTERNAL.value or highest_exposure == constants.EntityExposureType.DOMAIN.value):
-        highest_exposure = constants.EntityExposureType.INTERNAL.value
-    return highest_exposure
-
+    except Exception as ex:
+        Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex.message))
+        return ex.message
 
 
 def get_app_score(scopes):
@@ -173,3 +152,23 @@ def get_app_score(scopes):
                 max_score = score
 
     return max_score
+
+
+def create_user_payload_for_nonadmin_nonserviceaccount(auth_token):
+    user_info = db_utils.get_user_session(auth_token)
+
+    results = {"users": [{"primaryEmail": user_info.email,
+                          "name": {
+                              "givenName": user_info.first_name,
+                              "familyName": user_info.last_name,
+                              "fullName": user_info.first_name + " " + user_info.last_name
+                          },
+                          "isAdmin": False,
+                          "creationTime": str(datetime.datetime.utcnow()),
+                          "suspended": False,
+                          "id": user_info.email,
+                          "thumbnailPhotoUrl": "",
+                          "aliases": [],
+                          "customerId": ""
+                          }]}
+    return results
