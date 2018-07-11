@@ -4,6 +4,7 @@ from adya.common.db.models import DomainUser
 from datetime import datetime
 from adya.common.db.connection import db_connection
 from adya.common.constants import constants
+from sqlalchemy import exc
 
 def query(auth_token, query_params, scanner):
     datasource_id = query_params["datasource_id"]
@@ -22,46 +23,90 @@ def query(auth_token, query_params, scanner):
 
     return {"payload": members}
 
+# def process(db_session, auth_token, query_params, scanner_data):
+#     datasource_id = query_params["datasource_id"]
+#     domain_id = query_params["domain_id"]
+#     members = scanner_data["entities"]
+#     all_members = []
+#     processed_members_count = 0
+
+#     for member in members:
+#         member_info = {}
+#         member_info["datasource_id"] = datasource_id
+#         member_info["full_name"] = member["name"] if member["name"] else member["login"]
+#         name_split = member_info["full_name"].split(" ")
+#         if len(name_split) > 1:
+#             member_info["first_name"] = name_split[0]
+#             member_info["last_name"] = name_split[1]
+#         else:
+#             member_info["first_name"] = name_split[0]
+#             member_info["last_name"] = ''
+#         user_email = "{0}+{1}@users.noreply.github.com".format(member["id"], member["login"])
+#         member_info["email"] = member["email"] if member["email"] else user_email
+#         creation_time = datetime.strptime(member["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+#         updation_time = datetime.strptime(member["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
+#         member_info["creation_time"] = creation_time
+#         member_info["last_updated"] = updation_time
+#         member_info["photo_url"] = member["avatar_url"]
+#         member_info["user_id"] = member["id"]
+#         member_info["member_type"] = constants.EntityExposureType.INTERNAL.value
+
+#         if github_utils.is_external_user(domain_id, member_info["email"]):
+#             member_info["member_type"] = constants.EntityExposureType.EXTERNAL.value
+
+#         all_members.append(member_info)
+#         processed_members_count = processed_members_count + 1
+
+#     try:
+#         #db_session.bulk_insert_mappings(DomainUser, all_members)
+#         db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(all_members))
+#         db_connection().commit()
+#         return processed_members_count
+    
+#     except Exception as ex:
+#         print ex
+#         db_session.rollback()
+
 def process(db_session, auth_token, query_params, scanner_data):
     datasource_id = query_params["datasource_id"]
     domain_id = query_params["domain_id"]
     members = scanner_data["entities"]
-    all_members = []
     processed_members_count = 0
 
     for member in members:
-        member_info = {}
-        member_info["datasource_id"] = datasource_id
-        member_info["full_name"] = member["name"] if member["name"] else member["login"]
-        name_split = member_info["full_name"].split(" ")
+        member_info = DomainUser()
+        member_info.datasource_id = datasource_id
+        member_info.full_name = member["name"] if member["name"] else member["login"]
+        name_split = member_info.full_name.split(" ")
         if len(name_split) > 1:
-            member_info["first_name"] = name_split[0]
-            member_info["last_name"] = name_split[1]
+            member_info.first_name = name_split[0]
+            member_info.last_name = name_split[1]
         else:
-            member_info["first_name"] = name_split[0]
-            member_info["last_name"] = ''
+            member_info.first_name = name_split[0]
+            member_info.last_name = ''
         user_email = "{0}+{1}@users.noreply.github.com".format(member["id"], member["login"])
-        member_info["email"] = member["email"] if member["email"] else user_email
+        member_info.email = member["email"] if member["email"] else user_email
         creation_time = datetime.strptime(member["created_at"], "%Y-%m-%dT%H:%M:%SZ")
         updation_time = datetime.strptime(member["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
-        member_info["creation_time"] = creation_time
-        member_info["last_updated"] = updation_time
-        member_info["photo_url"] = member["avatar_url"]
-        member_info["user_id"] = member["id"]
-        member_info["member_type"] = constants.EntityExposureType.INTERNAL.value
+        member_info.creation_time = creation_time
+        member_info.last_updated = updation_time
+        member_info.photo_url = member["avatar_url"]
+        member_info.user_id = member["id"]
+        member_info.member_type = constants.EntityExposureType.INTERNAL.value
 
-        if github_utils.is_external_user(domain_id, member_info["email"]):
-            member_info["member_type"] = constants.EntityExposureType.EXTERNAL.value
+        if github_utils.is_external_user(domain_id, member_info.email):
+            member_info.member_type = constants.EntityExposureType.EXTERNAL.value
 
-        all_members.append(member_info)
-        processed_members_count = processed_members_count + 1
+        try:
+            db_session.add(member_info)
+            db_connection().commit()
+            processed_members_count = processed_members_count + 1
+        
+        except exc.IntegrityError:
+            db_session.rollback()
 
-    try:
-        #db_session.bulk_insert_mappings(DomainUser, all_members)
-        db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(all_members))
-        db_connection().commit()
-        return processed_members_count
+        except:
+            db_session.rollback()
     
-    except Exception as ex:
-        print ex
-        db_session.rollback()
+    return processed_members_count
+        
