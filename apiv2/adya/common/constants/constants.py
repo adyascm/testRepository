@@ -113,6 +113,15 @@ Permission_Role_mapping = {
     'can_comment': 'commenter'
 }
 
+permission_friendly_name_map = {
+    "owner": "Owner",
+    "writer": "Can Write",
+    "reader": "Can Read",
+    "commenter": "Can Comment",
+    "admin": "Admin",
+    "organizer": "Can Organise"
+}
+
 permission_priority = {
     "can_view": 1,
     "can_comment": 2,

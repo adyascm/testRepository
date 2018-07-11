@@ -184,15 +184,10 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
         template_name = "permission_change_policy_violation"
-        permissions_map = {
-            "owner": "Owner",
-            "writer": "Can Write",
-            "reader": "Can Read"
-        }
         permissions = []
         for permission in new_permissions:
             user_name = permission["email"]
-            permission_str = user_name + " (" + permissions_map[permission["permission_type"]] + ")"
+            permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
         template_parameters = {
