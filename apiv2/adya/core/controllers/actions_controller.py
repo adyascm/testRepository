@@ -334,15 +334,12 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
         messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
                                      payload, connector_servicename_map[datasource_type])
 
-    if page_num == 0 and sync_response.response_code == constants.SUCCESS_STATUS_CODE:
-        return response_messages.ResponseMessage(200, 'Action completed successfully')
-    elif page_num == 0 and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
+    if page_num == 0 and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
         return sync_response
     elif log_entry.total_count > page_num+1:
         return response_messages.ResponseMessage(constants.ACCEPTED_STATUS_CODE, 'Action submitted successfully')
     else:
         return response_messages.ResponseMessage(200, 'Action completed successfully')
-
 
 def modify_group_membership(auth_token, datasource_id, action_name, action_parameters, log_entry):
     user_email = action_parameters["user_email"]
