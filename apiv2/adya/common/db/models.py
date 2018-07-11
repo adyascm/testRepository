@@ -281,8 +281,8 @@ class AuditLog(Base):
     timestamp = Column(DateTime)
     status = Column(String(50))
     message = Column(String(500))
-    total_count = Column(Integer, default=1)
-    success_count = Column(Integer, default=1)
+    total_count = Column(Integer, default=0)
+    success_count = Column(Integer, default=0)
     failed_count = Column(Integer, default=0)
 
 
