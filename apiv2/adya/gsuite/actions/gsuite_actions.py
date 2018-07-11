@@ -9,6 +9,7 @@ from adya.common.db.action_utils import update_resource_permissions, delete_reso
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DomainUser
 from adya.common.utils.response_messages import Logger, ResponseMessage
+from googleapiclient.errors import HttpError
 
 
 def delete_user_from_group(auth_token, group_email, user_email):
@@ -176,8 +177,17 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 updated_permissions[permission['resource_id']] = [permission]
             else:
                 updated_permissions[permission['resource_id']].append(permission)
+        except HttpError as ex:
+            if ex.resp.status == 401:
+                Logger().warn("Permission not found : permission - {} : ex - {}".format(permission, ex))
+            else:
+                Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
+                is_success = False
+                if ex.content:
+                    content = json.loads(ex.content)
+                    exception_messages += content['error']['message']
         except Exception as ex:
-            Logger().exception("Exception occurred while deleting permissions in gsuite")
+            Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
             is_success = False
             if ex.content:
                 content = json.loads(ex.content)
