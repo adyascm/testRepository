@@ -44,8 +44,8 @@ class InstalledApp extends Component {
                 "#Users":'num_users',
                 "Subscription (in $)":'unit_price'
             },
-            columnNameClicked: '',
-            sortOrder: '',
+            sortColumnName: this.props.sortColumnName,
+            sortOrder: this.props.sortOrder,
             isLoadingApps: false,
             totalCost: null,
             appIdToBeDeleted: undefined,
@@ -71,6 +71,7 @@ class InstalledApp extends Component {
                 isLoadingApps: false
             })
         })
+        this.fetchFirstInstalledApps();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -107,7 +108,7 @@ class InstalledApp extends Component {
 
 
     fetchFirstInstalledApps = () => {
-        this.getInstalledApps(this.state.currentPage - 1, this.state.columnNameClicked, this.state.sortOrder)
+        this.getInstalledApps(this.state.currentPage - 1, this.state.sortColumnName, this.state.sortOrder)
     }
 
 
@@ -166,30 +167,31 @@ class InstalledApp extends Component {
 
     handleColumnSort = (mappedColumnName) => {
         let payload = null
-        if (this.state.columnNameClicked !== mappedColumnName) {
+        if (this.state.sortColumnName !== mappedColumnName) {
             this.setState({
                 isLoadingApps: true
             })
-            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'asc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
+            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'desc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
                 let lastPage = payload.last_page ? payload.last_page : null;
                 this.setState({
                     isLoadingApps: false,
-                    columnNameClicked: mappedColumnName,
-                    sortOrder: 'ascending',
+                    sortColumnName: mappedColumnName,
+                    sortOrder: 'desc',
                     lastPage: lastPage,
                     appsPayload: payload.apps
                 })
             })
         }
         else {
+            let sortOrder = this.state.sortOrder === 'asc' ? 'desc' : 'asc';
             this.setState({
-                isLoadingApps: true
+                isLoadingApps: true,
             })
-            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
+            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
                 let lastPage = payload.last_page ? payload.last_page : null;
                 this.setState({
                     isLoadingApps: false,
-                    sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending',
+                    sortOrder: sortOrder,
                     lastPage: lastPage,
                     appsPayload: payload.apps
                 })
@@ -198,13 +200,13 @@ class InstalledApp extends Component {
     }
 
     handleNextClick = () => {
-        this.getInstalledApps(this.state.currentPage, this.state.columnNameClicked, this.state.sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"")
+        this.getInstalledApps(this.state.currentPage, this.state.sortColumnName, this.state.sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"")
         this.setState({
             currentPage: this.state.currentPage + 1
         })
     }
     handlePrevClick = () => {
-        this.getInstalledApps(this.state.currentPage-2, this.state.columnNameClicked, this.state.sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"")
+        this.getInstalledApps(this.state.currentPage-2, this.state.sortColumnName, this.state.sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"")
         this.setState({
             currentPage: this.state.currentPage - 1
         })
@@ -236,7 +238,7 @@ class InstalledApp extends Component {
             isLoadingApps:true
         })
 
-        this.getInstalledApps(this.state.currentPage - 1, this.state.columnNameClicked, this.state.sortOrder, filterValue || "")
+        this.getInstalledApps(this.state.currentPage - 1, this.state.sortColumnName, this.state.sortOrder, filterValue || "")
     }
 
     handleClick = (event) => {
@@ -250,7 +252,7 @@ class InstalledApp extends Component {
             let isSortable = (['Riskiness', 'Annual Cost', 'Category', 'Application', '#Users', 'Subscription'].indexOf(headerName) >=0)  
             let headerCellStyle = !isSortable ? {pointerEvents:"none"}:{pointerEvents:'auto'}
             return (
-                <Table.HeaderCell key={headerName} style={headerCellStyle} sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}>
+                <Table.HeaderCell key={headerName} style={headerCellStyle} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}>
                 {headerName === "Application" ? <Input style={{ 'width': '20rem' }} icon={this.state.listFilters.appName && this.state.listFilters.appName.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "appName")} /> : null} placeholder="Filter by Application ..."
                         value={this.state.listFilters.appName ? this.state.listFilters.appName.value : ''} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "appName")} /> : headerName}
                </Table.HeaderCell>

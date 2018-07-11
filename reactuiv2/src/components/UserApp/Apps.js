@@ -15,9 +15,7 @@ import {
 
 const mapStateToProps = state => ({
   ...state.apps,
-  ...state.common,
-  redirectTo: state.dashboard.redirectTo,
-  redirectFilter: state.dashboard.filterType
+  ...state.common
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -30,15 +28,6 @@ class Apps extends Component {
   constructor(props) {
     super(props);
   }
-
-  componentWillMount() {
-    window.scrollTo(0, 0)
-    this.props.onLoadStart()
-    agent.Apps.getInstalledApps(0,'', '').then(payload => {
-        this.props.onLoad(payload)
-    })
-  }
-
   
   render() {
     let containerStyle = {
