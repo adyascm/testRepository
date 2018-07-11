@@ -215,8 +215,9 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
 
     if page_num == 0:
         total_update_permissions_count = shared_resource_query.count()
-        log_entry.total_count = math.ceil(
-            (total_update_permissions_count)/BATCH_COUNT)
+        log_entry.total_count = int(math.ceil(
+            (total_update_permissions_count)/BATCH_COUNT))
+        db_connection().commit()
 
     permissions_to_update = shared_resource_query.offset(
         page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
@@ -286,8 +287,9 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
 
     if page_num == 0:
         total_update_permissions_count = resource_permissions.count()
-        log_entry.total_count = math.ceil(
-            (total_update_permissions_count)/(int(BATCH_COUNT)))
+        log_entry.total_count = int(math.ceil(
+            (total_update_permissions_count)/(int(BATCH_COUNT))))
+        db_connection().commit()
 
     resource_permissions = resource_permissions.offset(
         page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
