@@ -129,7 +129,7 @@ class AppDetailsSection extends Component {
             ]
             return (
                 <Segment>
-                    <div style={{ 'position': 'relative', 'left': '72rem' }} >
+                    <div style={{ 'float': 'right', 'cursor': 'pointer'}} >
                         <Icon name='close' onClick={this.closeDetailsSection} />
                     </div>
                     <Item.Group>

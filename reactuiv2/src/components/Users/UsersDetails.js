@@ -187,7 +187,7 @@ class UsersDetails extends Component {
             }
             return (
                 <Segment  fluid="true">
-                    <Icon style={{'position': 'relative', 'left': '33rem', 'cursor': 'pointer'}} name='close' onClick={this.closeDetailsSection} />
+                    <Icon style={{'float': 'right', 'cursor': 'pointer'}} name='close' onClick={this.closeDetailsSection} />
                     <div style={{'textAlign': 'left'}}>
                         <Item.Group>
                             <Item fluid='true'>

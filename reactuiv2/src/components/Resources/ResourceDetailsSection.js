@@ -65,7 +65,7 @@ class ResourceDetailsSection extends Component {
         ]
         return (
             <Segment>
-                <div style={{ 'position': 'relative', 'left': '72rem', 'cursor': 'pointer' }} >
+                <div style={{ 'float': 'right', 'cursor': 'pointer' }} >
                     <Icon name='close' onClick={this.closeDetailsSection} />
                 </div>
                 <ResourceDetails rowData={this.props.rowData} onQuickAction={this.onQuickAction} all_actions_list={this.props.all_actions_list} datasourcesMap={this.props.datasourcesMap}/>
