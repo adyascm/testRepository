@@ -103,7 +103,7 @@ class GithubDataSourceItem extends Component {
     //       percent = 0;
       var statusText = "Scan is in progress. Please wait for it to complete."
       //var statusCount = "Processed " + datasource.processed_file_count + "/" + datasource.total_file_count + " files " + datasource.processed_user_count + "/" + datasource.total_user_count + " users"
-      var statusCount = "Scanned " + datasource.processed_file_count + " repositories, " + datasource.processed_user_count + " users"
+      var statusCount = "Scanned " + datasource.processed_file_count + " repositories, " + datasource.processed_group_count + " groups, " + datasource.processed_user_count + " users"
       var pollIcon = null;
       var status = common.DataSourceUtils.getGithubScanStatus(datasource);
       //var progressBar = (<Progress size='small' precision='0' percent={percent} active />);

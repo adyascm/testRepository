@@ -141,7 +141,7 @@ def get_datasource_column(scanner_type, is_total = True):
     if scanner_type == github_constants.ScannerTypes.REPOSITORIES.value or scanner_type == github_constants.ScannerTypes.ORGANISATIONS.value:
         column_name = DataSource.total_user_count if is_total else DataSource.processed_user_count
     elif scanner_type == github_constants.ScannerTypes.ACCOUNT.value:
-        column_name = (DataSource.total_file_count, DataSource.total_user_count) if is_total else (DataSource.processed_file_count, DataSource.processed_user_count)
+        column_name = (DataSource.total_file_count, DataSource.total_group_count) if is_total else (DataSource.processed_file_count, DataSource.processed_group_count)
     return column_name
 
 
