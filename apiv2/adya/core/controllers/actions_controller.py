@@ -18,7 +18,7 @@ from adya.gsuite import actions, gutils
 from adya.common.email_templates import adya_emails
 from adya.common.db.models import alchemy_encoder
 
-BATCH_COUNT = 100.0
+BATCH_COUNT = 50.0
 
 
 def get_actions():
@@ -328,15 +328,10 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
                "initiated_by_email": initiated_by,
                "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
-    if page_num == 0:
-        sync_response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
+    sync_response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
                                                      payload, connector_servicename_map[datasource_type], constants.TriggerType.SYNC.value)
 
-    else:
-        messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
-                                     payload, connector_servicename_map[datasource_type])
-
-    if page_num == 0 and sync_response.response_code != constants.SUCCESS_STATUS_CODE:
+    if sync_response.response_code != constants.SUCCESS_STATUS_CODE:
         return sync_response
     elif log_entry.total_count > page_num+1:
         return response_messages.ResponseMessage(constants.ACCEPTED_STATUS_CODE, 'Action submitted successfully')
