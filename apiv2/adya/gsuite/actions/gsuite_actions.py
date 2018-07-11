@@ -131,6 +131,7 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
 def update_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id):
     drive_service = gutils.get_gdrive_service(auth_token, owner_email)
     updated_permissions = {}
+    deleted_permissions = {}
     is_success = True
     exception_messages = ""
     for permission in permissions:
@@ -148,14 +149,22 @@ def update_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 updated_permissions[permission['resource_id']] = [permission]
             else:
                 updated_permissions[permission['resource_id']].append(permission)
+        except HttpError as e:
+            if e.resp.status == 404:
+                Logger().info("Permission not found in gsuite, hence delete from db")
+                deleted_permissions[permission['resource_id']] = [permission]
+            else:
+                Logger().exception("HttpError Exception occurred while updating permissions in gsuite" + ex)
+                is_success = False
+                exception_messages += e
         except Exception as ex:
-            Logger().exception("Exception occurred while deleting permissions in gsuite")
+            Logger().exception("Exception occurred while updating permissions in gsuite" + ex)
             is_success = False
-            if ex.content:
-                content = json.loads(ex.content)
-                exception_messages += content['error']['message']
+            exception_messages += ex
     try:
         update_resource_permissions(initiated_by_email, datasource_id, updated_permissions)
+        if len(deleted_permissions) > 0:
+            delete_resource_permission(initiated_by_email, datasource_id, deleted_permissions)
     except Exception as ex:
         Logger().exception("Exception occurred while updating permission from db")
         is_success = False
@@ -180,19 +189,15 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
         except HttpError as ex:
             if ex.resp.status == 401:
                 Logger().warn("Permission not found : permission - {} : ex - {}".format(permission, ex))
+                updated_permissions[permission['resource_id']] = [permission]
             else:
                 Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
                 is_success = False
-                if ex.content:
-                    content = json.loads(ex.content)
-                    exception_messages += content['error']['message']
+                exception_messages += ex
         except Exception as ex:
             Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
             is_success = False
-            if ex.content:
-                content = json.loads(ex.content)
-                exception_messages += content['error']['message']
-
+            exception_messages += ex
         
     try:
         delete_resource_permission(initiated_by_email, datasource_id, updated_permissions)
