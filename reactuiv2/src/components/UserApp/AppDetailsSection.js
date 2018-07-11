@@ -81,26 +81,65 @@ class AppDetailsSection extends Component {
                 let app = this.props.selectedAppItem
                 appUsers = this.props.appUsers.map((user, index) => {
                     let ds = this.props.datasourcesMap[user.datasource_id];
-                    return (
-                        <Grid.Row key={index} textAlign="center" verticalAlign="middle">
-                            <Grid.Column width={2}>
-                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
-                                    basic color='red'
-                                    onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
-                                    <Button.Content hidden>Remove</Button.Content>
-                                    <Button.Content visible>
-                                        <Icon name='remove' />
-                                    </Button.Content>
-                                </Button>
-                            </Grid.Column>
-                            <Grid.Column width={2}>
-                                <Image src={ds.logo} centered size="mini"/>
-                            </Grid.Column>
-                            <Grid.Column width={10}>
-                                {user.email}
-                            </Grid.Column>
-                        </Grid.Row>
-                    )
+                    if(! this.props.selectedAppItem.is_datasource_app){
+                        return (
+                            <Grid.Row key={index} textAlign="center" verticalAlign="middle">
+                                <Grid.Column width={2}>
+                                    <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                                        basic color='red'
+                                        onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
+                                        <Button.Content hidden>Remove</Button.Content>
+                                        <Button.Content visible>
+                                            <Icon name='remove' />
+                                        </Button.Content>
+                                    </Button>
+                                </Grid.Column>
+                                <Grid.Column width={2}>
+                                    <Image src={ds.logo} centered size="mini"/>
+                                </Grid.Column>
+                                <Grid.Column textAlign="left" width={10}>
+                                    {user.email}
+                                </Grid.Column>
+                            </Grid.Row>
+                        )
+                    }else{
+                        return (
+                            <Grid.Row key={index} textAlign="center" verticalAlign="middle">
+                                <Grid.Column width={2}>
+                                    <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                                        basic color='red'
+                                        onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
+                                        <Button.Content hidden>Remove</Button.Content>
+                                        <Button.Content visible>
+                                            <Icon name='remove' />
+                                        </Button.Content>
+                                    </Button>
+                                </Grid.Column>
+                                <Grid.Column width={2}>
+                                    <Image src={ds.logo} centered size="mini"/>
+                                </Grid.Column>
+                                <Grid.Column textAlign="left" width={5}>
+                                    {user.email}
+                                </Grid.Column>
+                                <Grid.Column width={5}>
+                                <td>
+                                <IntlProvider locale={'en'} >
+                                    <FormattedDate
+                                        value={new Date(user.last_login_time)}
+                                        year='numeric'
+                                        month='long'
+                                        day='2-digit'
+                                        hour='2-digit'
+                                        minute = '2-digit'
+                                        second = '2-digit'
+                                    />
+                                </IntlProvider>
+                                </td>
+                                </Grid.Column>
+                            </Grid.Row>
+                        )
+                    }
+                    
                 })
             }
             var appName = this.props.selectedAppItem.display_text
@@ -118,7 +157,33 @@ class AppDetailsSection extends Component {
             let panes = [
                 {
                     menuItem: 'Users', render: () => <Tab.Pane attached={false}>
-                        <Grid celled='internally'>{appUsers}
+                        <Grid celled='internally'>
+                            {this.props.appUsers && this.props.appUsers.length > 0 ? 
+                            this.props.selectedAppItem.is_datasource_app ?
+                            (<Grid.Row style={{fontSize:'1.1em', fontWeight:'600'}}>
+                                <Grid.Column width={2}>
+                                </Grid.Column>
+                                <Grid.Column textAlign="center" width={2}>
+                                    Source
+                                </Grid.Column>
+                                <Grid.Column textAlign="left" width={5}>
+                                    User
+                                </Grid.Column>
+                                <Grid.Column width={5}>
+                                    Last Activity
+                                </Grid.Column>
+                            </Grid.Row>) :
+                            (<Grid.Row style={{fontSize:'1.1em', fontWeight:'600'}}>
+                                <Grid.Column width={2}>
+                                </Grid.Column>
+                                <Grid.Column textAlign="center" width={2}>
+                                    Source
+                                </Grid.Column>
+                                <Grid.Column textAlign="left" width={10}>
+                                    User
+                                </Grid.Column>
+                            </Grid.Row>):null}
+                            {appUsers}
                         </Grid> </Tab.Pane>
                 },
                 {
