@@ -13,8 +13,7 @@ def execute_action(auth_token, payload):
     datasource_id = payload['datasource_id']
     domain_id = payload['domain_id']
     initiated_by_email = payload['initiated_by_email'] if 'initiated_by_email' in payload else None
-    permissions = json.loads(payload['permissions']) if 'permissions' in payload else None
-    exceptions = None
+    permissions = json.loads(payload['permissions']) if 'permissions' in payload else []
     response = None
 
     if action_type == action_constants.ActionNames.ADD_USER_TO_GROUP.value:
@@ -49,12 +48,12 @@ def execute_action(auth_token, payload):
         if current_log:
             response_code = response.get_response_code()
             if response_code == 200:
-                current_log.success_count += 1
+                current_log.success_count += len(permissions)
                 if current_log.success_count == current_log.total_count:
                     current_log.status = action_constants.ActionStatus.SUCCESS.value
                     current_log.message = "Action completed successfully"
             else:
-                current_log.failed_count += 1
+                current_log.failed_count += len(permissions)
                 current_log.status = action_constants.ActionStatus.FAILED.value
                 current_log.message = "Action failed"
             

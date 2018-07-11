@@ -50,7 +50,6 @@ def initiate_action(auth_token, action_payload):
         action_key = action_payload['key']
         initiated_by = action_payload['initiated_by']
         action_parameters = action_payload['parameters']
-        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         datasource_id = action_payload['datasource_id'] if 'datasource_id' in action_payload else 'MANUAL'
 
         db_session = db_connection().get_session()
@@ -79,7 +78,6 @@ def initiate_action(auth_token, action_payload):
         response_body['id'] = log_entry.log_id
 
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
-            action_payload['page_num'] = page_num+1
             action_payload['log_id'] = log_entry.log_id
             messaging.trigger_post_event(
                 urls.INITIATE_ACTION_PATH, auth_token, None, action_payload)
@@ -196,7 +194,7 @@ def update_or_delete_resource_permission(auth_token, datasource_id, action_paylo
 
 
 def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by, removal_type,
-                                  log_entry, action_key, page_num):
+                                  log_entry, action_key):
     db_session = db_connection().get_session()
     # By default we remove all external access i.e. PUBLIC and EXTERNAL
     permission_type = [constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.PUBLIC.value,
@@ -213,21 +211,22 @@ def update_access_for_owned_files(auth_token, domain_id, datasource_id, user_ema
                                                                                  ResourcePermission.email != user_email,
                                                                                  ResourcePermission.exposure_type.in_(permission_type)))
 
-    if page_num == 0:
-        total_update_permissions_count = shared_resource_query.count()
-        log_entry.total_count = int(math.ceil(
-            (total_update_permissions_count)/BATCH_COUNT))
+    if not log_entry.total_count:
+        log_entry.total_count = shared_resource_query.count()
         db_connection().commit()
 
-    permissions_to_update = shared_resource_query.offset(
-        page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
+    permissions_to_update = shared_resource_query.limit(BATCH_COUNT).all()
+    more_to_execute = False
+    if len(permissions_to_update) == BATCH_COUNT:
+        more_to_execute = True
+
     if len(permissions_to_update) < 1:
         log_entry.message = 'Action completed successfully'
         log_entry.status = 'SUCCESS'
         return response_messages.ResponseMessage(200, 'Action complete : Nothing to update')
 
     response = execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update,
-                                    log_entry, action_key, page_num)
+                                    log_entry, action_key, more_to_execute)
 
     return response
 
@@ -270,7 +269,7 @@ def update_access_for_resource(auth_token, domain_id, datasource_id, action_payl
 
 
 def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by, log_entry,
-                                    action_key, page_num):
+                                    action_key):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token)
     login_user_email = login_user.email
@@ -285,14 +284,14 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         resource_permissions = resource_permissions.filter(and_(Resource.resource_id == ResourcePermission.resource_id,
                                                                 Resource.resource_owner_id == login_user_email))
 
-    if page_num == 0:
-        total_update_permissions_count = resource_permissions.count()
-        log_entry.total_count = int(math.ceil(
-            (total_update_permissions_count)/(int(BATCH_COUNT))))
+    if not log_entry.total_count:
+        log_entry.total_count = resource_permissions.count()
         db_connection().commit()
 
-    resource_permissions = resource_permissions.offset(
-        page_num * (int(BATCH_COUNT))).limit((int(BATCH_COUNT))).all()
+    resource_permissions = resource_permissions.limit(BATCH_COUNT).all()
+    more_to_execute = False
+    if len(resource_permissions) == BATCH_COUNT:
+        more_to_execute = True
 
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
@@ -312,13 +311,13 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
         response = execute_batch_delete(
-            auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key, page_num)
+            auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key, more_to_execute)
 
     return response
 
 
 def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, permissions_to_update, log_entry,
-                         action_type, page_num=0):
+                         action_type, more_to_execute=False):
     sync_response = None
     datasource_obj = get_datasource(datasource_id)
     datasource_type = datasource_obj.datasource_type
@@ -335,7 +334,7 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
 
     if sync_response.response_code != constants.SUCCESS_STATUS_CODE:
         return sync_response
-    elif log_entry.total_count > page_num+1:
+    elif more_to_execute:
         return response_messages.ResponseMessage(constants.ACCEPTED_STATUS_CODE, 'Action submitted successfully')
     else:
         return response_messages.ResponseMessage(200, 'Action completed successfully')
@@ -484,24 +483,21 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                     "ALL", log_entry, action_key, page_num)
+                                                     "ALL", log_entry, action_key)
 
     elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = update_access_for_owned_files(auth_token, domain_id, datasource_id, user_email, initiated_by,
                                                      constants.EntityExposureType.EXTERNAL.value, log_entry,
-                                                     action_key, page_num)
+                                                     action_key)
 
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value:
         user_email = action_parameters['user_email']
         initiated_by = action_payload['initiated_by']
-        page_num = action_payload['page_num'] if 'page_num' in action_payload else 0
         response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                       log_entry, action_key, page_num)
+                                                       log_entry, action_key)
     # Bulk permission change actions for resource
     elif action_key == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE.value:
         response_msg = update_access_for_resource(auth_token, domain_id, datasource_id, action_payload, 'ALL',
