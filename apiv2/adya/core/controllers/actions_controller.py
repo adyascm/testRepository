@@ -74,6 +74,7 @@ def initiate_action(auth_token, action_payload):
         execution_status = execute_action(
             auth_token, domain_id, datasource_id, action_config, action_payload, log_entry)
         db_connection().commit()
+        Logger().info("initiate_action : response body  - {}".format(execution_status.get_response_body()))
         execution_status.get_response_body()['id'] = log_entry.log_id
 
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
@@ -669,12 +670,16 @@ def remove_app_for_domain(auth_token, app_id, log_entry):
         return None
     db_session = db_connection().get_session()
     try:
+        directory_service = gutils.get_directory_service(auth_token)
+        app_users_query = db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.application_id == app_id)
+        app_users = app_users_query.all()
+        for app_user in app_users:
+            directory_service.tokens().delete(userKey=app_user.user_email, clientId=app_user.client_id).execute()
+        app_users_query.delete()
         db_session.query(Application).filter(Application.id == app_id).delete()
     except:
-        db_session.query(ApplicationUserAssociation).filter(
-            ApplicationUserAssociation.application_id == app_id).delete()
-        db_session.query(Application).filter(Application.id == app_id).delete()
         Logger().exception("Exception occured while deleting the app")
+        
     log_entry.status = action_constants.ActionStatus.SUCCESS.value
     status_message = "Action completed successfully"
     log_entry.message = status_message
