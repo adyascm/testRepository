@@ -18,7 +18,7 @@ from adya.gsuite import actions, gutils
 from adya.common.email_templates import adya_emails
 from adya.common.db.models import alchemy_encoder
 
-BATCH_COUNT = 50.0
+BATCH_COUNT = 50
 
 
 def get_actions():
