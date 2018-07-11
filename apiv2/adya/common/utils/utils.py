@@ -152,7 +152,21 @@ def add_license_for_scanned_app(db_session, datasource):
         application.timestamp = now
         application.purchased_date = now
         application.unit_num = datasource.total_user_count
+        if unit_price:
+            application.unit_price = unit_price.price
     db_connection().commit()
+    populate_users_to_scanned_app(db_session, datasource, application.id)      
+
+def populate_users_to_scanned_app(db_session, datasource, application_id):
+    domain_internal_users = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
+    for domain_internal_user in domain_internal_users:
+        app_user_association = ApplicationUserAssociation()
+        app_user_association.application_id = application_id
+        app_user_association.datasource_id = domain_internal_user.datasource_id
+        app_user_association.user_email = domain_internal_user.email
+        app_user_association.client_id = domain_internal_user.datasource_id
+        db_session.add(app_user_association)
+        db_connection().commit()
 
 
 def get_trusted_entity_for_domain(db_session, domain_id):
