@@ -74,6 +74,7 @@ def initiate_action(auth_token, action_payload):
         execution_status = execute_action(
             auth_token, domain_id, datasource_id, action_config, action_payload, log_entry)
         db_connection().commit()
+        Logger().info("initiate_action : response body  - {}".format(execution_status.get_response_body()))
         execution_status.get_response_body()['id'] = log_entry.log_id
 
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
