@@ -75,7 +75,8 @@ def initiate_action(auth_token, action_payload):
             auth_token, domain_id, datasource_id, action_config, action_payload, log_entry)
         db_connection().commit()
         Logger().info("initiate_action : response body  - {}".format(execution_status.get_response_body()))
-        execution_status.get_response_body()['id'] = log_entry.log_id
+        response_body = json.loads(json.dumps(execution_status.get_response_body()))
+        response_body['id'] = log_entry.log_id
 
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
             action_payload['page_num'] = page_num+1
@@ -83,7 +84,7 @@ def initiate_action(auth_token, action_payload):
             messaging.trigger_post_event(
                 urls.INITIATE_ACTION_PATH, auth_token, None, action_payload)
 
-        return execution_status
+        return ResponseMessage(execution_status.response_code, None, response_body)
 
     except Exception as e:
         Logger().exception(
