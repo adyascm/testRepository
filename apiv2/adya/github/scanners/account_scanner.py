@@ -35,6 +35,7 @@ def query(auth_token, query_params, scanner):
     orgs = {}
     repo_owner = {}
     fetched_repos_count = 0
+    fetched_orgs_count = 0
 
     #Fetching the repositories under the authenticated_user
     for repo in authenticated_user.get_repos():
@@ -72,13 +73,15 @@ def query(auth_token, query_params, scanner):
         if org.id not in all_orgs_dict:
             # all_orgs_dict[org.id] = org.login
             all_orgs_dict[org.id] = org.raw_data
+            fetched_orgs_count = fetched_orgs_count + 1
+
     orgs["org"] = all_orgs_dict
 
     all_entities = []
     all_entities.append(repos)
     all_entities.append(orgs)
     
-    return {"payload": all_entities, "repo_count": fetched_repos_count}
+    return {"payload": all_entities, "repo_count": fetched_repos_count, "org_count": fetched_orgs_count}
 
 def process(db_session, auth_token, query_params, scanner_data):
     #Process the repositories and organisations and initiate members scan here
@@ -89,7 +92,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     orgs = {}
     repo_owner = {}
 
-    print "All entities : {}".format(all_entities)
+    #print "All entities : {}".format(all_entities)
     for entity in all_entities:
         for entity_key in entity:
             if entity_key == "repo":
@@ -107,6 +110,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     repo_list = []
     repo_permission_list = []
     processed_repo_count = 0
+    processed_org_count = 0
 
     for repo in repos:
         repo = repos[repo]
@@ -172,7 +176,7 @@ def process(db_session, auth_token, query_params, scanner_data):
             db_session.rollback()
 
     #Update the Domain user table with the organisation entries
-    print "orgs dict : {}".format(orgs)
+    #print "orgs dict : {}".format(orgs)
     all_orgs = []
     for org in orgs:
         org = orgs[org]
@@ -189,13 +193,14 @@ def process(db_session, auth_token, query_params, scanner_data):
         org_email = "{0}+{1}@users.noreply.github.com".format(org["id"], org["login"])
         org_info["email"] = org["email"] if org["email"] else org_email
         org_info["description"] = org["description"]
-        org_info["type"] = constants.DirectoryEntityType.GROUP.value
+        org_info["type"] = constants.DirectoryEntityType.ORGANIZATION.value
         org_info["creation_time"] = datetime.datetime.strptime(org["created_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["last_updated"] = datetime.datetime.strptime(org["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["user_id"] = org["id"]
         org_info["member_type"] = constants.EntityExposureType.INTERNAL.value
 
         all_orgs.append(org_info)
+        processed_org_count = processed_org_count + 1
 
         #Starting a scanner for each organization
         scanner = DatasourceScanners()
@@ -220,4 +225,5 @@ def process(db_session, auth_token, query_params, scanner_data):
             print ex
             db_session.rollback()
     
-    return processed_repo_count
+    #return processed_repo_count
+    return {"repo_count": processed_repo_count, "org_count": processed_org_count}

@@ -23,7 +23,8 @@ def request_scanner_data(auth_token, query_params):
     response = scanner_processor.query(auth_token, query_params, scanner)
     entities_list = response["payload"]
     if scanner.scanner_type == "ACCOUNT":
-        fetched_entities_count = response["repo_count"]
+        fetched_repo_count = response["repo_count"]
+        fetched_entities_count = fetched_repo_count
     else:
         fetched_entities_count = len(entities_list)
     in_progress = 0 if fetched_entities_count < 1 else 1
@@ -67,6 +68,10 @@ def process_scanner_data(auth_token, query_params, scanner_data):
     
     scanner_processor = get_scanner_processor(scanner.scanner_type)
     processed_results = scanner_processor.process(db_session, auth_token, query_params, scanner_data)
+
+    if scanner.scanner_type == "ACCOUNT":
+        processed_repos = processed_results["repo_count"]
+        processed_results = processed_repos
 
     while(True):
         try:

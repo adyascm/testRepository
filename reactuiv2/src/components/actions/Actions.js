@@ -162,9 +162,12 @@ class Actions extends Component {
             }).catch(err => {
                 let resp
                 resp = err
-                if(err.response.body)
+                if(err.response && err.response.body)
                 {
                     resp = err.response.body
+                }
+                else{
+                    resp = {"message": "Request timed out, check the logs for status"}
                 }
                 error(resp)
             })

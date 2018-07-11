@@ -1,4 +1,4 @@
-import json
+import json, time, random
 
 from sqlalchemy import and_
 
@@ -182,26 +182,38 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
     for permission in permissions:
         resource_id = permission['resource_id']
         permission_id = permission['permission_id']
-        try:
-            drive_service.permissions().delete(fileId=resource_id, quotaUser= owner_email[0:41], permissionId=permission_id).execute()
-            if not permission['resource_id'] in updated_permissions:
-                updated_permissions[permission['resource_id']] = [permission]
-            else:
-                updated_permissions[permission['resource_id']].append(permission)
-        except HttpError as ex:
-            if ex.resp.status == 404:
-                Logger().info("Permission not found : permission - {} : ex - {}".format(permission, ex))
-                updated_permissions[permission['resource_id']] = [permission]
-            else:
-                Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
+        retry = 0
+        while True:
+            retry += 1
+            try:
+                drive_service.permissions().delete(fileId=resource_id, quotaUser= owner_email[0:41], permissionId=permission_id).execute()
+                if not permission['resource_id'] in updated_permissions:
+                    updated_permissions[permission['resource_id']] = [permission]
+                else:
+                    updated_permissions[permission['resource_id']].append(permission)
+                break
+            except HttpError as ex:
+                if ex.resp.status == 404:
+                    Logger().info("Permission not found : permission - {} : ex - {}".format(permission, ex))
+                    updated_permissions[permission['resource_id']] = [permission]
+                    break
+                elif ex.resp.status == 403 and retry < 6:
+                    #API limit reached, so retry after few seconds for 5 times
+                    sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
+                    Logger().warn("API limit reached while deleting the permission in gsuite, will retry after {} secs: {}".format(sleep_secs, permission))
+                    time.sleep(sleep_secs)
+                else:
+                    Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
+                    is_success = False
+                    if ex.content:
+                        content = json.loads(ex.content)
+                        exception_messages += content['error']['message']
+                    break
+            except Exception as ex:
+                Logger().exception("Exception occurred while deleting permissions in gsuite : ex - {}".format(ex))
                 is_success = False
-                if ex.content:
-                    content = json.loads(ex.content)
-                    exception_messages += content['error']['message']
-        except Exception as ex:
-            Logger().exception("Exception occurred while deleting permissions in gsuite : ex - {}".format(ex))
-            is_success = False
-            exception_messages += "Exception occurred while deleting permissions in gsuite"
+                exception_messages += "Exception occurred while deleting permissions in gsuite"
+                break
         
     try:
         delete_resource_permission(initiated_by_email, datasource_id, updated_permissions)
