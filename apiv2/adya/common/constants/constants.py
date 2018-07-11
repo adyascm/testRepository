@@ -30,6 +30,7 @@ def get_url_from_path(path):
     return API_HOST + path
 
 SUCCESS_STATUS_CODE = 200
+ACCEPTED_STATUS_CODE = 202
 
 REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
@@ -112,6 +113,15 @@ Permission_Role_mapping = {
     'can_comment': 'commenter'
 }
 
+permission_friendly_name_map = {
+    "owner": "Owner",
+    "writer": "Can Write",
+    "reader": "Can Read",
+    "commenter": "Can Comment",
+    "admin": "Admin",
+    "organizer": "Can Organise"
+}
+
 permission_priority = {
     "can_view": 1,
     "can_comment": 2,
@@ -149,3 +159,7 @@ datasource_to_installed_app_map = {
     'SLACK' : 'Slack',
     'GITHUB': 'Github'
 }
+
+class TrustedTypes(Enum):
+    DOMAINS = 'DOMAINS'
+    APPS = 'APPS'

@@ -49,11 +49,11 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
             apps_query = apps_query.order_by(Application.score.desc())
         else:
             apps_query = apps_query.order_by(Application.score.asc())    
-    elif sort_column_name == "annual_cost":
+    elif sort_column_name == "annual_cost" or sort_column_name == "unit_price":
         if sort_order == 'desc':
-            apps_query = apps_query.order_by(Application.unit_num.desc())
+            apps_query = apps_query.order_by(Application.unit_price.desc())
         else:
-            apps_query = apps_query.order_by(Application.unit_num.asc()) 
+            apps_query = apps_query.order_by(Application.unit_price.asc()) 
     elif sort_column_name == 'category':
         if sort_order == 'desc':
             apps_query = apps_query.outerjoin(AppInventory,AppInventory.id == Application.inventory_app_id).order_by(AppInventory.category.desc())
@@ -68,12 +68,7 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
         if sort_order == 'desc':
             apps_query = apps_query.order_by(Application.unit_num.desc())
         else:
-            apps_query = apps_query.order_by(Application.unit_num.asc())          
-    elif sort_column_name == "unit_price":
-        if sort_order == 'desc':
-            apps_query = apps_query.order_by(Application.unit_price.desc())
-        else:
-            apps_query = apps_query.order_by(Application.unit_price.asc()) 
+            apps_query = apps_query.order_by(Application.unit_num.asc())
     apps_query = apps_query.offset(page_number * page_limit).limit(page_limit)        
     installed_apps = apps_query.all()
     for app in installed_apps:

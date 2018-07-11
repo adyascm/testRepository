@@ -3,9 +3,11 @@ import json
 
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
-from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, ApplicationUserAssociation, alchemy_encoder, AppInventory, DataSource
+from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, \
+    ApplicationUserAssociation, alchemy_encoder, AppInventory, DataSource, TrustedEntities
 from adya.common.utils.response_messages import Logger
 from adya.common.utils import messaging
+from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.gsuite import gutils
 from sqlalchemy.exc import IntegrityError
 
@@ -93,9 +95,15 @@ def process_token_activity(datasource_id, incoming_activity):
                 application.timestamp = datetime.datetime.utcnow()
                 if inventory_app_id:
                     application.inventory_app_id = inventory_app_id
-                if scopes:
-                    application.score = gutils.get_app_score(scopes)
-                    application.scopes = ','.join(scopes)  
+
+                # check for trusted apps
+                trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
+                max_score = 0
+                if scopes and not app_name in trusted_domain_apps:
+                    max_score = gutils.get_app_score(scopes)
+
+                application.score = max_score
+                application.scopes = ','.join(scopes) if scopes else None
                 if app_name:
                     application.display_text = app_name
                 application.unit_num = 0    
@@ -115,15 +123,15 @@ def process_token_activity(datasource_id, incoming_activity):
                 #Trigger the policy validation now
                 payload = {}
                 application.user_email = user_association.user_email
-                payload["application"] = json.dumps(application, cls=alchemy_encoder())
-                policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
-                messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
+
+                if application.score != 0:
+                    payload["application"] = json.dumps(application, cls=alchemy_encoder())
+                    policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
+                    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
 
             except IntegrityError as ie:
                 Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
                 db_session.rollback()
-
-
 
 
 def process_drive_activity(datasource_id, incoming_activity):

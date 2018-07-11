@@ -80,11 +80,14 @@ def process(db_session, auth_token, query_params, scanner_data):
                     is_deleted = permission.get('deleted')
                     if is_deleted:
                         continue
-                    permission_exposure = constants.EntityExposureType.PRIVATE.value
-                    if email_address:
-                        if gutils.check_if_external_user(db_session, domain_id,email_address):
 
-                            permission_exposure = constants.EntityExposureType.EXTERNAL.value
+                    if email_address:
+                        if email_address == resource["resource_owner_id"]:
+                            permission_exposure = constants.EntityExposureType.PRIVATE.value
+                        else:
+                            permission_exposure = utils.check_if_external_user(db_session, domain_id,email_address)
+
+                        if permission_exposure == constants.EntityExposureType.EXTERNAL.value or permission_exposure == constants.EntityExposureType.TRUSTED.value:
                             ## insert non domain user as External user in db, Domain users will be
                             ## inserted during processing Users
                             if not email_address in external_user_map:
@@ -99,10 +102,9 @@ def process(db_session, auth_token, query_params, scanner_data):
                                     externaluser["first_name"] = name_list[0]
                                     if len(name_list) > 1:
                                         externaluser["last_name"] = name_list[1]
-                                externaluser["member_type"] = constants.EntityExposureType.EXTERNAL.value
+                                externaluser["member_type"] = permission_exposure
                                 external_user_map[email_address]= externaluser
-                        elif not email_address == resource["resource_owner_id"]:
-                            permission_exposure = constants.EntityExposureType.INTERNAL.value
+
                     #Shared with everyone in domain
                     elif display_name:
                         email_address = "__ANYONE__@"+ display_name
@@ -128,7 +130,7 @@ def process(db_session, auth_token, query_params, scanner_data):
                         resource_permission["expiration_time"] = expiration_time[:-1]
                     resource_permission["is_deleted"] = is_deleted
                     data_for_permission_table.append(resource_permission)
-                    resource_exposure_type = gutils.get_resource_exposure_type(permission_exposure, resource_exposure_type)
+                    resource_exposure_type = utils.get_highest_exposure_type(permission_exposure, resource_exposure_type)
             resource["exposure_type"] = resource_exposure_type
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)

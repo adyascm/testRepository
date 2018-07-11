@@ -9,6 +9,7 @@ from adya.common.db.action_utils import update_resource_permissions, delete_reso
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DomainUser
 from adya.common.utils.response_messages import Logger, ResponseMessage
+from googleapiclient.errors import HttpError
 
 
 def delete_user_from_group(auth_token, group_email, user_email):
@@ -79,7 +80,7 @@ def transfer_ownership(auth_token, old_owner_email, new_owner_email):
         return ResponseMessage(500, None, content)
 
 
-def add_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id):
+def add_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id, domain_id):
     is_success = True
     exception_messages = ""
     drive_service = gutils.get_gdrive_service(auth_token, owner_email)
@@ -113,10 +114,8 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
 
             Logger().info("Add permission response from google is - {}".format(response))
             permission['permission_id'] = response['id']
-            permission['exposure_type'] = constants.EntityExposureType.PRIVATE.value if role == 'owner' else \
-                                                constants.EntityExposureType.INTERNAL.value
 
-            add_new_permission_to_db(permission, resource_id, datasource_id, initiated_by_email, role)
+            add_new_permission_to_db(permission, resource_id, datasource_id, initiated_by_email, role, domain_id)
 
         except Exception as ex:
             Logger().exception("Exception occurred while adding a new permission")
@@ -132,6 +131,7 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
 def update_permissions(auth_token, permissions, owner_email, initiated_by_email, datasource_id):
     drive_service = gutils.get_gdrive_service(auth_token, owner_email)
     updated_permissions = {}
+    deleted_permissions = {}
     is_success = True
     exception_messages = ""
     for permission in permissions:
@@ -149,14 +149,22 @@ def update_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 updated_permissions[permission['resource_id']] = [permission]
             else:
                 updated_permissions[permission['resource_id']].append(permission)
+        except HttpError as e:
+            if e.resp.status == 404:
+                Logger().info("Permission not found in gsuite, hence delete from db")
+                deleted_permissions[permission['resource_id']] = [permission]
+            else:
+                Logger().exception("HttpError Exception occurred while updating permissions in gsuite" + ex)
+                is_success = False
+                exception_messages += e
         except Exception as ex:
-            Logger().exception("Exception occurred while deleting permissions in gsuite")
+            Logger().exception("Exception occurred while updating permissions in gsuite" + ex)
             is_success = False
-            if ex.content:
-                content = json.loads(ex.content)
-                exception_messages += content['error']['message']
+            exception_messages += ex
     try:
         update_resource_permissions(initiated_by_email, datasource_id, updated_permissions)
+        if len(deleted_permissions) > 0:
+            delete_resource_permission(initiated_by_email, datasource_id, deleted_permissions)
     except Exception as ex:
         Logger().exception("Exception occurred while updating permission from db")
         is_success = False
@@ -178,13 +186,18 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 updated_permissions[permission['resource_id']] = [permission]
             else:
                 updated_permissions[permission['resource_id']].append(permission)
+        except HttpError as ex:
+            if ex.resp.status == 401:
+                Logger().warn("Permission not found : permission - {} : ex - {}".format(permission, ex))
+                updated_permissions[permission['resource_id']] = [permission]
+            else:
+                Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
+                is_success = False
+                exception_messages += ex
         except Exception as ex:
-            Logger().exception("Exception occurred while deleting permissions in gsuite")
+            Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
             is_success = False
-            if ex.content:
-                content = json.loads(ex.content)
-                exception_messages += content['error']['message']
-
+            exception_messages += ex
         
     try:
         delete_resource_permission(initiated_by_email, datasource_id, updated_permissions)

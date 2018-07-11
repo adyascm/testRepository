@@ -8,6 +8,7 @@ from adya.common.db.models import Resource, DataSource, DomainUser, ApplicationU
     alchemy_encoder
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
+from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.slack import slack_utils, slack_constants
 from adya.slack.mappers import entities
 from adya.slack.scanners import apps_scanner
@@ -92,21 +93,29 @@ def process_app(db_session, domain_id, datasource_id, payload):
                     scopes = app_added_log_info["scope"]
                     max_score = slack_utils.get_app_score(scopes)
 
-                policy_params = {'dataSourceId': datasource_id,
-                                 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
+                #check for trusted apps
+                check_app_is_trusted = False
+                trusted_apps_list = (get_trusted_entity_for_domain(db_session, domain_id))['trusted_apps']
+                if display_text in trusted_apps_list:
+                        check_app_is_trusted = True
 
-                app_payload = {}
-                app_payload['display_text'] = display_text
-                app_payload['score'] = max_score
-                user_info = db_session.query(DomainUser).filter(
-                    and_(DomainUser.datasource_id == datasource_id, DomainUser.user_id == user_id)).first()
-                app_payload['user_email'] = user_info.email
+                #validate policy if apps are not trusted
+                if not check_app_is_trusted:
+                    policy_params = {'dataSourceId': datasource_id,
+                                     'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
 
-                policy_payload = {}
-                policy_payload['application'] = json.dumps(app_payload, cls=alchemy_encoder())
-                Logger().info("added_app : payload : {}".format(app_payload))
-                messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
-                                             policy_payload, "slack")
+                    app_payload = {}
+                    app_payload['display_text'] = display_text
+                    app_payload['score'] = max_score
+                    user_info = db_session.query(DomainUser).filter(
+                        and_(DomainUser.datasource_id == datasource_id, DomainUser.user_id == user_id)).first()
+                    app_payload['user_email'] = user_info.email
+
+                    policy_payload = {}
+                    policy_payload['application'] = json.dumps(app_payload, cls=alchemy_encoder())
+                    Logger().info("added_app : payload : {}".format(app_payload))
+                    messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
+                                                 policy_payload, "slack")
 
 
 

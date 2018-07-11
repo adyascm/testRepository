@@ -78,7 +78,7 @@ def oauth_callback(oauth_code, scopes,state, error):
     if login_user:
         if not login_user.is_serviceaccount_enabled == is_serviceaccount_enabled:
             db_utils.create_domain(db_session, domain_id, domain_id)
-            login_user.delete()
+            db_session.delete(login_user)
             db_connection().commit()
             login_user = db_utils.create_user(login_email, profile_info['given_name'],
                                                      profile_info['family_name'], domain_id, refresh_token,

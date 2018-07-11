@@ -5,6 +5,8 @@ from adya.common.constants import constants
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DomainUser, Resource, ResourcePermission, DirectoryStructure, Application, \
     ApplicationUserAssociation, AppInventory
+from adya.common.utils import utils
+from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.slack import slack_utils
 
 
@@ -35,13 +37,11 @@ class SlackUser:
             self._user.is_admin = self._payload['is_admin']
         self._user.is_suspended = self._payload['deleted']
         self._user.creation_time = datetime.datetime.fromtimestamp(self._payload['updated'])
-        self._user.member_type = constants.EntityExposureType.INTERNAL.value
         # check for user type
 
-        # db_session = db_connection().get_session()
-        # datasource = db_session.query(DataSource).filter(DataSource.datasource_id == self._datasource_id).first()
-        if slack_utils.is_external_user(self._domain_id, self._user.email):
-            self._user.member_type = constants.EntityExposureType.EXTERNAL.value
+        db_session = db_connection().get_session()
+        exposure_type = utils.check_if_external_user(db_session, self._domain_id, self._user.email)
+        self._user.member_type = exposure_type
         self._user.type = constants.DirectoryEntityType.USER.value
         if self._payload['is_bot']:
             self._user.type = constants.DirectoryEntityType.BOT.value
@@ -123,7 +123,7 @@ class SlackFile:
             if permission_model:
                 self._file.permissions.append(permission_model)
 
-        resource_exposure_type = slack_utils.get_resource_exposure_type(permission_exposure, file_exposure_type)
+        resource_exposure_type = utils.get_highest_exposure_type(permission_exposure, file_exposure_type)
         self._file.exposure_type = resource_exposure_type
 
     def get_model(self):
@@ -152,10 +152,10 @@ class SlackPermission:
         self._permission.email = user_info.email if user_info else self._shared_id
         self._permission.permission_id = self._shared_id
         self._permission.permission_type = constants.Role.WRITER.value if self._is_editable else constants.Role.READER.value
-
         user_member_type = user_info.member_type if user_info else None
-        exposure_type = slack_utils.get_resource_exposure_type(self._permission_exposure_type, user_member_type)
+        exposure_type = utils.get_highest_exposure_type(self._permission_exposure_type, user_member_type)
         self._permission.exposure_type = exposure_type
+        self.set_permission_exposure_is_external(exposure_type)
 
     def set_permission_exposure_is_external(self, exposure_type):
         is_external = False
@@ -269,9 +269,12 @@ class SlackApplication:
         app_name = self._payload["app_type"] if "app_type" in self._payload else self._payload["service_type"]
         scopes = None
         max_score = 0
+        trusted_domain_apps = (get_trusted_entity_for_domain(self._db_session, self._domain_id))["trusted_apps"]
+
         if 'scope' in self._payload:
             scopes = self._payload["scope"]
-            max_score = slack_utils.get_app_score(scopes)
+            if not app_name in trusted_domain_apps:
+                max_score = slack_utils.get_app_score(scopes)
 
         self._application.display_text = app_name
         self._application.scopes = scopes

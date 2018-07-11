@@ -14,13 +14,24 @@ from adya.common.db.models import DataSource,DomainUser, DatasourceScanners
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
 from adya.common.utils.response_messages import Logger
+from google.auth.exceptions import RefreshError
+from googleapiclient.errors import HttpError
+
 
 def query(auth_token, query_params, scanner):
     next_page_token = query_params["nextPageNumber"]
     directory_service = gutils.get_directory_service(auth_token)
     groups = []
-    results = directory_service.groups().list(customer='my_customer', maxResults=50,
-                                                pageToken=next_page_token).execute()
+
+    try:
+        results = directory_service.groups().list(customer='my_customer', maxResults=50,
+                                                    pageToken=next_page_token).execute()
+    except RefreshError as ex:
+        Logger().info("Group query : Not able to refresh credentials")
+        results = {}
+    except HttpError as ex:
+        Logger().info("User query : Domain not found error")
+        results = {}
 
     if results and "groups" in results:
         groups = results["groups"]

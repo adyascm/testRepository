@@ -62,6 +62,7 @@ def request_scanner_data(auth_token, query_params):
         Logger().exception("Exception occurred while querying scan data for - {}".format(query_params))
         db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.in_progress: 0})
+        db_connection().commit()
         return
 
     next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else None
@@ -192,9 +193,6 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     utils.add_license_for_scanned_app(db_session, datasource)
     Logger().info("Send email after scan complete")
     adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
-
-    # update data for trusted entities
-    utils.update_data_for_trutsted_entities(db_session, datasource_id, datasource.domain_id)
     update_resource_exposure_type(db_session, datasource.domain_id, datasource_id)
 
 def update_resource_exposure_type(db_session, domain_id, datasource_id):
