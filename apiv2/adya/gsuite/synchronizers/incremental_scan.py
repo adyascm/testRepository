@@ -143,8 +143,8 @@ def subscribe(auth_token, domain_id, datasource_id, page_num):
     if not datasource:
         return
 
+    is_local_deployment = constants.DEPLOYMENT_ENV == "local"
     if page_num == 0:
-        is_local_deployment = constants.DEPLOYMENT_ENV == "local"
         if not is_local_deployment:
             # set up a resubscribe handler that runs every 6 hours cron(0 0/6 ? * * *)
             aws_utils.create_cloudwatch_event("handle_channel_expiration", "cron(0 0/6 ? * * *)",
