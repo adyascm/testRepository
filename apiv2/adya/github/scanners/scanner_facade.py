@@ -24,8 +24,7 @@ def request_scanner_data(auth_token, query_params):
     entities_list = response["payload"]
     if scanner.scanner_type == "ACCOUNT":
         fetched_repo_count = response["repo_count"]
-        fetched_org_count = response["org_count"]
-        fetched_entities_count = fetched_repo_count + fetched_org_count
+        fetched_entities_count = fetched_repo_count
     else:
         fetched_entities_count = len(entities_list)
     in_progress = 0 if fetched_entities_count < 1 else 1
@@ -38,10 +37,7 @@ def request_scanner_data(auth_token, query_params):
                 DatasourceScanners.in_progress: in_progress })
 
             datasource_metric_column = get_datasource_column(scanner.scanner_type)
-            if datasource_metric_column and scanner.scanner_type == "ACCOUNT":
-                db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-                    update({ datasource_metric_column[0]: datasource_metric_column[0] + fetched_repo_count, datasource_metric_column[1]: datasource_metric_column[1] + fetched_org_count })
-            elif datasource_metric_column:
+            if datasource_metric_column:
                 db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
                     update({ datasource_metric_column: datasource_metric_column + fetched_entities_count })
 
@@ -75,8 +71,7 @@ def process_scanner_data(auth_token, query_params, scanner_data):
 
     if scanner.scanner_type == "ACCOUNT":
         processed_repos = processed_results["repo_count"]
-        processed_orgs = processed_results["org_count"]
-        processed_results = processed_repos + processed_orgs
+        processed_results = processed_repos
 
     while(True):
         try:
@@ -89,10 +84,7 @@ def process_scanner_data(auth_token, query_params, scanner_data):
             
             scanner.updated_at = datetime.utcnow()
             datasource_metric_column = get_datasource_column(scanner.scanner_type, False)
-            if datasource_metric_column and scanner.scanner_type == "ACCOUNT":
-                db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-                    update({ datasource_metric_column[0]: datasource_metric_column[0] + processed_repos, datasource_metric_column[1]: datasource_metric_column[1] + processed_orgs })
-            elif datasource_metric_column:
+            if datasource_metric_column:
                 db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
                     update({ datasource_metric_column: datasource_metric_column + processed_results })
             
@@ -141,7 +133,7 @@ def get_datasource_column(scanner_type, is_total = True):
     if scanner_type == github_constants.ScannerTypes.REPOSITORIES.value or scanner_type == github_constants.ScannerTypes.ORGANISATIONS.value:
         column_name = DataSource.total_user_count if is_total else DataSource.processed_user_count
     elif scanner_type == github_constants.ScannerTypes.ACCOUNT.value:
-        column_name = (DataSource.total_file_count, DataSource.total_group_count) if is_total else (DataSource.processed_file_count, DataSource.processed_group_count)
+        column_name = DataSource.total_file_count if is_total else DataSource.processed_file_count
     return column_name
 
 

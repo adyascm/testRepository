@@ -193,7 +193,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         org_email = "{0}+{1}@users.noreply.github.com".format(org["id"], org["login"])
         org_info["email"] = org["email"] if org["email"] else org_email
         org_info["description"] = org["description"]
-        org_info["type"] = constants.DirectoryEntityType.GROUP.value
+        org_info["type"] = constants.DirectoryEntityType.ORGANIZATION.value
         org_info["creation_time"] = datetime.datetime.strptime(org["created_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["last_updated"] = datetime.datetime.strptime(org["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
         org_info["user_id"] = org["id"]
