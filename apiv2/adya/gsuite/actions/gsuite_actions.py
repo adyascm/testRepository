@@ -152,7 +152,10 @@ def update_permissions(auth_token, permissions, owner_email, initiated_by_email,
         except HttpError as e:
             if e.resp.status == 404:
                 Logger().info("Permission not found in gsuite, hence delete from db")
-                deleted_permissions[permission['resource_id']] = [permission]
+                if not permission['resource_id'] in deleted_permissions:
+                    deleted_permissions[permission['resource_id']] = [permission]
+                else:
+                    deleted_permissions[permission['resource_id']].append(permission)
             else:
                 Logger().exception("HttpError Exception occurred while updating permissions in gsuite ; {}".format(e))
                 is_success = False
@@ -195,7 +198,10 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
             except HttpError as ex:
                 if ex.resp.status == 404:
                     Logger().info("Permission not found : permission - {} : ex - {}".format(permission, ex))
-                    updated_permissions[permission['resource_id']] = [permission]
+                    if not permission['resource_id'] in updated_permissions:
+                        updated_permissions[permission['resource_id']] = [permission]
+                    else:
+                        updated_permissions[permission['resource_id']].append(permission)
                     break
                 elif ex.resp.status == 403 and retry < 6:
                     #API limit reached, so retry after few seconds for 5 times
