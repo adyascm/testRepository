@@ -38,9 +38,27 @@ def process_activity(payload):
 def update_user(db_session, domain_id, datasource_id, user_info):
     slack_user = entities.SlackUser(domain_id, datasource_id, user_info)
     user_obj = slack_user.get_model()
+
+    existing_user_info = db_session.query(DomainUser).\
+        filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_obj.email)).first()
+
+    Logger().info("Existing user info - {} ".format(existing_user_info))
+    Logger.info("updated user info - {}".format(user_obj))
+
+    #update the existing user info
     db_session.query(DomainUser).filter(
         and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_obj.email)).update(
         db_utils.get_model_values(DomainUser, user_obj))
+
+    #check for new admin creation
+    if existing_user_info and (not existing_user_info.is_admin) and user_info.is_admin:
+        payload = {}
+        payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
+        policy_params = {'dataSourceId': datasource_id,
+                         'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
+        Logger().info("new_user : payload : {}".format(payload))
+        messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload,
+                                     "slack")
 
 
 def process_app(db_session, domain_id, datasource_id, payload):

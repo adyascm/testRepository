@@ -30,11 +30,23 @@ def process_activity(payload):
 
 def process_user(db_session, datasource, payload):
     userObj = entities.SlackUser(datasource.domain_id, datasource.datasource_id, payload)
-    db_session.add(userObj.get_model())
+    user_model_obj = userObj.get_model()
+    db_session.add(user_model_obj)
     db_session.commit()
+
+    #check if new external member is added to a team
+    if user_model_obj.member_type == constants.EntityExposureType.EXTERNAL.value:
+        payload = {}
+        payload["user"] = json.dumps(user_model_obj, cls=alchemy_encoder())
+        policy_params = {'dataSourceId': datasource.datasource_id,
+                         'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
+        Logger().info("new_user : payload : {}".format(payload))
+        messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload,
+                                     "slack")
+
     ConnectorEvent(domain_id=datasource.domain_id, datasource_id=datasource.datasource_id,
                    ds_type=constants.ConnectorTypes.SLACK.value,
-                   event_type='USER_ADDED', actor=userObj.get_model().email, event=json.dumps(payload))
+                   event_type='USER_ADDED', actor=user_model_obj.email, event=json.dumps(payload))
 
 
 def process_application(db_session, datasource_id, payload):

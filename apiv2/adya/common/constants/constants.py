@@ -89,6 +89,7 @@ class DocType(Enum):
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
     APP_INSTALL = 'APP_INSTALL'
+    NEW_USER = 'NEW_USER'
 
 class PolicyMatchType(Enum):
     DOCUMENT_NAME = 'DOCUMENT_NAME'
@@ -97,6 +98,8 @@ class PolicyMatchType(Enum):
     PERMISSION_EMAIL = 'PERMISSION_EMAIL'
     APP_NAME = 'APP_NAME'
     APP_RISKINESS = 'APP_RISKINESS'
+    USER_TYPE = 'USER_TYPE'
+    USER_ROLE = 'USER_ROLE'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"> <!-- utf-8 works for most cases -->
+  <meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldnt be necessary -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Raleway" />
+
+  <title>Adya</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
+  <style type="text/css">
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100% !important;
+      width: 100% !important;
+    }
+
+    /* What it does: Stops email clients resizing small text. */
+    * {
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* What it does: Forces Outlook.com to display emails full width. */
+    .ExternalClass {
+      width: 100%;
+    }
+
+    /* What it does: Stops Outlook from adding extra spacing to tables. */
+    table,
+    td {
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    /* What it does: Fixes webkit padding issue. */
+    table {
+      border-spacing:0 !important;
+    }
+    /* What it does: Fixes Outlook.com line height. */
+    .ExternalClass,
+    .ExternalClass * {
+      line-height: 100%;
+    }
+
+    /* What it does: Fix for Yahoo mail table alignment bug. */
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    /* What it does: Uses a better rendering method when resizing images in IE. */
+    img {
+      -ms-interpolation-mode:bicubic;
+    }
+
+    /* What it does: Overrides styles added when Yahoos auto-senses a link. */
+    .yshortcuts a {
+      border-bottom: none !important;
+    }
+
+    /* What it does: Overrides blue, underlined link auto-detected by iOS Mail. */
+    /* Create a class for every link style needed; this template needs only one for the link in the footer. */
+    .mobile-link--footer a {
+      color: #666666 !important;
+    }
+
+    /* What it does: Overrides styles added images. */
+    img {
+      border:0 !important;
+      outline:none !important;
+      text-decoration:none !important;
+    }
+    /* Media Queries */
+    @media screen and (max-device-width: 600px), screen and (max-width: 600px) {
+      .text-xs-center{text-align: center !important;}
+      /* What it does: Overrides email-containers desktop width and forces it into a 100% fluid width. */
+      .email-container {
+        width: 100% !important;
+      }
+      /* What it does: Forces images to resize to the width of their container. */
+      img[class="fluid"],
+      img[class="fluid-centered"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        margin: auto !important;
+      }
+      /* And center justify these ones. */
+      img[class="fluid-centered"] {
+        margin: auto !important;
+      }
+      /* What it does: Forces table cells into full-width rows. */
+      td[class="stack-column"],
+      td[class="stack-column-center"] {
+        display: block !important;
+        width: 100% !important;
+        direction: ltr !important;
+      }
+      /* And center justify these ones. */
+      td[class="stack-column-center"] {
+        text-align: center !important;
+      }
+
+      /* Data Table Styles */
+      /* What it does: Hides table headers */
+      td[class="data-table-th"] {
+        display: none !important;
+      }
+      /* What it does: Hides table headers */
+      td[class="data-table-th"] {
+        display: none !important;
+      }
+      /* What it does: Change the look and layout of the remaining tds */
+      td[class="data-table-td"],
+      td[class="data-table-td-title"] {
+        display: block !important;
+        width: 100% !important;
+        border: 0 !important;
+      }
+      /* What it does: Changes the appearance of the first td in each row */
+      td[class="data-table-td-title"] {
+        /*font-weight: bold;
+        color: #333333;
+        padding: 10px 0 0 0 !important;
+        border-top: 2px solid #eeeeee !important;*/
+      }
+      /* What it does: Changes the appearance of the other tds in each row */
+      td[class="data-table-td"] {
+        padding: 5px 0 0 0 !important
+      }
+      /* What it does: Provides a visual divider between table rows. In this case, a bit of extra space. */
+      td[class="data-table-mobile-divider"] {
+        display: block !important;
+        height: 20px;
+      }
+      /* END Data Table Styles */
+    }
+
+  </style>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="#222222" style="margin:0; padding:0; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
+<table cellpadding="0" cellspacing="0" border="0" height="100%" width="100%" bgcolor="#fff" style="border-collapse:collapse;"><tr><td>
+
+  <!-- Visually Hidden Preheader Text : BEGIN -->
+  <div style="display:none;font-size:1px;color:#222222;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hide: all;">
+    Welcome to Adya!
+  </div>
+  <!-- Visually Hidden Preheader Text : END -->
+
+  <!-- Email wrapper : BEGIN -->
+  <table border="0" width="600" cellpadding="0" cellspacing="0" align="center" style="width:600px; margin: auto;" class="email-container" bgcolor="#eaeff2">
+    <tr>
+      <td>
+
+        <!-- Logo + Links : BEGIN -->
+        <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#153449">
+           <tr>
+            <td valign="middle" width="80" style="padding:8px 0; text-align:center; line-height: 0;" class="stack-column-center">
+
+                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Logo.png" alt="Adya" border="0" style="margin: auto; width:250px;">
+
+            </td>
+          </tr>
+        </table>
+        <!-- Logo + Links : END -->
+         <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#9fb8c4">
+           <tr>
+             <td valign="middle" width="15%" style="padding:20px 0 20px 10px; text-align:center; line-height: 0;">
+
+                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Alert.png" alt="Adya" border="0" style="margin: auto;">
+
+            </td>
+            <td class="text-xs-center" valign="middle" width="95%" style="padding-right: 20px; font-size: 19px;
+    font-family: Raleway, sans-serif; color: #fff;">
+
+                Alert! - Policy violation for user "{{ user_email }}"
+
+            </td>
+
+          </tr>
+        </table>
+
+        <!-- Main Email Body : BEGIN -->
+        <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#eaeff2">
+            <!-- Full Width, Fluid Column : BEGIN -->
+          <table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" align="center" style="padding: 20px 25px 0 25px; line-height:21px;">
+          <tr>
+        <td  style="padding: 20px; border:1px solid #9fb8c4;" width="600">
+        <table  border="0" cellpadding="0" cellspacing="0"  align="center">
+        <tr>
+        <td bgcolor="#fff">
+        <table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" align="center" style=" line-height:21px;">
+          <tr>
+          </tr>
+          <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; color:#000000;font-weight: 500; ">
+            <div style="text-align:left;">violated policy - "{{ policy_name }}"</div>
+              <!-- <div style="text-align:left;margin-top:5px;">* Abhra "Can Write"</div>
+              <div style="text-align:left;">* Rashmi "Owner"</div> -->
+            </td>
+          </tr>
+          <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:20px; font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; ">
+            <a href="https://app.adya.io/login"><button style=" cursor: pointer; border: 2px solid #f78851;
+    background: 0;
+    padding: 10px 30px;
+    background-color: #f4651e;
+    border-radius: 5px;
+    color: #fff;-webkit-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
+-moz-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
+box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);">LOG IN</button></a>
+            </td>
+          </tr>
+          <tr>
+
+
+
+         </table>
+         </td>
+          </tr>
+         </table>
+
+
+        </td>
+         </tr>
+          <!-- Full Width, Fluid Column : END -->
+
+        </table>
+        <!-- Main Email Body : END -->
+          <!-- START FOOTER -->
+            <div class="footer"  style="clear: both; width: 100%;">
+              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+             <tr>
+              <td  bgcolor="#153449" style="font-family:Raleway, sans-serif; font-size: 13px;  vertical-align: top; padding: 20px; color: #fff; font-style: italic;">
+                   Login to <a href="https://app.adya.io/login" style="color:#f4651e; text-decoration: none;">app.adya.io</a> to get the complete report.
+                </td>
+                </tr>
+
+              </table>
+            </div>
+            <!-- END FOOTER -->
+
+      </td>
+    </tr>
+
+
+
+  </table>
+  <!-- Email wrapper : END -->
+
+</td></tr></table>
+</body>
+</html>
