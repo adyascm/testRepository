@@ -55,8 +55,8 @@ class ListWidget extends Component {
                                         data.map(row => {
                                             return (
                                                 <Table.Row key={row[Object.keys(row)[0]]}>
-                                                    <Table.Cell width='8' style={{'wordBreak': 'break-word'}}>{row[Object.keys(row)[0]]}</Table.Cell>
-                                                    <Table.Cell textAlign='right' width='3' style={{'wordBreak': 'break-word'}}>{row[Object.keys(row)[1]]}</Table.Cell>
+                                                    <Table.Cell width='8' style={{'wordBreak': 'break-all'}}>{row[Object.keys(row)[0]]}</Table.Cell>
+                                                    <Table.Cell textAlign='right' width='3' style={{'wordBreak': 'break-all'}}>{row[Object.keys(row)[1]]}</Table.Cell>
                                                 </Table.Row>
                                             )
                                         }

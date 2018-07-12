@@ -117,7 +117,7 @@ class UserResourceTable extends Component {
             tableRowData = this.props.selectedUserItem.resources.map((rowData, index) => {
                 if (ds.datasource_type != "GSUITE") {
                     return(<Table.Row key={index}>
-                        <Table.Cell width='5' style={{ 'wordBreak': 'break-word' }}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='5' style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
                         <Table.Cell><Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label></Table.Cell>
@@ -125,7 +125,7 @@ class UserResourceTable extends Component {
                 }
                 return (
                     <Table.Row key={index}>
-                        <Table.Cell width='5' style={{ 'wordBreak': 'break-word' }}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='5' style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='4'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign="center" width='3'>
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event, data) => this.onPermissionChange(event, rowData, data.value)} />

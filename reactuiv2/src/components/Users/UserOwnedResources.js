@@ -98,7 +98,7 @@ class UserOwnedResources extends Component {
                 if (this.props.selectedUserItem["email"] === rowData["resource_owner_id"])
                     return (
                         <Table.Row key={index}>
-                            <Table.Cell width="3" style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
+                            <Table.Cell width="3" style={{'wordBreak': 'break-all'}}>{rowData["resource_name"]}</Table.Cell>
                             <Table.Cell width="3">{rowData["resource_type"]}</Table.Cell>
                             <Table.Cell width="2">{rowData["exposure_type"]}</Table.Cell>
                             <Table.Cell textAlign='center' width="4">
