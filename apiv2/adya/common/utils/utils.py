@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+import datetime
 
 from sqlalchemy import and_
 
@@ -129,7 +129,7 @@ def add_license_for_scanned_app(db_session, datasource):
     app_name = constants.datasource_to_installed_app_map[datasource.datasource_type]
     application = db_session.query(Application).filter(
         and_(Application.domain_id == datasource.domain_id, Application.display_text == app_name)).first()
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     unit_price = None
     inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
     inventory_app_id = inventory_app.id if inventory_app else None
@@ -147,6 +147,8 @@ def add_license_for_scanned_app(db_session, datasource):
             application.inventory_app_id = inventory_app_id
         if unit_price:
             application.unit_price = unit_price.price
+        ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+        application.inactive_users = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value, DomainUser.last_login_time < ninety_days_ago).count()    
         db_session.add(application)
     else:
         application.timestamp = now
@@ -220,3 +222,4 @@ def get_highest_exposure_type(permission_exposure, highest_exposure):
                                      highest_exposure == constants.EntityExposureType.TRUSTED.value):
         highest_exposure = constants.EntityExposureType.INTERNAL.value
     return highest_exposure
+    

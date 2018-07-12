@@ -6,7 +6,7 @@ import agent from '../../utils/agent';
 import InventoryApp from './InventoryApp'
 import Actions from '../actions/Actions'
 import {
-    APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD
+    APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD, SET_POLICY_FILTER
 } from '../../constants/actionTypes';
 
 
@@ -33,6 +33,7 @@ class InstalledApp extends Component {
                 "#Users",
                 "Subscription (in $)",
                 "Annual Cost",
+                "Potential Savings",
                 ""
             ],
             showInventoryForm: false,
@@ -43,10 +44,10 @@ class InstalledApp extends Component {
                 "Application":'application',
                 "#Users":'num_users',
                 "Subscription (in $)":'unit_price'
+                // "Annual Savings":'annual_savings'
             },
             sortColumnName: this.props.sortColumnName,
             sortOrder: this.props.sortOrder,
-            isLoadingApps: false,
             totalCost: null,
             appIdToBeDeleted: undefined,
             currentPage: 1,
@@ -280,21 +281,29 @@ class InstalledApp extends Component {
                 let score = appInfo["score"]
                 let scoreColor = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
                 let appCost = null
+                let appSavings = null
                 let unitNum = rowData["unit_num"]
                 let unitPrice = rowData["unit_price"]
+                let inactive_users = rowData["inactive_users"]
                 if (appInfo.datasource_id) {
                     dsImage = <Image inline size='mini' src={dsMap[appInfo.datasource_id] && dsMap[appInfo.datasource_id].logo} circular></Image>
                 }
-                if (unitNum && unitPrice) {
+                if (unitNum) {
                     let multiplier = multiplierValues[selectedModel]
-                    appCost = (parseFloat(unitNum) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    if(unitPrice){
+                        appCost = (parseFloat(unitNum) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    }
+                    if(inactive_users){
+                        appSavings = (parseFloat(inactive_users) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    }
                 }
+                
                 let catColor = appInfo && appInfo["category"] ? 'teal' : 'orange'
                 return (
                     <Table.Row key={index}>
                         <Table.Cell width="1" style={{textAlign:'center'}}>{rowData['is_installed_via_ds']?<Button style={{cursor:'pointer'}} circular icon="angle right" onClick={(e) => this.onCardClicked(e, appInfo)} />: null}</Table.Cell>
                         <Table.Cell width="1"><Label color={scoreColor}></Label></Table.Cell>
-                        <Table.Cell width="4" style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
+                        <Table.Cell width="3" style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
                             <span style={{ padding: "2px"}}>{(appInfo && appInfo['publisher_url']) ? <a target="_blank" href={appInfo["publisher_url"]}>{appInfo["display_text"]}</a> : appInfo["display_text"]}</span>
                             {appInfo ? <Image inline style={{ float: "right" }} src={appInfo["image_url"]} rounded size='mini' /> : ''}
                         </Table.Cell>
@@ -303,17 +312,18 @@ class InstalledApp extends Component {
                                 {appInfo && appInfo["category"] ? appInfo["category"] : 'Un-categorized'}
                             </Label>
                         </Table.Cell>
-                        <Table.Cell width='2'><Input transparent compact type="text" placeholder='#licenses' value={unitNum > 0 ? unitNum : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_NUM')} />  </Table.Cell>
+                        <Table.Cell width='1'><Input transparent compact type="text" placeholder='#licenses' value={unitNum > 0 ? unitNum : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_NUM')} />  </Table.Cell>
                         <Table.Cell width='3'>
                         <Input transparent compact type="text" placeholder='Price' value={unitPrice > 0 ? unitPrice : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_PRICE')} label={<Dropdown width="1" basic defaultValue={selectedModel} options={modelOptions} onChange={(event, data) => this.handleRowChange(event, index, 'SELECT_PLAN_PRICING_MODEL', data)} />}
                                 labelPosition='right' /></Table.Cell>
                         <Table.Cell width='1'>{unitNum && unitPrice ? <IntlProvider><FormattedNumber value={appCost} style="currency" currency="USD" /></IntlProvider> : null}</Table.Cell>
-                        <Table.Cell width='3' style={{ 'textAlign': 'center' }}><span><Button size="mini" negative onClick={(e) => this.triggerDeleteAction(e, appId, appInfo.display_text)}>Remove</Button> <Button size="mini" positive loading={this.state.isLicenseUpdating[index]} onClick={(event) => this.saveAppLicense(event, index, unitNum, unitPrice, selectedModel, appInfo.id)} content='Update' /></span> </Table.Cell>
+                        <Table.Cell width='1'>{inactive_users && unitPrice ? <IntlProvider><FormattedNumber value={appSavings} style="currency" currency="USD" /></IntlProvider> : null}</Table.Cell>
+                        <Table.Cell width='4' style={{ 'textAlign': 'center' }}><span><Button size="mini" negative onClick={(e) => this.triggerDeleteAction(e, appId, appInfo.display_text)}>Remove</Button> <Button size="mini" positive loading={this.state.isLicenseUpdating[index]} onClick={(event) => this.saveAppLicense(event, index, unitNum, unitPrice, selectedModel, appInfo.id)} content='Update' /></span> </Table.Cell>
                     </Table.Row>
                 )
             })
         }
-
+        console.log('loading state', this.state.isLoadingApps)
         return (
             <div style={{ 'minHeight': document.body.clientHeight / 1.25, display: "block" }}>
                 <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {this.state.totalCost ? <span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}

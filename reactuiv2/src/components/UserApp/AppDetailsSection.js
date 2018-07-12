@@ -126,7 +126,7 @@ class AppDetailsSection extends Component {
                                 <td>
                                 <IntlProvider locale={'en'} >
                                     <FormattedDate
-                                        value={new Date(user.last_login_time)}
+                                        value={(new Date(user.last_login_time))}
                                         year='numeric'
                                         month='long'
                                         day='2-digit'
@@ -134,7 +134,7 @@ class AppDetailsSection extends Component {
                                         minute = '2-digit'
                                         second = '2-digit'
                                     />
-                                </IntlProvider>
+                                </IntlProvider>{!user.is_active ? <span><b> (Inactive) </b></span> : null}
                                 </td>
                                 </Grid.Column>
                             </Grid.Row>
@@ -171,7 +171,7 @@ class AppDetailsSection extends Component {
                                     User
                                 </Grid.Column>
                                 <Grid.Column width={5}>
-                                    Last Activity
+                                    Last Login
                                 </Grid.Column>
                             </Grid.Row>) :
                             (<Grid.Row style={{fontSize:'1.1em', fontWeight:'600'}}>

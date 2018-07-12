@@ -30,4 +30,8 @@ ALTER TABLE policy
 ADD severity varchar(255) DEFAULT NULL;
 
 ALTER TABLE domain_user 
-ADD last_login_time DateTime;
+ADD last_login_time DateTime,
+ADD is_active boolean;
+
+ALTER TABLE application 
+ADD inactive_users int;

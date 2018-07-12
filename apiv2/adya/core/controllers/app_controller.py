@@ -44,7 +44,7 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
     if not page_number:
         if apps_query.count():
             total_pages_count = int(math.ceil(float(apps_query.count())/page_limit))
-    if sort_column_name == "score":
+    if sort_column_name == "score": 
         if sort_order == 'desc':
             apps_query = apps_query.order_by(Application.score.desc())
         else:
@@ -72,6 +72,7 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
     apps_query = apps_query.offset(page_number * page_limit).limit(page_limit)        
     installed_apps = apps_query.all()
     for app in installed_apps:
+        app.is_datasource_app = db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.application_id == app.id, ApplicationUserAssociation.client_id == ApplicationUserAssociation.datasource_id).count() > 0
         app.is_installed_via_ds = db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.application_id == app.id).count() > 0
         if app.inventory:
             app.image_url = app.inventory.image_url
