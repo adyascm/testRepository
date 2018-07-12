@@ -21,6 +21,7 @@ def get_user_session(auth_token, db_session=None):
         domain_users = db_session.query(DomainUser).filter(and_(
             DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).all()
 
+        #TODO : choose admin user in correct way
         check_if_admin_user = False
         if domain_users:
             for domain_user in domain_users:
