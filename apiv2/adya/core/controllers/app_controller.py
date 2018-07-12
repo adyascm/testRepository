@@ -49,7 +49,7 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
             apps_query = apps_query.order_by(Application.score.desc())
         else:
             apps_query = apps_query.order_by(Application.score.asc())    
-    elif sort_column_name == "annual_cost" or sort_column_name == "unit_price":
+    elif sort_column_name == "annual_cost" or sort_column_name == "unit_price" or sort_column_name == 'potential_saving':
         if sort_order == 'desc':
             apps_query = apps_query.order_by(Application.unit_price.desc())
         else:
