@@ -64,6 +64,7 @@ class UserResourceTable extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        window.scrollTo(0, 0)
         if ((this.props.selectedUserItem["email"] !== nextProps.selectedUserItem["email"]) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
             nextProps.onLoadStart()

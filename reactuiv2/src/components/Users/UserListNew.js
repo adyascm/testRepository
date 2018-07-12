@@ -79,14 +79,14 @@ class UserListNew extends Component {
             this.props.listFilters.datasource_id ? this.props.listFilters.datasource_id.value || "" : "",
             this.props.listFilters.is_admin ? this.props.listFilters.is_admin.value || "" : "",
             this.props.listFilters.type ? this.props.listFilters.type.value || "" : "",
-            this.props.sortColumnName || "", this.state.sortType || "desc", this.props.pageNumber || 0))
+            this.props.sortColumnName || "", this.state.sortType || "desc", this.props.usersListPageNumber || 0))
         this.props.onLoadDomainStats(agent.Users.getUserStats());
     }
 
     componentWillReceiveProps(nextProps) {
         let numberAppliedFilter = nextProps.listFilters ? Object.keys(nextProps.listFilters).length : 0
         if (this.props.listFilters !== nextProps.listFilters || this.props.sortColumnName != nextProps.sortColumnName || this.props.sortType != nextProps.sortType ||
-            nextProps.pageNumber !== this.props.pageNumber) {
+            nextProps.usersListPageNumber !== this.props.usersListPageNumber) {
             this.props.onLoadStart();
             let emailFilter = nextProps.listFilters.email ? nextProps.listFilters.email.value || "" : "";
             this.props.onLoad(emailFilter, agent.Users.getUsersList(nextProps.listFilters.full_name ? nextProps.listFilters.full_name.value || "" : "",
@@ -95,7 +95,7 @@ class UserListNew extends Component {
                 nextProps.listFilters.datasource_id ? nextProps.listFilters.datasource_id.value || "" : "",
                 nextProps.listFilters.is_admin ? nextProps.listFilters.is_admin.value : "",
                 nextProps.listFilters.type ? nextProps.listFilters.type.value || "" : "",
-                nextProps.sortColumnName || "", nextProps.sortType || "desc", nextProps.pageNumber || 0))
+                nextProps.sortColumnName || "", nextProps.sortType || "desc", nextProps.usersListPageNumber || 0))
 
             this.setState({
                 numberAppliedFilter: numberAppliedFilter
@@ -138,11 +138,11 @@ class UserListNew extends Component {
     }
 
     handleNextClick = () => {
-        this.props.setNextPageNumber(this.props.pageNumber + 1)
+        this.props.setNextPageNumber(this.props.usersListPageNumber + 1)
     }
 
     handlePreviousClick = () => {
-        this.props.setNextPageNumber(this.props.pageNumber - 1)
+        this.props.setNextPageNumber(this.props.usersListPageNumber - 1)
     }
 
     handleClick = (event) => {
@@ -241,7 +241,7 @@ class UserListNew extends Component {
                             </div>
                             <div style={{ marginTop: '5px' }} >
                                 {this.props.isLoadingUsers || (usersData && usersData.length < 50) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                                {!this.props.isLoadingUsers && this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                                {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                             </div>
                         </Grid.Column >
                     </Grid.Row>
