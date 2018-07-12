@@ -53,6 +53,7 @@ class UserOwnedResources extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        window.scrollTo(0, 0)
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResources({ 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
@@ -136,8 +137,8 @@ class UserOwnedResources extends Component {
                         </Table>
                     </div>
                     <div style={{ marginTop: '5px' }} >
-                        {this.props.selectedUserItem.ownedResources.length < this.props.pageLimit? null : (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
-                        {this.props.pageNumber > 0? (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                        {this.props.selectedUserItem.ownedResources.length < this.props.pageLimit? null : (<Button color='green' size="mini" style={{'float': 'right', 'width': '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                        {this.props.pageNumber > 0? (<Button color='green' size="mini" style={{'float': 'right', 'width': '80px'}} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                     </div>
                     </Grid>
             </Container>
