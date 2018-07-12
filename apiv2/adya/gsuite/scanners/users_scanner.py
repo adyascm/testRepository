@@ -48,7 +48,6 @@ def process(db_session, auth_token, query_params, scanner_data):
     db_session = db_connection().get_session()
     user_email_list = []
     user_count = 0
-    ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
     for user_data in scanner_data["entities"]:
         user_count = user_count + 1
         user_email = user_data.get("primaryEmail")
@@ -68,7 +67,6 @@ def process(db_session, auth_token, query_params, scanner_data):
         user["customer_id"] = user_data.get("customerId")
         user["type"] = constants.DirectoryEntityType.USER.value
         user["last_login_time"] = user_data["lastLoginTime"][:-1]
-        user["is_active"] = datetime.datetime.strptime(user["last_login_time"],'%Y-%m-%dT%H:%M:%S.000') > ninety_days_ago 
         if aliases:
             user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.EntityExposureType.INTERNAL.value

@@ -33,7 +33,20 @@ class AppDetailsSection extends Component {
 
         this.state = {
             isLoading: false,
-            deleteUser: undefined
+            deleteUser: undefined,
+            columnHeaders: [
+                "",
+                "Source",
+                "User",
+                "Last Login"
+            ],
+            columnHeaderDataNameMap :{
+                'Source':'source',
+                'User': 'user',
+                'Last Login':'last_login'
+            },
+            sortColumnName: 'last_login',
+            sortOrder: 'asc'
         }
         this.closeDetailsSection = this.closeDetailsSection.bind(this);
         this.handleAppAccessRevokeClick = this.handleAppAccessRevokeClick.bind(this)
@@ -50,7 +63,7 @@ class AppDetailsSection extends Component {
     componentWillMount() {
         if (this.props.selectedAppItem && this.props.selectedAppItem.id) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
         }
     }
 
@@ -59,7 +72,28 @@ class AppDetailsSection extends Component {
         var newAppId = nextProps.selectedAppItem != null ? nextProps.selectedAppItem.id : null;
         if (nextProps.appDeleted !== this.props.appDeleted || oldAppId != newAppId) {
             nextProps.appUsersLoadStart()
-            nextProps.appUsersLoaded(nextProps.selectedAppItem.id, agent.Apps.getappusers(nextProps.selectedAppItem.id, nextProps.selectedAppItem.domain_id))
+            nextProps.appUsersLoaded(nextProps.selectedAppItem.id, agent.Apps.getappusers(nextProps.selectedAppItem.id, nextProps.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+        }
+    }
+
+    handleColumnSort = (mappedColumnName) => {
+        let payload = null
+        if (this.state.sortColumnName !== mappedColumnName) {
+            this.props.appUsersLoadStart()
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            this.setState({
+                sortColumnName: mappedColumnName,
+                sortOrder: 'desc',
+            })
+        }
+        else {
+            let sortOrder = this.state.sortOrder === 'asc' ? 'desc' : 'asc';
+            this.props.appUsersLoadStart()
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            this.setState({
+                sortColumnName: mappedColumnName,
+                sortOrder: sortOrder
+            })
         }
     }
 
@@ -80,65 +114,51 @@ class AppDetailsSection extends Component {
 
             if (this.props.appUsers && this.props.appUsers.length > 0) {
                 let app = this.props.selectedAppItem
+                let ninety_days_ago = new Date(Date.now() - 77760e5) // 7776000000 ms = 90 days
                 appUsers = this.props.appUsers.map((user, index) => {
                     let ds = this.props.datasourcesMap[user.datasource_id];
-                    if(! this.props.selectedAppItem.is_datasource_app){
-                        return (
-                            <Table.Row key={index} textAlign="center" verticalAlign="middle">
-                                <Table.Cell collapsing textAlign="center">
-                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
-                                        basic color='red'
-                                        onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
-                                        <Button.Content hidden>Remove</Button.Content>
-                                        <Button.Content visible>
-                                            <Icon name='remove' />
-                                        </Button.Content>
-                                    </Button>
-                                </Table.Cell>
-                                <Table.Cell>
-                                    <Image src={ds.logo} centered size="mini"/>
-                                </Table.Cell>
-                                <Table.Cell>
-                                    {user.email}
-                                </Table.Cell>
-                            </Table.Row>
-                        )
-                    }else{
-                        return (
-                            <Table.Row key={index} textAlign="center" verticalAlign="middle">
-                            <Table.Cell collapsing textAlign="center">
-                            <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
-                                    basic color='red'
-                                    onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
-                                    <Button.Content hidden>Remove</Button.Content>
-                                    <Button.Content visible>
-                                        <Icon name='remove' />
-                                    </Button.Content>
-                                </Button>
-                            </Table.Cell>
-                            <Table.Cell>
-                                <Image src={ds.logo} centered size="mini"/>
-                            </Table.Cell>
-                            <Table.Cell>
-                                {user.email}
-                            </Table.Cell>
-                            <Table.Cell>
-                                <IntlProvider locale={'en'} >
-                                    <FormattedDate
-                                        value={(new Date(user.last_login_time))}
-                                        year='numeric'
-                                        month='long'
-                                        day='2-digit'
-                                        hour='2-digit'
-                                        minute = '2-digit'
-                                        second = '2-digit'
-                                    />
-                                </IntlProvider>{!user.is_active ? <span><b> (Inactive) </b></span> : null}
-                            </Table.Cell>
-                            </Table.Row>
-                        )
+                    let is_inactive = null
+                    let formattedTime = null
+                    if (user.last_login_time){
+                        is_inactive = new Date(user.last_login_time) < ninety_days_ago 
+                        formattedTime = (
+                            <IntlProvider locale={'en'} >
+                                <FormattedDate
+                                    value={(new Date(user.last_login_time))}
+                                    year='numeric'
+                                    month='long'
+                                    day='2-digit'
+                                    hour='2-digit'
+                                    minute = '2-digit'
+                                    second = '2-digit'
+                                />
+                            </IntlProvider> )
                     }
-                    
+                        
+                    return (
+                        <Table.Row key={index} textAlign="center" verticalAlign="middle">
+                        <Table.Cell collapsing textAlign="center">
+                        <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                                basic color='red'
+                                onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
+                                <Button.Content hidden>Remove</Button.Content>
+                                <Button.Content visible>
+                                    <Icon name='remove' />
+                                </Button.Content>
+                            </Button>
+                        </Table.Cell>
+                        <Table.Cell>
+                            <Image src={ds.logo} centered size="mini"/>
+                        </Table.Cell>
+                        <Table.Cell>
+                            {user.email}
+                        </Table.Cell>
+                        <Table.Cell>
+                            {formattedTime}
+                            {is_inactive ? <span><b> (Inactive) </b></span> : null}
+                        </Table.Cell>
+                        </Table.Row>
+                    )
                 })
             }
             var appName = this.props.selectedAppItem.display_text
@@ -154,16 +174,16 @@ class AppDetailsSection extends Component {
                     )
                 });
 
-            let appHeader = ['','Source','User','Last Login'].map(headerName => {
-                return (<Table.HeaderCell textAlign="center" key={headerName}> { headerName }</Table.HeaderCell>)
+            let appHeader = this.state.columnHeaders.map(headerName => {
+                let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
+                let isSortable = (['Last Login'].indexOf(headerName) >=0)  
+                let headerCellStyle = !isSortable ? {pointerEvents:"none"}:{pointerEvents:'auto'}
+                return (<Table.HeaderCell style={headerCellStyle} textAlign="center" key={headerName} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}> { headerName }</Table.HeaderCell>)
             })   
-            let tableHeader = this.props.selectedAppItem.is_datasource_app ?
+            let tableHeader = 
                     (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                         <Table.Row>{appHeader}</Table.Row>
-                    </Table.Header>):
-                    (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
-                        <Table.Row> {appHeader.slice(0,3)}</Table.Row>
-                    </Table.Header>)  
+                    </Table.Header>)
             let panes = [
                 {
                     menuItem: 'Users', render: () => <Tab.Pane attached={false}>

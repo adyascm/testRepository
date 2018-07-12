@@ -6,7 +6,7 @@ import agent from '../../utils/agent';
 import InventoryApp from './InventoryApp'
 import Actions from '../actions/Actions'
 import {
-    APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD, SET_POLICY_FILTER
+    APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 
