@@ -254,7 +254,7 @@ class ResourcesListTable extends Component {
                 return (
                     <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell textAlign='center' >{dsImage}</Table.Cell>
-                        <Table.Cell width='3' style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='3' style={{'wordBreak': 'break-all'}}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign='center' width='3'>{rowData["exposure_type"]}</Table.Cell>
