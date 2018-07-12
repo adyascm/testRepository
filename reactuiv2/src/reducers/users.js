@@ -32,6 +32,7 @@ import {
 
 const defaultState = {
     pageNumber: 0,
+    usersListPageNumber: 0,
     pageLimit: 100,
     exposureType: 'EXT',
     isLoadingUsers: false,
@@ -260,7 +261,7 @@ export default (state = defaultState, action) => {
         case USERS_LIST_PAGINATION_DATA:
             return {
                 ...state,
-                pageNumber: action.pageNumber
+                usersListPageNumber: action.pageNumber
             }
         case USERS_RESOURCE_FILTER_CHANGE:
             state[action.property] = action.value
@@ -279,7 +280,7 @@ export default (state = defaultState, action) => {
                 ...state,
                 listFilters: newFilter,
                 userStatSubType: action.filterValue,
-                pageNumber: 0,
+                usersListPageNumber: 0,
                 selectedUserItem: undefined
             }
         case LOGOUT:
