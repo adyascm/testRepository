@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    setPolicyFilter: (policyFilterType, policyFilterValue) => 
+    setPolicyFilter: (policyFilterType, policyFilterValue) =>
         dispatch({ type: SET_POLICY_FILTER, policyFilterType, policyFilterValue })
 })
 
@@ -25,7 +25,9 @@ class PolicyCondition extends Component {
                 { text: 'Document Exposure', value: 'DOCUMENT_EXPOSURE' },
                 { text: 'Document Shared With', value: 'PERMISSION_EMAIL' },
                 { text: 'Application Name', value: 'APP_NAME' },
-                { text: 'Application Riskiness', value: 'APP_RISKINESS' }
+                { text: 'Application Riskiness', value: 'APP_RISKINESS' },
+                {text: 'User Member type', value: 'USER_TYPE'},
+                {text: 'User Role', value: 'USER_ROLE'}
             ],
             filterConditionOptions: [
                 { text: 'Equals', value: 'equal' },

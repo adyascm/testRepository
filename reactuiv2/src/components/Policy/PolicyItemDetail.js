@@ -58,7 +58,8 @@ class PolicyItemDetail extends Component {
         this.setState({
             policyTriggerType: [
                 { text: 'Permission Change', value: 'PERMISSION_CHANGE' },
-                { text: 'Application Install', value: 'APP_INSTALL' }],
+                { text: 'Application Install', value: 'APP_INSTALL' },
+                {text: 'New User', value: 'NEW_USER'}],
             disableEmailField: true,
             severityType: [
                 { text: 'High', value: 'HIGH' },
@@ -211,7 +212,7 @@ class PolicyItemDetail extends Component {
     handleDataSourceChange = (event, data) => {
         this.setState({
             datasource_id: data.value
-        })   
+        })
     }
 
     submitPolicyModalForm = () => {
@@ -277,7 +278,7 @@ class PolicyItemDetail extends Component {
                         Policy Details
                     </Modal.Header>
                     <Modal.Content>
-                        <Form onSubmit={this.submitPolicyModalForm} >   
+                        <Form onSubmit={this.submitPolicyModalForm} >
                             <Segment.Group>
                                 <Segment>
                                 <Form.Group widths='equal'>
