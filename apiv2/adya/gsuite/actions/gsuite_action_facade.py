@@ -49,7 +49,7 @@ def execute_action(auth_token, payload):
             response_code = response.get_response_code()
             if response_code == 200:
                 current_log.success_count += len(permissions)
-                if current_log.success_count == current_log.total_count:
+                if current_log.success_count == current_log.total_count or current_log.total_count == 0:
                     current_log.status = action_constants.ActionStatus.SUCCESS.value
                     current_log.message = "Action completed successfully"
             else:
