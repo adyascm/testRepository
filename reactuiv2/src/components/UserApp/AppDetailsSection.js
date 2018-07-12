@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tab, Segment, Icon, Grid, Button, Item, Label, Image } from 'semantic-ui-react';
+import { Tab, Segment, Icon, Grid, Button, Item, Label, Image, Table } from 'semantic-ui-react';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
 import { IntlProvider, FormattedDate } from 'react-intl'
@@ -84,9 +84,9 @@ class AppDetailsSection extends Component {
                     let ds = this.props.datasourcesMap[user.datasource_id];
                     if(! this.props.selectedAppItem.is_datasource_app){
                         return (
-                            <Grid.Row key={index} textAlign="center" verticalAlign="middle">
-                                <Grid.Column width={2}>
-                                    <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                            <Table.Row key={index} textAlign="center" verticalAlign="middle">
+                                <Table.Cell collapsing textAlign="center">
+                                <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
                                         basic color='red'
                                         onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
                                         <Button.Content hidden>Remove</Button.Content>
@@ -94,36 +94,35 @@ class AppDetailsSection extends Component {
                                             <Icon name='remove' />
                                         </Button.Content>
                                     </Button>
-                                </Grid.Column>
-                                <Grid.Column width={2}>
+                                </Table.Cell>
+                                <Table.Cell>
                                     <Image src={ds.logo} centered size="mini"/>
-                                </Grid.Column>
-                                <Grid.Column textAlign="left" width={10}>
+                                </Table.Cell>
+                                <Table.Cell>
                                     {user.email}
-                                </Grid.Column>
-                            </Grid.Row>
+                                </Table.Cell>
+                            </Table.Row>
                         )
                     }else{
                         return (
-                            <Grid.Row key={index} textAlign="center" verticalAlign="middle">
-                                <Grid.Column width={2}>
-                                    <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
-                                        basic color='red'
-                                        onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
-                                        <Button.Content hidden>Remove</Button.Content>
-                                        <Button.Content visible>
-                                            <Icon name='remove' />
-                                        </Button.Content>
-                                    </Button>
-                                </Grid.Column>
-                                <Grid.Column width={2}>
-                                    <Image src={ds.logo} centered size="mini"/>
-                                </Grid.Column>
-                                <Grid.Column textAlign="left" width={5}>
-                                    {user.email}
-                                </Grid.Column>
-                                <Grid.Column width={5}>
-                                <td>
+                            <Table.Row key={index} textAlign="center" verticalAlign="middle">
+                            <Table.Cell collapsing textAlign="center">
+                            <Button animated='vertical' disabled={ds.datasource_type != "GSUITE"}
+                                    basic color='red'
+                                    onClick={(event) => this.handleAppAccessRevokeClick(event, app, user.email, user.datasource_id)}>
+                                    <Button.Content hidden>Remove</Button.Content>
+                                    <Button.Content visible>
+                                        <Icon name='remove' />
+                                    </Button.Content>
+                                </Button>
+                            </Table.Cell>
+                            <Table.Cell>
+                                <Image src={ds.logo} centered size="mini"/>
+                            </Table.Cell>
+                            <Table.Cell>
+                                {user.email}
+                            </Table.Cell>
+                            <Table.Cell>
                                 <IntlProvider locale={'en'} >
                                     <FormattedDate
                                         value={(new Date(user.last_login_time))}
@@ -135,9 +134,8 @@ class AppDetailsSection extends Component {
                                         second = '2-digit'
                                     />
                                 </IntlProvider>{!user.is_active ? <span><b> (Inactive) </b></span> : null}
-                                </td>
-                                </Grid.Column>
-                            </Grid.Row>
+                            </Table.Cell>
+                            </Table.Row>
                         )
                     }
                     
@@ -155,37 +153,28 @@ class AppDetailsSection extends Component {
                         </Grid.Row>
                     )
                 });
+
+            let appHeader = ['','Source','User','Last Login'].map(headerName => {
+                return (<Table.HeaderCell textAlign="center" key={headerName}> { headerName }</Table.HeaderCell>)
+            })   
+            let tableHeader = this.props.selectedAppItem.is_datasource_app ?
+                    (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
+                        <Table.Row>{appHeader}</Table.Row>
+                    </Table.Header>):
+                    (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
+                        <Table.Row> {appHeader.slice(0,3)}</Table.Row>
+                    </Table.Header>)  
             let panes = [
                 {
                     menuItem: 'Users', render: () => <Tab.Pane attached={false}>
-                        <Grid celled='internally'>
-                            {this.props.appUsers && this.props.appUsers.length > 0 ? 
-                            this.props.selectedAppItem.is_datasource_app ?
-                            (<Grid.Row style={{fontSize:'1.1em', fontWeight:'600'}}>
-                                <Grid.Column width={2}>
-                                </Grid.Column>
-                                <Grid.Column textAlign="center" width={2}>
-                                    Source
-                                </Grid.Column>
-                                <Grid.Column textAlign="left" width={5}>
-                                    User
-                                </Grid.Column>
-                                <Grid.Column width={5}>
-                                    Last Login
-                                </Grid.Column>
-                            </Grid.Row>) :
-                            (<Grid.Row style={{fontSize:'1.1em', fontWeight:'600'}}>
-                                <Grid.Column width={2}>
-                                </Grid.Column>
-                                <Grid.Column textAlign="center" width={2}>
-                                    Source
-                                </Grid.Column>
-                                <Grid.Column textAlign="left" width={10}>
-                                    User
-                                </Grid.Column>
-                            </Grid.Row>):null}
-                            {appUsers}
-                        </Grid> </Tab.Pane>
+                        {this.props.appUsers && this.props.appUsers.length > 0 ?
+                            <Table sortable selectable striped celled compact='very'>
+                                {tableHeader}
+                            <Table.Body>
+                                {appUsers}
+                            </Table.Body>
+                        </Table> : null }
+                        </Tab.Pane>
                 },
                 {
                     menuItem: 'Scopes', render: () => <Tab.Pane attached={false}>
