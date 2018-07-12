@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Tab, Segment, Icon, Grid, Button, Item, Label, Image } from 'semantic-ui-react';
 import agent from '../../utils/agent'
 import { connect } from 'react-redux';
+import { IntlProvider, FormattedDate } from 'react-intl'
 import {
     APPS_ITEM_SELECTED,
     APP_USERS_LOAD_START,
