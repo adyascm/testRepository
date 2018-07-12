@@ -18,10 +18,19 @@ def get_user_session(auth_token, db_session=None):
     user = db_session.query(LoginUser).filter(
         LoginUser.auth_token == auth_token).first()
     if user:
-        domain_user = db_session.query(DomainUser).filter(and_(
-            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).first()
-        if domain_user:
-            user.is_admin = domain_user.is_admin
+        domain_users = db_session.query(DomainUser).filter(and_(
+            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).all()
+
+        check_if_admin_user = False
+        if domain_users:
+            for domain_user in domain_users:
+                if domain_user.is_admin == True:
+                    check_if_admin_user = True
+                    break
+            if check_if_admin_user:
+                user.is_admin = True
+            else:
+                user.is_admin = False
         else:
             user.is_admin = True
     return user
