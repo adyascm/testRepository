@@ -1,8 +1,10 @@
+import json
+
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.collections import InstrumentedList, InstrumentedDict
 
-from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource
+from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource, DatasourceCredentials
 from adya.common.db.connection import db_connection
 from adya.common.constants import constants
 
@@ -106,3 +108,13 @@ def get_model_values(type, value):
                 mapped_values[field_name] = field_value
 
     return mapped_values
+
+
+def get_datasource_credentials(db_session, datasource_id):
+    datasource_credentials_info = db_session.query(DatasourceCredentials).filter(and_(DatasourceCredentials.datasource_id
+                                                                                      == datasource_id)).first()
+    if datasource_credentials_info:
+        credentials = json.loads(datasource_credentials_info.credentials)
+        return credentials
+    else:
+        return None
