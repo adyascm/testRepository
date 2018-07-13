@@ -1,6 +1,7 @@
 import json
 
 from adya.common.constants import action_constants, constants
+from adya.core.controllers.actions_controller import BATCH_COUNT
 from adya.gsuite.actions import gsuite_actions
 from adya.common.db.models import AuditLog
 from adya.common.utils import response_messages
@@ -47,13 +48,20 @@ def execute_action(auth_token, payload):
         current_log = db_session.query(AuditLog).filter(and_(AuditLog.log_id == log_id, AuditLog.status != action_constants.ActionStatus.FAILED.value)).first()
         if current_log:
             response_code = response.get_response_code()
+            perm_length = len(permissions)
             if response_code == 200:
-                current_log.success_count += len(permissions)
-                if current_log.success_count == current_log.total_count or current_log.total_count == 0:
-                    current_log.status = action_constants.ActionStatus.SUCCESS.value
-                    current_log.message = "Action completed successfully"
+                current_log.success_count += perm_length
+                if perm_length < BATCH_COUNT:
+                    if current_log.failed_count < 1:
+                        current_log.total_count = current_log.success_count
+                        current_log.status = action_constants.ActionStatus.SUCCESS.value
+                        current_log.message = "Action completed successfully"
+                    else:
+                        current_log.total_count = (current_log.success_count + current_log.failed_count)
+                        current_log.status = action_constants.ActionStatus.FAILED.value
+                        current_log.message = "Action failed"
             else:
-                current_log.failed_count += len(permissions)
+                current_log.failed_count += perm_length
                 current_log.status = action_constants.ActionStatus.FAILED.value
                 current_log.message = "Action failed"
             
