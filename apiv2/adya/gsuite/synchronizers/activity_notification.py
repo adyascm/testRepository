@@ -2,6 +2,7 @@ import datetime
 import json
 
 from adya.common.constants import urls, constants
+from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
 from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, \
@@ -218,7 +219,8 @@ def process_group_related_activities(datasource_id, event):
         user_directory_struct.member_type = 'USER' #TODO : check whether type is group or user
 
         db_session = db_connection().get_session()
-        db_session.add(user_directory_struct)
+        db_session.execute(DirectoryStructure.__table__.insert().prefix_with("IGNORE").
+                           values(db_utils.get_model_values(DirectoryStructure, user_directory_struct)))
 
         if user_email:
             datasource_obj = get_datasource(datasource_id)
@@ -275,7 +277,8 @@ def process_user_related_activities(datasource_id, actor_email, event):
                 gsuite_user = user.GsuiteUser(datasource_id, results)
                 user_obj = gsuite_user.get_model()
                 db_session = db_connection().get_session()
-                db_session.add(user_obj)
+                db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").
+                                   values(db_utils.get_model_values(DomainUser, user_obj)))
 
                 if user_obj.is_admin:
                     payload = {}
