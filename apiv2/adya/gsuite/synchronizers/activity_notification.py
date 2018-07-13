@@ -57,6 +57,7 @@ def process_incoming_activity(datasource_id, incoming_activity):
     if not "id" in incoming_activity:
         Logger().info("Incoming activity is not valid type - {}".format(incoming_activity))
         return
+    Logger().info("Incoming activity - {}".format(incoming_activity))
     app_name = incoming_activity["id"]["applicationName"]
 
     if app_name == "token":
