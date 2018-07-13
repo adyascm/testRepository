@@ -79,7 +79,9 @@ const Users = {
     getUsersTree: () =>
         requests.get('/common/getusergrouptree'),
     getGroupMembers: (groupEmail, datasourceId) =>
-        requests.get('/common/getgroupmembers?groupEmail=' + groupEmail + '&datasourceId=' + datasourceId)
+        requests.get('/common/getgroupmembers?groupEmail=' + groupEmail + '&datasourceId=' + datasourceId),
+    exportToCsv: (exportHeaders) =>
+        requests.get('/common/users/export?' + exportHeaders)
 }
 
 const Apps = {
@@ -98,7 +100,9 @@ const Resources = {
     getResources: (parentId) =>
         requests.post('/common/getresourcetree',parentId),
     searchResources: (prefix) =>
-        requests.get('/common/getresourcetree?prefix=' + prefix)
+        requests.get('/common/getresourcetree?prefix=' + prefix),
+    exportToCsv: (exportHeaders) =>
+        requests.get('/common/resource/export?' + exportHeaders)
 }
 
 const Scheduled_Report = {

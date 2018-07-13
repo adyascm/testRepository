@@ -5,6 +5,12 @@ from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain, DomainUser
 from adya.common.constants import constants
+from boto3.s3.transfer import S3Transfer
+from datetime import datetime
+import csv, boto3, os, tempfile
+
+current_file_path = os.path.dirname(os.path.realpath(__file__))
+export_csv_dir = current_file_path + '/../../common/csv_exports'
 
 def get_resources(auth_token, page_number, page_limit, accessible_by=None, exposure_type='EXT', resource_type='None', prefix='',
                   owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None, datasource_id=None, source_type=None):
@@ -101,3 +107,85 @@ def search_resources(auth_token, prefix):
     resources = db_session.query(Resource).filter(and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_name.ilike("%" + prefix + "%"))).limit(10).all()
 
     return resources
+
+def export_to_csv(auth_token, payload):
+    #Extracting the fields from payload 
+    source = payload["Source"]
+    name = payload["Name"]
+    type = payload["Type"]
+    owner = payload["Owner"]
+    exposure_type = payload["Exposure Type"]
+    parent_folder = payload["Parent Folder"]
+    modified_date = payload["Modified On or Before"]
+
+    db_session = db_connection().get_session()
+    existing_user = db_utils.get_user_session(auth_token)
+    domain_id = existing_user.domain_id
+    datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
+    column_fields = []
+
+    if name:
+        column_fields.append(Resource.resource_name)
+    if type:
+        column_fields.append(Resource.resource_type)
+    if owner:
+        column_fields.append(Resource.resource_owner_id)
+    if exposure_type:
+        column_fields.append(Resource.exposure_type)
+    if parent_folder:
+        column_fields.append(Resource.parent_id)
+    if modified_date:
+        column_fields.append(Resource.last_modified_time)
+
+    resources = db_session.query(Resource).filter(Resource.datasource_id == datasource.datasource_id).with_entities(*column_fields).all()
+    print resources
+
+    #Creating a tempfile for csv data
+    with tempfile.NamedTemporaryFile() as temp_csv:
+        csv_writer = csv.writer(temp_csv)
+        csv_writer.writerows(resources)
+        temp_csv.seek(0)
+
+        #Reading the tempfile created
+        csv_reader = csv.reader(temp_csv)
+        for row in csv_reader:
+            print row
+        #temp_csv.close()
+
+        #Uploading the file in s3 bucket
+        client = boto3.client('s3', aws_access_key_id=constants.ACCESS_KEY_ID, aws_secret_access_key=constants.SECRET_ACCESS_KEY)
+        bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+        bucket_obj = None
+        try:
+            bucket_obj = client.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': 'ap-south-1'
+                })
+            print bucket_obj
+        
+        except Exception as ex:
+            print ex
+            err_response = ex.response
+            if err_response['Error']['Code'] == "BucketAlreadyOwnedByYou":
+                print "Bucket already created!!"
+        
+        transfer = S3Transfer(client)
+        now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+        #now = str(datetime.now())
+        key = domain_id + "/export/resource-" + now
+        transfer.upload_file(temp_csv.name, bucket_name, key)
+        
+        #Constructing a temporary file url 
+        temp_url = client.generate_presigned_url(
+            'get_object', 
+            Params = {
+                'Bucket': bucket_name,
+                'Key': key,
+            },
+            ExpiresIn=60)
+        print temp_url
+        return temp_url
+
+
+    

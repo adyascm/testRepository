@@ -1,5 +1,4 @@
 from sqlalchemy import and_, desc, asc
-import json
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
@@ -7,14 +6,16 @@ from adya.common.db import db_utils
 from adya.common.utils import utils
 from adya.common.constants import constants
 from datetime import datetime
-import os, uuid
+import os, uuid, csv, tempfile, json, boto3
 from adya.common.utils.response_messages import Logger
+from boto3.s3.transfer import S3Transfer
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 GOOGLE_API_SCOPES = json.load(open(dir_path + "/../../gsuite/google_api_scopes.json"))
 SLACK_API_SCOPES = json.load(open(dir_path + "/../../slack/slack_api_scopes.json"))
 
+export_csv_dir = dir_path + '/../../common/csv_exports'
 
 def get_user_stats(auth_token):
     db_session = db_connection().get_session()
@@ -305,3 +306,80 @@ def insert_apps(auth_token, payload):
         return payload
     else:
         return None
+
+def export_to_csv(auth_token, payload):
+    source = payload["Source"]
+    type = payload["Type"]
+    name = payload["Name"]
+    email = payload["Email"]
+    is_admin = payload["Is Admin"]
+    exposure_type = payload["Exposure Type"]
+
+    db_session = db_connection().get_session()
+    existing_user = db_utils.get_user_session(auth_token)
+    domain_id = existing_user.domain_id
+
+    datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
+    column_fields = []
+
+    if name:
+        column_fields.append(DomainUser.full_name)
+    if type:
+        column_fields.append(DomainUser.type)
+    if email:
+        column_fields.append(DomainUser.email)
+    if is_admin:
+        column_fields.append(DomainUser.is_admin)
+    if exposure_type:
+        column_fields.append(DomainUser.member_type)
+
+    users = db_session.query(DomainUser).filter(DataSource.datasource_id == datasource.datasource_id).with_entities(*column_fields).all()
+
+    #Creating a tempfile for csv data
+    with tempfile.NamedTemporaryFile() as temp_csv:
+        csv_writer = csv.writer(temp_csv)
+        csv_writer.writerows(users)
+        temp_csv.seek(0)
+
+        #Reading the tempfile created
+        csv_reader = csv.reader(temp_csv)
+        for row in csv_reader:
+            print row
+        #temp_csv.close()
+
+        #Uploading the file in s3 bucket
+        client = boto3.client('s3', aws_access_key_id=constants.ACCESS_KEY_ID, aws_secret_access_key=constants.SECRET_ACCESS_KEY)
+        bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+        bucket_obj = None
+        try:
+            bucket_obj = client.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': 'ap-south-1'
+                })
+            print bucket_obj
+        
+        except Exception as ex:
+            print ex
+            err_response = ex.response
+            if err_response['Error']['Code'] == "BucketAlreadyOwnedByYou":
+                print "Bucket already created!!"
+        
+        transfer = S3Transfer(client)
+        now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+        #now = str(datetime.now())
+        key = domain_id + "/export/user-" + now
+        transfer.upload_file(temp_csv.name, bucket_name, key)
+        
+        #Constructing a temporary file url 
+        temp_url = client.generate_presigned_url(
+            'get_object', 
+            Params = {
+                'Bucket': bucket_name,
+                'Key': key,
+            },
+            ExpiresIn=60)
+        print temp_url
+        return temp_url
+
+    
