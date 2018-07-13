@@ -122,7 +122,7 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
             is_success = False
             if ex.content:
                 content = json.loads(ex.content)
-                exception_messages += content['error']['message']
+                exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while adding new permission to db"
             else:
                 exception_messages += "Exception occurred while adding new permission to db"
 
@@ -161,7 +161,7 @@ def update_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 is_success = False
                 if e.content:
                     content = json.loads(e.content)
-                    exception_messages += content['error']['message']
+                    exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while updating permissions in gsuite"
         except Exception as ex:
             Logger().exception("Exception occurred while updating permissions in gsuite : {}".format(ex))
             is_success = False
@@ -208,12 +208,17 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
                     sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
                     Logger().warn("API limit reached while deleting the permission in gsuite, will retry after {} secs: {}".format(sleep_secs, permission))
                     time.sleep(sleep_secs)
+                elif ex.resp.status == 500 and retry < 6:
+                    sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
+                    Logger().warn("Backend Error while deleting the permission in gsuite, will retry after {} secs: {}".format(
+                            sleep_secs, permission))
+                    time.sleep(sleep_secs)
                 else:
                     Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
                     is_success = False
                     if ex.content:
                         content = json.loads(ex.content)
-                        exception_messages += content['error']['message']
+                        exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while deleting permissions in gsuite"
                     break
             except Exception as ex:
                 Logger().exception("Exception occurred while deleting permissions in gsuite : ex - {}".format(ex))
