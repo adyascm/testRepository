@@ -47,7 +47,7 @@ def update_user(db_session, domain_id, datasource_id, user_info):
             filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_obj.email)).first()
 
         Logger().info("Existing user info - {} ".format(existing_user_info))
-        Logger.info("updated user info - {}".format(user_obj))
+        Logger().info("updated user info - {}".format(user_obj))
 
         #update the existing user info
         db_session.query(DomainUser).filter(

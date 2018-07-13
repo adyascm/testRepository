@@ -94,7 +94,7 @@ def process_member_joined_channel(db_session, datasource_id, payload):
         channel_info = user_channel_info['channel']
         payload['name'] = channel_info.email
 
-        directory_member_obj = entities.SlackDirectoryMember(datasource_id, user_info, joined_user_id, None, payload)
+        directory_member_obj = entities.SlackDirectoryMember(db_session, datasource_id, user_info, joined_user_id, None, payload)
         db_session.add(directory_member_obj)
 
 
