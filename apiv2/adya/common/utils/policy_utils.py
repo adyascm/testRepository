@@ -88,7 +88,7 @@ def validate_new_user_policy(db_session, auth_token, datasource_id, policy, user
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.USER_TYPE.value:
             is_violated = is_violated & check_value_violation(policy_condition, user['member_type'])
-        elif not policy_condition.match_type == constants.PolicyMatchType.USER_ROLE.value:
+        elif policy_condition.match_type == constants.PolicyMatchType.USER_ROLE.value:
             is_violated = is_violated & check_value_violation(policy_condition, user['is_admin'])
 
     if is_violated:
