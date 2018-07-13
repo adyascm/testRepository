@@ -60,6 +60,9 @@ def execute_action(auth_token, payload):
                         current_log.total_count = (current_log.success_count + current_log.failed_count)
                         current_log.status = action_constants.ActionStatus.FAILED.value
                         current_log.message = "Action failed"
+                else:
+                    percentage_successful_till_now = ((current_log.success_count*100.0)/current_log.total_count)
+                    current_log.message = "{}% Action completed successfully".format(percentage_successful_till_now)
             else:
                 current_log.failed_count += perm_length
                 current_log.status = action_constants.ActionStatus.FAILED.value
