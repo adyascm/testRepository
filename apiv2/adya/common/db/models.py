@@ -174,7 +174,7 @@ class DirectoryStructure(Base):
     datasource_id = Column(String(36), primary_key=True)
     parent_email = Column(String(320), primary_key=True)
     member_email = Column(String(320), primary_key=True)
-    member_id = Column(String(260), nullable=False)
+    member_id = Column(String(260))
     member_role = Column(String(10), nullable=False)
     member_type = Column(String(10), nullable=False)
     __table_args__ = (
