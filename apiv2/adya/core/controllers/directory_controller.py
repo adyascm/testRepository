@@ -308,32 +308,49 @@ def insert_apps(auth_token, payload):
         return None
 
 def export_to_csv(auth_token, payload):
-    source = payload["Source"]
-    type = payload["Type"]
-    name = payload["Name"]
-    email = payload["Email"]
-    is_admin = payload["Is Admin"]
-    exposure_type = payload["Exposure Type"]
+    source = payload["userSource"]
+    type = payload["userType"]
+    name = payload["userName"]
+    email = payload["userEmail"]
+    is_admin = payload["userAdmin"]
+    member_type = payload["memberType"]
 
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
 
     datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
+    users_query = db_session.query(DomainUser).filter(DataSource.datasource_id == datasource.datasource_id)
+    
     column_fields = []
 
-    if name:
+    if source is not None:
+        column_fields.append(DomainUser.datasource_id)
+        if source:
+            users_query = users_query.filter(DomainUser.datasource_id == source)
+    if name is not None:
         column_fields.append(DomainUser.full_name)
-    if type:
+        if name:
+            users_query = users_query.filter(DomainUser.full_name.ilike("%" + name + "%"))
+    if type is not None:
         column_fields.append(DomainUser.type)
-    if email:
+        if type:
+            users_query = users_query.filter(DomainUser.type == type)
+    if email is not None:
         column_fields.append(DomainUser.email)
-    if is_admin:
+        if email:
+            users_query = users_query.filter(DomainUser.email.ilike("%" + email + "%"))
+    if is_admin is not None:
         column_fields.append(DomainUser.is_admin)
-    if exposure_type:
+        if is_admin:
+            users_query = users_query.filter(DomainUser.is_admin == is_admin)
+    if member_type is not None:
         column_fields.append(DomainUser.member_type)
+        if member_type:
+            users_query = users_query.filter(DomainUser.member_type == member_type)
 
-    users = db_session.query(DomainUser).filter(DataSource.datasource_id == datasource.datasource_id).with_entities(*column_fields).all()
+    users = users_query.with_entities(*column_fields).all()
+    print users
 
     #Creating a tempfile for csv data
     with tempfile.NamedTemporaryFile() as temp_csv:
@@ -349,7 +366,7 @@ def export_to_csv(auth_token, payload):
 
         #Uploading the file in s3 bucket
         client = boto3.client('s3', aws_access_key_id=constants.ACCESS_KEY_ID, aws_secret_access_key=constants.SECRET_ACCESS_KEY)
-        bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+        bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
         bucket_obj = None
         try:
             bucket_obj = client.create_bucket(
@@ -366,8 +383,8 @@ def export_to_csv(auth_token, payload):
                 print "Bucket already created!!"
         
         transfer = S3Transfer(client)
-        now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
-        #now = str(datetime.now())
+        #now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+        now = str(datetime.now())
         key = domain_id + "/export/user-" + now
         transfer.upload_file(temp_csv.name, bucket_name, key)
         
