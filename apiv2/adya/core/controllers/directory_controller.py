@@ -319,8 +319,12 @@ def export_to_csv(auth_token, payload):
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
 
-    datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
-    users_query = db_session.query(DomainUser).filter(DataSource.datasource_id == datasource.datasource_id)
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+    domain_datasource_ids = []
+    for datasource in datasources:
+        domain_datasource_ids.append(datasource.datasource_id)
+    
+    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     
     column_fields = []
 

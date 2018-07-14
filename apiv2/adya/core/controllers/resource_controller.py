@@ -121,11 +121,14 @@ def export_to_csv(auth_token, payload):
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
-    datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+    domain_datasource_ids = []
+    for datasource in datasources:
+        domain_datasource_ids.append(datasource.datasource_id)
     resource_alias = aliased(Resource)
     parent_alias = aliased(Resource)
     #resources_query = db_session.query(Resource).filter(Resource.datasource_id == datasource.datasource_id)
-    resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
+    resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id, resource_alias.datasource_id.in_(domain_datasource_ids)))
 
     column_fields = []
 
