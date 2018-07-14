@@ -47,7 +47,7 @@ def get_resource_tree_data(event, context):
 
 def export_to_csv(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(optional_params=["Source", "Name", "Type", "Owner", "Exposure Type", "Parent Folder", "Modified On or Before"])
+    req_error = req_session.validate_authorized_request(optional_params=["sourceType", "resourceName", "resourceType", "ownerEmail", "exposureType", "parentFolder", "modifiedDate"])
     if req_error:
         return req_error
     

@@ -14,7 +14,8 @@ import {  RESOURCES_FILTER_CHANGE,
 const mapStateToProps = state => ({
   ...state.resources,
   redirectTo: state.dashboard.redirectTo,
-  redirectFilter: state.dashboard.filterType
+  redirectFilter: state.dashboard.filterType,
+  selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -29,7 +30,6 @@ class Resources extends Component {
     super(props);
 
     this.state = {
-      showExportModal: false,
       columnHeaders: [
         "Source",
         "Name",
@@ -39,17 +39,10 @@ class Resources extends Component {
         "Parent Folder",
         "Modified On or Before"
       ],
-      checkedHeaders: {
-        "Source": false,
-        "Name": false,
-        "Type": false,
-        "Owner": false,
-        "Exposure Type": false,
-        "Parent Folder": false,
-        "Modified On or Before": false
-      },
-      selectAllChecked: false,
-      isLoading: false
+      showExportModal: false,
+      isLoading: false,
+      selectAllColumns: true,
+      checkedColumns: {}
     }
   }
 
@@ -62,55 +55,81 @@ class Resources extends Component {
   }
 
   handleButtonClick = () => {
+    let checkedColumns = {}
+    let selectAllColumns = this.state.selectAllColumns
+
+    if (!this.state.showExportModal) {
+      for (let index=0; index<this.state.columnHeaders.length; index++) {
+        checkedColumns[this.state.columnHeaders[index]] = true
+      }
+      if (!selectAllColumns)
+        selectAllColumns = !selectAllColumns
+    }
     this.setState({
-      showExportModal: !this.state.showExportModal
+      showExportModal: !this.state.showExportModal,
+      checkedColumns: checkedColumns,
+      selectAllColumns: selectAllColumns
     })
   }
 
   handleCheckboxChange = (event, data) => {
-    let headerName = data.label
-    let checkedHeaders = Object.assign({}, this.state.checkedHeaders) 
-    let selectAllChecked = this.state.selectAllChecked
+    let columnName = data.label
+    let checkedColumns = Object.assign({}, this.state.checkedColumns)
+    let selectAllColumns = this.state.selectAllColumns
 
-    if (headerName !== "Select All") {
-      checkedHeaders[headerName] = !checkedHeaders[headerName]
-      if (selectAllChecked)
-        selectAllChecked = !selectAllChecked
+    if (columnName !== "Select All") {
+      checkedColumns[columnName] = !checkedColumns[columnName]
+      if (selectAllColumns)
+        selectAllColumns = !selectAllColumns
     }
-    
     else {
-      for (let key in checkedHeaders) {
-        if (!this.state.selectAllChecked && !checkedHeaders[key])
-          checkedHeaders[key] = true
-        else if (this.state.selectAllChecked && checkedHeaders[key])
-          checkedHeaders[key] = false
+      for (let columnName in checkedColumns) {
+        if ((selectAllColumns && checkedColumns[columnName]) || (!selectAllColumns && !checkedColumns[columnName]))
+          checkedColumns[columnName] = !checkedColumns[columnName] 
       }
-      selectAllChecked = !selectAllChecked
+      selectAllColumns = !selectAllColumns
     }
-
     this.setState({
-      checkedHeaders: checkedHeaders,
-      selectAllChecked: selectAllChecked
+      checkedColumns: checkedColumns,
+      selectAllColumns: selectAllColumns
     })
-  }
+  } 
 
   handleSubmit = () => {
-    // Make an api call to export selected headers as csv
-    let exportHeaders = ''
-    let headers = Object.keys(this.state.checkedHeaders)
+    //Constructing the query parameters 
+    let filter_params = ''
 
-    for (let index = 0; index<headers.length; index++) {
-      if (this.state.checkedHeaders[headers[index]])
-        exportHeaders += headers[index] + "=true"
-      
-      if (index+1 < headers.length)
-        exportHeaders += "&"
+    for (let index=0; index<this.state.columnHeaders.length; index++) {
+      let columnName = this.state.columnHeaders[index]
+      if (this.state.checkedColumns[columnName]) {
+        let ampersand = index > 0 ? "&" : ""
+        if (columnName === "Source")
+          filter_params = filter_params + ampersand + "sourceType=" + this.props.filterSourceType
+        else if (columnName === "Name") {
+          let resource_name = this.props.prefix !== undefined ? this.props.prefix : ''
+          filter_params = filter_params + ampersand + "resourceName=" + resource_name
+        }
+        else if (columnName === "Type")
+          filter_params = filter_params + ampersand + "resourceType=" + this.props.filterResourceType
+        else if (columnName === "Owner") {
+          let ownerEmail = this.props.selectedUser ? this.props.selectedUser.email : ''
+          filter_params = filter_params + ampersand + "ownerEmail=" + ownerEmail
+        }
+        else if (columnName === "Exposure Type")
+          filter_params = filter_params + ampersand + "exposureType=" + this.props.filterExposureType
+        else if (columnName === "Parent Folder")
+          filter_params = filter_params + ampersand + "parentFolder=" + this.props.filterParentFolder
+        else if (columnName === "Modified On or Before")
+          filter_params = filter_params + ampersand + "modifiedDate=" + this.props.filterByDate
+      }
     }
-    //console.log(exportHeaders)
+
     this.setState({
       isLoading: true
     })
-    agent.Resources.exportToCsv(exportHeaders).then(response => {
+
+    agent.Resources.exportToCsv(filter_params).then(response => {
+      console.log(response)
       window.location = response
       this.setState({
         isLoading: false,
@@ -118,7 +137,7 @@ class Resources extends Component {
       })
     })
   }
-
+  
   render() {
 
     let containerStyle = {
@@ -138,10 +157,10 @@ class Resources extends Component {
       gridWidth = 4
 
 
-    let columnHeaderCheckboxInput = this.state.columnHeaders.map((headerName, index) => {
+    let columnHeaderCheckboxInput = this.state.columnHeaders.map((columnName, index) => {
       return (
         <div>
-          <Checkbox key={index} label={headerName} checked={this.state.checkedHeaders[headerName]} onChange={(event, data) => this.handleCheckboxChange(event, data)} />
+          <Checkbox key={index} label={columnName} onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.checkedColumns[columnName]} />
         </div>
         )
     }) 
@@ -159,7 +178,7 @@ class Resources extends Component {
           </Modal.Header>
           <Modal.Content>
             <Header> Fields to export </Header>
-            <Checkbox label="Select All" onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.selectAllChecked} />
+            <Checkbox label="Select All" onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.selectAllColumns} />
             {columnHeaderCheckboxInput}
             <div style={{'marginTop': '10px'}}>
               <Button negative size="tiny" onClick={this.handleButtonClick}>Close</Button>

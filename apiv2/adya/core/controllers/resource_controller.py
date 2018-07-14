@@ -110,34 +110,55 @@ def search_resources(auth_token, prefix):
 
 def export_to_csv(auth_token, payload):
     #Extracting the fields from payload 
-    source = payload["Source"]
-    name = payload["Name"]
-    type = payload["Type"]
-    owner = payload["Owner"]
-    exposure_type = payload["Exposure Type"]
-    parent_folder = payload["Parent Folder"]
-    modified_date = payload["Modified On or Before"]
+    source = payload["sourceType"]
+    name = payload["resourceName"]
+    type = payload["resourceType"]
+    owner = payload["ownerEmail"]
+    exposure_type = payload["exposureType"]
+    parent_folder = payload["parentFolder"]
+    modified_date = payload["modifiedDate"]
 
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
     datasource = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).first()
+    resource_alias = aliased(Resource)
+    parent_alias = aliased(Resource)
+    #resources_query = db_session.query(Resource).filter(Resource.datasource_id == datasource.datasource_id)
+    resources_query = db_session.query(resource_alias, parent_alias.resource_name).outerjoin(parent_alias, and_(resource_alias.parent_id == parent_alias.resource_id, resource_alias.datasource_id == parent_alias.datasource_id))
+
     column_fields = []
 
-    if name:
-        column_fields.append(Resource.resource_name)
-    if type:
-        column_fields.append(Resource.resource_type)
-    if owner:
-        column_fields.append(Resource.resource_owner_id)
-    if exposure_type:
-        column_fields.append(Resource.exposure_type)
-    if parent_folder:
-        column_fields.append(Resource.parent_id)
-    if modified_date:
-        column_fields.append(Resource.last_modified_time)
+    if source is not None:
+        column_fields.append(resource_alias.datasource_id)
+        if source:
+            resources_query = resources_query.filter(resource_alias.datasource_id == source)
+    if name is not None:
+        column_fields.append(resource_alias.resource_name)
+        if name:
+            resources_query = resources_query.filter(resource_alias.resource_name.ilike("%" + name + "%"))
+    if type is not None:
+        column_fields.append(resource_alias.resource_type)
+        if type:
+            resources_query = resources_query.filter(resource_alias.resource_type == type)
+    if owner is not None:
+        column_fields.append(resource_alias.resource_owner_id)
+        if owner:
+            resources_query = resources_query.filter(resource_alias.resource_owner_id.ilike("%" + owner + "%"))
+    if exposure_type is not None:
+        column_fields.append(resource_alias.exposure_type)
+        if exposure_type:
+            resources_query = resources_query.filter(resource_alias.exposure_type == exposure_type)
+    if parent_folder is not None:
+        column_fields.append(parent_alias.resource_name)
+        if parent_folder:
+            resources_query = resources_query.filter(parent_alias.resource_name == parent_folder)
+    if modified_date is not None:
+        column_fields.append(resource_alias.last_modified_time)
+        if modified_date:
+            resources_query = resources_query.filter(resource_alias.last_modified_time <= modified_date)
 
-    resources = db_session.query(Resource).filter(Resource.datasource_id == datasource.datasource_id).with_entities(*column_fields).all()
+    resources = resources_query.with_entities(*column_fields).all()
     print resources
 
     #Creating a tempfile for csv data
@@ -154,7 +175,7 @@ def export_to_csv(auth_token, payload):
 
         #Uploading the file in s3 bucket
         client = boto3.client('s3', aws_access_key_id=constants.ACCESS_KEY_ID, aws_secret_access_key=constants.SECRET_ACCESS_KEY)
-        bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+        bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
         bucket_obj = None
         try:
             bucket_obj = client.create_bucket(
