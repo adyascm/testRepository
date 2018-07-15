@@ -1,6 +1,7 @@
 import json
 
 from adya.common.constants import action_constants, constants
+from adya.core.controllers.actions_controller import BATCH_COUNT
 from adya.gsuite.actions import gsuite_actions
 from adya.common.db.models import AuditLog
 from adya.common.utils import response_messages
@@ -12,6 +13,7 @@ def execute_action(auth_token, payload):
     user_email = payload['user_email']
     datasource_id = payload['datasource_id']
     domain_id = payload['domain_id']
+    more_to_execute = payload['more_to_execute'] if 'more_to_execute' in payload else 0
     initiated_by_email = payload['initiated_by_email'] if 'initiated_by_email' in payload else None
     permissions = json.loads(payload['permissions']) if 'permissions' in payload else []
     response = None
@@ -47,16 +49,21 @@ def execute_action(auth_token, payload):
         current_log = db_session.query(AuditLog).filter(and_(AuditLog.log_id == log_id, AuditLog.status != action_constants.ActionStatus.FAILED.value)).first()
         if current_log:
             response_code = response.get_response_code()
-            if response_code == 200:
-                current_log.success_count += len(permissions)
-                if current_log.success_count == current_log.total_count:
-                    current_log.status = action_constants.ActionStatus.SUCCESS.value
-                    current_log.message = "Action completed successfully"
-            else:
-                current_log.failed_count += len(permissions)
+            perm_length = len(permissions)
+            if response_code != 200:
+                current_log.failed_count += perm_length
                 current_log.status = action_constants.ActionStatus.FAILED.value
                 current_log.message = "Action failed"
-            
+            else:
+                current_log.success_count += perm_length
+                if current_log.failed_count < 1:
+                    if not more_to_execute:
+                        current_log.total_count = current_log.success_count
+                        
+                    current_log.status = action_constants.ActionStatus.SUCCESS.value
+                    percentage_successful_till_now = ((current_log.success_count*100)/max(current_log.total_count, current_log.success_count))
+                    current_log.message = "Action status - {} pct completed".format(percentage_successful_till_now)
+                                    
             db_connection().commit()
 
     return response

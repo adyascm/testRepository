@@ -82,10 +82,10 @@ class Actions extends Component {
         let config_params = []
         for(let i in all_actions_list){
             if(ds && all_actions_list[i]['key'] == action.key && all_actions_list[i]['datasource_type'] == ds.datasource_type){
-                config_params = all_actions_list[i]['parameters'] 
+                config_params = all_actions_list[i]['parameters']
             }else if(!ds && all_actions_list[i]['key'] == action.key){ //The case when action is not datasource specific
-                config_params = all_actions_list[i]['parameters'] 
-            }   
+                config_params = all_actions_list[i]['parameters']
+            }
         }
         config_params.map(e => { let key = e['key']; parameters[[key]] = this.state[e['key']]; });
 
@@ -165,11 +165,12 @@ class Actions extends Component {
                 if(err.response && err.response.body)
                 {
                     resp = err.response.body
+                    error(resp)
                 }
                 else{
-                    resp = {"message": "Request timed out, check the logs for status"}
+                    resp = {"message": "Action has been submitted and is being processed. Please check audit log for progress"}
+                    success(resp)
                 }
-                error(resp)
             })
     }
     onUpdateParameters = key => e => {
@@ -224,7 +225,7 @@ class Actions extends Component {
         if(action.datasource_id){
             ds = this.props.datasourcesMap[action.datasource_id];
         }
-        
+
         let actionConfig = {}
         let all_actions_list = this.props.all_actions_list;
 
@@ -235,7 +236,7 @@ class Actions extends Component {
                 actionConfig = all_actions_list[i]
             }
         }
-        
+
         let actionDescription = Mustache.render(actionConfig.description, action);
         let formFields = actionConfig.parameters.map(field => {
             if (field.hidden)

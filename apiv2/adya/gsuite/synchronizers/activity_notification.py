@@ -2,14 +2,23 @@ import datetime
 import json
 
 from adya.common.constants import urls, constants
+from adya.common.db import db_utils
 from adya.common.db.connection import db_connection
+from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, \
-    ApplicationUserAssociation, alchemy_encoder, AppInventory, DataSource, TrustedEntities
+    ApplicationUserAssociation, alchemy_encoder, AppInventory, DataSource, TrustedEntities, DirectoryStructure, Domain, \
+    DomainUser
 from adya.common.utils.response_messages import Logger
-from adya.common.utils import messaging
+from adya.common.utils import messaging, utils
 from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.gsuite import gutils
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_
+from google.auth.exceptions import RefreshError
+from googleapiclient.errors import HttpError
+
+from adya.gsuite.mappers import user
+from adya.gsuite.scanners import users_scanner
 
 
 def process_notifications(notification_type, datasource_id, channel_id, body):
@@ -49,11 +58,13 @@ def process_incoming_activity(datasource_id, incoming_activity):
     if not "id" in incoming_activity:
         Logger().info("Incoming activity is not valid type - {}".format(incoming_activity))
         return
+    Logger().info("Incoming activity - {}".format(incoming_activity))
     app_name = incoming_activity["id"]["applicationName"]
-    
 
     if app_name == "token":
         process_token_activity(datasource_id, incoming_activity)
+    elif app_name == "admin":
+        process_admin_activities(datasource_id, incoming_activity)
     # elif app_name == "drive":
     #     process_drive_activity(datasource_id, incoming_activity)
 
@@ -173,3 +184,109 @@ def process_drive_activity(datasource_id, incoming_activity):
                             resource_permission['permission_type'] = constants.Permission_Role_mapping[max_perm_string]
                         elif parameter['name'] == 'visibility':
                             resource_permission['exposure_type'] = parameter['value']
+
+
+def process_admin_activities(datasource_id, incoming_activity):
+    Logger().info("Processing admin activity - {}".format(incoming_activity))
+    actor_email = incoming_activity['actor']['email']
+    db_session = db_connection().get_session()
+    for event in incoming_activity['events']:
+        event_type = event['type']
+        if event_type == 'GROUP_SETTINGS':
+            process_group_related_activities(datasource_id, event)
+        elif event_type == 'USER_SETTINGS':
+            process_user_related_activities(datasource_id, actor_email, event)
+
+
+def process_group_related_activities(datasource_id, event):
+    event_name = event['name']
+    if event_name == 'ADD_GROUP_MEMBER':
+        activity_events_parameters = event['parameters']
+        group_email = None
+        user_email = None
+        for param in activity_events_parameters:
+            name = param['name']
+            if name == 'GROUP_EMAIL':
+                group_email = param['value']
+            elif name == 'USER_EMAIL':
+                user_email = param['value']
+
+        user_directory_struct = DirectoryStructure()
+        user_directory_struct.datasource_id = datasource_id
+        user_directory_struct.member_email = user_email
+        user_directory_struct.parent_email = group_email
+        user_directory_struct.member_role = 'MEMBER'
+        user_directory_struct.member_type = 'USER' #TODO : check whether type is group or user
+
+        db_session = db_connection().get_session()
+        db_session.execute(DirectoryStructure.__table__.insert().prefix_with("IGNORE").
+                           values(db_utils.get_model_values(DirectoryStructure, user_directory_struct)))
+
+        if user_email:
+            datasource_obj = get_datasource(datasource_id)
+            domain_id = datasource_obj.domain_id
+            exposure_type = utils.check_if_external_user(db_session, domain_id, user_email)
+            if exposure_type == constants.EntityExposureType.EXTERNAL.value:
+                #check if external user present in domain user table
+                existing_user = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                            DomainUser.email == user_email)).first()
+                external_user = None
+                if not existing_user:
+                    external_user = DomainUser()
+                    external_user.datasource_id = datasource_id
+                    external_user.email = user_email
+                    external_user.member_type = constants.EntityExposureType.EXTERNAL.value
+                    external_user.type = 'USER'
+                    #TODO: find the first name and last name of external user
+                    external_user.first_name = ""
+                    external_user.last_name = ""
+                    db_session.add(external_user)
+
+                user_obj = existing_user if existing_user else external_user
+                payload = {}
+                payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
+                policy_params = {'dataSourceId': datasource_id,
+                                 'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
+                Logger().info("new_user : payload : {}".format(payload))
+                messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload,
+                                             "gsuite")
+        db_connection().commit()
+
+
+def process_user_related_activities(datasource_id, actor_email, event):
+    event_name = event['name']
+    if event_name == 'CREATE_USER':
+        new_user_email = None
+        activity_events_parameters = event['parameters']
+        for param in activity_events_parameters:
+            name = param['name']
+            if name == 'USER_EMAIL':
+                new_user_email = param['value']
+
+        if new_user_email:
+            directory_service = gutils.get_directory_service(None, actor_email)
+            results = None
+            try:
+                results = directory_service.users().get(userKey=new_user_email).execute()
+            except RefreshError as ex:
+                Logger().info("User query : Not able to refresh credentials")
+            except HttpError as ex:
+                Logger().info("User query : Domain not found error")
+
+            if results:
+                gsuite_user = user.GsuiteUser(datasource_id, results)
+                user_obj = gsuite_user.get_model()
+                db_session = db_connection().get_session()
+                db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").
+                                   values(db_utils.get_model_values(DomainUser, user_obj)))
+
+                if user_obj.is_admin:
+                    payload = {}
+                    payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
+                    policy_params = {'dataSourceId': datasource_id,
+                                     'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
+                    Logger().info("new_user : payload : {}".format(payload))
+                    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
+                                                 payload, "gsuite")
+        db_connection().commit()
+

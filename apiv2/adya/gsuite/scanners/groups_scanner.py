@@ -75,7 +75,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         # messaging.trigger_post_event(urls.SCAN_GROUP_MEMBERS, auth_token, query_params, {"groupKeys":group_key_array}, "gsuite")
         # Logger().info("Processed {} google directory groups for domain_id: {}".format(group_count, domain_id))
     except Exception as ex:
-        Logger().exception("Exception occurred while processing google directory groups for domain_id: {}".format(domain_id))
+        Logger().exception("Exception occurred while processing google directory groups for domain_id: {} - {}".format(domain_id, ex))
         db_session.rollback()
         return 0
         

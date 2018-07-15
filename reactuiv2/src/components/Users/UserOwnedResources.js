@@ -53,6 +53,7 @@ class UserOwnedResources extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        window.scrollTo(0, 0)
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResources({ 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
@@ -98,10 +99,10 @@ class UserOwnedResources extends Component {
                 if (this.props.selectedUserItem["email"] === rowData["resource_owner_id"])
                     return (
                         <Table.Row key={index}>
-                            <Table.Cell width="3" style={{'wordBreak': 'break-word'}}>{rowData["resource_name"]}</Table.Cell>
-                            <Table.Cell width="3">{rowData["resource_type"]}</Table.Cell>
-                            <Table.Cell width="2">{rowData["exposure_type"]}</Table.Cell>
-                            <Table.Cell textAlign='center' width="4">
+                            <Table.Cell  style={{'wordBreak': 'break-all'}}>{rowData["resource_name"]}</Table.Cell>
+                            <Table.Cell>{rowData["resource_type"]}</Table.Cell>
+                            <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
+                            <Table.Cell textAlign='center' >
                                 <Label as='a' color='blue' active onClick={openLink(rowData["web_view_link"])}>View</Label>
                                 <Label as='button' color='blue' active onClick={() => this.handleEmailChange(rowData)}>Change Owner</Label>
                             </Table.Cell>
@@ -124,7 +125,7 @@ class UserOwnedResources extends Component {
                 <Container stretched="true">
                 <Grid stretched style={{ 'marginTop': '5px', 'marginBottom': '5px' }}>
                     <div>
-                        <Table celled selectable striped>
+                        <Table celled selectable striped fixed>
                             <Table.Header>
                                 <Table.Row>
                                     {tableHeaders}
@@ -136,8 +137,8 @@ class UserOwnedResources extends Component {
                         </Table>
                     </div>
                     <div style={{ marginTop: '5px' }} >
-                        {this.props.selectedUserItem.ownedResources.length < this.props.pageLimit? null : (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handleNextClick} >Next</Button>)}
-                        {this.props.pageNumber > 0? (<Button color='green' size="mini" style={{float: 'right', width: '80px'}} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                        {this.props.selectedUserItem.ownedResources.length < this.props.pageLimit? null : (<Button color='green' size="mini" style={{'float': 'right', 'width': '80px'}} onClick={this.handleNextClick} >Next</Button>)}
+                        {this.props.pageNumber > 0? (<Button color='green' size="mini" style={{'float': 'right', 'width': '80px'}} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                     </div>
                     </Grid>
             </Container>

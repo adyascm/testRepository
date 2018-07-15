@@ -122,7 +122,7 @@ def add_permissions(auth_token, permissions, owner_email, initiated_by_email, da
             is_success = False
             if ex.content:
                 content = json.loads(ex.content)
-                exception_messages += content['error']['message']
+                exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while adding new permission to db"
             else:
                 exception_messages += "Exception occurred while adding new permission to db"
 
@@ -152,13 +152,16 @@ def update_permissions(auth_token, permissions, owner_email, initiated_by_email,
         except HttpError as e:
             if e.resp.status == 404:
                 Logger().info("Permission not found in gsuite, hence delete from db")
-                deleted_permissions[permission['resource_id']] = [permission]
+                if not permission['resource_id'] in deleted_permissions:
+                    deleted_permissions[permission['resource_id']] = [permission]
+                else:
+                    deleted_permissions[permission['resource_id']].append(permission)
             else:
                 Logger().exception("HttpError Exception occurred while updating permissions in gsuite ; {}".format(e))
                 is_success = False
                 if e.content:
                     content = json.loads(e.content)
-                    exception_messages += content['error']['message']
+                    exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while updating permissions in gsuite"
         except Exception as ex:
             Logger().exception("Exception occurred while updating permissions in gsuite : {}".format(ex))
             is_success = False
@@ -195,19 +198,27 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
             except HttpError as ex:
                 if ex.resp.status == 404:
                     Logger().info("Permission not found : permission - {} : ex - {}".format(permission, ex))
-                    updated_permissions[permission['resource_id']] = [permission]
+                    if not permission['resource_id'] in updated_permissions:
+                        updated_permissions[permission['resource_id']] = [permission]
+                    else:
+                        updated_permissions[permission['resource_id']].append(permission)
                     break
                 elif ex.resp.status == 403 and retry < 6:
                     #API limit reached, so retry after few seconds for 5 times
                     sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
                     Logger().warn("API limit reached while deleting the permission in gsuite, will retry after {} secs: {}".format(sleep_secs, permission))
                     time.sleep(sleep_secs)
+                elif ex.resp.status == 500 and retry < 6:
+                    sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
+                    Logger().warn("Backend Error while deleting the permission in gsuite, will retry after {} secs: {}".format(
+                            sleep_secs, permission))
+                    time.sleep(sleep_secs)
                 else:
                     Logger().exception("Exception occurred while deleting permissions in gsuite : permission - {}".format(permission))
                     is_success = False
                     if ex.content:
                         content = json.loads(ex.content)
-                        exception_messages += content['error']['message']
+                        exception_messages += content['error']['message'] if content['error']['message'] else "Exception occurred while deleting permissions in gsuite"
                     break
             except Exception as ex:
                 Logger().exception("Exception occurred while deleting permissions in gsuite : ex - {}".format(ex))

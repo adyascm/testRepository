@@ -80,3 +80,36 @@ def check_value_violation(policy_condition, value):
     elif policy_condition.match_condition == constants.PolicyConditionMatch.GREATER.value and policy_condition.match_value < value:
         return 1
     return 0
+
+
+def validate_new_user_policy(db_session, auth_token, datasource_id, policy, user):
+    Logger().info("validating_policy for new user : {} ".format(user))
+    is_violated = 1
+    for policy_condition in policy.conditions:
+        if policy_condition.match_type == constants.PolicyMatchType.USER_TYPE.value:
+            is_violated = is_violated & check_value_violation(policy_condition, user['member_type'])
+        elif policy_condition.match_type == constants.PolicyMatchType.USER_ROLE.value:
+            is_violated = is_violated & check_value_violation(policy_condition, user['is_admin'])
+
+    if is_violated:
+        Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
+        for action in policy.actions:
+            if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
+                to_address = json.loads(action.config)["to"]
+                # TODO: add proper email template
+                Logger().info("validate_policy : send email")
+                adya_emails.send_new_user_policy_violate_email(to_address, policy, user)
+
+        payload = {}
+        payload["datasource_id"] = datasource_id
+        payload["name"] = policy.name
+        payload["policy_id"] = policy.policy_id
+        payload["severity"] = policy.severity
+        payload["description_template"] = "New user {{user_email}} added has violated policy \"{{policy_name}}\""
+        payload["payload"] = user
+        messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
+
+
+
+
+

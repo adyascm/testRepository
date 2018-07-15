@@ -79,7 +79,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
 
     except Exception as ex:
-        Logger().exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
+        Logger().exception("Exception occurred while processing google directory users for domain_id: {} - {} ".format(domain_id, ex))
         db_session.rollback()
         return 0
         
