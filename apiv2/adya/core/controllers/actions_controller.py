@@ -275,20 +275,19 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     login_user_email = login_user.email
     is_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-    resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id ==
-                                                                            datasource_id,
+    resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                                             ResourcePermission.email == user_email,
-                                                                            ResourcePermission.permission_type != "owner"))
+                                                                            ResourcePermission.permission_type != "owner",
+                                                                            Resource.resource_id == ResourcePermission.resource_id))
 
     if is_service_account_is_enabled and not is_admin:
-        resource_permissions = resource_permissions.filter(and_(Resource.resource_id == ResourcePermission.resource_id,
-                                                                Resource.resource_owner_id == login_user_email))
+        resource_permissions = resource_permissions.filter(and_(Resource.resource_owner_id == login_user_email))
 
     if not log_entry.total_count:
         log_entry.total_count = resource_permissions.count()
         db_connection().commit()
 
-    resource_permissions = resource_permissions.limit(BATCH_COUNT).all()
+    resource_permissions = resource_permissions.order_by(Resource.resource_owner_id.asc()).limit(BATCH_COUNT).all()
     more_to_execute = False
     if len(resource_permissions) == BATCH_COUNT:
         more_to_execute = True
@@ -325,7 +324,7 @@ def execute_batch_delete(auth_token, datasource_id, user_email, initiated_by, pe
     body = json.dumps(permissions_to_update, cls=alchemy_encoder())
 
     payload = {"permissions": body, "datasource_id": datasource_id,
-               "domain_id": datasource_obj.domain_id,
+               "domain_id": datasource_obj.domain_id, "more_to_execute": 1 if more_to_execute else 0,
                "initiated_by_email": initiated_by,
                "log_id": str(log_entry.log_id), "user_email": user_email, "action_type": action_type}
 
