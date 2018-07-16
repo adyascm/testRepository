@@ -171,12 +171,12 @@ class InstalledApp extends Component {
             this.setState({
                 isLoadingApps: true
             })
-            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'desc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
+            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'asc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
                 let lastPage = payload.last_page ? payload.last_page : null;
                 this.setState({
                     isLoadingApps: false,
                     sortColumnName: mappedColumnName,
-                    sortOrder: 'desc',
+                    sortOrder: 'asc',
                     lastPage: lastPage,
                     appsPayload: payload.apps
                 })

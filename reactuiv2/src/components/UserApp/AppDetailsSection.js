@@ -80,18 +80,17 @@ class AppDetailsSection extends Component {
         let payload = null
         if (this.state.sortColumnName !== mappedColumnName) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, 'asc'))
             this.setState({
                 sortColumnName: mappedColumnName,
-                sortOrder: 'desc',
+                sortOrder: 'asc',
             })
         }
         else {
             let sortOrder = this.state.sortOrder === 'asc' ? 'desc' : 'asc';
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, sortOrder))
             this.setState({
-                sortColumnName: mappedColumnName,
                 sortOrder: sortOrder
             })
         }
