@@ -26,10 +26,6 @@ ACTIVITY_DB_NAME = os.environ.get('ACTIVITY_DB_NAME', 'dev')
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 INTERNAL_SECRET = "dfskdjfsd-sdfkjsdhfsdfk-sdfksdf"
 
-#S3 credentials
-ACCESS_KEY_ID = "AKIAJPLJBPKPNVQJDGFA"
-SECRET_ACCESS_KEY = "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"
-
 def get_url_from_path(path):
     return API_HOST + path
 

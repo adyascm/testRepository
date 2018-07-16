@@ -3,7 +3,7 @@ from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, Dom
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.utils import utils
+from adya.common.utils import utils, aws_utils
 from adya.common.constants import constants
 from datetime import datetime
 import os, uuid, csv, tempfile, json, boto3
@@ -324,83 +324,35 @@ def export_to_csv(auth_token, payload):
     for datasource in datasources:
         domain_datasource_ids.append(datasource.datasource_id)
     
-    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
-    
+    users_query = db_session.query(DomainUser).join(DataSource).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    users_query = filter_on_get_user_list(users_query, full_name=name, email=email, member_type=member_type, datasource_id=source,
+                    is_admin=is_admin, type=type)
+
     column_fields = []
 
     if source is not None:
-        column_fields.append(DomainUser.datasource_id)
-        if source:
-            users_query = users_query.filter(DomainUser.datasource_id == source)
+        column_fields.append(DataSource.datasource_type)
     if name is not None:
         column_fields.append(DomainUser.full_name)
-        if name:
-            users_query = users_query.filter(DomainUser.full_name.ilike("%" + name + "%"))
     if type is not None:
         column_fields.append(DomainUser.type)
-        if type:
-            users_query = users_query.filter(DomainUser.type == type)
     if email is not None:
         column_fields.append(DomainUser.email)
-        if email:
-            users_query = users_query.filter(DomainUser.email.ilike("%" + email + "%"))
     if is_admin is not None:
         column_fields.append(DomainUser.is_admin)
-        if is_admin:
-            users_query = users_query.filter(DomainUser.is_admin == is_admin)
     if member_type is not None:
         column_fields.append(DomainUser.member_type)
-        if member_type:
-            users_query = users_query.filter(DomainUser.member_type == member_type)
 
     users = users_query.with_entities(*column_fields).all()
     print users
 
-    #Creating a tempfile for csv data
-    with tempfile.NamedTemporaryFile() as temp_csv:
-        csv_writer = csv.writer(temp_csv)
-        csv_writer.writerows(users)
-        temp_csv.seek(0)
-
-        #Reading the tempfile created
-        csv_reader = csv.reader(temp_csv)
-        for row in csv_reader:
-            print row
-        #temp_csv.close()
-
-        #Uploading the file in s3 bucket
-        client = boto3.client('s3', aws_access_key_id=constants.ACCESS_KEY_ID, aws_secret_access_key=constants.SECRET_ACCESS_KEY)
-        bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
-        bucket_obj = None
-        try:
-            bucket_obj = client.create_bucket(
-                Bucket=bucket_name,
-                CreateBucketConfiguration={
-                    'LocationConstraint': 'ap-south-1'
-                })
-            print bucket_obj
-        
-        except Exception as ex:
-            print ex
-            err_response = ex.response
-            if err_response['Error']['Code'] == "BucketAlreadyOwnedByYou":
-                print "Bucket already created!!"
-        
-        transfer = S3Transfer(client)
-        #now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
-        now = str(datetime.now())
-        key = domain_id + "/export/user-" + now
-        transfer.upload_file(temp_csv.name, bucket_name, key)
-        
-        #Constructing a temporary file url 
-        temp_url = client.generate_presigned_url(
-            'get_object', 
-            Params = {
-                'Bucket': bucket_name,
-                'Key': key,
-            },
-            ExpiresIn=60)
-        print temp_url
-        return temp_url
+    temp_csv = utils.convert_data_to_csv(users)
+    bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
+    now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+    #now = str(datetime.now())
+    key = domain_id + "/export/user-" + now
+    temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
+    
+    return temp_url
 
     
