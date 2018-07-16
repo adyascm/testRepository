@@ -1,6 +1,8 @@
 import json
 
-from adya.common.constants import constants, urls
+from adya.common.constants import constants, urls, action_constants
+from adya.common.constants.action_constants import datasource_execute_action_map, connector_servicename_map
+from adya.common.db.db_utils import get_datasource
 from adya.common.email_templates import adya_emails
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
@@ -55,10 +57,18 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
         for action in policy.actions:
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
                 to_address = json.loads(action.config)["to"]
-                # TODO: add proper email template
                 Logger().info("validate_policy : send email")
-                # aws_utils.send_email([to_address], "A policy is violated in your GSuite account", "Following policy is violated - {}".format(policy.name))
                 adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions)
+            elif action.action_type == constants.PolicyActionType.REVERT.value:
+                datasource_obj = get_datasource(datasource_id)
+                datasource_type = datasource_obj.datasource_type
+                payload = {"permissions": new_permissions, "datasource_id": datasource_id,
+                           "domain_id": datasource_obj.domain_id,
+                           "user_email": resource["resource_owner_id"],
+                           "action_type": action_constants.ActionNames.DELETE_PERMISSION_FOR_USER.value}
+                messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token,
+                                                             None,
+                                                             payload, connector_servicename_map[datasource_type])
 
         payload = {}
         payload["datasource_id"] = datasource_id

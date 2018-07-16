@@ -45,7 +45,7 @@ class PolicyItemDetail extends Component {
             showPolicyForm: false,
             To: '',
             isActive: true,
-            datasource_id:this.props.datasources[0]["datasource_id"],
+            datasource_id:this.props.datasources[0]["datasource_id"]
         }
     }
 
@@ -61,6 +61,7 @@ class PolicyItemDetail extends Component {
                 { text: 'Application Install', value: 'APP_INSTALL' },
                 {text: 'New User', value: 'NEW_USER'}],
             disableEmailField: true,
+            revertOnAlert: false,
             severityType: [
                 { text: 'High', value: 'HIGH' },
                 { text: 'Medium', value: 'MEDIUM' },
@@ -86,6 +87,7 @@ class PolicyItemDetail extends Component {
                     isActive: true,
                     severity:"HIGH",
                     datasource_id:this.props.datasources[0]["datasource_id"],
+                    revertOnAlert: false
                 })
             }
             else
@@ -97,19 +99,39 @@ class PolicyItemDetail extends Component {
         if (nextProps.policyDetails && (nextProps.policyDetails !== this.props.policyDetails)) {
             let allActions = nextProps.policyDetails.actions
             if (allActions.length > 0) {
-                let emailAction = allActions[0]
-                let emailConfig = JSON.parse(emailAction.config)
-                let disableEmailField = false
-                this.setState({
-                    To: emailConfig.to,
-                    disableEmailField: disableEmailField,
-                    actions: [{
-                        action_type: 'SEND_EMAIL',
-                        config: {
-                            to: emailConfig.to
-                        }
-                    }]
-                })
+                for (let action in allActions){
+                  let actioninfo = allActions[action]
+                  let actionType = actioninfo["action_type"]
+                  if (actionType == 'SEND_EMAIL'){
+                    let emailConfig = JSON.parse(actioninfo.config)
+                    let disableEmailField = false
+                    let sendEmailAction = {
+                      action_type: 'SEND_EMAIL',
+                      config: {
+                          to: emailConfig.to
+                      }
+                    }
+                    let action = this.state.actions
+                    action.push(sendEmailAction)
+                    this.setState({
+                        To: emailConfig.to,
+                        disableEmailField: disableEmailField,
+                        actions: action
+                    })
+                  }
+                else if (actionType == "REVERT") {
+                  let revertBackAction = {
+                      action_type: 'REVERT'
+                  }
+                  let action = this.state.actions
+                  action.push(revertBackAction)
+                    this.setState({
+                      revertOnAlert: true,
+                      actions: action
+                    })
+                }
+
+                }
             }
             this.setState({
                 isActive: nextProps.policyDetails.is_active,
@@ -120,7 +142,7 @@ class PolicyItemDetail extends Component {
                 //actions: allActions,
                 policyId: nextProps.policyDetails.policy_id,
                 severity: nextProps.policyDetails.severity,
-                datasource_id:nextProps.policyDetails.datasource_id
+                datasource_id:nextProps.policyDetails.datasource_id,
             })
         }
 
@@ -131,7 +153,7 @@ class PolicyItemDetail extends Component {
                     to: nextProps.selectedUser.email
                 }
             }
-            let action = []
+            let action = this.state.actions
             action.push(emailAction)
             this.setState({
                 actions: action
@@ -157,6 +179,28 @@ class PolicyItemDetail extends Component {
         this.setState({
             disableEmailField: !this.state.disableEmailField
         })
+    }
+
+    handlePolicyRevertType = () => {
+      let actions = this.state.actions
+      let revertOnAlert = !this.state.revertOnAlert
+      if (revertOnAlert == true){
+        let revertAction = {
+            action_type: 'REVERT'
+        }
+         actions.push(revertAction)
+      }
+      else {
+        for(let action in actions){
+          if(actions[action]['action_type'] == 'REVERT'){
+            actions.splice(action, 1)
+          }
+        }
+      }
+      this.setState({
+          revertOnAlert: revertOnAlert,
+          actions: actions
+      })
     }
 
     handleInputEmailChange = (event, emailCategory) => {
@@ -306,6 +350,7 @@ class PolicyItemDetail extends Component {
                                     <Header as='h4' color='red'>ACTIONS</Header>
                                     <Form.Field control={Checkbox} label='Send Email To' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                     {this.state.disableEmailField ? null : emailFieldInput}
+                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                 </Segment>
                             </Segment.Group>
                             <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>

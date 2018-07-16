@@ -103,6 +103,7 @@ class PolicyMatchType(Enum):
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
+    REVERT = "REVERT"
 
 class TriggerType(Enum):
     ASYNC = "ASYNC"
