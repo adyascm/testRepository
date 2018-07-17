@@ -142,7 +142,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         db_connection().commit()
         return resource_count
     except Exception as ex:
-        Logger().exception("Exception occurred while processing data for drive resources using email: {}".format(user_email))
+        Logger().exception("Exception occurred while processing data for drive resources using email: {} - {}".format(user_email, ex))
         db_session.rollback()
         return 0
 

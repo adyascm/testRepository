@@ -41,8 +41,8 @@ class Dashboard extends Component {
       { id: "filesWithFileType", header: "File Types", footer: "Files Exposed", renderType: "ChartWidget", link: "/resources", states: {resources: {filterExposureType: 'EXT', filterResourceType: ''}}},
     ];
     this.appWidgets = [
-      { id: "expensesByCategory", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {}},
-      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {scopeExposure: 0}}},
+      { id: "expensesByCategory", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
+      { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'score', sortOrder: 'desc'}}},
     ];
   }
 

@@ -1,8 +1,10 @@
+import json
+
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.collections import InstrumentedList, InstrumentedDict
 
-from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource
+from adya.common.db.models import LoginUser, DomainUser, Domain, DataSource, DatasourceCredentials
 from adya.common.db.connection import db_connection
 from adya.common.constants import constants
 
@@ -18,10 +20,20 @@ def get_user_session(auth_token, db_session=None):
     user = db_session.query(LoginUser).filter(
         LoginUser.auth_token == auth_token).first()
     if user:
-        domain_user = db_session.query(DomainUser).filter(and_(
-            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).first()
-        if domain_user:
-            user.is_admin = domain_user.is_admin
+        domain_users = db_session.query(DomainUser).filter(and_(
+            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).all()
+
+        #TODO : choose admin user in correct way
+        check_if_admin_user = False
+        if domain_users:
+            for domain_user in domain_users:
+                if domain_user.is_admin == True:
+                    check_if_admin_user = True
+                    break
+            if check_if_admin_user:
+                user.is_admin = True
+            else:
+                user.is_admin = False
         else:
             user.is_admin = True
     return user
@@ -96,3 +108,13 @@ def get_model_values(type, value):
                 mapped_values[field_name] = field_value
 
     return mapped_values
+
+
+def get_datasource_credentials(db_session, datasource_id):
+    datasource_credentials_info = db_session.query(DatasourceCredentials).filter(and_(DatasourceCredentials.datasource_id
+                                                                                      == datasource_id)).first()
+    if datasource_credentials_info:
+        credentials = json.loads(datasource_credentials_info.credentials)
+        return credentials
+    else:
+        return None

@@ -59,9 +59,10 @@ def request_scanner_data(auth_token, query_params):
     try:
         response = get_scanner_processor(scanner.scanner_type).query(auth_token, query_params, scanner)
     except Exception as ex:
-        Logger().exception("Exception occurred while querying scan data for - {}".format(query_params))
+        Logger().exception("Exception occurred while querying scan data for - {} - {} ".format(query_params, ex))
         db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.in_progress: 0})
+        db_connection().commit()
         return
 
     next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else None
@@ -123,7 +124,7 @@ def process_scanner_data(auth_token, query_params, scanner_data):
     try:
         processed_results = scanner_processor.process(db_session, auth_token, query_params, scanner_data)
     except Exception as ex:
-        Logger().exception("Exception occurred while processing scan data for - {}".format(query_params))
+        Logger().exception("Exception occurred while processing scan data for - {} - {}".format(query_params, ex))
         return
     
     in_progress = 1
@@ -204,6 +205,6 @@ def update_resource_exposure_type(db_session, domain_id, datasource_id):
                                                       Resource.resource_id.in_(all_resource_sub_query))).update({'exposure_type': constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
         db_connection().commit()
     except Exception as ex:
-        Logger().exception("Exception occurred while updating resource exposure type")
+        Logger().exception("Exception occurred while updating resource exposure type - {}".format(ex))
         db_session.rollback()
 

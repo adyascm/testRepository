@@ -66,7 +66,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         aliases = user_data.get("aliases")
         user["customer_id"] = user_data.get("customerId")
         user["type"] = constants.DirectoryEntityType.USER.value
-
+        user["last_login_time"] = user_data["lastLoginTime"][:-1]
         if aliases:
             user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.EntityExposureType.INTERNAL.value
@@ -75,11 +75,11 @@ def process(db_session, auth_token, query_params, scanner_data):
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_connection().commit()
-        return user_count
         Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
+        return user_count
 
     except Exception as ex:
-        Logger().exception("Exception occurred while processing google directory users for domain_id: {}".format(domain_id))
+        Logger().exception("Exception occurred while processing google directory users for domain_id: {} - {} ".format(domain_id, ex))
         db_session.rollback()
         return 0
         

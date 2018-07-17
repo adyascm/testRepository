@@ -126,8 +126,7 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
     for resource_id in updated_permissions:
         deleted_permissions = updated_permissions[resource_id]
         for perm in deleted_permissions:
-            if perm["exposure_type"] == constants.EntityExposureType.EXTERNAL.value and not perm[
-                'email'] in external_users:
+            if perm["exposure_type"] == constants.EntityExposureType.EXTERNAL.value and not perm['email'] in external_users:
                 external_users[perm['email']] = 1
             db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                              ResourcePermission.email == perm['email'],
@@ -136,15 +135,17 @@ def delete_resource_permission(initiated_by_email, datasource_id, updated_permis
         updated_resource = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
                                                                   Resource.resource_id == resource_id)).first()
         highest_exposure = constants.EntityExposureType.PRIVATE.value
-        for resource_perm in updated_resource.permissions:
-            highest_exposure = utils.get_highest_exposure_type(resource_perm.exposure_type, highest_exposure)
 
-        # Update the resource with highest exposure
-        if not updated_resource.exposure_type == highest_exposure:
-            updated_resource.exposure_type = highest_exposure
-            updated_resource.last_modifying_user_email = initiated_by_email
-            updated_resource.last_modified_time = datetime.datetime.utcnow()
-            db_connection().commit()
+        if updated_resource:
+            for resource_perm in updated_resource.permissions:
+                highest_exposure = utils.get_highest_exposure_type(resource_perm.exposure_type, highest_exposure)
+
+            # Update the resource with highest exposure
+            if not updated_resource.exposure_type == highest_exposure:
+                updated_resource.exposure_type = highest_exposure
+                updated_resource.last_modifying_user_email = initiated_by_email
+                updated_resource.last_modified_time = datetime.datetime.utcnow()
+                db_connection().commit()
 
     anything_changed = False
     for external_user in external_users:

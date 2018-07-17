@@ -184,15 +184,10 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
         template_name = "permission_change_policy_violation"
-        permissions_map = {
-            "owner": "Owner",
-            "writer": "Can Write",
-            "reader": "Can Read"
-        }
         permissions = []
         for permission in new_permissions:
             user_name = permission["email"]
-            permission_str = user_name + " (" + permissions_map[permission["permission_type"]] + ")"
+            permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
         template_parameters = {
@@ -227,4 +222,19 @@ def send_app_install_policy_violate_email(user_email,policy,application):
         Logger().exception("Exception occured while sending app install policy violation email")
         return False
        
+
+def send_new_user_policy_violate_email(user_email, policy, new_user):
+    try:
+        template_name = "new_user_policy_violation"
+        template_parameters = {
+            "policy_name": policy.name,
+            "user_email": new_user["email"]
+        }
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "[Adya] A policy is violated in GSuite account"
+        aws_utils.send_email([user_email], email_subject, rendered_html)
+        return True
+    except Exception as e:
+        Logger().exception("Exception occured while sending new user policy violation email")
+        return False
 

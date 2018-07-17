@@ -31,8 +31,10 @@ def get_user_app(event,context):
         domain_id = req_session.get_req_param('domainId')
         user_email = req_session.get_req_param('userEmail')
         datasource_id = req_session.get_req_param('datasourceId')
+        sort_column_name = req_session.get_req_param("sortColumn")
+        sort_order = req_session.get_req_param("sortOrder")
         if app_id:
-            data = directory_controller.get_users_for_app(auth_token, domain_id, app_id)
+            data = directory_controller.get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order)
         elif user_email:
             data = directory_controller.get_apps_for_user(auth_token, datasource_id, user_email)
         else:

@@ -30,6 +30,7 @@ def get_url_from_path(path):
     return API_HOST + path
 
 SUCCESS_STATUS_CODE = 200
+ACCEPTED_STATUS_CODE = 202
 
 REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
@@ -88,6 +89,7 @@ class DocType(Enum):
 class PolicyTriggerType(Enum):
     PERMISSION_CHANGE = 'PERMISSION_CHANGE'
     APP_INSTALL = 'APP_INSTALL'
+    NEW_USER = 'NEW_USER'
 
 class PolicyMatchType(Enum):
     DOCUMENT_NAME = 'DOCUMENT_NAME'
@@ -96,9 +98,12 @@ class PolicyMatchType(Enum):
     PERMISSION_EMAIL = 'PERMISSION_EMAIL'
     APP_NAME = 'APP_NAME'
     APP_RISKINESS = 'APP_RISKINESS'
+    USER_TYPE = 'USER_TYPE'
+    USER_ROLE = 'USER_ROLE'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
+    REVERT = "REVERT"
 
 class TriggerType(Enum):
     ASYNC = "ASYNC"
@@ -110,6 +115,15 @@ Permission_Role_mapping = {
     'can_view': 'reader',
     'owner': 'owner',
     'can_comment': 'commenter'
+}
+
+permission_friendly_name_map = {
+    "owner": "Owner",
+    "writer": "Can Write",
+    "reader": "Can Read",
+    "commenter": "Can Comment",
+    "admin": "Admin",
+    "organizer": "Can Organise"
 }
 
 permission_priority = {

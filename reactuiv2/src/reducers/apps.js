@@ -28,7 +28,9 @@ const defaultState = {
     appDeleted: false,
     action: undefined,
     lastPage:undefined,
-    appsPayload:undefined
+    appsPayload:undefined,
+    sortColumnName:'score',
+    sortOrder: 'desc'
 };
 
 export default (state = defaultState, action) => {

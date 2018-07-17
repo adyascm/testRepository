@@ -242,37 +242,31 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
         new_apps = payload['trusted_apps']
         domain_id = payload['domain_id']
 
-        trusted_domain_string = ",".join(str(x) for x in new_domains)
-        trusted_app_string = ",".join(str(x) for x in new_apps)
-
-        get_entities_for_domain = get_all_trusted_entities(domain_id)
-
-        trusted_entities = None
-
         existing_domains = []
         existing_apps = []
-
-        #Try to remove trusts which existed earlier and removed in the update
-        if get_entities_for_domain:
-            existing_domains = get_entities_for_domain['trusted_domains']
-            existing_apps = get_entities_for_domain['trusted_apps']
-
-            remove_domains = set(existing_domains) - set(new_domains)
-            if len(remove_domains) > 0:
-                for domain_name in remove_domains:
-                    delete_trusted_entities_for_domain(auth_token, domain_id, domain_name, None)
-
-            remove_apps = set(existing_apps) - set(new_apps)
-            if len(remove_apps) > 0:
-                for apps_name in remove_apps:
-                    delete_trusted_entities_for_domain(auth_token, domain_id, None, apps_name)
-
-        #Now add the new trusts
+        
         datasource_ids = []
         datasources = get_datasource(auth_token)
         for datasource in datasources:
             datasource_ids.append(datasource.datasource_id)
 
+        all_trusted_entities_for_domain = get_all_trusted_entities(domain_id)
+        #Try to remove trusts which existed earlier and removed in the update
+        if all_trusted_entities_for_domain:
+            existing_domains = all_trusted_entities_for_domain['trusted_domains']
+            existing_apps = all_trusted_entities_for_domain['trusted_apps']
+
+            remove_domains = set(existing_domains) - set(new_domains)
+            if len(remove_domains) > 0:
+                for domain_name in remove_domains:
+                    delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, domain_name, None)
+
+            remove_apps = set(existing_apps) - set(new_apps)
+            if len(remove_apps) > 0:
+                for apps_name in remove_apps:
+                    delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, None, apps_name)
+
+        #Now add the new trusts
         add_domains = set(new_domains) - set(existing_domains)
         add_apps = set(new_apps) - set(existing_apps)
 
@@ -283,29 +277,32 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
         if len(add_apps) > 0:
             for apps_name in add_apps:
                 db_session.query(Application).filter(
-                    and_(Application.id == ApplicationUserAssociation.application_id, ApplicationUserAssociation.datasource_id.in_(datasource_ids), Application.display_text == apps_name)) \
+                    and_(Application.domain_id == domain_id, Application.display_text == apps_name)) \
                     .update({Application.score: 0})
 
-        if get_entities_for_domain:
+        trusted_domain_string = ",".join(str(x) for x in new_domains)
+        trusted_app_string = ",".join(str(x) for x in new_apps)
+        if all_trusted_entities_for_domain:
             db_session.query(TrustedEntities).filter(TrustedEntities.domain_id == domain_id).update({
                 TrustedEntities.trusted_domains: trusted_domain_string, TrustedEntities.trusted_apps: trusted_app_string
             })
+            db_connection().commit()
+            return payload
         else:
             # new entry
-            trusted_entities = TrustedEntities()
-            trusted_entities.domain_id = domain_id
-            trusted_entities.trusted_domains = trusted_domain_string
-            trusted_entities.trusted_apps = trusted_app_string
+            db_entry = TrustedEntities()
+            db_entry.domain_id = domain_id
+            db_entry.trusted_domains = trusted_domain_string
+            db_entry.trusted_apps = trusted_app_string
 
             try:
-                db_session.add(trusted_entities)
+                db_session.add(db_entry)
             except Exception as ex:
                 Logger().exception("error while inserting trusted entities in db - {}".format(ex))
                 db_session.rollback()
                 raise Exception(ex)
-
-        db_connection().commit()
-        return trusted_entities
+            db_connection().commit()
+            return db_entry
 
 def get_all_trusted_entities(domain_id):
     db_session = db_connection().get_session()
@@ -322,17 +319,9 @@ def get_all_trusted_entities(domain_id):
         entities['trusted_apps'] = trusted_entities_for_domain.trusted_apps.split(',') if \
             (trusted_entities_for_domain.trusted_apps is not None and len(
                 trusted_entities_for_domain.trusted_apps) > 0) else []
-
-
     return entities
 
-
-def delete_trusted_entities_for_domain(auth_token, domain_id, domain_name=None, app_name=None):
-    datasources = get_datasource(auth_token)
-    domain_datasource_ids = []
-    for datasource in datasources:
-        domain_datasource_ids.append(datasource.datasource_id)
-
+def delete_trusted_entities_for_domain(auth_token, domain_id, domain_datasource_ids, domain_name=None, app_name=None):
     db_session = db_connection().get_session()
 
     if domain_name:

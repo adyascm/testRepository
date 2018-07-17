@@ -163,7 +163,7 @@ class DomainUser(Base):
     aliases = Column(Text)
     member_type = Column(String(50))
     config = Column(Text)
-
+    last_login_time = Column(DateTime)
     groups = relationship("DomainUser", secondary="domain_directory_structure",
                           primaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DomainUser.email==DirectoryStructure.member_email)",
                           secondaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DirectoryStructure.parent_email==DomainUser.email)")
@@ -174,7 +174,7 @@ class DirectoryStructure(Base):
     datasource_id = Column(String(36), primary_key=True)
     parent_email = Column(String(320), primary_key=True)
     member_email = Column(String(320), primary_key=True)
-    member_id = Column(String(260), nullable=False)
+    member_id = Column(String(260))
     member_role = Column(String(10), nullable=False)
     member_type = Column(String(10), nullable=False)
     __table_args__ = (
@@ -281,6 +281,9 @@ class AuditLog(Base):
     timestamp = Column(DateTime)
     status = Column(String(50))
     message = Column(String(500))
+    total_count = Column(Integer, default=0)
+    success_count = Column(Integer, default=0)
+    failed_count = Column(Integer, default=0)
 
 
 class Application(Base):
@@ -300,6 +303,7 @@ class Application(Base):
     pricing_model = Column(String(36), default = constants.PricingModel.MONTHLY.value)
     billing_cycle = Column(String(36), default = constants.BillingCycle.MONTHLY.value)
     purchased_date = Column(DateTime)
+    inactive_users = Column(Integer)
 
 class ApplicationUserAssociation(Base):
     __tablename__ = 'app_user_association'
