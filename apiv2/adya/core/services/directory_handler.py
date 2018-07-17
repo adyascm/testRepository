@@ -36,7 +36,7 @@ def get_group_members(event, context):
 
 def export_to_csv(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(optional_params=["userSource", "userName", "userType", "userEmail", "memberType", "userAdmin"])
+    req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error
 
