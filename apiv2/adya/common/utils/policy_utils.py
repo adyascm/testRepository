@@ -75,7 +75,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
                 payload = {"permissions": violated_permissions, "datasource_id": datasource_id,
                            "domain_id": datasource_obj.domain_id,
                            "user_email": resource["resource_owner_id"],
-                           "action_type": action_constants.ActionNames.DELETE_PERMISSION_FOR_USER.value}
+                           "action_type": action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value}
                 messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token,
                                                              None,
                                                              payload, connector_servicename_map[datasource_type])
