@@ -10,8 +10,6 @@ from boto3.s3.transfer import S3Transfer
 from datetime import datetime
 import csv, boto3, os, tempfile
 
-current_file_path = os.path.dirname(os.path.realpath(__file__))
-export_csv_dir = current_file_path + '/../../common/csv_exports'
 
 def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposure_type='EXT', resource_type='None', prefix='',
                   owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None, datasource_id=None, source_type=None):

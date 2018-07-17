@@ -15,7 +15,6 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 GOOGLE_API_SCOPES = json.load(open(dir_path + "/../../gsuite/google_api_scopes.json"))
 SLACK_API_SCOPES = json.load(open(dir_path + "/../../slack/slack_api_scopes.json"))
 
-export_csv_dir = dir_path + '/../../common/csv_exports'
 
 def get_user_stats(auth_token):
     db_session = db_connection().get_session()

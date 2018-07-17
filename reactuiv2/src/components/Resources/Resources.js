@@ -6,6 +6,7 @@ import { Grid, Container, Dimmer, Loader, Dropdown, Form, Button, Modal, Checkbo
 import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
 import ResourcesListTable from './ResourceListTable'
+import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
 import {  RESOURCES_FILTER_CHANGE,
           RESOURCES_SEARCH_EMPTY
@@ -156,39 +157,6 @@ class Resources extends Component {
     if (this.props.rowData)
       gridWidth = 4
 
-
-    let columnHeaderCheckboxInput = this.state.columnHeaders.map((columnName, index) => {
-      return (
-        <div>
-          <Checkbox key={index} label={columnName} onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.checkedColumns[columnName]} />
-        </div>
-        )
-    }) 
-
-    let dimmer = (
-      <Dimmer active inverted>
-          <Loader inverted content='Loading' />
-      </Dimmer>
-    )
-
-    let exportModal = (
-      <Modal size='small' open={this.state.showExportModal}>
-          <Modal.Header>
-              Export documents as csv
-          </Modal.Header>
-          <Modal.Content>
-            <Header> Fields to export </Header>
-            <Checkbox label="Select All" onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.selectAllColumns} />
-            {columnHeaderCheckboxInput}
-            <div style={{'marginTop': '10px'}}>
-              <Button negative size="tiny" onClick={this.handleButtonClick}>Close</Button>
-              <Button positive size="tiny" content='Submit' onClick={this.handleSubmit} ></Button>
-            </div>
-          </Modal.Content>
-          {this.state.isLoading ? dimmer : null}
-      </Modal>
-    )
-
     return (
       <Container fluid style={containerStyle}>
         <Button style={exportButtonStyle} onClick={this.handleButtonClick} > Export </Button>
@@ -208,7 +176,8 @@ class Resources extends Component {
           </Grid.Row>
         </Grid>
         <Actions />
-        {exportModal}
+        <ExportCsvModal columnHeaders={this.state.columnHeaders} showExportModal={this.state.showExportModal} onClose={() => this.handleButtonClick()} checkedColumns={this.state.checkedColumns} selectAllColumns={this.state.selectAllColumns} 
+          onSubmit={() => this.handleSubmit()} isLoading={this.state.isLoading} onCheckboxChange={(event, data) => this.handleCheckboxChange(event, data)} />
       </Container>
     )
   }

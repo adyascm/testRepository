@@ -5,7 +5,7 @@ import { Container, Dimmer, Loader, Grid, Checkbox, Button, Modal, Header } from
 
 import agent from '../../utils/agent';
 import Actions from '../actions/Actions'
-
+import ExportCsvModal from '../ExportCsvModal'
 
 import {
   USERS_PAGE_UNLOADED,
@@ -156,38 +156,6 @@ class UsersNew extends Component {
       'margin-bottom': '10px'
     }
 
-    let columnHeaderCheckboxInput = this.state.columnHeaders.map((columnName, index) => {
-      return (
-        <div>
-          <Checkbox key={index} label={columnName} onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.checkedColumns[columnName]} />
-        </div>
-        )
-    }) 
-
-    let dimmer = (
-      <Dimmer active inverted>
-          <Loader inverted content='Loading' />
-      </Dimmer>
-    )
-
-    let exportModal = (
-      <Modal size='small' open={this.state.showExportModal}>
-          <Modal.Header>
-              Export documents as csv
-          </Modal.Header>
-          <Modal.Content>
-            <Header> Fields to export </Header>
-            <Checkbox label="Select All" onChange={(event, data) => this.handleCheckboxChange(event, data)} checked={this.state.selectAllColumns} />
-            {columnHeaderCheckboxInput}
-            <div style={{'marginTop': '10px'}}>
-              <Button negative size="tiny" onClick={this.handleButtonClick}>Close</Button>
-              <Button positive size="tiny" content='Submit' onClick={this.handleSubmit} ></Button>
-            </div>
-          </Modal.Content>
-          {this.state.isLoading ? dimmer : null}
-      </Modal>
-    )
-
     var gridWidth = 16;
 
     if (this.props.selectedUserItem) {
@@ -217,7 +185,8 @@ class UsersNew extends Component {
           </Grid.Row>
         </Grid>
         <Actions />
-        {exportModal}
+        <ExportCsvModal columnHeaders={this.state.columnHeaders} showExportModal={this.state.showExportModal} onClose={() => this.handleButtonClick()} checkedColumns={this.state.checkedColumns} selectAllColumns={this.state.selectAllColumns} 
+          onSubmit={() => this.handleSubmit()} isLoading={this.state.isLoading} onCheckboxChange={(event, data) => this.handleCheckboxChange(event, data)} />
       </div >
     )
   }
