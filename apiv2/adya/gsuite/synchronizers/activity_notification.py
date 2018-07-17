@@ -258,19 +258,21 @@ def process_group_related_activities(datasource_id, event):
 
 def process_user_related_activities(datasource_id, actor_email, event):
     event_name = event['name']
-    if event_name == 'CREATE_USER':
-        new_user_email = None
-        activity_events_parameters = event['parameters']
-        for param in activity_events_parameters:
-            name = param['name']
-            if name == 'USER_EMAIL':
-                new_user_email = param['value']
+    activity_events_parameters = event['parameters']
+    user_email = None
+    user_obj = None
+    db_session = db_connection().get_session()
+    for param in activity_events_parameters:
+        name = param['name']
+        if name == 'USER_EMAIL':
+            user_email = param['value']
 
-        if new_user_email:
+    if event_name == 'CREATE_USER':
+        if user_email:
             directory_service = gutils.get_directory_service(None, actor_email)
             results = None
             try:
-                results = directory_service.users().get(userKey=new_user_email).execute()
+                results = directory_service.users().get(userKey=user_email).execute()
             except RefreshError as ex:
                 Logger().info("User query : Not able to refresh credentials")
             except HttpError as ex:
@@ -279,19 +281,25 @@ def process_user_related_activities(datasource_id, actor_email, event):
             if results:
                 gsuite_user = user.GsuiteUser(datasource_id, results)
                 user_obj = gsuite_user.get_model()
-                db_session = db_connection().get_session()
                 db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").
                                    values(db_utils.get_model_values(DomainUser, user_obj)))
 
-                if user_obj.is_admin:
-                    payload = {}
-                    payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
-                    policy_params = {'dataSourceId': datasource_id,
-                                     'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
-                    Logger().info("new_user : payload : {}".format(payload))
-                    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
-                                                 payload, "gsuite")
-        db_connection().commit()
+    elif event_name == 'GRANT_ADMIN_PRIVILEGE':
+        user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                            DomainUser.email == user_email)).first()
+        if user_obj:
+            user_obj.is_admin = True
+
+    db_connection().commit()
+    if user_obj and user_obj.is_admin:
+        payload = {}
+        payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
+        policy_params = {'dataSourceId': datasource_id,
+                         'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
+        Logger().info("new_user : payload : {}".format(payload))
+        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
+                                     payload, "gsuite")
+
 
 def process_login_activity(datasource_id, incoming_activity):
     Logger().info('Processing login activity {}',format(incoming_activity))
