@@ -8,7 +8,6 @@ from adya.common.db.models import LoginUser, DomainUser, Resource, Report, Resou
     Application, DirectoryStructure, ApplicationUserAssociation,AppInventory, alchemy_encoder
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.db.db_utils import get_datasource
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
@@ -468,7 +467,7 @@ def generate_csv_report(report_id):
             csv_display_header = ['Name','Email','Application','Last Login','Number of days since last login']
             report_data_header = ["name", 'email', 'app', 'login_time', 'num_days']
 
-        Logger().info("making csv ")
+        Logger().info("making csv")
 
         csv_records += ",".join(csv_display_header) + "\n"
         for data in report_data:
@@ -487,9 +486,8 @@ def create_default_reports(auth_token, datasource_id):
     db_session = db_connection().get_session()
     login_user = db_utils.get_user_session(auth_token).email
     domain_id = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first().domain_id
-    db_session = db_connection().get_session()
-    default_reports = default_reports.default_reports
-    for report in default_reports:
+    reports = default_reports.default_reports
+    for report in reports:
         existing_report = db_session.query(Report).filter(Report.domain_id == domain_id, Report.name == report["name"]).first()
         if not existing_report:
             report["receivers"] = login_user

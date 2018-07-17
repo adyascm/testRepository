@@ -33,6 +33,7 @@ const mapDispatchToProps = dispatch => ({
 const reportOptions = [
   { text: 'Access Permission Report', value: 'Permission' },
   { text: 'Activity Log Report', value: 'Activity' },
+  { text: 'Login Activity Report', value: 'Login'}
 ]
 
 class ReportForm extends Component {
@@ -240,18 +241,21 @@ class ReportForm extends Component {
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
                   formType={this.props.formType} defaultCronVal={this.props.reportsMap['frequency']} />
               </Form.Field>
-              <Form.Group inline>
+              { this.props.reportsMap['report_type'] != 'Login' ?
+                <Form.Group inline>
                 <Form.Radio label='File/Folder' value='resource'
                   checked={this.handleMultipleOptions('selected_entity_type') === 'resource' ||
                     this.state.finalReportObj['selected_entity_type'] === 'resource'}
                   onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                 />
-              <Form.Radio label='Group/User' value='user'
-                  checked={this.handleMultipleOptions('selected_entity_type') === 'user' ||
-                    this.state.finalReportObj['selected_entity_type'] === 'user'}
-                  onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
-                />
-              </Form.Group>
+                <Form.Radio label='Group/User' value='user'
+                    checked={this.handleMultipleOptions('selected_entity_type') === 'user' ||
+                      this.state.finalReportObj['selected_entity_type'] === 'user'}
+                    onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
+                  />
+              </Form.Group> : null
+              }
+              
               {this.state.finalReportObj['selected_entity_type'] === 'user' ||
                 this.handleMultipleOptions('selected_entity_type') === 'user' ?
                 <Form.Field><GroupSearch onChangeReportInput={this.onChangeReportInput}
