@@ -79,7 +79,7 @@ def create_policy(auth_token, payload):
             policy_action.policy_id = policy_id
             policy_action.datasource_id = payload["datasource_id"]
             policy_action.action_type = action["action_type"]
-            policy_action.config = json.dumps(action["config"])
+            policy_action.config = json.dumps(action["config"]) if 'config' in action else None
             db_session.add(policy_action)
 
         db_connection().commit()
