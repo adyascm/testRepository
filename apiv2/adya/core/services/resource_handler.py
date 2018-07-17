@@ -51,6 +51,5 @@ def export_to_csv(event, context):
     if req_error:
         return req_error
     
-    payload = req_session.get_all_req_param()
-    url = resource_controller.export_to_csv(req_session.get_auth_token(), payload)
+    url = resource_controller.export_to_csv(req_session.get_auth_token(), req_session.get_body())
     return req_session.generate_response(202, url)

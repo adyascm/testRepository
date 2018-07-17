@@ -8,6 +8,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 import GroupSearch from '../Search/GroupSearch';
+import ExportCsvModal from '../ExportCsvModal'
 
 import {
     RESOURCES_PAGE_LOADED,
@@ -76,12 +77,12 @@ class ResourcesListTable extends Component {
                 value: 'PUBLIC'
             },
             {
-              text: 'Anyone With Link Shared',
-              value: 'ANYONEWITHLINK'
+                text: 'Anyone With Link Shared',
+                value: 'ANYONEWITHLINK'
             },
             {
-              text: 'Trusted Domain Shared',
-              value: 'TRUST'
+                text: 'Trusted Domain Shared',
+                value: 'TRUST'
             },
             {
                 text: 'Domain Shared',
@@ -159,9 +160,9 @@ class ResourcesListTable extends Component {
     }
 
     handleDateChange = (date) => {
-        let selectedDate = date?date.format('YYYY-MM-DD HH:MM:SS'):''
+        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
-            currentDate: date?date:''
+            currentDate: date ? date : ''
         })
         this.props.changeFilter("filterByDate", selectedDate)
     }
@@ -194,7 +195,7 @@ class ResourcesListTable extends Component {
                 filterParentFolder: ''
             })
         if (this.props[stateKey] !== '')
-            this.props.changeFilter(stateKey,'')
+            this.props.changeFilter(stateKey, '')
     }
 
     handleColumnSort = (mappedColumnName) => {
@@ -202,8 +203,10 @@ class ResourcesListTable extends Component {
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
 
-            this.props.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                                                                 'sortColumn': mappedColumnName, 'sortType': 'asc', 'sourceType': this.props.filterSourceType }))
+            this.props.onLoad(agent.Resources.getResources({
+                'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
+                'sortColumn': mappedColumnName, 'sortType': 'asc', 'sourceType': this.props.filterSourceType
+            }))
             this.setState({
                 columnNameClicked: mappedColumnName,
                 sortOrder: 'ascending'
@@ -212,8 +215,10 @@ class ResourcesListTable extends Component {
         else {
             this.props.onLoadStart()
 
-            this.props.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                                                                 'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc', 'sourceType': this.props.filterSourceType }))
+            this.props.onLoad(agent.Resources.getResources({
+                'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
+                'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc', 'sourceType': this.props.filterSourceType
+            }))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
@@ -236,9 +241,9 @@ class ResourcesListTable extends Component {
         let tableRowData = null
         let resourceData = null
         let dsMap = this.props.datasourcesMap;
-        let sourceFilterOptions = [{"text":"All", "value":""}];
-        for(var index=0; index< this.props.datasources.length; index++){
-            sourceFilterOptions.push({"text":this.props.datasources[index].datasource_type, "value":this.props.datasources[index].datasource_id});
+        let sourceFilterOptions = [{ "text": "All", "value": "" }];
+        for (var index = 0; index < this.props.datasources.length; index++) {
+            sourceFilterOptions.push({ "text": this.props.datasources[index].datasource_type, "value": this.props.datasources[index].datasource_id });
         }
         if (this.props.resourceSearchPayload)
             resourceData = this.props.resourceSearchPayload
@@ -254,7 +259,7 @@ class ResourcesListTable extends Component {
                 return (
                     <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell textAlign='center' >{dsImage}</Table.Cell>
-                        <Table.Cell width='3' style={{'wordBreak': 'break-all'}}>{rowData["resource_name"]}</Table.Cell>
+                        <Table.Cell width='3' style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell textAlign='center' width='3'>{rowData["exposure_type"]}</Table.Cell>
@@ -275,9 +280,10 @@ class ResourcesListTable extends Component {
             let filterMetadata = { 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate }
             return (
                 <div>
-                    <div ref="table" style={{ 'minHeight': document.body.clientHeight/1.25, 'maxHeight': document.body.clientHeight/1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                    <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
                         <Table celled selectable striped compact='very' sortable>
-                            <Table.Header style={{'position': 'sticky', 'top': '50px', 'width': '100%'}}>
+                            <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                                 <Table.Row>
                                     {tableHeaders}
                                 </Table.Row>
@@ -297,7 +303,7 @@ class ResourcesListTable extends Component {
                                         <ResourceSearch filterMetadata={filterMetadata} />
                                     </Table.Cell>
                                     <Table.Cell width='2'>
-                                        <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : false} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event,"filterResourceType",this.state.filterResourceType)} />
+                                        <Input fluid placeholder='Filter by type...' icon={this.state.filterResourceType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterResourceType')} /> : false} value={this.state.filterResourceType} onChange={this.handleResourceTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "filterResourceType", this.state.filterResourceType)} />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
                                         <GroupSearch />
@@ -312,7 +318,7 @@ class ResourcesListTable extends Component {
                                         />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
-                                        <Input fluid placeholder='Filter by folder...' icon={this.state.filterParentFolder.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterParentFolder')} /> : false} value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event,"filterParentFolder",this.state.filterParentFolder)} />
+                                        <Input fluid placeholder='Filter by folder...' icon={this.state.filterParentFolder.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterParentFolder')} /> : false} value={this.state.filterParentFolder} onChange={this.handleParentFolderChange} onKeyPress={(event) => this.handleKeyPress(event, "filterParentFolder", this.state.filterParentFolder)} />
                                     </Table.Cell>
                                     <Table.Cell width='3'>
                                         <Input fluid placeholder='Filter by Date...'>

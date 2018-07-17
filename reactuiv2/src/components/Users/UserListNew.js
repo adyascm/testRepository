@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid } from 'semantic-ui-react';
 import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
+import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
 
 import {
@@ -238,11 +239,21 @@ class UserListNew extends Component {
         )
 
         if (this.props.isLoadingUsers || usersData) {
+            let filterMetadata = {
+                "full_name": this.props.listFilters.full_name ? this.props.listFilters.full_name.value || "" : "",
+                "email": this.props.listFilters.email ? this.props.listFilters.email.value || "" : "",
+                "member_type": this.props.listFilters.member_type ? this.props.listFilters.member_type.value || "" : "",
+                "datasource_id": this.props.listFilters.datasource_id ? this.props.listFilters.datasource_id.value || "" : "",
+                "is_admin": this.props.listFilters.is_admin ? this.props.listFilters.is_admin.value : "",
+                "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : ""
+            }
             return (
                 <Grid fluid >
                     <Container fluid textAlign="left">
                         {filterSelections}
+                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
                     </Container>
+                    
                     <Grid.Row fluid>
                         <Grid.Column width={this.props.selectedUserItem ? 0 : 3}>
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
