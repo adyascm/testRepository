@@ -9,6 +9,9 @@ from adya.common.utils.response_messages import Logger
 
 
 # check for apps installed policy violation
+from adya.core.controllers.actions_controller import remove_app_for_domain
+
+
 def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy, application):
     Logger().info("validating_policy : application : {}".format(application))
     is_violated = 1
@@ -24,6 +27,9 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
                 to_address = json.loads(action.config)["to"]
                 adya_emails.send_app_install_policy_violate_email(to_address, policy, application)
+            elif action.action_type == constants.PolicyActionType.REVERT.value:
+                remove_app_for_domain(auth_token, application["id"])
+
         payload = {}
         payload["datasource_id"] = datasource_id
         payload["name"] = policy.name

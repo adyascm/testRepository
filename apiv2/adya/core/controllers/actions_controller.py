@@ -658,7 +658,7 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, app_id, log_en
         return response_messages.ResponseMessage(400, status_message)
 
 
-def remove_app_for_domain(auth_token, app_id, log_entry):
+def remove_app_for_domain(auth_token, app_id, log_entry=None):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
@@ -672,9 +672,10 @@ def remove_app_for_domain(auth_token, app_id, log_entry):
         db_session.query(Application).filter(Application.id == app_id).delete()
     except:
         Logger().exception("Exception occured while deleting the app")
-        
-    log_entry.status = action_constants.ActionStatus.SUCCESS.value
-    status_message = "Action completed successfully"
-    log_entry.message = status_message
-    db_connection().commit()
-    return response_messages.ResponseMessage(200, status_message)
+
+    if log_entry:
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        status_message = "Action completed successfully"
+        log_entry.message = status_message
+        db_connection().commit()
+        return response_messages.ResponseMessage(200, status_message)
