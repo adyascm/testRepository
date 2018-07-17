@@ -4,7 +4,7 @@ import datetime
 from sqlalchemy import and_
 
 from adya.common.constants import constants
-import os
+import os, tempfile, csv
 
 from adya.common.constants.constants import TrustedTypes
 from adya.common.db import models
@@ -222,4 +222,10 @@ def get_highest_exposure_type(permission_exposure, highest_exposure):
                                      highest_exposure == constants.EntityExposureType.TRUSTED.value):
         highest_exposure = constants.EntityExposureType.INTERNAL.value
     return highest_exposure
-    
+
+
+def convert_data_to_csv(data):
+    with tempfile.NamedTemporaryFile(delete=False) as temp_csv:
+        csv_writer = csv.writer(temp_csv)
+        csv_writer.writerows(data)        
+        return temp_csv

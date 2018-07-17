@@ -142,4 +142,12 @@ class GetResources(Resource):
     def post(self):
         return resource_handler.get_resource_tree_data(request, None)
 
+class ResourcesExport(Resource):
+    def post(self):
+        return resource_handler.export_to_csv(request, None)
+
+class UsersExport(Resource):
+    def post(self):
+        return directory_handler.export_to_csv(request, None)
+
 

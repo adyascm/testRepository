@@ -1,20 +1,22 @@
 import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
-import { Grid, Container, Dropdown, Form } from 'semantic-ui-react'
+import { Grid, Container, Dimmer, Loader, Dropdown, Form, Button, Modal, Checkbox, Header } from 'semantic-ui-react'
 
 import ResourceDetailsSection from './ResourceDetailsSection';
 import Actions from '../actions/Actions';
 import ResourcesListTable from './ResourceListTable'
-
-import {  RESOURCES_FILTER_CHANGE,
-          RESOURCES_SEARCH_EMPTY
-      } from '../../constants/actionTypes';
+import agent from '../../utils/agent';
+import {
+  RESOURCES_FILTER_CHANGE,
+  RESOURCES_SEARCH_EMPTY
+} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
   ...state.resources,
   redirectTo: state.dashboard.redirectTo,
-  redirectFilter: state.dashboard.filterType
+  redirectFilter: state.dashboard.filterType,
+  selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -24,6 +26,10 @@ const mapDispatchToProps = dispatch => ({
 
 
 class Resources extends Component {
+
+  constructor(props) {
+    super(props);
+  }
 
   componentWillMount() {
     window.scrollTo(0, 0)
@@ -44,7 +50,6 @@ class Resources extends Component {
     if (this.props.rowData)
       gridWidth = 4
 
-      
     return (
       <Container fluid style={containerStyle}>
         <Grid divided='vertically' stretched >
@@ -53,12 +58,12 @@ class Resources extends Component {
               <ResourcesListTable />
             </Grid.Column>
             {
-              this.props.rowData?
-              (<Grid.Column stretched width={16 - gridWidth}>
-                <Container fluid >
-                  <ResourceDetailsSection />
-                </Container>
-              </Grid.Column>) : null
+              this.props.rowData ?
+                (<Grid.Column stretched width={16 - gridWidth}>
+                  <Container fluid >
+                    <ResourceDetailsSection />
+                  </Container>
+                </Grid.Column>) : null
             }
           </Grid.Row>
         </Grid>
@@ -68,4 +73,4 @@ class Resources extends Component {
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(Resources);
+export default connect(mapStateToProps, mapDispatchToProps)(Resources);
