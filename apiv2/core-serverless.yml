@@ -160,7 +160,7 @@ functions:
           cors: true
 
   get-common-users:
-    handler: adya.core.services.reports_handler.get_users_list
+    handler: adya.core.services.directory_handler.get_users_list
     events:
       - http:
           path: users
@@ -168,7 +168,7 @@ functions:
           cors: true
 
   get-common-users-stats:
-    handler: adya.core.services.reports_handler.get_user_stats
+    handler: adya.core.services.directory_handler.get_user_stats
     events:
       - http:
           path: users/stats
@@ -176,7 +176,7 @@ functions:
           cors: true
   
   get-common-groupmembers:
-    handler: adya.core.services.reports_handler.get_group_members
+    handler: adya.core.services.directory_handler.get_group_members
     events:
       - http:
           path: getgroupmembers
@@ -222,7 +222,23 @@ functions:
           path: getresourcetree
           method: post
           cors: true
-
+  
+  get-common-resourceexport:
+    handler: adya.core.services.resource_handler.export_to_csv
+    events:
+      - http:
+          path: resource/export
+          method: get
+          cors: true
+  
+  get-common-userexport:
+    handler: adya.core.services.directory_handler.export_to_csv
+    events:
+      - http:
+          path: users/export
+          method: get
+          cors: true
+  
   get-common-scheduledreport:
     handler: adya.core.services.reports_handler.get_scheduled_reports
     events:
