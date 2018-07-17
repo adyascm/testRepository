@@ -225,13 +225,16 @@ def send_app_install_policy_violate_email(user_email,policy,application):
 
 def send_new_user_policy_violate_email(user_email, policy, new_user):
     try:
+        datasource_name = (policy.name).split("::")[0] if policy.name else None
         template_name = "new_user_policy_violation"
         template_parameters = {
             "policy_name": policy.name,
-            "user_email": new_user["email"]
+            "user_email": new_user["email"],
+            "datasource_name": datasource_name,
+            "new_user_type": "Administrator" if new_user['is_admin'] else ("external user" if new_user['member_type'] else None)
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in GSuite account"
+        email_subject = "[Adya] A policy is violated in {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
