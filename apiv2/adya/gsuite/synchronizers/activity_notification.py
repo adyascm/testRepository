@@ -65,6 +65,9 @@ def process_incoming_activity(datasource_id, incoming_activity):
         process_token_activity(datasource_id, incoming_activity)
     elif app_name == "admin":
         process_admin_activities(datasource_id, incoming_activity)
+    elif app_name == 'login':
+        process_login_activity(datasource_id, incoming_activity)
+
     # elif app_name == "drive":
     #     process_drive_activity(datasource_id, incoming_activity)
 
@@ -290,3 +293,29 @@ def process_user_related_activities(datasource_id, actor_email, event):
                                                  payload, "gsuite")
         db_connection().commit()
 
+def process_login_activity(datasource_id, incoming_activity):
+    Logger().info('Processing login activity {}',format(incoming_activity))
+    db_session = db_connection().get_session()
+    actor_email = incoming_activity['actor']['email']
+    events = incoming_activity["events"]
+    login_time = incoming_activity["id"]["time"]
+    ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+    is_inactive = login_time < ninety_days_ago
+    last_is_inactive = None
+    for event in events:
+        if event["name"] == 'login_success':
+            last_login_time = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.email == actor_email).first().last_login_time
+            if last_login_time:
+                last_is_inactive = last_login_time < ninety_days_ago
+            if not last_login_time or (login_time > last_login_time):
+                db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.email == actor_email).update({"last_login_time":login_time}, synchronize_session = 'fetch')
+                datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+                app_name = constants.datasource_to_installed_app_map[datasource.datasource_type]
+                if (last_is_inactive is None) or not last_is_inactive :
+                    if is_inactive:
+                        db_session.query(Application).filter(and_(Application.domain_id == datasource.domain_id, Application.display_text == app_name)).update({"inactive_users":Application.inactive_users + 1}, synchronize_session = 'fetch')
+                        Logger().info("new inactive user : {}".format(actor_email))
+                elif last_is_inactive and not is_inactive:
+                    Logger().info("inactive user is now active  : {}".format(actor_email))
+                    db_session.query(Application).filter(and_(Application.domain_id == datasource.domain_id, Application.display_text == app_name, Application.inactive_users > 0)).update({"inactive_users":Application.inactive_users - 1}, synchronize_session = 'fetch')
+    db_connection().commit()

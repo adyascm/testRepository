@@ -152,6 +152,8 @@ def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None
         sort_column_obj = DomainUser.member_type
     elif sort_column == "type":
         sort_column_obj = DomainUser.type
+    elif sort_column == "last_login":
+        sort_column_obj = DomainUser.last_login_time
 
     if sort_column_obj:
         if sort_order == "asc":
@@ -206,7 +208,7 @@ def get_all_apps(auth_token):
     return apps_data
 
 
-def get_users_for_app(auth_token, domain_id, app_id):
+def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order):
     db_session = db_connection().get_session()
 
     # check for non-admin user
@@ -226,10 +228,16 @@ def get_users_for_app(auth_token, domain_id, app_id):
                  )).all()
 
     domain_user_emails = [r for r, in domain_user_emails]
-
-    apps_query_data = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
-    )).all()
-
+    apps_query = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
+    ))
+    
+    if sort_column_name == "last_login": 
+        if sort_order == 'desc':
+            apps_query = apps_query.order_by(DomainUser.last_login_time.desc())
+        else:
+            apps_query = apps_query.order_by(DomainUser.last_login_time.asc())  
+    apps_query_data = apps_query.all()
+    
     return apps_query_data
 
 
