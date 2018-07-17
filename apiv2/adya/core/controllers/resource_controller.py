@@ -156,7 +156,7 @@ def export_to_csv(auth_token, payload):
     print resources
 
     temp_csv = utils.convert_data_to_csv(resources)
-    bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
+    bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
     #now = str(datetime.now())
     key = domain_id + "/export/resource-" + now
