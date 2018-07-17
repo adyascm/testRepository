@@ -103,6 +103,9 @@ class RunReport(Resource):
     def get(self):
         return reports_handler.run_scheduled_report(request, None)
 
+class DefaultReportsCreator(Resource):
+    def post(self):
+        return reports_handler.create_default_reports(request, None)
 
 class UserStats(Resource):
     def get(self):
