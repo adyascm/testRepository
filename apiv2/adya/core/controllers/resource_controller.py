@@ -122,10 +122,11 @@ def export_to_csv(auth_token, payload):
     source = payload["sourceType"]
     name = payload["resourceName"]
     type = payload["resourceType"]
-    owner = payload["ownerEmail"]
+    owner = payload["ownerEmailId"]
     exposure_type = payload["exposureType"]
     parent_folder = payload["parentFolder"]
-    modified_date = payload["modifiedDate"]
+    modified_date = payload["selectedDate"]
+    selected_fields = payload['selectedFields']
 
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
@@ -136,19 +137,19 @@ def export_to_csv(auth_token, payload):
 
     column_fields = []
 
-    if source is not None:
+    if 'source_type' in selected_fields:
         column_fields.append(DataSource.datasource_type)
-    if name is not None:
+    if 'resource_name' in selected_fields:
         column_fields.append(resource_alias.resource_name)
-    if type is not None:
+    if 'resource_type' in selected_fields:
         column_fields.append(resource_alias.resource_type)
-    if owner is not None:
+    if 'resource_owner_id' in selected_fields:
         column_fields.append(resource_alias.resource_owner_id)
-    if exposure_type is not None:
+    if 'exposure_type' in selected_fields:
         column_fields.append(resource_alias.exposure_type)
-    if parent_folder is not None:
+    if 'parent_name' in selected_fields:
         column_fields.append(parent_alias.resource_name)
-    if modified_date is not None:
+    if 'last_modified_time' in selected_fields:
         column_fields.append(resource_alias.last_modified_time)
 
     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()

@@ -223,20 +223,20 @@ functions:
           method: post
           cors: true
   
-  get-common-resourceexport:
+  post-common-resourceexport:
     handler: adya.core.services.resource_handler.export_to_csv
     events:
       - http:
           path: resource/export
-          method: get
+          method: post
           cors: true
   
-  get-common-userexport:
+  post-common-userexport:
     handler: adya.core.services.directory_handler.export_to_csv
     events:
       - http:
           path: users/export
-          method: get
+          method: post
           cors: true
   
   get-common-scheduledreport:

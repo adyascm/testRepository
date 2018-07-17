@@ -315,12 +315,13 @@ def insert_apps(auth_token, payload):
         return None
 
 def export_to_csv(auth_token, payload):
-    source = payload["userSource"]
-    type = payload["userType"]
-    name = payload["userName"]
-    email = payload["userEmail"]
-    is_admin = payload["userAdmin"]
-    member_type = payload["memberType"]
+    source = payload["datasource_id"]
+    type = payload["type"]
+    name = payload["full_name"]
+    email = payload["email"]
+    is_admin = payload["is_admin"]
+    member_type = payload["member_type"]
+    selected_fields = payload['selectedFields']
 
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
@@ -337,17 +338,17 @@ def export_to_csv(auth_token, payload):
 
     column_fields = []
 
-    if source is not None:
+    if 'datasource_id' in selected_fields:
         column_fields.append(DataSource.datasource_type)
-    if name is not None:
+    if 'full_name' in selected_fields:
         column_fields.append(DomainUser.full_name)
-    if type is not None:
+    if 'type' in selected_fields:
         column_fields.append(DomainUser.type)
-    if email is not None:
+    if 'email' in selected_fields:
         column_fields.append(DomainUser.email)
-    if is_admin is not None:
+    if 'is_admin' in selected_fields:
         column_fields.append(DomainUser.is_admin)
-    if member_type is not None:
+    if 'member_type' in selected_fields:
         column_fields.append(DomainUser.member_type)
 
     users = users_query.with_entities(*column_fields).all()
