@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+import datetime
 
 from sqlalchemy import and_
 
@@ -129,28 +129,45 @@ def add_license_for_scanned_app(db_session, datasource):
     app_name = constants.datasource_to_installed_app_map[datasource.datasource_type]
     application = db_session.query(Application).filter(
         and_(Application.domain_id == datasource.domain_id, Application.display_text == app_name)).first()
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
+    unit_price = None
+    inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
+    inventory_app_id = inventory_app.id if inventory_app else None
+    if inventory_app_id:
+            unit_price = db_session.query(AppLicenseInventory).filter(AppLicenseInventory.app_id == inventory_app_id,
+                                                                      AppLicenseInventory.price > 0).first()
     if not application:
-        inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
-        inventory_app_id = inventory_app.id if inventory_app else None
         application = Application()
         application.domain_id = datasource.domain_id
         application.display_text = app_name
         application.timestamp = now
         application.purchased_date = now
-        application.unit_num = datasource.total_user_count
-        unit_price = None
+        application.unit_num = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).count()
         if inventory_app_id:
-            unit_price = db_session.query(AppLicenseInventory).filter(AppLicenseInventory.app_id == inventory_app_id,
-                                                                      AppLicenseInventory.price > 0).first()
             application.inventory_app_id = inventory_app_id
         if unit_price:
             application.unit_price = unit_price.price
+        ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+        application.inactive_users = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value, DomainUser.last_login_time < ninety_days_ago).count()    
         db_session.add(application)
     else:
         application.timestamp = now
         application.purchased_date = now
-        application.unit_num = datasource.total_user_count
+        application.unit_num = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).count()
+        if unit_price:
+            application.unit_price = unit_price.price
+    db_connection().commit()
+    populate_users_to_scanned_app(db_session, datasource, application.id)      
+
+def populate_users_to_scanned_app(db_session, datasource, application_id):
+    domain_internal_users = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
+    for domain_internal_user in domain_internal_users:
+        app_user_association = ApplicationUserAssociation()
+        app_user_association.application_id = application_id
+        app_user_association.datasource_id = domain_internal_user.datasource_id
+        app_user_association.user_email = domain_internal_user.email
+        app_user_association.client_id = domain_internal_user.datasource_id
+        db_session.add(app_user_association)
     db_connection().commit()
 
 
@@ -205,3 +222,4 @@ def get_highest_exposure_type(permission_exposure, highest_exposure):
                                      highest_exposure == constants.EntityExposureType.TRUSTED.value):
         highest_exposure = constants.EntityExposureType.INTERNAL.value
     return highest_exposure
+    
