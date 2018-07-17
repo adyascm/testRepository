@@ -673,9 +673,9 @@ def remove_app_for_domain(auth_token, app_id, log_entry=None):
     except:
         Logger().exception("Exception occured while deleting the app")
 
+    status_message = "Action completed successfully"
     if log_entry:
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
-        status_message = "Action completed successfully"
         log_entry.message = status_message
         db_connection().commit()
-        return response_messages.ResponseMessage(200, status_message)
+    return response_messages.ResponseMessage(200, status_message)
