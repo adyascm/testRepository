@@ -1,14 +1,14 @@
 from sqlalchemy import and_, desc, asc
-import json
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.utils import utils
+from adya.common.utils import utils, aws_utils
 from adya.common.constants import constants
 from datetime import datetime
-import os, uuid
+import os, uuid, csv, tempfile, json, boto3
 from adya.common.utils.response_messages import Logger
+from boto3.s3.transfer import S3Transfer
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -313,3 +313,53 @@ def insert_apps(auth_token, payload):
         return payload
     else:
         return None
+
+def export_to_csv(auth_token, payload):
+    source = payload["userSource"]
+    type = payload["userType"]
+    name = payload["userName"]
+    email = payload["userEmail"]
+    is_admin = payload["userAdmin"]
+    member_type = payload["memberType"]
+
+    db_session = db_connection().get_session()
+    existing_user = db_utils.get_user_session(auth_token)
+    domain_id = existing_user.domain_id
+
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+    domain_datasource_ids = []
+    for datasource in datasources:
+        domain_datasource_ids.append(datasource.datasource_id)
+    
+    users_query = db_session.query(DomainUser).join(DataSource).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    users_query = filter_on_get_user_list(users_query, full_name=name, email=email, member_type=member_type, datasource_id=source,
+                    is_admin=is_admin, type=type)
+
+    column_fields = []
+
+    if source is not None:
+        column_fields.append(DataSource.datasource_type)
+    if name is not None:
+        column_fields.append(DomainUser.full_name)
+    if type is not None:
+        column_fields.append(DomainUser.type)
+    if email is not None:
+        column_fields.append(DomainUser.email)
+    if is_admin is not None:
+        column_fields.append(DomainUser.is_admin)
+    if member_type is not None:
+        column_fields.append(DomainUser.member_type)
+
+    users = users_query.with_entities(*column_fields).all()
+    print users
+
+    temp_csv = utils.convert_data_to_csv(users)
+    bucket_name = "adya-app-" + constants.DEPLOYMENT_ENV + "-data"
+    now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+    #now = str(datetime.now())
+    key = domain_id + "/export/user-" + now
+    temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
+    
+    return temp_url
+
+    
