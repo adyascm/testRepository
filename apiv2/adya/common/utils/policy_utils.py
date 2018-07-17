@@ -37,9 +37,10 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
 # check file permission change policy violation
 def validate_permission_change_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
     Logger().info("validating_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
-    is_violated = 1
+    send_permission_violation_email = False
     violated_permissions = []
     for permission in new_permissions:
+        is_violated = 1
         for policy_condition in policy.conditions:
             if policy_condition.match_type == constants.PolicyMatchType.DOCUMENT_NAME.value:
                 is_violated = is_violated & check_value_violation(policy_condition, resource["resource_name"])
@@ -51,23 +52,24 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
                 is_violated = is_violated & check_value_violation(policy_condition, permission["email"])
 
         if is_violated:
-            violated_permissions.append(permission)
+            send_permission_violation_email = True
+            if not permission["permission_type"] == constants.Role.OWNER.value:
+                violated_permissions.append(permission)
 
-    if len(violated_permissions) > 0:
+    if send_permission_violation_email:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
                 to_address = json.loads(action.config)["to"]
                 Logger().info("validate_policy : send email")
                 adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions)
-            elif action.action_type == constants.PolicyActionType.REVERT.value:
+            elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
                 datasource_obj = get_datasource(datasource_id)
                 datasource_type = datasource_obj.datasource_type
                 payload = {"permissions": violated_permissions, "datasource_id": datasource_id,
                            "domain_id": datasource_obj.domain_id,
                            "user_email": resource["resource_owner_id"],
                            "action_type": action_constants.ActionNames.DELETE_PERMISSION_FOR_USER.value}
-
                 messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token,
                                                              None,
                                                              payload, connector_servicename_map[datasource_type])
