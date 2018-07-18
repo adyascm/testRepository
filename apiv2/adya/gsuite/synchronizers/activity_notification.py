@@ -302,7 +302,7 @@ def process_user_related_activities(datasource_id, actor_email, event):
 
 
 def process_login_activity(datasource_id, incoming_activity):
-    Logger().info('Processing login activity {}',format(incoming_activity))
+    Logger().info('Processing login activity {}'.format(incoming_activity))
     db_session = db_connection().get_session()
     actor_email = incoming_activity['actor']['email']
     events = incoming_activity["events"]
