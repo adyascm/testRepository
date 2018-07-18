@@ -194,25 +194,15 @@ def get_lambda_name(httpmethod, endpoint, service_name="core"):
     return lambda_name
 
 
-def upload_file_in_s3_bucket(bucket_name, key, temp_csv):
-    client = boto3.client('s3')
-    bucket_obj = None
+def upload_file_in_s3_bucket(bucket_name, key, temp_csv):    
     try:
-        bucket_obj = client.create_bucket(
-            Bucket=bucket_name,
-            CreateBucketConfiguration={
-                'LocationConstraint': 'ap-south-1'
-            })
-        print bucket_obj
+        client = boto3.client('s3')
+        transfer = S3Transfer(client)
+        transfer.upload_file(temp_csv.name, bucket_name, key)
     
     except Exception as ex:
         print ex
-        err_response = ex.response
-        if err_response['Error']['Code'] == "BucketAlreadyOwnedByYou":
-            print "Bucket already created!!"
-    
-    transfer = S3Transfer(client)
-    transfer.upload_file(temp_csv.name, bucket_name, key)
+        return None
     
     #Constructing a temporary file url 
     temp_url = client.generate_presigned_url(
@@ -222,5 +212,5 @@ def upload_file_in_s3_bucket(bucket_name, key, temp_csv):
             'Key': key,
         },
         ExpiresIn=60)
-    
+        
     return temp_url

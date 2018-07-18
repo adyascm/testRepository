@@ -49,6 +49,8 @@ provider:
         - "ec2:DescribeNetworkInterfaces"
         - "ec2:DeleteNetworkInterface"
         - "lambda:GetPolicy"
+        - "s3:PutObject"
+        - "s3:GetObject"
       Resource:
         "*"
   vpc: 
