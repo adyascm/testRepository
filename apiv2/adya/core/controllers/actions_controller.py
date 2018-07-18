@@ -278,6 +278,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                                             ResourcePermission.email == user_email,
                                                                             ResourcePermission.permission_type != "owner",
+                                                                            Resource.datasource_id == ResourcePermission.datasource_id,
                                                                             Resource.resource_id == ResourcePermission.resource_id))
 
     if is_service_account_is_enabled and not is_admin:

@@ -45,6 +45,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         if is_service_account_is_enabled and not is_admin:
             user_count_query = db_session.query(ResourcePermission.email).filter(and_(
                 ResourcePermission.datasource_id.in_(domain_datasource_ids),
+                Resource.datasource_id == ResourcePermission.datasource_id,
                 Resource.resource_owner_id == login_user_email,
                 ResourcePermission.resource_id == Resource.resource_id,
                 DomainUser.email == ResourcePermission.email,
@@ -364,7 +365,9 @@ def run_report(auth_token, report_id):
 
         get_perms_report = db_session.query(ResourcePermission, Resource).filter(
             and_(ResourcePermission.datasource_id == datasource_id,
-                 query_string, Resource.resource_id == ResourcePermission.resource_id)).all()
+                 query_string,
+                 Resource.datasource_id == ResourcePermission.datasource_id,
+                 Resource.resource_id == ResourcePermission.resource_id)).all()
 
         for perm_Report in get_perms_report:
             data_map = {
