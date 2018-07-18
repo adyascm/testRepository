@@ -22,7 +22,7 @@ actions = [
     {"datasource_type": "GSUITE", "action_type": "QUICK_ACTION", "action_entity": "INTERNAL_USER", "key": action_constants.ActionNames.WATCH_ALL_ACTION_FOR_USER.value, "name": "Watch activity",
         "description": "Get weekly report of all activities for \"{{full_name}}\"", "parameters": [{"key": "full_name", "label": "For user", "editable": 0},{"key": "user_email", "label": "Email", "editable": 0}], "is_admin_only": False},
     {"datasource_type": "GSUITE", "action_type": "QUICK_ACTION", "action_entity": "INTERNAL_USER", "key": action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value, "name": "Notify user",
-        "description": "Send mail to \"{{full_name}}\" to audit documents", "parameters": [{"key": "full_name", "label": "For user", "editable": 0},{"key": "user_email", "label": "Email", "editable": 0}], "is_admin_only": False},
+        "description": "Send mail to \"{{full_name}}\" to audit documents", "parameters": [{"key": "full_name", "label": "For user", "editable": 0},{"key": "user_email", "label": "Email", "editable": 0}], "is_admin_only": True},
     {"datasource_type": "GSUITE", "action_type": "QUICK_ACTION", "action_entity": "USER", "key": action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value, "name": "Remove access",
         "description": "Remove access to \"{{full_name}}\" for any documents owned by others", "parameters": [{"key": "full_name", "label": "For user", "editable": 0},{"key": "user_email", "label": "Email", "editable": 0}], "is_admin_only": False},
     {"datasource_type": "GSUITE", "action_type": "INLINE", "action_entity": "INTERNAL_USER", "key": action_constants.ActionNames.REMOVE_USER_FROM_GROUP.value, "name": "Modify Group",
