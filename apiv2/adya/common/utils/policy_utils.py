@@ -3,6 +3,7 @@ import json
 from adya.common.constants import constants, urls, action_constants
 from adya.common.constants.action_constants import datasource_execute_action_map, connector_servicename_map
 from adya.common.db.db_utils import get_datasource
+from adya.common.db.models import alchemy_encoder
 from adya.common.email_templates import adya_emails
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
@@ -72,7 +73,8 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
                 datasource_obj = get_datasource(datasource_id)
                 datasource_type = datasource_obj.datasource_type
-                payload = {"permissions": violated_permissions, "datasource_id": datasource_id,
+                body = json.dumps(violated_permissions, cls=alchemy_encoder())
+                payload = {"permissions": body, "datasource_id": datasource_id,
                            "domain_id": datasource_obj.domain_id,
                            "user_email": resource["resource_owner_id"],
                            "action_type": action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value}
