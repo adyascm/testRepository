@@ -93,14 +93,16 @@ def process_token_activity(datasource_id, incoming_activity):
         
         if not app_name:
             app_name = client_id
-        
+
+        application = db_session.query(Application).filter(Application.display_text == app_name,
+                                                           Application.domain_id == domain_id).first()
+
         if event_name == "authorize":
             #Ignore Adya install
             if "Adya" in app_name:
                 continue
 
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
-            application = db_session.query(Application).filter(Application.display_text == app_name, Application.domain_id == domain_id).first()
             inventory_app_id = inventory_app.id if inventory_app else None
             if not application:
                 application = Application()
@@ -146,6 +148,21 @@ def process_token_activity(datasource_id, incoming_activity):
             except IntegrityError as ie:
                 Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
                 db_session.rollback()
+
+        elif event_name == "revoke":
+            if application:
+                try:
+                    app_id = application.id
+                    db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.application_id == app_id,
+                                                    ApplicationUserAssociation.datasource_id == datasource_id)).delete()
+                    db_session.delete(application)
+                    db_connection().commit()
+                except:
+                    Logger().info("not able to delete app - {} from the db for user: {}".format(app_name, actor_email))
+                    db_session.rollback()
+
+
+
 
 
 def process_drive_activity(datasource_id, incoming_activity):
