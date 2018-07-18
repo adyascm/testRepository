@@ -53,7 +53,7 @@ def get_credentials(auth_token, user_email=None, db_session = None):
     refresh_token = None
     token = None
 
-    if auth_token:
+    if auth_token and not auth_token == "Internal-Secret":
         user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
         is_serviceaccount_enabled = user.is_serviceaccount_enabled
         refresh_token = user.refresh_token
