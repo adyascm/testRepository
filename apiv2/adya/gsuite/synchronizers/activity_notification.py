@@ -331,7 +331,7 @@ def process_login_activity(datasource_id, incoming_activity):
     db_session = db_connection().get_session()
     actor_email = incoming_activity['actor']['email']
     events = incoming_activity["events"]
-    login_time = incoming_activity["id"]["time"]
+    login_time = datetime.datetime.strptime(incoming_activity["id"]["time"], '%Y-%m-%dT%H:%M:%S.%fZ')
     ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
     is_inactive = login_time < ninety_days_ago
     last_is_inactive = None
