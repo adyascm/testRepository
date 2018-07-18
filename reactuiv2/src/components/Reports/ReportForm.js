@@ -97,11 +97,11 @@ class ReportForm extends Component {
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if (!copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
+    else if ( copyFinalInputObj.report_type && copyFinalInputObj.report_type != 'Login' && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if (!copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
+    else if (copyFinalInputObj.report_type && copyFinalInputObj.report_type != 'Login' && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
       errorMessage = "Please select the entity "
       valid = false
     }
@@ -125,6 +125,11 @@ class ReportForm extends Component {
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(0 0 ? * * *)"
+      }
+      if(copyFinalInputObj["report_type"] === 'Login'){
+        copyFinalInputObj.selected_entity = ""
+        copyFinalInputObj.selected_entity_name = ""
+        copyFinalInputObj.selected_entity_type = ""
       }
       success = true
       this.props.addScheduledReport(copyFinalInputObj)
@@ -151,7 +156,6 @@ class ReportForm extends Component {
 
     var value = Object.keys(this.state.reportDataForReportId).length > 0 ?
       this.state.reportDataForReportId[data] : null
-
     return value
   }
 
@@ -196,7 +200,6 @@ class ReportForm extends Component {
       finalReportObj: copyFinalReportObj,
       value: value
     })
-
   }
 
 
@@ -241,7 +244,7 @@ class ReportForm extends Component {
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
                   formType={this.props.formType} defaultCronVal={this.props.reportsMap['frequency']} />
               </Form.Field>
-              { this.props.reportsMap['report_type'] != 'Login' ?
+              { (this.props.reportsMap['report_type'] || this.state.finalReportObj['report_type']) != 'Login' ?
                 <Form.Group inline>
                 <Form.Radio label='File/Folder' value='resource'
                   checked={this.handleMultipleOptions('selected_entity_type') === 'resource' ||
