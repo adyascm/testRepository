@@ -35,8 +35,8 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
 
     activities = [body]
     try:
-        #If notification type is adya, then that means its triggered either manually or scheduled sync
-        #So we need to fetch the events from last sync time
+        # If notification type is adya, then that means its triggered either manually or scheduled sync
+        # So we need to fetch the events from last sync time
         if notification_type == "adya":
             reports_service = gutils.get_gdrive_reports_service(None, subscription.user_email, db_session)
             results = reports_service.activities().list(userKey="all", applicationName=subscription.notification_type, startTime=subscription.page_token).execute()
@@ -45,14 +45,14 @@ def process_notifications(notification_type, datasource_id, channel_id, body):
 
         for activity in activities:
             process_incoming_activity(datasource_id, activity)
-            
+
         db_session.refresh(subscription)
         subscription.last_accessed = datetime.datetime.utcnow()
         subscription.page_token = datetime.datetime.utcnow().isoformat("T") + "Z"
         db_connection().commit()
     except Exception as e:
         Logger().exception("Exception occurred while processing activity notification for datasource_id: {} channel_id: {} - {}".format(datasource_id, channel_id, e))
-        
+
 
 def process_incoming_activity(datasource_id, incoming_activity):
     if not "id" in incoming_activity:
@@ -67,9 +67,9 @@ def process_incoming_activity(datasource_id, incoming_activity):
         process_admin_activities(datasource_id, incoming_activity)
     elif app_name == 'login':
         process_login_activity(datasource_id, incoming_activity)
-
     # elif app_name == "drive":
     #     process_drive_activity(datasource_id, incoming_activity)
+
 
 def process_token_activity(datasource_id, incoming_activity):
     Logger().info("Processing token activity - {}".format(incoming_activity))
@@ -90,7 +90,7 @@ def process_token_activity(datasource_id, incoming_activity):
                 client_id = param["value"]
             elif param_name == "scope":
                 scopes = param["multiValue"]
-        
+
         if not app_name:
             app_name = client_id
 
@@ -98,7 +98,7 @@ def process_token_activity(datasource_id, incoming_activity):
                                                            Application.domain_id == domain_id).first()
 
         if event_name == "authorize":
-            #Ignore Adya install
+            # Ignore Adya install
             if "Adya" in app_name:
                 continue
 
@@ -122,13 +122,13 @@ def process_token_activity(datasource_id, incoming_activity):
                 application.scopes = ','.join(scopes) if scopes else None
                 if app_name:
                     application.display_text = app_name
-                application.unit_num = 0    
+                application.unit_num = 0
             user_association = ApplicationUserAssociation()
             user_association.user_email = actor_email
             user_association.datasource_id = datasource_id
             if client_id:
                 user_association.client_id = client_id
-            
+
             db_session = db_connection().get_session()
             db_session.add(application)
             try:
@@ -136,7 +136,7 @@ def process_token_activity(datasource_id, incoming_activity):
                 user_association.application_id = application.id
                 db_session.add(user_association)
                 db_connection().commit()
-                #Trigger the policy validation now
+                # Trigger the policy validation now
                 payload = {}
                 application.user_email = user_association.user_email
 
@@ -154,7 +154,7 @@ def process_token_activity(datasource_id, incoming_activity):
                 try:
                     app_id = application.id
                     db_session.query(ApplicationUserAssociation).filter(and_(ApplicationUserAssociation.application_id == app_id,
-                                                    ApplicationUserAssociation.datasource_id == datasource_id)).delete()
+                             ApplicationUserAssociation.datasource_id == datasource_id)).delete()
                     db_session.delete(application)
                     db_connection().commit()
                 except:
@@ -162,12 +162,9 @@ def process_token_activity(datasource_id, incoming_activity):
                     db_session.rollback()
 
 
-
-
-
 def process_drive_activity(datasource_id, incoming_activity):
     actor = incoming_activity['actor']
-    #Sometimes email does not come, when the event is triggered by a service (Ex- Google Support for DLP)
+    # Sometimes email does not come, when the event is triggered by a service (Ex- Google Support for DLP)
     actor_email = actor['email'] if 'email' in actor else ""
     resource = {}
     resource_permission = {}
@@ -195,7 +192,7 @@ def process_drive_activity(datasource_id, incoming_activity):
                         elif parameter['name'] == 'target_user':
                             resource_permission['email'] = parameter['value']
                         elif parameter['name'] == 'new_value':
-                            perm_values = parameter['multiValue'] #['can_edit','can_view']
+                            perm_values = parameter['multiValue'] # ['can_edit','can_view']
                             for perm in perm_values:
                                 curr_perm_value = constants.permission_priority[perm] if perm in constants.permission_priority else 0
                                 max_perm_Value = constants.permission_priority[max_perm_string] if max_perm_string in constants.permission_priority else 0
@@ -236,7 +233,7 @@ def process_group_related_activities(datasource_id, event):
         user_directory_struct.member_email = user_email
         user_directory_struct.parent_email = group_email
         user_directory_struct.member_role = 'MEMBER'
-        user_directory_struct.member_type = 'USER' #TODO : check whether type is group or user
+        user_directory_struct.member_type = 'USER'  # TODO : check whether type is group or user
 
         db_session = db_connection().get_session()
         db_session.execute(DirectoryStructure.__table__.insert().prefix_with("IGNORE").
@@ -247,9 +244,9 @@ def process_group_related_activities(datasource_id, event):
             domain_id = datasource_obj.domain_id
             exposure_type = utils.check_if_external_user(db_session, domain_id, user_email)
             if exposure_type == constants.EntityExposureType.EXTERNAL.value:
-                #check if external user present in domain user table
+                # check if external user present in domain user table
                 existing_user = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
-                                            DomainUser.email == user_email)).first()
+                                                                         DomainUser.email == user_email)).first()
                 external_user = None
                 if not existing_user:
                     external_user = DomainUser()
@@ -257,7 +254,7 @@ def process_group_related_activities(datasource_id, event):
                     external_user.email = user_email
                     external_user.member_type = constants.EntityExposureType.EXTERNAL.value
                     external_user.type = 'USER'
-                    #TODO: find the first name and last name of external user
+                    # TODO: find the first name and last name of external user
                     external_user.first_name = ""
                     external_user.last_name = ""
                     db_session.add(external_user)
@@ -301,13 +298,24 @@ def process_user_related_activities(datasource_id, actor_email, event):
                 db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").
                                    values(db_utils.get_model_values(DomainUser, user_obj)))
 
+                call_validate_policies_for_admin_user(user_obj, datasource_id)
+
     elif event_name == 'GRANT_ADMIN_PRIVILEGE':
         user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).first()
         if user_obj:
             user_obj.is_admin = True
 
+        call_validate_policies_for_admin_user(user_obj, datasource_id)
+
+    elif event_name == "SUSPEND_USER":
+       db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                            DomainUser.email == user_email)).update({DomainUser.is_suspended: True})
+
     db_connection().commit()
+
+
+def call_validate_policies_for_admin_user(user_obj, datasource_id):
     if user_obj and user_obj.is_admin:
         payload = {}
         payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
