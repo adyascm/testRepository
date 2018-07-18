@@ -455,11 +455,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value:
         user_email = action_parameters['user_email']
         full_name = action_parameters['full_name']
+        initiated_by = action_payload['initiated_by']
         status_message = "Notification sent to {} for cleanUp".format(
             user_email)
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         status_code = 200
-        if not adya_emails.send_clean_files_email(datasource_id, user_email, full_name):
+        if not adya_emails.send_clean_files_email(datasource_id, user_email, full_name, initiated_by):
             status_message = "Sending Notification failed for {}".format(
                 user_email)
             log_entry.status = action_constants.ActionStatus.FAILED.value
