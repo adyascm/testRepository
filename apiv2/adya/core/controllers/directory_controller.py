@@ -7,7 +7,7 @@ from adya.common.utils import utils, aws_utils
 from adya.common.constants import constants
 from datetime import datetime
 import os, uuid, csv, tempfile, json, boto3
-from adya.common.utils.response_messages import Logger
+from adya.common.utils.response_messages import Logger, ResponseMessage
 from boto3.s3.transfer import S3Transfer
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -352,15 +352,16 @@ def export_to_csv(auth_token, payload):
         column_fields.append(DomainUser.member_type)
 
     users = users_query.with_entities(*column_fields).all()
-    print users
 
     temp_csv = utils.convert_data_to_csv(users)
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
-    #now = str(datetime.now())
     key = domain_id + "/export/user-" + now
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
     
-    return temp_url
+    if temp_url:
+        return ResponseMessage(202, None, temp_url)
+    
+    return ResponseMessage(400, "Failed to generate file. Please contact administrator")
 
     
