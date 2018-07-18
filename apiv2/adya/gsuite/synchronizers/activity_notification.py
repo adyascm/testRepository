@@ -141,7 +141,7 @@ def process_token_activity(datasource_id, incoming_activity):
                 if application.score != 0:
                     payload["application"] = json.dumps(application, cls=alchemy_encoder())
                     policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.APP_INSTALL.value}
-                    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
+                    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "gsuite")
 
             except IntegrityError as ie:
                 Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
@@ -251,7 +251,7 @@ def process_group_related_activities(datasource_id, event):
                 policy_params = {'dataSourceId': datasource_id,
                                  'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
                 Logger().info("new_user : payload : {}".format(payload))
-                messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload,
+                messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload,
                                              "gsuite")
         db_connection().commit()
 
@@ -297,7 +297,7 @@ def process_user_related_activities(datasource_id, actor_email, event):
         policy_params = {'dataSourceId': datasource_id,
                          'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
         Logger().info("new_user : payload : {}".format(payload))
-        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
+        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params,
                                      payload, "gsuite")
 
 

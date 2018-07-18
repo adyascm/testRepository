@@ -51,7 +51,7 @@ def handle_channel_expiration(page_num):
 
     #If there are more subscriptions, call the api again with next page number    
     if len(subscription_list) == 50:
-        messaging.trigger_get_event(urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, "Internal-Secret", {"page_num": page_num+1}, "gsuite")
+        messaging.trigger_get_event(urls.HANDLE_GDRIVE_CHANNEL_EXPIRATION_PATH, constants.INTERNAL_SECRET, {"page_num": page_num+1}, "gsuite")
 
     return "Subscription renewal completed"
 
@@ -265,9 +265,9 @@ def gdrive_periodic_changes_poll(datasource_id=None):
     for row in subscription_list.all():
         headers={"X-Goog-Channel-Token": row.datasource_id, "X-Goog-Channel-ID": row.channel_id, 'X-Goog-Resource-State': "adya"}
         if row.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE.value:
-            messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
+            messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
         else:
-            messaging.trigger_post_event_with_headers(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
+            messaging.trigger_post_event_with_headers(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
 
 def unsubscribed_all_the_previous_subscription(datasource_id):
     db_session = db_connection().get_session()

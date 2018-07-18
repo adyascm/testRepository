@@ -87,5 +87,5 @@ def update_resource(db_session, datasource_id, updated_resource):
     policy_params = {'dataSourceId': datasource_id,
                      'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
     Logger().info("update_resource : payload : {}".format(payload))
-    messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "slack")
+    messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "slack")
 

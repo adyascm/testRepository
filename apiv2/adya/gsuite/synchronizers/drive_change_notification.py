@@ -90,7 +90,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
     db_connection().commit()
     if more_changes_to_process:
         headers={"X-Goog-Channel-Token": datasource_id, "X-Goog-Channel-ID": channel_id, 'X-Goog-Resource-State': notification_type}
-        messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, "Internal-Secret", {}, headers, {}, "gsuite")
+        messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
 
 def remove_file(db_session, datasource_id, file_id):
     try:
@@ -127,7 +127,7 @@ def handle_change(db_session, drive_service, datasource_id, email, file_id):
         # datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
         # query_params = {'domainId': datasource.domain_id, 'dataSourceId': datasource_id, 'ownerEmail': email,
         #                 'userEmail': email, 'is_incremental_scan': 1}
-        # messaging.trigger_post_event(urls.SCAN_RESOURCES, "Internal-Secret", query_params, resourcedata, "gsuite")
+        # messaging.trigger_post_event(urls.SCAN_RESOURCES,  constants.INTERNAL_SECRET, query_params, resourcedata, "gsuite")
         update_resource(db_session, datasource_id, email, results)
 
     except HttpError as ex:
@@ -204,5 +204,5 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
     payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
     policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
     Logger().info("update_resource : payload : {}".format(payload))
-    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "gsuite")
+    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "gsuite")
 

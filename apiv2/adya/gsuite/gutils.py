@@ -45,6 +45,9 @@ def revoke_appaccess(auth_token, user_email=None, db_session = None):
 
 
 def get_credentials(auth_token, user_email=None, db_session = None):
+    if auth_token == constants.INTERNAL_SECRET:
+        auth_token = None
+
     if not db_session:
         db_session = db_connection().get_session()
 
@@ -53,7 +56,7 @@ def get_credentials(auth_token, user_email=None, db_session = None):
     refresh_token = None
     token = None
 
-    if auth_token and not auth_token == "Internal-Secret":
+    if auth_token:
         user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
         is_serviceaccount_enabled = user.is_serviceaccount_enabled
         refresh_token = user.refresh_token

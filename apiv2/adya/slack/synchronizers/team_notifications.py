@@ -47,7 +47,7 @@ def process_user(db_session, datasource, payload):
             policy_params = {'dataSourceId': datasource.datasource_id,
                              'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
             Logger().info("new_user : payload : {}".format(payload))
-            messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload,
+            messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload,
                                          "slack")
 
         ConnectorEvent(domain_id=datasource.domain_id, datasource_id=datasource.datasource_id,
@@ -103,5 +103,5 @@ def process_application(db_session, datasource_id, payload):
             policy_payload = {}
             policy_payload['application'] = json.dumps(app_payload, cls=alchemy_encoder())
             Logger().info("added_app : payload : {}".format(app_payload))
-            messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params,
+            messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params,
                                          policy_payload, "slack")
