@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Modal, Checkbox, Button, Dimmer, Loader, Divider } from 'semantic-ui-react'
+import { Modal, Checkbox, Button, Dimmer, Loader, Divider, Message } from 'semantic-ui-react'
 
 const mapStateToProps = state => ({
 });
@@ -69,6 +69,12 @@ class ExportCsvModal extends Component {
                 isLoading: false,
                 showModal: false
             })
+        }).catch(err => {
+            let err_message = err.response.body["message"]
+            this.setState({
+                errorMessage: err_message,
+                isLoading: false
+            })
         });
     }
     onExportClick = () => {
@@ -79,6 +85,7 @@ class ExportCsvModal extends Component {
     onCloseClick = () => {
         this.setState({
             showModal: false,
+            errorMessage: undefined
         });
     }
     render() {
@@ -102,14 +109,16 @@ class ExportCsvModal extends Component {
             'float': 'right',
             'margin-bottom': '5px'
         }
+
         return (
             <div>
                 <Button style={exportButtonStyle} onClick={this.onExportClick} > Export </Button>
                 <Modal size='small' open={this.state.showModal}>
                     <Modal.Header>
                         Export to a csv file
-            </Modal.Header>
+                    </Modal.Header>
                     <Modal.Content>
+                        {this.state.errorMessage ? <Message error>{this.state.errorMessage}</Message> : null}
                         <Checkbox label="Select all" onChange={this.handleAllFieldsSelection} checked={this.state.selectAllColumns} />
                         <Divider />
                         {columnHeaderCheckboxInput}

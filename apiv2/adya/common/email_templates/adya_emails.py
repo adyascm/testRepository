@@ -160,7 +160,8 @@ def send_clean_files_email(datasource_id,user_email,full_name,initiated_by):
         if not datasource_id:
             return "Invalid datasource! Aborting..."
         db_session = db_connection().get_session()
-        login_user = db_session.query(LoginUser).filter(LoginUser.email == initiated_by).first()
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id, LoginUser.email == initiated_by).first()
         admin_user = login_user.first_name + " " + login_user.last_name
         
         template_name = "clean_files"
