@@ -352,6 +352,8 @@ def export_to_csv(auth_token, payload):
         column_fields.append(DomainUser.is_admin)
     if 'member_type' in selected_fields:
         column_fields.append(DomainUser.member_type)
+    if 'last_login' in selected_fields:
+        column_fields.append(DomainUser.last_login_time)
 
     users = users_query.with_entities(*column_fields).all()
 
