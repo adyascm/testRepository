@@ -36,10 +36,12 @@ def get_user_stats(auth_token):
 
     shared_files_with_external_users =[]
     if is_service_account_is_enabled and not is_admin:
-        shared_files_with_external_users = users.filter(and_(Resource.resource_owner_id == login_user.email,
-                                                                   ResourcePermission.resource_id == Resource.resource_id,
-                                                                   DomainUser.email == ResourcePermission.email,
-                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
+        shared_files_with_external_users = users.filter(and_(Resource.datasource_id.in_(domain_datasource_ids),
+                                                           Resource.resource_owner_id == login_user.email,
+                                                           ResourcePermission.datasource_id.in_(domain_datasource_ids),
+                                                           ResourcePermission.resource_id == Resource.resource_id,
+                                                           DomainUser.email == ResourcePermission.email,
+                                                           DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
 
         users = users.filter(DomainUser.email == login_user.email)
 
@@ -93,20 +95,22 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     login_user_email = login_user.email
     is_login_user_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-
-    users_query = db_session.query(DomainUser)
-
+    domain_datasource_ids = []
     if not datasource_id:
         datasources = db_session.query(DataSource).filter(
             DataSource.domain_id == user_domain_id).all()
-        domain_datasource_ids = []
         for ds in datasources:
             domain_datasource_ids.append(ds.datasource_id)
-        users_query = users_query.filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    else:
+        domain_datasource_ids = [datasource_id]
+
+    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
 
     shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
-        shared_files_with_external_users = users_query.filter(and_(Resource.resource_owner_id == login_user_email,
+        shared_files_with_external_users = users_query.filter(and_(Resource.datasource_id.in_(domain_datasource_ids),
+                                                                   Resource.resource_owner_id == login_user_email,
+                                                                   ResourcePermission.datasource_id.in_(domain_datasource_ids),
                                                                    ResourcePermission.resource_id == Resource.resource_id,
                                                                    DomainUser.email == ResourcePermission.email,
                                                                    DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value))
@@ -126,8 +130,6 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
                    sort_order=None, is_admin=None, type=None, page_number=0):
-    if datasource_id:
-        entity = entity.filter(DomainUser.datasource_id == datasource_id)
     if full_name:
         entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
     if email:

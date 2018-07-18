@@ -149,7 +149,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             func.count(ResourcePermission.email).desc())
 
         if is_service_account_is_enabled and not is_admin:
-            external_user_list = external_user_list.filter(and_(Resource.resource_owner_id == login_user_email,
+            external_user_list = external_user_list.filter(and_(Resource.datasource_id.in_(domain_datasource_ids),
+                                                                Resource.resource_owner_id == login_user_email,
                                                                 ResourcePermission.resource_id == Resource.resource_id))
 
         user_group_emails_and_count = external_user_list.limit(5).all()
@@ -161,6 +162,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             email = row[0]
             directory_struct = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.parent_email == email,
                                                                   DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+                                                                  DomainUser.datasource_id.in_(domain_datasource_ids),
                                                                   DomainUser.email == DirectoryStructure.member_email,
                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
             if directory_struct:
