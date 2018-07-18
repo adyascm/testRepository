@@ -36,11 +36,11 @@ def get_user_stats(auth_token):
 
     shared_files_with_external_users =[]
     if is_service_account_is_enabled and not is_admin:
-        shared_files_with_external_users = users.filter(and_(Resource.datasource_id.in_(domain_datasource_ids),
+        shared_files_with_external_users = users.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
+                                                           Resource.resource_id == ResourcePermission.resource_id,
                                                            Resource.resource_owner_id == login_user.email,
-                                                           ResourcePermission.datasource_id.in_(domain_datasource_ids),
-                                                           ResourcePermission.resource_id == Resource.resource_id,
-                                                           DomainUser.email == ResourcePermission.email,
+                                                           ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                                           ResourcePermission.email == DomainUser.email,
                                                            DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
 
         users = users.filter(DomainUser.email == login_user.email)
@@ -108,11 +108,11 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
 
     shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
-        shared_files_with_external_users = users_query.filter(and_(Resource.datasource_id.in_(domain_datasource_ids),
+        shared_files_with_external_users = users_query.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
                                                                    Resource.resource_owner_id == login_user_email,
-                                                                   ResourcePermission.datasource_id.in_(domain_datasource_ids),
-                                                                   ResourcePermission.resource_id == Resource.resource_id,
-                                                                   DomainUser.email == ResourcePermission.email,
+                                                                   Resource.resource_id == ResourcePermission.resource_id,
+                                                                   ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                                                   ResourcePermission.email == DomainUser.email,
                                                                    DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value))
 
         shared_files_with_external_users = filter_on_get_user_list(shared_files_with_external_users, full_name, email,
