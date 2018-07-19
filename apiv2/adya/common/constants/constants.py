@@ -3,6 +3,7 @@ from enum import Enum
 
 from adya.common.constants import default_policies
 
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
 API_HOST = os.environ.get('API_HOST', 'http://localhost:5000')
@@ -18,10 +19,9 @@ DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
 ACTIVITY_DB_HOST = os.environ.get('ACTIVITY_DB_HOST', 'localhost')
-ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', 8086)
+ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', 27017)
 ACTIVITY_DB_USERNAME = os.environ.get('ACTIVITY_DB_USERNAME', 'root')
 ACTIVITY_DB_PWD = os.environ.get('ACTIVITY_DB_PWD', 'root')
-ACTIVITY_DB_NAME = os.environ.get('ACTIVITY_DB_NAME', 'dev')
 
 NEXT_CALL_FROM_FILE_ID = 4 * 60
 INTERNAL_SECRET = "dfskdjfsd-sdfkjsdhfsdfk-sdfksdf"

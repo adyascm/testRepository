@@ -1,6 +1,7 @@
 
 GSUITE_EVENT_TYPES = {
-    "FILE_SHARE_PUBLIC": {"display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": ""},
+    "FILE_SHARE_PUBLIC": {"display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "", "tags": [{"key": "domain_id", "desc": "Customer's domain", "default": ""}, {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE"}, {"key": "actor", "desc": "Entity triggering this event", "default": ""}], "enabled": True},
+    "FILE_SHARE_ANYONEWITHLINK": {"display_name": "File shared with anyone with link", "desc": "A file is anyone with a link", "event_template": ""},
     "FILE_SHARE_EXTERNAL": {"display_name": "File shared externally", "desc": "A file is shared outside of organisation", "event_template": ""},
     "OAUTH_GRANT": {"display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": ""},
     "OAUTH_REVOKE": {"display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": ""},
@@ -13,7 +14,7 @@ GSUITE_EVENT_TYPES = {
 } 
 
 SLACK_EVENT_TYPES = {
-    "PUBLIC_LINK_CREATED": {"display_name": "Public link created", "desc": "A public link for file is created", "event_template": ""},
+    "FILE_SHARE_ANYONEWITHLINK": {"display_name": "Public link created", "desc": "A public link for file is created", "event_template": ""},
     "OAUTH_GRANT": {"display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": ""},
     "OAUTH_REVOKE": {"display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": ""},
     "USER_ADDED": {"display_name": "New user added", "desc": "A new user is added", "event_template": ""},

@@ -20,4 +20,4 @@ slackclient
 enum34
 pylint
 pygithub
-influxdb
+pymongo
