@@ -135,3 +135,12 @@ def execute_cron_report(event, context):
         aws_utils.send_email_with_attachment(email_list, csv_records, report_desc, report_name)
 
     return req_session.generate_response(200)
+
+
+def create_default_reports(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request(True, ['dataSourceId'])
+    if req_error:
+        return req_error
+    reports_controller.create_default_reports(req_session.get_auth_token(), req_session.get_req_param('dataSourceId'))
+    return req_session.generate_response(200)    
