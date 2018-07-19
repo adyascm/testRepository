@@ -52,10 +52,16 @@ class GroupSearch extends Component {
         //this.props.onsearchLoad(this.state.resultsMap)
         this.props.setSelectedUser(result)
         if (this.props.onChangeReportInput) {
-          var entityinfokey = ["selected_entity",  "selected_entity_name"]
-          var entityinfovalue = [result.email, result.email]
-           this.props.onChangeReportInput(entityinfokey, entityinfovalue)
-
+            if(this.props.emailToBox){
+                var entityinfokey = "receivers"
+                var entityinfovalue = result.email
+                this.props.onChangeReportInput(entityinfokey, entityinfovalue)   
+            }
+            else{
+                var entityinfokey = ["selected_entity", "selected_entity_name"]
+                var entityinfovalue = [result.email, result.email]
+                this.props.onChangeReportInput(entityinfokey, entityinfovalue)
+            }    
         }
         this.setState({
             value: result.email,

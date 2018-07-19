@@ -179,7 +179,7 @@ def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
     query_params = {'dataSourceId': datasource_id}
     messaging.trigger_post_event(urls.CREATE_DEFAULT_POLICES_PATH, auth_token, query_params, {})
-
+    messaging.trigger_post_event(urls.CREATE_DEFAULT_REPORTS_PATH, auth_token, query_params, {})
     #Subscribe for push notifications
     query_params = {'domainId': datasource.domain_id,
                     'dataSourceId': datasource_id}

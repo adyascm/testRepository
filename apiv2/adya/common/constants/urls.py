@@ -41,6 +41,7 @@ GET_AUDITLOG_PATH = '/common/getauditlog'
 
 POLICIES_PATH = '/common/policies'
 CREATE_DEFAULT_POLICES_PATH ='/common/policies/default'
+CREATE_DEFAULT_REPORTS_PATH = '/common/reports/default'
 
 ALERTS_PATH = '/common/alerts'
 ALERTS_COUNT_PATH = '/common/alerts/count'

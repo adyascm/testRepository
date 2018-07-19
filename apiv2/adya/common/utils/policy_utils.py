@@ -94,7 +94,6 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
         if len(send_email_action) > 0:
             to_address = json.loads(send_email_action[0].config)["to"]
             Logger().info("validate_policy : send email")
-            new_permissions_left = []
             if not check_if_revert_action:
                 violated_permissions = None
             adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions,
