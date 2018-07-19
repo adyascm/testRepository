@@ -125,7 +125,7 @@ class ReportForm extends Component {
     }
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
-        copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
+        copyFinalInputObj.frequency = "cron(0 0 1 * * *)"
       }
       if(copyFinalInputObj["report_type"] === 'Inactive'){
         copyFinalInputObj.selected_entity = ""
@@ -255,7 +255,7 @@ class ReportForm extends Component {
             <div className="column">
               <Form.Field>
                 <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
-                defaultChecked />
+                checked={this.state.finalReportObj['is_active'] || this.props.reportsMap['is_active']} />
               </Form.Field>
               <Form.Field >
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
