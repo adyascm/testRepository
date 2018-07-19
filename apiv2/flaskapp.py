@@ -41,6 +41,7 @@ api.add_resource(flask_wrapper_core.UsersList, urls.GET_USERS_LIST_PATH)
 api.add_resource(flask_wrapper_core.UserApps, urls.GET_APPS)
 api.add_resource(flask_wrapper_core.GroupMembers, urls.GET_GROUP_MEMBERS)
 api.add_resource(flask_wrapper_core.UsersExport, urls.USERS_EXPORT)
+api.add_resource(flask_wrapper_core.UsersWriteToCsv, urls.WRITE_TO_CSV_FOR_USERS)
 
 # incremental scan
 api.add_resource(flask_wrapper_gsuite.subscribe, urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
@@ -51,7 +52,7 @@ api.add_resource(flask_wrapper_gsuite.process_activity_notifications, urls.PROCE
 # get file resource data
 api.add_resource(flask_wrapper_core.GetResources, urls.GET_RESOURCE_TREE_PATH)
 api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
-
+api.add_resource(flask_wrapper_core.ResourcesWriteToCsv, urls.WRITE_TO_CSV_FOR_RESOURCES)
 
 #create scheduled report
 api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_PATH)

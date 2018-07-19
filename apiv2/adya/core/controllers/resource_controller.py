@@ -4,8 +4,8 @@ from sqlalchemy.orm import aliased
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,ResourceParent,Domain, DomainUser
-from adya.common.constants import constants
-from adya.common.utils import utils, aws_utils
+from adya.common.constants import constants, urls
+from adya.common.utils import utils, aws_utils, messaging
 from adya.common.utils.response_messages import ResponseMessage
 from boto3.s3.transfer import S3Transfer
 from datetime import datetime
@@ -161,6 +161,29 @@ def export_to_csv(auth_token, payload):
         column_fields.append(resource_alias.last_modified_time)
         column_headers.append("Modified On or Before")
 
+    #Trigger a call to handle data dump to csv file and return a message to the user
+    payload = {
+        "column_headers": column_headers,
+        "column_fields": column_fields,
+        "auth_token": auth_token,
+        "resource_query": resources_query,
+        "resource_alias": resource_alias,
+        "domain_id": domain_id,
+        "logged_in_user": payload["logged_in_user"]
+    }
+    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_RESOURCES, auth_token, None, payload)
+    return ResponseMessage(202, "Thanks for the download request. An email will be sent with the download url")
+
+
+def write_to_csv(auth_token, payload):
+    column_headers = payload["column_headers"]
+    column_fields = payload["column_fields"]
+    auth_token = payload["auth_token"]
+    resources_query = payload["resource_query"]
+    resource_alias = payload["resource_alias"]
+    domain_id = payload["domain_id"]
+    logged_in_user = payload["logged_in_user"]
+
     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
 
     temp_csv = utils.convert_data_to_csv(resources, column_headers)
@@ -170,7 +193,19 @@ def export_to_csv(auth_token, payload):
     key = domain_id + "/export/resource-" + now
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
     
+    email_subject = "Link for csv export"
     if temp_url:
-        return ResponseMessage(202, None, temp_url)
+        link = "<a href=" + temp_url + ">Link</a>"
+        rendered_html = "<h1>Please click the " + link + "to download the csv report</h1>"
+    else:
+        rendered_html = "<h1>Failed to generate url. Please contact administrator</h1>"
+    aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+
+    #Send an email with the url
+    # if temp_url:
+    #     return ResponseMessage(202, None, temp_url)
     
-    return ResponseMessage(400, "Failed to generate file. Please contact administrator")
+    # return ResponseMessage(400, "Failed to generate file. Please contact administrator")
+
+
+

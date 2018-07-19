@@ -146,8 +146,16 @@ class ResourcesExport(Resource):
     def post(self):
         return resource_handler.export_to_csv(request, None)
 
+class ResourcesWriteToCsv(Resource):
+    def post(self):
+        return resource_handler.write_to_csv(request, None)
+
 class UsersExport(Resource):
     def post(self):
         return directory_handler.export_to_csv(request, None)
+
+class UsersWriteToCsv(Resource):
+    def post(self):
+        return directory_handler.write_to_csv(request, None)
 
 

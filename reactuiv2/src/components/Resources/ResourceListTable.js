@@ -277,7 +277,7 @@ class ResourcesListTable extends Component {
 
         if (this.props.isLoadingResources || resourceData) {
             let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
-            let filterMetadata = { 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType,  'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'resourceName': this.props.prefix !== undefined ? this.props.prefix : '', 'sourceType': this.props.filterSourceType }
+            let filterMetadata = { 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType,  'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'resourceName': this.props.prefix !== undefined ? this.props.prefix : '', 'sourceType': this.props.filterSourceType, 'logged_in_user': this.props.currentUser['email'] }
             return (
                 <div>
                     <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>

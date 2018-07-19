@@ -26,7 +26,9 @@ GET_RESOURCE_TREE_PATH = "/common/getresourcetree"
 GET_DATASOURCE_PATH = '/common/datasources'
 GET_GROUP_MEMBERS = '/common/getgroupmembers'
 RESOURCES_EXPORT = '/common/resource/export'
+WRITE_TO_CSV_FOR_RESOURCES = '/common/resource/writetocsv'
 USERS_EXPORT = '/common/users/export'
+WRITE_TO_CSV_FOR_USERS = '/common/users/writetocsv'
 
 ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
 
