@@ -51,7 +51,7 @@ class UserListNew extends Component {
                 "Avatar",
                 "Last Login",
                 "Is Admin",
-                "Type"
+                "Exposure Type"
             ],
             columnHeaderDataNameMap: {
                 "Source": "datasource_id",
@@ -61,6 +61,7 @@ class UserListNew extends Component {
                 "Type": "type",
                 "Last Login": "last_login",
                 "Is Admin": "is_admin",
+                "Exposure Type": "member_type"
             },
             columnNameClicked: this.props.sortColumnName,
             sortOrder: this.props.sortType,

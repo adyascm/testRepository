@@ -224,8 +224,9 @@ def get_highest_exposure_type(permission_exposure, highest_exposure):
     return highest_exposure
 
 
-def convert_data_to_csv(data):
+def convert_data_to_csv(data, column_headers):
     with tempfile.NamedTemporaryFile(delete=False) as temp_csv:
         csv_writer = csv.writer(temp_csv)
+        csv_writer.writerow(column_headers)
         csv_writer.writerows(data)        
         return temp_csv

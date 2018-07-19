@@ -137,25 +137,33 @@ def export_to_csv(auth_token, payload):
         owner_email_id=owner, parent_folder=parent_folder, selected_date=modified_date, source_type=source)
 
     column_fields = []
+    column_headers = []
 
     if 'source_type' in selected_fields:
         column_fields.append(DataSource.datasource_type)
+        column_headers.append("Source")
     if 'resource_name' in selected_fields:
         column_fields.append(resource_alias.resource_name)
+        column_headers.append("Name")
     if 'resource_type' in selected_fields:
         column_fields.append(resource_alias.resource_type)
+        column_headers.append("Type")
     if 'resource_owner_id' in selected_fields:
         column_fields.append(resource_alias.resource_owner_id)
+        column_headers.append("Owner")
     if 'exposure_type' in selected_fields:
         column_fields.append(resource_alias.exposure_type)
+        column_headers.append("Exposure Type")
     if 'parent_name' in selected_fields:
         column_fields.append(parent_alias.resource_name)
+        column_headers.append("Parent Folder")
     if 'last_modified_time' in selected_fields:
         column_fields.append(resource_alias.last_modified_time)
+        column_headers.append("Modified On or Before")
 
     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
 
-    temp_csv = utils.convert_data_to_csv(resources)
+    temp_csv = utils.convert_data_to_csv(resources, column_headers)
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
     #now = str(datetime.now())
