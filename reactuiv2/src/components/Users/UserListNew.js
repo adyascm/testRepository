@@ -251,9 +251,7 @@ class UserListNew extends Component {
                 <Grid fluid >
                     <Container fluid textAlign="left">
                         {filterSelections}
-                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
                     </Container>
-                    
                     <Grid.Row fluid>
                         <Grid.Column width={this.props.selectedUserItem ? 0 : 3}>
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
@@ -272,9 +270,12 @@ class UserListNew extends Component {
                                 </Table>
                                 {this.props.isLoadingUsers ? dimmer : null}
                             </div>
-                            <div style={{ marginTop: '5px' }} >
-                                {this.props.isLoadingUsers || (usersData && usersData.length < 50) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                                {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                            <div style={{ marginTop: '10px' }} >
+                                <div style={{float: 'right'}}>
+                                    {this.props.isLoadingUsers || (usersData && usersData.length < 10) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                                    {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                                </div>
+                                <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
                             </div>
                         </Grid.Column >
                     </Grid.Row>
