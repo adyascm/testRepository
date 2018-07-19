@@ -63,14 +63,16 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             if not permission["permission_type"] == constants.Role.OWNER.value:
                 violated_permissions.append(permission)
 
+    send_email_action = []
+    check_if_revert_action = False
     if is_policy_violated:
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
-                to_address = json.loads(action.config)["to"]
-                Logger().info("validate_policy : send email")
-                adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions)
+                send_email_action.append(action)
             elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
+                Logger.info("violated permissions : {}".format(violated_permissions))
+                check_if_revert_action = True
                 datasource_obj = get_datasource(datasource_id)
                 datasource_type = datasource_obj.datasource_type
                 body = json.dumps(violated_permissions, cls=alchemy_encoder())
@@ -78,9 +80,23 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
                            "domain_id": datasource_obj.domain_id,
                            "user_email": resource["resource_owner_id"],
                            "action_type": action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value}
-                messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token,
-                                                             None,
-                                                             payload, connector_servicename_map[datasource_type])
+                response = messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token,
+                                                             None, payload, connector_servicename_map[datasource_type],
+                                                             constants.TriggerType.SYNC.value)
+                if response and not response.response_code == constants.SUCCESS_STATUS_CODE:
+                    violated_permissions = []
+
+        if len(send_email_action) > 0:
+            to_address = json.loads(send_email_action[0].config)["to"]
+            Logger().info("validate_policy : send email")
+            new_permissions_left = []
+            if check_if_revert_action:
+                if len(violated_permissions)>0:
+                     new_permissions_left = list(set(new_permissions) - set(violated_permissions))
+            else:
+                violated_permissions = None
+            adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions,
+                                                                    violated_permissions, new_permissions_left)
 
         payload = {}
         payload["datasource_id"] = datasource_id

@@ -178,7 +178,8 @@ def send_clean_files_email(datasource_id,user_email,full_name,initiated_by):
         Logger().exception("Exception occurred sending clean files email")
         return False
 
-def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions):
+
+def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions, violated_permissions, new_permissions_left):
     try:
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
@@ -194,7 +195,10 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "document_name": resource["resource_name"],
             "modifying_user": resource["last_modifying_user_email"],
             "owner_name": resource_owner.first_name,
-            "permissions": permissions
+            "permissions": permissions,
+            "violated_permissions": True if violated_permissions else False,
+            "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
+            "new_permission_left": new_permissions_left
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in your GSuite account"
