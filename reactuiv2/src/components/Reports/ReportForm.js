@@ -55,7 +55,7 @@ class ReportForm extends Component {
 
     }
   }
-
+  
   // componentWillReceiveProps(nextProps) {
   //   console.log('componentWillReceiveProps', nextProps)
   //   if (nextProps.selectedUserItem && (nextProps.selectedUserItem !== this.props.selectedUserItem)) {
@@ -125,11 +125,12 @@ class ReportForm extends Component {
     }
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
-        copyFinalInputObj.frequency = "cron(0 0 ? * * *)"
+        copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
       }
       if(copyFinalInputObj["report_type"] === 'Inactive'){
         copyFinalInputObj.selected_entity = ""
         copyFinalInputObj.selected_entity_type = ""
+        copyFinalInputObj.selected_entity_name = ""
       }
       success = true
       this.props.addScheduledReport(copyFinalInputObj)

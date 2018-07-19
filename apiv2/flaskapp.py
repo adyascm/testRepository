@@ -57,7 +57,7 @@ api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
 api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_PATH)
 #run scheduled report
 api.add_resource(flask_wrapper_core.RunReport, urls.RUN_SCHEDULED_REPORT)
-api.add_resource(flask_wrapper_core.DefaultReportsCreator, urls.CREATE_DEFAULT_REPORTS_PATH)
+api.add_resource(flask_wrapper_core.DefaultReports, urls.CREATE_DEFAULT_REPORTS_PATH)
 
 # activities
 api.add_resource(flask_wrapper_gsuite.get_activities_for_user,
@@ -113,6 +113,5 @@ api.add_resource(flask_wrapper_github.ProcessGithubNotifications, urls.PROCESS_G
 
 #github_actions
 api.add_resource(flask_wrapper_github.ExecuteGithubActions, urls.EXECUTE_GITHUB_ACTION)
-
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

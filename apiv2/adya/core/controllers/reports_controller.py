@@ -399,14 +399,19 @@ def run_report(auth_token, report_id):
                 response_data.append(data_map)
     elif report_type == "Inactive":
         domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
-        login_report = get_login_report(auth_token, domain_id)
-        for datalist in login_report:
+        ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+        datasource_ids = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        datasource_ids = [r.datasource_id for r in datasource_ids]
+        domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids), DomainUser.last_login_time < ninety_days_ago, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
+        for user in domain_users:
+            user_num_days = (datetime.datetime.now() - user.last_login_time).days
+            user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
             data_map = {
-                "name":datalist["name"],
-                "email":datalist["email"],
-                "app": datalist["app"],
-                "login_time": str(datalist["login_time"]),
-                "num_days": datalist["num_days"]
+                "name": user.full_name,
+                "email": user.email,
+                "app": user_app,
+                "login_time": str(user.last_login_time),
+                "num_days": user_num_days
             }
             response_data.append(data_map)
     return response_data, email_list, report_type, report_desc, report_name
@@ -427,7 +432,9 @@ def update_report(auth_token, payload):
         config_input = {"report_type": payload["report_type"],
                         "selected_entity_type": payload["selected_entity_type"],
                         "selected_entity": payload["selected_entity"],
-                        "datasource_id": payload["datasource_id"]}
+                        "datasource_id": payload["datasource_id"],
+                        "selected_entity_name": payload["selected_entity_name"]
+                        }
 
         report["config"] = json.dumps(config_input)
         report["is_active"] = payload["is_active"]
@@ -492,20 +499,3 @@ def create_default_reports(auth_token, datasource_id):
             report["datasource_id"] = datasource_id
             create_report(auth_token, report)
             
-
-def get_login_report(auth_token, domain_id):
-    db_session = db_connection().get_session()
-    ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
-    datasource_ids = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
-    datasource_ids = [r.datasource_id for r in datasource_ids]
-    domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids), DomainUser.last_login_time < ninety_days_ago, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
-    report_data = []
-    for user in domain_users:
-        user_obj = {}
-        user_obj["name"] = user.full_name
-        user_obj["email"] = user.email
-        user_obj["login_time"] = user.last_login_time
-        user_obj["num_days"] = (datetime.datetime.now() - user.last_login_time).days
-        user_obj["app"] = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
-        report_data.append(user_obj)
-    return report_data    

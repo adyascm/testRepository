@@ -26,7 +26,7 @@ class ReactCron extends Component {
   state = {
     cronexp: '',
     loadPrevState: false,
-    selectedPeriod: 'day',
+    selectedPeriod: 'month',
     selectedDayOption: {
       hour: 0,
       min: 0
