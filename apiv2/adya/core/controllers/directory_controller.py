@@ -9,6 +9,7 @@ from datetime import datetime
 import os, uuid, csv, tempfile, json, boto3
 from adya.common.utils.response_messages import Logger, ResponseMessage
 from boto3.s3.transfer import S3Transfer
+from sqlalchemy import case
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -339,25 +340,38 @@ def export_to_csv(auth_token, payload):
                     is_admin=is_admin, type=type)
 
     column_fields = []
+    column_headers = []
 
     if 'datasource_id' in selected_fields:
         column_fields.append(DataSource.datasource_type)
+        column_headers.append('Source')
     if 'full_name' in selected_fields:
-        column_fields.append(DomainUser.full_name)
-    if 'type' in selected_fields:
-        column_fields.append(DomainUser.type)
+        column_name = case([(DomainUser.full_name != None, DomainUser.full_name),],
+            else_ = DomainUser.first_name + " " + DomainUser.last_name)
+        column_fields.append(column_name)
+        column_headers.append('Name')
     if 'email' in selected_fields:
         column_fields.append(DomainUser.email)
-    if 'is_admin' in selected_fields:
-        column_fields.append(DomainUser.is_admin)
-    if 'member_type' in selected_fields:
-        column_fields.append(DomainUser.member_type)
+        column_headers.append('Email')
+    if '' in selected_fields:
+        column_fields.append(DomainUser.photo_url)
+        column_headers.append('Avatar')
+    if 'type' in selected_fields:
+        column_fields.append(DomainUser.type)
+        column_headers.append('Type')
     if 'last_login' in selected_fields:
         column_fields.append(DomainUser.last_login_time)
+        column_headers.append('Last Login')
+    if 'is_admin' in selected_fields:
+        column_fields.append(DomainUser.is_admin)
+        column_headers.append('Is Admin')
+    if 'member_type' in selected_fields:
+        column_fields.append(DomainUser.member_type)
+        column_headers.append('Exposure Type')
 
     users = users_query.with_entities(*column_fields).all()
 
-    temp_csv = utils.convert_data_to_csv(users)
+    temp_csv = utils.convert_data_to_csv(users, column_headers)
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
     key = domain_id + "/export/user-" + now
