@@ -281,7 +281,6 @@ class ResourcesListTable extends Component {
             return (
                 <div>
                     <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
-                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                                 <Table.Row>
@@ -335,9 +334,12 @@ class ResourcesListTable extends Component {
                         </Table>
                         {this.props.isLoadingResources ? dimmer : null}
                     </div>
-                    <div style={{ marginTop: '5px' }} >
-                        {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                        {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                    <div style={{ marginTop: '10px' }} >
+                        <div style={{float: 'right'}}>
+                            {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                            {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                        </div>
+                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
                     </div>
                 </div>
             )
