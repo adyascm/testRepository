@@ -11,7 +11,7 @@ from adya.common.utils.utils import get_trusted_entity_for_domain
 from adya.slack import slack_utils, slack_constants
 from sqlalchemy import and_
 from adya.slack.mappers import entities
-from adya.common.db.activity_db import ConnectorEvent
+from adya.common.db.activity_db import activity_db
 from adya.slack.scanners import apps_scanner
 
 
@@ -50,9 +50,8 @@ def process_user(db_session, datasource, payload):
             messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload,
                                          "slack")
 
-        ConnectorEvent(domain_id=datasource.domain_id, datasource_id=datasource.datasource_id,
-                       ds_type=constants.ConnectorTypes.SLACK.value,
-                       event_type='USER_ADDED', actor=user_model_obj.email, event=json.dumps(payload))
+        activity_db().add_event(domain_id=datasource.domain_id, connector_type=constants.ConnectorTypes.SLACK.value, 
+            event_type='USER_ADDED', actor=user_model_obj.email, tags={"exposure_type": user_model_obj.member_type})
 
 
 def process_application(db_session, datasource_id, payload):
