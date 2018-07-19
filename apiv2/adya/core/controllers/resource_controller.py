@@ -154,7 +154,6 @@ def export_to_csv(auth_token, payload):
         column_fields.append(resource_alias.last_modified_time)
 
     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
-    print resources
 
     temp_csv = utils.convert_data_to_csv(resources)
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"

@@ -106,13 +106,13 @@ class ExportCsvModal extends Component {
             </Dimmer>
         )
         let exportButtonStyle = {
-            'float': 'right',
-            'margin-bottom': '5px'
+            'float': 'left',
+            'width': '80px'
         }
 
         return (
             <div>
-                <Button style={exportButtonStyle} onClick={this.onExportClick} > Export </Button>
+                <Button style={exportButtonStyle} size='mini' onClick={this.onExportClick} > Export </Button>
                 <Modal size='small' open={this.state.showModal}>
                     <Modal.Header>
                         Export to a csv file

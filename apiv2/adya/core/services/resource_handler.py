@@ -52,4 +52,4 @@ def export_to_csv(event, context):
         return req_error
     
     response = resource_controller.export_to_csv(req_session.get_auth_token(), req_session.get_body())
-    return req_session.generate_response(response.response_code, response.get_response_body())
+    return req_session.generate_sqlalchemy_response(response.response_code, response.get_response_body())
