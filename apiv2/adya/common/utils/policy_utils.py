@@ -65,8 +65,8 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
                 violated_permissions.append(permission)
             else:
                 new_permissions_left.append(permission)
-
-
+        else:
+            new_permissions_left.append(permission)
 
     send_email_action = []
     check_if_revert_action = False
