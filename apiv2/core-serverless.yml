@@ -233,11 +233,11 @@ functions:
           method: post
           cors: true
   
-  post-common-resourcewritetocsv:
+  post-common-resourceexportasync:
     handler: adya.core.services.resource_handler.write_to_csv
     events:
       - http:
-          path: resource/writetocsv
+          path: resource/exportasync
           method: post
           cors: true
   
@@ -249,11 +249,11 @@ functions:
           method: post
           cors: true
 
-  post-common-userwritetocsv:
+  post-common-userexportasync:
     handler: adya.core.services.directory_handler.write_to_csv
     events:
       - http:
-          path: users/writetocsv
+          path: users/exportasync
           method: post
           cors: true
   

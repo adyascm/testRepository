@@ -379,7 +379,7 @@ def export_to_csv(auth_token, payload):
         "logged_in_user": payload["logged_in_user"]
     }
     messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_USERS, auth_token, None, payload)
-    return ResponseMessage(202, "Thanks for the download request. An email will be sent with the download url")
+    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
 
 
 def write_to_csv(auth_token, payload):
@@ -397,18 +397,12 @@ def write_to_csv(auth_token, payload):
     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
     key = domain_id + "/export/user-" + now
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
-    
-    email_subject = "Link for csv export"
-    if temp_url:
-        link = "<a href=" + temp_url + ">Link</a>"
-        rendered_html = "<h1>Please click the " + link + "to download the csv report</h1>"
-    else:
-        rendered_html = "<h1>Failed to generate url. Please contact administrator</h1>"
-    aws_utils.send_email([logged_in_user], email_subject, rendered_html)
-    
-    # if temp_url:
-    #     return ResponseMessage(202, None, temp_url)
-    
-    # return ResponseMessage(400, "Failed to generate file. Please contact administrator")
 
+    if temp_url:
+        email_subject = "Link for csv export"
+        link = "<a href=" + temp_url + ">Link</a>"
+        rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>" 
+        aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+    else:
+        Logger().exception("Failed to generate url. Please contact administrator")
     
