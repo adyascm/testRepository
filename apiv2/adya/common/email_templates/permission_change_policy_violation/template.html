@@ -198,9 +198,17 @@
           <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; color:#000000;font-weight: 500; ">
             <div style="text-align:left;">Permission changes on {{ owner_name }}'s document - "{{ document_name }}" has violated policy - "{{ policy_name }}"</div>
-               {{#violated_permissions}}
+               {{#revert_back}}
                   {{#len_violated_permissions}}
-                        <div style="text-align:left;">As configured Adya reverted back few permissions</div>
+                        <div style="text-align:left;">As configured, Adya reverted back the following permissions - </div>
+                        <ul>
+                            {{ #violated_permissions }}
+                            <li style="text-align:left">
+                                 {{.}}
+                            </li>
+                            {{ /violated_permissions}}
+                        </ul>
+
                         <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
                         <ul>
                             {{ #new_permission_left }}
@@ -208,10 +216,17 @@
                                  {{.}}
                             </li>
                             {{ /new_permission_left }}
-                    </ul>
+                        </ul>
                   {{/len_violated_permissions}}
                   {{^len_violated_permissions}}
-                        <div style="text-align:left;">As configured Adya failed to revert back permissions</div>
+                        <div style="text-align:left;">As configured, Adya failed to revert back the following permissions - </div>
+                        <ul>
+                            {{ #permissions }}
+                            <li style="text-align:left">
+                                 {{.}}
+                            </li>
+                            {{ /permissions}}
+                        </ul>
                         <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
                         <ul>
                           {{ #permissions }}
@@ -221,8 +236,8 @@
                           {{ /permissions }}
                         </ul>
                   {{/len_violated_permissions}}
-               {{/violated_permissions}}
-               {{^violated_permissions}}
+               {{/revert_back}}
+               {{^revert_back}}
                     <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
                     <ul>
                       {{ #permissions }}
@@ -231,7 +246,7 @@
                       </li>
                       {{ /permissions }}
                     </ul>
-               {{/violated_permissions}}
+               {{/revert_back}}
 
 
               <!-- <div style="text-align:left;margin-top:5px;">* Abhra "Can Write"</div>

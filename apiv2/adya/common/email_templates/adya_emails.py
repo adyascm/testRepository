@@ -196,7 +196,8 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "modifying_user": resource["last_modifying_user_email"],
             "owner_name": resource_owner.first_name,
             "permissions": permissions,
-            "violated_permissions": True if violated_permissions else False,
+            "revert_back": True if violated_permissions else False,
+            "violated_permissions": violated_permissions,
             "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
             "new_permission_left": new_permissions_left
         }
