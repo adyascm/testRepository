@@ -209,13 +209,13 @@
                             {{ /violated_permissions}}
                         </ul>
 
-                        <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
+                        <div style="margin-top:10px;text-align:left">{{new_permissions_str}}</div>
                         <ul>
-                            {{ #new_permission_left }}
+                            {{ #new_permissions_left }}
                             <li style="text-align:left">
                                  {{.}}
                             </li>
-                            {{ /new_permission_left }}
+                            {{ /new_permissions_left }}
                         </ul>
                   {{/len_violated_permissions}}
                   {{^len_violated_permissions}}

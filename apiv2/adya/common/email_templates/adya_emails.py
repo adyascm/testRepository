@@ -190,6 +190,21 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
+        violated_perm = []
+        if violated_permissions:
+            for violated_permission in violated_permissions:
+                user_name = violated_permission["email"]
+                violated_perm_str = user_name + " (" + constants.permission_friendly_name_map[
+                    violated_permission["permission_type"]] + ")"
+                violated_perm.append(violated_perm_str)
+
+        new_perm_left = []
+        for perm_left in new_permissions_left:
+            user_name = perm_left["email"]
+            permission_str = user_name + " (" + constants.permission_friendly_name_map[
+                perm_left["permission_type"]] + ")"
+            new_perm_left.append(permission_str)
+
         template_parameters = {
             "policy_name": policy.name,
             "document_name": resource["resource_name"],
@@ -197,9 +212,10 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "owner_name": resource_owner.first_name,
             "permissions": permissions,
             "revert_back": True if violated_permissions else False,
-            "violated_permissions": violated_permissions,
+            "violated_permissions": violated_perm,
             "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
-            "new_permission_left": new_permissions_left
+            "new_permissions_left": new_perm_left,
+            "new_permissions_str": "New permissions for this document are - " if len(new_perm_left) > 0 else ""
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in your GSuite account"
