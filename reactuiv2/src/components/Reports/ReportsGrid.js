@@ -98,6 +98,38 @@ class ReportsGrid extends Component {
           width: 200
       },
 
+    ],
+    this.columnDefsForInactiveUsers = [
+      {
+        headerName: 'Name',
+        field: 'name',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+          headerName: 'Email',
+          field: 'email',
+          cellRenderer: "agGroupCellRenderer",
+          width: 250
+      },
+      {
+          headerName: 'Application',
+          field: 'app',
+          cellRenderer: "agGroupCellRenderer",
+          width: 100
+      },
+      {
+          headerName: 'Last Login',
+          field: 'login_time',
+          cellRenderer: "agGroupCellRenderer",
+          width: 250
+      },
+      {
+          headerName: 'Number of days since last login',
+          field: 'num_days',
+          cellRenderer: "agGroupCellRenderer",
+          width: 200
+      }, 
     ]
   }
 
@@ -122,7 +154,7 @@ class ReportsGrid extends Component {
       <div className="ag-theme-fresh" style={{height: '500px'}}>
         <AgGridReact onGridReady={this.onGridReady}
                    columnDefs={this.props.reportType === 'Permission'?
-                     this.columnDefsForPerms : this.columnDefsForActivity }
+                     this.columnDefsForPerms : this.props.reportType === 'Activity' ? this.columnDefsForActivity : this.columnDefsForInactiveUsers }
                    rowData={this.props.reportsData}
                    />
                  <div>

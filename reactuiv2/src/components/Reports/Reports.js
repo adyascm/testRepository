@@ -118,7 +118,7 @@ class Reports extends Component {
        formType: 'modify_report',
        reportDataForReportId: reportDataForReportId
      })
-
+     
   }
 
 

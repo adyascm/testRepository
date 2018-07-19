@@ -12,6 +12,7 @@ from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
 from adya.common.utils.response_messages import Logger
+from adya.common.constants import default_reports
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if not (auth_token or datasource_id):
@@ -319,7 +320,6 @@ def get_reports(auth_token):
             "selected_entity": config_data['selected_entity'],
             "selected_entity_type": config_data['selected_entity_type'],
             "selected_entity_name": config_data['selected_entity_name']
-
         }
     return response
 
@@ -341,15 +341,13 @@ def delete_report(auth_token, report_id):
 def run_report(auth_token, report_id):
     db_session = db_connection().get_session()
 
-    get_report_info = db_session.query(Report.config, Report.receivers, Report.last_trigger_time, Report.description,
-                                       Report.name).filter(Report.report_id == report_id).one()
-
-    config_data = json.loads(get_report_info[0])
-    emails = str(get_report_info[1])
+    get_report_info = db_session.query(Report).filter(Report.report_id == report_id).first()
+    config_data = json.loads(get_report_info.config)
+    emails = str(get_report_info.receivers)
     email_list = emails.split(',')
-    last_run_time = get_report_info[2]
-    report_desc = get_report_info[3]
-    report_name = get_report_info[4]
+    last_run_time = get_report_info.last_trigger_time
+    report_desc = get_report_info.description
+    report_name = get_report_info.name
 
     report_type = config_data.get('report_type')
     selected_entity = config_data.get('selected_entity')
@@ -398,8 +396,24 @@ def run_report(auth_token, report_id):
                     "ip_address": datalist[4]
 
                 }
-
                 response_data.append(data_map)
+    elif report_type == "Inactive":
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+        datasource_ids = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        datasource_ids = [r.datasource_id for r in datasource_ids]
+        domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids), DomainUser.last_login_time < ninety_days_ago, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
+        for user in domain_users:
+            user_num_days = (datetime.datetime.now() - user.last_login_time).days
+            user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
+            data_map = {
+                "name": user.full_name,
+                "email": user.email,
+                "app": user_app,
+                "login_time": str(user.last_login_time),
+                "num_days": user_num_days
+            }
+            response_data.append(data_map)
     return response_data, email_list, report_type, report_desc, report_name
 
 
@@ -418,8 +432,9 @@ def update_report(auth_token, payload):
         config_input = {"report_type": payload["report_type"],
                         "selected_entity_type": payload["selected_entity_type"],
                         "selected_entity": payload["selected_entity"],
-                        "selected_entity_name": payload["selected_entity_name"],
-                        "datasource_id": payload["datasource_id"]}
+                        "datasource_id": payload["datasource_id"],
+                        "selected_entity_name": payload["selected_entity_name"]
+                        }
 
         report["config"] = json.dumps(config_input)
         report["is_active"] = payload["is_active"]
@@ -443,44 +458,44 @@ def generate_csv_report(report_id):
     csv_records = ""
     if len(report_data) > 0:
         if report_type == "Permission":
-
-            perm_csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
+            csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
                                        "File Exposure", "User Email", "Permission"]
-
-            perm_report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
+            report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
                                        "last_modified_time", "creation_time",
                                        "exposure_type", "user_email", "permission_type"]
 
-            Logger().info("making csv ")
-
-            csv_records += ",".join(perm_csv_display_header) + "\n"
-            for data in report_data:
-                for i in range(len(perm_report_data_header)):
-                    if i == len(perm_report_data_header) - 1:
-                        csv_records += (str(data[perm_report_data_header[i]]))
-                    else:
-                        csv_records += (str(data[perm_report_data_header[i]])) + ','
-                csv_records += "\n"
-
-            Logger().info(str(csv_records))
-
         elif report_type == "Activity":
+            csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
+            report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
 
-            activity_csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
+        elif report_type == 'Inactive':
+            csv_display_header = ['Name','Email','Application','Last Login','Number of days since last login']
+            report_data_header = ["name", 'email', 'app', 'login_time', 'num_days']
 
-            activity_report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
+        Logger().info("making csv")
 
-            csv_records += ",".join(activity_csv_display_header) + "\n"
-            for data in report_data:
-                for i in range(len(activity_report_data_header)):
-                    if i == len(activity_report_data_header) - 1:
-                        csv_records += (str(data[activity_report_data_header[i]]))
-                    else:
-                        csv_records += (str(data[activity_report_data_header[i]])) + ','
-                csv_records += "\n"
-            Logger().info(str(csv_records))
+        csv_records += ",".join(csv_display_header) + "\n"
+        for data in report_data:
+            for i in range(len(report_data_header)):
+                if i == len(report_data_header) - 1:
+                    csv_records += (str(data[report_data_header[i]]))
+                else:
+                    csv_records += (str(data[report_data_header[i]])) + ','
+            csv_records += "\n"
 
         Logger().info("csv_ record " + str(csv_records))
 
     return csv_records, email_list, report_desc, report_name
 
+def create_default_reports(auth_token, datasource_id):
+    db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token).email
+    domain_id = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first().domain_id
+    reports = default_reports.default_reports
+    for report in reports:
+        existing_report = db_session.query(Report).filter(Report.domain_id == domain_id, Report.name == report["name"]).first()
+        if not existing_report:
+            report["receivers"] = login_user
+            report["datasource_id"] = datasource_id
+            create_report(auth_token, report)
+            
