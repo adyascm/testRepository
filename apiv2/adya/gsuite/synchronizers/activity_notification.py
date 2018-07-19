@@ -110,7 +110,9 @@ def process_token_activity(datasource_id, incoming_activity):
                 application.domain_id = domain_id
                 application.timestamp = datetime.datetime.utcnow()
                 if inventory_app_id:
-                    application.inventory_app_id = inventory_app_id
+                    application.inventory_app_id = inventory_app_id 
+                    application.category = inventory_app.category
+                    application.image_url = inventory_app.image_url
 
                 # check for trusted apps
                 trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
