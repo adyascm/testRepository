@@ -20,6 +20,7 @@ provider:
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
     DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
+    OAUTHLIB_RELAX_TOKEN_SCOPE: "1"
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
