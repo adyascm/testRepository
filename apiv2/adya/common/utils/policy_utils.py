@@ -46,6 +46,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
     Logger().info("validating_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_policy_violated = False
     violated_permissions = []
+    new_permissions_left = []
     for permission in new_permissions:
         is_permission_violated = 1
         for policy_condition in policy.conditions:
@@ -62,6 +63,10 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             is_policy_violated = True
             if not permission["permission_type"] == constants.Role.OWNER.value:
                 violated_permissions.append(permission)
+            else:
+                new_permissions_left.append(permission)
+
+
 
     send_email_action = []
     check_if_revert_action = False
@@ -90,10 +95,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             to_address = json.loads(send_email_action[0].config)["to"]
             Logger().info("validate_policy : send email")
             new_permissions_left = []
-            if check_if_revert_action:
-                if len(violated_permissions)>0:
-                     new_permissions_left = list(set(new_permissions) - set(violated_permissions))
-            else:
+            if not check_if_revert_action:
                 violated_permissions = None
             adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions,
                                                                     violated_permissions, new_permissions_left)
