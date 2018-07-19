@@ -71,7 +71,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
                 send_email_action.append(action)
             elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
-                Logger.info("violated permissions : {}".format(violated_permissions))
+                Logger().info("violated permissions : {}".format(violated_permissions))
                 check_if_revert_action = True
                 datasource_obj = get_datasource(datasource_id)
                 datasource_type = datasource_obj.datasource_type
