@@ -31,7 +31,7 @@ def create_alerts(auth_token, payload):
     db_session = db_connection().get_session()
     if payload:
         alert = Alert()
-        last_update_time = datetime.datetime.now()
+        last_update_time = datetime.datetime.utcnow()
         alert.alert_id = str(uuid.uuid4())
         alert.datasource_id = payload["datasource_id"]
         alert.name = payload["name"]

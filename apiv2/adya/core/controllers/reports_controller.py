@@ -392,9 +392,8 @@ def run_report(auth_token, report_id):
                                                            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value,
                                                            DomainUser.type == constants.DirectoryEntityType.USER.value).all()
         for user in domain_users:
-            user_num_days = (datetime.datetime.now() - user.last_login_time).days
-            user_app = db_session.query(DataSource).filter(
-                DataSource.datasource_id == user.datasource_id).first().datasource_type
+            user_num_days = (datetime.datetime.utcnow() - user.last_login_time).days
+            user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
             data_map = {
                 "name": user.full_name,
                 "email": user.email,

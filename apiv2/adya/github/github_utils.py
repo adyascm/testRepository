@@ -19,9 +19,12 @@ GITHUB_CLIENT_SECRET = GITHUB_CLIENT_JSON_FILE_DATA['client_secret']
 
 def is_external_user(domain_id, email):
     if email.endswith(domain_id):
-            return False
+        return False
     else:
         return True
+
+def get_default_github_email(user_id, login_name):
+    return "{0}+{1}@users.noreply.github.com".format(user_id, login_name)
 
 def get_github_client(datasource_id):
     db_session = db_connection().get_session()
@@ -37,39 +40,25 @@ def create_datasource(auth_token, access_token, scope, user_email):
     datasource = DataSource()
     datasource.datasource_id = str(uuid.uuid4())
     datasource.domain_id = login_user.domain_id
-    datasource.display_name = constants.ConnectorTypes.GITHUB.value
+    datasource.display_name = login_user.domain_id
     datasource.creation_time = datetime.datetime.utcnow()
     datasource.datasource_type = constants.ConnectorTypes.GITHUB.value
+    datasource.is_push_notifications_enabled = 0
 
     db_session.add(datasource)
     db_connection().commit()
 
+    github_domain_id = user_email.split('@')[1] if user_email else login_user.domain_id
     datasource_credentials = DatasourceCredentials()
     datasource_credentials.datasource_id = datasource.datasource_id
     datasource_credentials.created_user = user_email
-    datasource_credentials.credentials = json.dumps({ 'domain_id': user_email.split('@')[1], 'authorize_scope_name': scope, 'token': access_token })
+    datasource_credentials.credentials = json.dumps({ 'domain_id': github_domain_id, 'authorize_scope_name': scope, 'token': access_token })
     
     db_session.add(datasource_credentials)
     db_connection().commit()
 
-    # query_params = {
-    #     "domain_id": user_email.split('@')[1],
-    #     "datasource_id": datasource.datasource_id
-    # }
-
-    # messaging.trigger_post_event(urls.GITHUB_SCAN_START, auth_token, query_params, {}, "github")
-    #scanner_types = [github_constants.ScannerTypes.USERS.value, github_constants.ScannerTypes.REPOSITORIES.value]
-    scanner_type = github_constants.ScannerTypes.ACCOUNT.value
+    query_params = {"domainId": github_domain_id,
+                            "dataSourceId": datasource.datasource_id,
+                            "userEmail": login_user.email}
+    messaging.trigger_get_event(urls.GITHUB_SCAN_UPDATE, auth_token, query_params, "github")
     
-    #for scanner_type in scanner_types:
-    scanner = DatasourceScanners()
-    scanner.datasource_id = datasource.datasource_id
-    scanner.scanner_type = scanner_type
-    scanner.channel_id = str(uuid.uuid4())
-    scanner.user_email = user_email
-    scanner.started_at = datetime.datetime.now()
-    scanner.in_progress = 1
-    db_session.add(scanner)
-    db_connection().commit()
-    query_params = {"datasource_id": datasource.datasource_id, "domain_id": user_email.split('@')[1], "scanner_id": scanner.id, "change_type": github_constants.AppChangedTypes.ADDED.value}
-    messaging.trigger_get_event(urls.GITHUB_SCAN_ENTITIES, auth_token, query_params, "github")
