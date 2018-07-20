@@ -406,3 +406,11 @@ functions:
           path: categoryexpenses
           method: get
           cors: true
+
+  post-common-reports-default:
+    handler: adya.core.services.reports_handler.create_default_reports
+    events:
+      - http:
+          path: reports/default
+          method: post
+          cors: true
