@@ -27,15 +27,16 @@ def query(auth_token, query_params, scanner):
             collaborators_list.append(collaborator.raw_data)
 
         #Creating a webhook for the repository
-        try:
-            config = {
-                "url": urls.GITHUB_NOTIFICATIONS_URL,
-                "content_type": "json" 
-            }
-            events = ["repository","repository_vulnerability_alert","fork","member","public","push","create"]
-            repo.create_hook(name="web", config=config, events=events, active=True)
-        except Exception as ex:
-            Logger().exception("Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
+        if not constants.DEPLOYMENT_ENV == "local":
+            try:
+                config = {
+                    "url": urls.GITHUB_NOTIFICATIONS_URL,
+                    "content_type": "json" 
+                }
+                events = ["repository","repository_vulnerability_alert","fork","member","public","push","create"]
+                repo.create_hook(name="web", config=config, events=events, active=True)
+            except Exception as ex:
+                Logger().exception("Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
 
     return {"payload": collaborators_list}
 

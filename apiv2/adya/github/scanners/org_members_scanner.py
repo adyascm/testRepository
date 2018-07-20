@@ -18,15 +18,16 @@ def query(auth_token, query_params, scanner):
             members.append(member.raw_data)
 
         #Creating a webhook for the organisation
-        try:
-            config = {
-                "url": urls.GITHUB_NOTIFICATIONS_URL,
-                "content_type": "json" 
-            }
-            events = ["membership","organization","org_block","team","team_add"]
-            org.create_hook(name="web", config=config, events=events, active=True)
-        except Exception as ex:
-            Logger().exception("Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
+        if not constants.DEPLOYMENT_ENV == "local":
+            try:
+                config = {
+                    "url": urls.GITHUB_NOTIFICATIONS_URL,
+                    "content_type": "json" 
+                }
+                events = ["membership","organization","org_block","team","team_add"]
+                org.create_hook(name="web", config=config, events=events, active=True)
+            except Exception as ex:
+                Logger().exception("Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
 
     return {"payload": members}
 
