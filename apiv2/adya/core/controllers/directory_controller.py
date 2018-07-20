@@ -318,8 +318,12 @@ def insert_apps(auth_token, payload):
         return None
 
 def export_to_csv(auth_token, payload):
-    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_USERS, auth_token, None, payload)
-    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+    if not 'is_async' in payload:
+        payload['is_async'] = True
+        messaging.trigger_post_event(urls.USERS_EXPORT, auth_token, None, payload)
+        return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+    else:
+        write_to_csv(auth_token, payload)
 
 def write_to_csv(auth_token, payload):
     source = payload["datasource_id"]

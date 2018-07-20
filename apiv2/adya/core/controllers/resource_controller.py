@@ -119,8 +119,12 @@ def search_resources(auth_token, prefix):
     return resources
 
 def export_to_csv(auth_token, payload):
-    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_RESOURCES, auth_token, None, payload)
-    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+    if not 'is_async' in payload:
+        payload['is_async'] = True
+        messaging.trigger_post_event(urls.RESOURCES_EXPORT, auth_token, None, payload)
+        return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+    else:
+        write_to_csv(auth_token, payload)
 
 
 def write_to_csv(auth_token, payload):
