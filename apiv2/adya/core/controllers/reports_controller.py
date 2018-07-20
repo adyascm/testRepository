@@ -5,7 +5,7 @@ from sqlalchemy import func, or_, and_
 
 from adya.core.controllers import domain_controller, directory_controller, app_controller
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
-    Application, DirectoryStructure, ApplicationUserAssociation,AppInventory, alchemy_encoder
+    Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, alchemy_encoder
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
 from adya.common.constants import constants
@@ -13,6 +13,7 @@ from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
+
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if not (auth_token or datasource_id):
@@ -61,7 +62,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = user_count_query
     elif widget_id == 'groupsCount':
         group_count_query = db_session.query(DomainUser).filter(
-            DomainUser.datasource_id.in_(domain_datasource_ids)).filter(DomainUser.type != constants.DirectoryEntityType.USER.value)
+            DomainUser.datasource_id.in_(domain_datasource_ids)).filter(
+            DomainUser.type != constants.DirectoryEntityType.USER.value)
 
         if is_service_account_is_enabled and not is_admin:
             group_count_query = group_count_query.filter(DirectoryStructure.datasource_id == DomainUser.datasource_id,
@@ -113,7 +115,6 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             elif share_type[0] == constants.EntityExposureType.TRUSTED.value:
                 trusted_count = share_type[1]
 
-
         data["rows"] = [[constants.DocType.PUBLIC_COUNT.value, public_count],
                         [constants.DocType.ANYONE_WITH_LINK_COUNT.value, anyone_with_link_count],
                         [constants.DocType.EXTERNAL_COUNT.value, external_count],
@@ -151,9 +152,10 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
             func.count(ResourcePermission.email).desc())
 
         if is_service_account_is_enabled and not is_admin:
-            external_user_list = external_user_list.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
-                                                                Resource.resource_owner_id == login_user_email,
-                                                                ResourcePermission.resource_id == Resource.resource_id))
+            external_user_list = external_user_list.filter(
+                and_(Resource.datasource_id == ResourcePermission.datasource_id,
+                     Resource.resource_owner_id == login_user_email,
+                     ResourcePermission.resource_id == Resource.resource_id))
 
         user_group_emails_and_count = external_user_list.limit(5).all()
         external_user_emails_count_map = {}
@@ -162,17 +164,18 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         for row in user_group_emails_and_count:
             count_for_particular_email = row[1]
             email = row[0]
-            directory_struct = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.parent_email == email,
-                                                                  DirectoryStructure.datasource_id.in_(domain_datasource_ids),
-                                                                  DomainUser.datasource_id == DirectoryStructure.datasource_id,
-                                                                  DomainUser.email == DirectoryStructure.member_email,
-                                                                  DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
+            directory_struct = db_session.query(DirectoryStructure).filter(
+                and_(DirectoryStructure.parent_email == email,
+                     DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+                     DomainUser.datasource_id == DirectoryStructure.datasource_id,
+                     DomainUser.email == DirectoryStructure.member_email,
+                     DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
             if directory_struct:
                 for memberdetails in directory_struct:
                     user = memberdetails.member_email
                     if user in external_user_emails_count_map:
                         count = external_user_emails_count_map[user]
-                        external_user_emails_count_map[user] = count+count_for_particular_email
+                        external_user_emails_count_map[user] = count + count_for_particular_email
                     else:
                         external_user_emails_count_map[user] = count_for_particular_email
             else:
@@ -185,8 +188,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         external_user_perms_count = []
         total_count = 0
 
-        for key,value in external_user_emails_count_map.iteritems():
-            total_count = total_count+1
+        for key, value in external_user_emails_count_map.iteritems():
+            total_count = total_count + 1
             input_list = [key, value]
             external_user_perms_count.append(input_list)
 
@@ -196,7 +199,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data["totalCount"] = external_user_list.count()
     elif widget_id == 'userAppAccess':
         data = {}
-        apps = db_session.query(Application).distinct(Application.id).filter(Application.id == ApplicationUserAssociation.application_id,
+        apps = db_session.query(Application).distinct(Application.id).filter(
+            Application.id == ApplicationUserAssociation.application_id,
             ApplicationUserAssociation.datasource_id.in_(domain_datasource_ids))
 
         if is_service_account_is_enabled and not is_admin:
@@ -255,43 +259,24 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = app_controller.get_app_stats(auth_token)
     return data
 
+
 def create_report(auth_token, payload):
     db_session = db_connection().get_session()
-    report_id = str(uuid.uuid4())
-
-    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
-    if existing_user:
-        report = Report()
-        report.domain_id = existing_user.domain_id
-        report.report_id = report_id
-        creation_time = datetime.datetime.utcnow()
-        if payload:
-            report.name = payload["name"]
-            if 'description' in payload:
-                report.description = payload["description"]
-
-            report.frequency = payload["frequency"]
-            report.receivers = payload["receivers"]
-            config_input = {"report_type": payload["report_type"],
-                            "selected_entity_type": payload["selected_entity_type"],
-                            "selected_entity": payload["selected_entity"],
-                            "selected_entity_name": payload["selected_entity_name"],
-                            "datasource_id": payload["datasource_id"]}
-
-            report.config = json.dumps(config_input)
-            report.is_active = payload["is_active"]
-
-        report.creation_time = creation_time
-
-        db_session.add(report)
-        try:
-            db_connection().commit()
-        except Exception as ex:
-            Logger().exception()
-
-        return report
+    if "is_default" in payload:
+        db_session = db_connection().get_session()
+        login_user = db_utils.get_user_session(auth_token).email
+        domain_id = db_session.query(DataSource).filter(
+            DataSource.datasource_id == payload["datasource_id"]).first().domain_id
+        reports = default_reports.default_reports
+        for report in reports:
+            existing_report = db_session.query(Report).filter(Report.domain_id == domain_id,
+                                                              Report.name == report["name"]).first()
+            if not existing_report:
+                report["receivers"] = login_user
+                report["datasource_id"] = payload["datasource_id"]
+                insert_entry_into_report_table(db_session, auth_token, report)
     else:
-        return None
+        return insert_entry_into_report_table(db_session, auth_token, payload)
 
 
 def get_reports(auth_token):
@@ -402,10 +387,14 @@ def run_report(auth_token, report_id):
         ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
         datasource_ids = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
         datasource_ids = [r.datasource_id for r in datasource_ids]
-        domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids), DomainUser.last_login_time < ninety_days_ago, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
+        domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids),
+                                                           DomainUser.last_login_time < ninety_days_ago,
+                                                           DomainUser.member_type == constants.EntityExposureType.INTERNAL.value,
+                                                           DomainUser.type == constants.DirectoryEntityType.USER.value).all()
         for user in domain_users:
             user_num_days = (datetime.datetime.now() - user.last_login_time).days
-            user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
+            user_app = db_session.query(DataSource).filter(
+                DataSource.datasource_id == user.datasource_id).first().datasource_type
             data_map = {
                 "name": user.full_name,
                 "email": user.email,
@@ -459,17 +448,17 @@ def generate_csv_report(report_id):
     if len(report_data) > 0:
         if report_type == "Permission":
             csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
-                                       "File Exposure", "User Email", "Permission"]
+                                  "File Exposure", "User Email", "Permission"]
             report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
-                                       "last_modified_time", "creation_time",
-                                       "exposure_type", "user_email", "permission_type"]
+                                  "last_modified_time", "creation_time",
+                                  "exposure_type", "user_email", "permission_type"]
 
         elif report_type == "Activity":
             csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
             report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
 
         elif report_type == 'Inactive':
-            csv_display_header = ['Name','Email','Application','Last Login','Number of days since last login']
+            csv_display_header = ['Name', 'Email', 'Application', 'Last Login', 'Number of days since last login']
             report_data_header = ["name", 'email', 'app', 'login_time', 'num_days']
 
         Logger().info("making csv")
@@ -487,15 +476,39 @@ def generate_csv_report(report_id):
 
     return csv_records, email_list, report_desc, report_name
 
-def create_default_reports(auth_token, datasource_id):
-    db_session = db_connection().get_session()
-    login_user = db_utils.get_user_session(auth_token).email
-    domain_id = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first().domain_id
-    reports = default_reports.default_reports
-    for report in reports:
-        existing_report = db_session.query(Report).filter(Report.domain_id == domain_id, Report.name == report["name"]).first()
-        if not existing_report:
-            report["receivers"] = login_user
-            report["datasource_id"] = datasource_id
-            create_report(auth_token, report)
-            
+
+def insert_entry_into_report_table(db_session, auth_token, payload):
+    report_id = str(uuid.uuid4())
+    existing_user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
+    if existing_user:
+        report = Report()
+        report.domain_id = existing_user.domain_id
+        report.report_id = report_id
+        creation_time = datetime.datetime.utcnow()
+        if payload:
+            report.name = payload["name"]
+            if 'description' in payload:
+                report.description = payload["description"]
+
+            report.frequency = payload["frequency"]
+            report.receivers = payload["receivers"]
+            config_input = {"report_type": payload["report_type"],
+                            "selected_entity_type": payload["selected_entity_type"],
+                            "selected_entity": payload["selected_entity"],
+                            "selected_entity_name": payload["selected_entity_name"],
+                            "datasource_id": payload["datasource_id"]}
+
+            report.config = json.dumps(config_input)
+            report.is_active = payload["is_active"]
+
+        report.creation_time = creation_time
+
+        db_session.add(report)
+        try:
+            db_connection().commit()
+        except Exception as ex:
+            Logger().exception()
+
+        return report
+    else:
+        return None

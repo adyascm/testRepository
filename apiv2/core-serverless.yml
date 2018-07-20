@@ -335,14 +335,6 @@ functions:
           method: delete
           cors: true
 
-  post-common-policies-default:
-    handler: adya.core.services.policy_handler.create_default_policies
-    events:
-      - http:
-          path: policies/default
-          method: post
-          cors: true        
-  
   get-common-alerts:
     handler: adya.core.services.alert_handler.get_alert
     events:
@@ -389,12 +381,4 @@ functions:
       - http:
           path: categoryexpenses
           method: get
-          cors: true
-
-  post-common-reports-default:
-    handler: adya.core.services.reports_handler.create_default_reports
-    events:
-      - http:
-          path: reports/default
-          method: post
           cors: true

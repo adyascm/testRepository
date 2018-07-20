@@ -175,11 +175,10 @@ def get_datasource_column(scanner_type, is_total = True):
 
 def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
     Logger().info("Scan completed")
-
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
-    query_params = {'dataSourceId': datasource_id}
-    messaging.trigger_post_event(urls.CREATE_DEFAULT_POLICES_PATH, auth_token, query_params, {})
-    messaging.trigger_post_event(urls.CREATE_DEFAULT_REPORTS_PATH, auth_token, query_params, {})
+    body = {"datasource_id": datasource_id, "is_default": True}
+    messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
+    messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)
     #Subscribe for push notifications
     query_params = {'domainId': datasource.domain_id,
                     'dataSourceId': datasource_id}

@@ -47,6 +47,37 @@ def delete_policy(policy_id):
 
 def create_policy(auth_token, payload):
     db_session = db_connection().get_session()
+    datasource_id = payload["datasource_id"]
+    if "is_default" in payload:
+        login_user = db_utils.get_user_session(auth_token).email
+        datasource_obj = get_datasource(datasource_id)
+        datasource_type = datasource_obj.datasource_type
+        db_session = db_connection().get_session()
+        default_policies = datasource_to_default_policy_map[datasource_type]
+        for policy in default_policies:
+            existing_policy = db_session.query(Policy).filter(
+                and_(Policy.datasource_id == datasource_id, Policy.name == policy["name"])).first()
+            if not existing_policy:
+                policy['datasource_id'] = datasource_id
+                if len(policy["actions"]) > 0:
+                    policy["actions"][0]["config"]["to"] = login_user
+                policy["created_by"] = login_user
+                insert_entry_into_policy_table(db_session, policy)
+        return
+    else:
+        insert_entry_into_policy_table(db_session, payload)
+        return ResponseMessage(400, "Bad Request - Improper payload")
+
+
+def update_policy(auth_token, policy_id, payload):
+    delete_alert_for_a_policy(policy_id)
+    delete_policy(policy_id)
+    policy = create_policy(auth_token, payload)
+    Logger().info("update_policy :  policy {}".format(policy))
+    return policy
+
+
+def insert_entry_into_policy_table(db_session, payload):
     if payload:
         policy_id = str(uuid.uuid4())
         # inserting data into policy table
@@ -84,29 +115,3 @@ def create_policy(auth_token, payload):
 
         db_connection().commit()
         return policy
-
-    return ResponseMessage(400, "Bad Request - Improper payload")
-
-
-def update_policy(auth_token, policy_id, payload):
-    delete_alert_for_a_policy(policy_id)
-    delete_policy(policy_id)
-    policy = create_policy(auth_token, payload)
-    Logger().info("update_policy :  policy {}".format(policy))
-    return policy
-    
-def create_default_policies(auth_token, datasource_id):
-    login_user = db_utils.get_user_session(auth_token).email
-    datasource_obj = get_datasource(datasource_id)
-    datasource_type = datasource_obj.datasource_type
-    db_session = db_connection().get_session()
-    default_policies = datasource_to_default_policy_map[datasource_type]
-    for policy in default_policies:
-        existing_policy = db_session.query(Policy).filter(and_(Policy.datasource_id == datasource_id, Policy.name == policy["name"])).first()
-        if not existing_policy:
-            policy['datasource_id'] = datasource_id
-            if len(policy["actions"]) > 0:
-                policy["actions"][0]["config"]["to"] = login_user
-            policy["created_by"] = login_user
-            create_policy(auth_token, policy)
-    return

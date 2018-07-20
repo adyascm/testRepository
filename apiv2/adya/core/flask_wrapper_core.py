@@ -75,11 +75,6 @@ class Policy(Resource):
         return policy_handler.update_policy(request, None)
 
 
-class DefaultPoliciesCreator(Resource):
-    def post(self):
-        return policy_handler.create_default_policies(request, None)
-
-
 class DashboardWidget(Resource):
     def get(self):
         return reports_handler.get_widget_data(request, None)
@@ -103,9 +98,6 @@ class RunReport(Resource):
     def get(self):
         return reports_handler.run_scheduled_report(request, None)
 
-class DefaultReports(Resource):
-    def post(self):
-        return reports_handler.create_default_reports(request, None)
 
 class UserStats(Resource):
     def get(self):

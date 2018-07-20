@@ -56,7 +56,6 @@ api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
 api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_PATH)
 #run scheduled report
 api.add_resource(flask_wrapper_core.RunReport, urls.RUN_SCHEDULED_REPORT)
-api.add_resource(flask_wrapper_core.DefaultReports, urls.CREATE_DEFAULT_REPORTS_PATH)
 
 # activities
 api.add_resource(flask_wrapper_gsuite.get_activities_for_user,
@@ -72,7 +71,6 @@ api.add_resource(flask_wrapper_core.get_audit_log, urls.GET_AUDITLOG_PATH)
 #policies
 api.add_resource(flask_wrapper_core.Policy, urls.POLICIES_PATH)
 api.add_resource(flask_wrapper_gsuite.PolicyValidator, urls.GSUITE_POLICIES_VALIDATE_PATH)
-api.add_resource(flask_wrapper_core.DefaultPoliciesCreator, urls.CREATE_DEFAULT_POLICES_PATH)
 api.add_resource(flask_wrapper_slack.SlackPolicyValidator, urls.SLACK_POLICIES_VALIDATE_PATH)
 
 #alerts
