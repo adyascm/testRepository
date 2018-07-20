@@ -318,12 +318,17 @@ def insert_apps(auth_token, payload):
         return None
 
 def export_to_csv(auth_token, payload):
+    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_USERS, auth_token, None, payload)
+    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+
+def write_to_csv(auth_token, payload):
     source = payload["datasource_id"]
     type = payload["type"]
     name = payload["full_name"]
     email = payload["email"]
     is_admin = payload["is_admin"]
     member_type = payload["member_type"]
+    logged_in_user = payload["logged_in_user"]
     selected_fields = payload['selectedFields']
 
     db_session = db_connection().get_session()
@@ -368,28 +373,7 @@ def export_to_csv(auth_token, payload):
     if 'member_type' in selected_fields:
         column_fields.append(DomainUser.member_type)
         column_headers.append('Exposure Type')
-
-    #Trigger a call to handle data dump to csv file and return a message to the user
-    payload = {
-        "column_headers": column_headers,
-        "column_fields": column_fields,
-        "auth_token": auth_token,
-        "users_query": users_query,
-        "domain_id": domain_id,
-        "logged_in_user": payload["logged_in_user"]
-    }
-    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_USERS, auth_token, None, payload)
-    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
-
-
-def write_to_csv(auth_token, payload):
-    column_headers = payload["column_headers"]
-    column_fields = payload["column_fields"]
-    auth_token = payload["auth_token"]
-    users_query = payload["users_query"]
-    domain_id = payload["domain_id"]
-    logged_in_user = payload["logged_in_user"]
-
+    
     users = users_query.with_entities(*column_fields).all()
 
     temp_csv = utils.convert_data_to_csv(users, column_headers)
@@ -405,4 +389,28 @@ def write_to_csv(auth_token, payload):
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
+
+# def write_to_csv(auth_token, payload):
+#     column_headers = payload["column_headers"]
+#     column_fields = payload["column_fields"]
+#     auth_token = payload["auth_token"]
+#     users_query = payload["users_query"]
+#     domain_id = payload["domain_id"]
+#     logged_in_user = payload["logged_in_user"]
+
+#     users = users_query.with_entities(*column_fields).all()
+
+#     temp_csv = utils.convert_data_to_csv(users, column_headers)
+#     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+#     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+#     key = domain_id + "/export/user-" + now
+#     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
+
+#     if temp_url:
+#         email_subject = "Link for csv export"
+#         link = "<a href=" + temp_url + ">Link</a>"
+#         rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>" 
+#         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+#     else:
+#         Logger().exception("Failed to generate url. Please contact administrator")
     

@@ -119,7 +119,11 @@ def search_resources(auth_token, prefix):
     return resources
 
 def export_to_csv(auth_token, payload):
-    #Extracting the fields from payload 
+    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_RESOURCES, auth_token, None, payload)
+    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+
+
+def write_to_csv(auth_token, payload):
     source = payload["sourceType"]
     name = payload["resourceName"]
     type = payload["resourceType"]
@@ -127,6 +131,7 @@ def export_to_csv(auth_token, payload):
     exposure_type = payload["exposureType"]
     parent_folder = payload["parentFolder"]
     modified_date = payload["selectedDate"]
+    logged_in_user = payload["logged_in_user"]
     selected_fields = payload['selectedFields']
 
     db_session = db_connection().get_session()
@@ -161,29 +166,6 @@ def export_to_csv(auth_token, payload):
         column_fields.append(resource_alias.last_modified_time)
         column_headers.append("Modified On or Before")
 
-    #Trigger a call to handle data dump to csv file and return a message to the user
-    payload = {
-        "column_headers": column_headers,
-        "column_fields": column_fields,
-        "auth_token": auth_token,
-        "resource_query": resources_query,
-        "resource_alias": resource_alias,
-        "domain_id": domain_id,
-        "logged_in_user": payload["logged_in_user"]
-    }
-    messaging.trigger_post_event(urls.WRITE_TO_CSV_FOR_RESOURCES, auth_token, None, payload)
-    return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
-
-
-def write_to_csv(auth_token, payload):
-    column_headers = payload["column_headers"]
-    column_fields = payload["column_fields"]
-    auth_token = payload["auth_token"]
-    resources_query = payload["resource_query"]
-    resource_alias = payload["resource_alias"]
-    domain_id = payload["domain_id"]
-    logged_in_user = payload["logged_in_user"]
-
     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
 
     temp_csv = utils.convert_data_to_csv(resources, column_headers)
@@ -200,6 +182,32 @@ def write_to_csv(auth_token, payload):
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
+
+# def write_to_csv(auth_token, payload):
+#     column_headers = payload["column_headers"]
+#     column_fields = payload["column_fields"]
+#     auth_token = payload["auth_token"]
+#     resources_query = payload["resource_query"]
+#     resource_alias = payload["resource_alias"]
+#     domain_id = payload["domain_id"]
+#     logged_in_user = payload["logged_in_user"]
+
+#     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
+
+#     temp_csv = utils.convert_data_to_csv(resources, column_headers)
+#     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+#     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
+#     #now = str(datetime.now())
+#     key = domain_id + "/export/resource-" + now
+#     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
+    
+#     if temp_url:
+#         email_subject = "Link for csv export"
+#         link = "<a href=" + temp_url + ">Link</a>"
+#         rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>"
+#         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+#     else:
+#         Logger().exception("Failed to generate url. Please contact administrator")
     
 
 
