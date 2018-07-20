@@ -56,14 +56,6 @@ class ReportForm extends Component {
     }
   }
   
-  // componentWillReceiveProps(nextProps) {
-  //   console.log('componentWillReceiveProps', nextProps)
-  //   if (nextProps.selectedUserItem && (nextProps.selectedUserItem !== this.props.selectedUserItem)) {
-  //     if (this.state.finalReportObj['selected_entity_type'] !== 'user')
-  //       this.onChangeReportInput('receivers', nextProps.selectedUserItem.email)
-  //   }
-  // }
-
 
   submit = () => {
 
@@ -114,11 +106,6 @@ class ReportForm extends Component {
 
 
     if (valid && this.props.formType === 'modify_report') {
-      // var inputdata = {}
-      // Object.assign(inputdata, this.state.reportDataForReportId)
-      // Object.assign(inputdata, copyFinalInputObj)
-      // copyFinalInputObj['report_id'] = this.state.reportDataForReportId['report_id']
-
       success = true
       this.props.updateScheduledReport(populatedDataForParticularReport)
       this.props.close()
