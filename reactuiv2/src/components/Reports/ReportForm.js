@@ -125,7 +125,7 @@ class ReportForm extends Component {
     }
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
-        copyFinalInputObj.frequency = "cron(0 0 1 * * *)"
+        copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
       }
       if(copyFinalInputObj["report_type"] === 'Inactive'){
         copyFinalInputObj.selected_entity = ""
@@ -212,7 +212,6 @@ class ReportForm extends Component {
 
     //let user = this.props.rowData
     //const { value } = this.state
-    console.log('reprtdata',this.state.reportDataForReportId)
     var modalContent = (
       <div>
 
