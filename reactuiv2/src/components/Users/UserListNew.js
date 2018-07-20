@@ -246,7 +246,8 @@ class UserListNew extends Component {
                 "member_type": this.props.listFilters.member_type ? this.props.listFilters.member_type.value || "" : "",
                 "datasource_id": this.props.listFilters.datasource_id ? this.props.listFilters.datasource_id.value || "" : "",
                 "is_admin": this.props.listFilters.is_admin ? this.props.listFilters.is_admin.value : "",
-                "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : ""
+                "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : "",
+                "logged_in_user": this.props.currentUser['email']
             }
             return (
                 <Grid fluid >
