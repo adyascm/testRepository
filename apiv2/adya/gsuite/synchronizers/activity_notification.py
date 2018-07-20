@@ -312,6 +312,9 @@ def process_user_related_activities(datasource_id, actor_email, event):
        db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).update({DomainUser.is_suspended: True})
 
+    elif event_name == "DELETE_USER":
+        delete_user_info(db_session, user_email, datasource_id)
+
     db_connection().commit()
 
 
@@ -352,3 +355,24 @@ def process_login_activity(datasource_id, incoming_activity):
                     Logger().info("inactive user is now active  : {}".format(actor_email))
                     db_session.query(Application).filter(and_(Application.domain_id == datasource.domain_id, Application.display_text == app_name, Application.inactive_users > 0)).update({"inactive_users":Application.inactive_users - 1}, synchronize_session = 'fetch')
     db_connection().commit()
+
+
+def delete_user_info(db_session, user_email, datasource_id):
+    #delete from resource and resource_permission table
+    resources = db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id,
+                                                       Resource.resource_owner_id == user_email)).all()
+    for resource in resources:
+        permissions = resource.permissions
+        for perm in permissions:
+            db_session.delete(perm)
+
+        db_session.delete(resource)
+
+    #delete user info from Domain user and directory struct tables
+    db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
+                                                     DirectoryStructure.member_email == user_email)).delete()
+
+    db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_email)).delete()
+
+
+
