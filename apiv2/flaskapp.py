@@ -52,7 +52,6 @@ api.add_resource(flask_wrapper_gsuite.process_activity_notifications, urls.PROCE
 api.add_resource(flask_wrapper_core.GetResources, urls.GET_RESOURCE_TREE_PATH)
 api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
 
-
 #create scheduled report
 api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_PATH)
 #run scheduled report

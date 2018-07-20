@@ -240,7 +240,7 @@ functions:
           path: users/export
           method: post
           cors: true
-  
+
   get-common-scheduledreport:
     handler: adya.core.services.reports_handler.get_scheduled_reports
     events:
@@ -389,4 +389,12 @@ functions:
       - http:
           path: categoryexpenses
           method: get
+          cors: true
+
+  post-common-reports-default:
+    handler: adya.core.services.reports_handler.create_default_reports
+    events:
+      - http:
+          path: reports/default
+          method: post
           cors: true
