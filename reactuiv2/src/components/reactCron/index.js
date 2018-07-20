@@ -83,6 +83,7 @@ class ReactCron extends Component {
       obj[key] = value;
       const { selectedWeekOption } = this.state;
       const weekOption = Object.assign({}, selectedWeekOption, obj);
+      console.log('selectedweek in optionsselecxt', weekOption)
       this.setState({
         selectedWeekOption: weekOption
       });
@@ -141,8 +142,9 @@ class ReactCron extends Component {
   }
 
   getWeekComponent = () => {
-    const { hourOptions, minuteOptions, dayOptions, selectedWeekOption } = this.state;
 
+    const { hourOptions, minuteOptions, dayOptions, selectedWeekOption } = this.state;
+    console.log('selectedweek', selectedWeekOption)
     return (
       (this.state.selectedPeriod === 'week') &&
       <cron-week-component>
@@ -233,14 +235,14 @@ class ReactCron extends Component {
    }) : null
   };
   {cronArray[2] !== '*' && cronArray[2] !== '?'? this.setState({
-    selectedWeekOption: {'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0].split('(')[1]},
+    selectedWeekOption: {'day': 8, 'hour': 12, 'min': 12},
     selectedPeriod: 'month'}) : null
   };
   {cronArray[3] !== '*' ? this.setState({
     selectedWeekOption: {'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min':  cronArray[0].split('(')[1]},
     selectedPeriod: 'year'}) : null
   };
-
+  console.log('selected week --', cronArray, this.state.selectedWeekOption, this.state.selectedPeriod)
  }
 
 
@@ -257,6 +259,7 @@ class ReactCron extends Component {
            })
          }
    }
+   console.log('in render method -- ', this.state.selectedWeekOption)
 
    const getPeriodPrep = () => {
      const option = periodOptions.find((o) => (o.value === selectedPeriod));
