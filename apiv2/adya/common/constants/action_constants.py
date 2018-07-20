@@ -23,8 +23,6 @@ class ActionNames(Enum):
     REMOVE_APP_FOR_DOMAIN = "remove_app_for_domain"
     DELETE_REPOSITORY = "delete_repository"
     REMOVE_MEMBER_FROM_ORGANIZATION = "remove_member_from_organization"
-    REMOVE_USER_AS_COLLABORATOR = "remove_user_as_collaborator"
-    REMOVE_EXTERNAL_USER_AS_COLLABORATOR = "remove_external_user_as_collaborator"
 
 class ActionStatus(Enum):
     STARTED = 'STARTED'

@@ -404,7 +404,7 @@ def run_report(auth_token, report_id):
         datasource_ids = [r.datasource_id for r in datasource_ids]
         domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids), DomainUser.last_login_time < ninety_days_ago, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).all()
         for user in domain_users:
-            user_num_days = (datetime.datetime.now() - user.last_login_time).days
+            user_num_days = (datetime.datetime.utcnow() - user.last_login_time).days
             user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
             data_map = {
                 "name": user.full_name,

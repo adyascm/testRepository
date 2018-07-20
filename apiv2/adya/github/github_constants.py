@@ -2,10 +2,10 @@ import os
 from enum import Enum
 
 class ScannerTypes(Enum):
-    USERS = "USERS"
     REPOSITORIES = "REPOSITORIES"
     ORGANISATIONS = "ORGANISATIONS"
-    ACCOUNT = "ACCOUNT"
+    ORG_MEMBERS = "ORG_MEMBERS"
+    REP_COLLABORATORS = "REP_COLLABORATORS"
 
 class AppChangedTypes(Enum):
     ADDED = "added"

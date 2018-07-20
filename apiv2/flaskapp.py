@@ -100,9 +100,6 @@ api.add_resource(flask_wrapper_slack.ExecuteSlackActions, urls.EXECUTE_SLACK_ACT
 api.add_resource(flask_wrapper_slack.ProcessSlackNotifications, urls.PROCESS_SLACK_NOTIFICATIONS_PATH)
 
 #github_scan
-# api.add_resource(flask_wrapper_github.GithubScan, urls.GITHUB_SCAN_START)
-# api.add_resource(flask_wrapper_github.GithubScanUsers, urls.GITHUB_SCAN_USERS)
-# api.add_resource(flask_wrapper_github.GithubScanRepository, urls.GITHUB_SCAN_REPOSITORY)
 api.add_resource(flask_wrapper_github.GithubEntities, urls.GITHUB_SCAN_ENTITIES)
 api.add_resource(flask_wrapper_github.GithubScanUpdate, urls.GITHUB_SCAN_UPDATE)
 
