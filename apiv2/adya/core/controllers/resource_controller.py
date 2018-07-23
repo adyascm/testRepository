@@ -141,7 +141,7 @@ def write_to_csv(auth_token, payload):
     db_session = db_connection().get_session()
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
-
+    
     resources_query, resource_alias, parent_alias = fetch_filtered_resources(db_session, auth_token, exposure_type=exposure_type, resource_type=type, prefix=name,
         owner_email_id=owner, parent_folder=parent_folder, selected_date=modified_date, source_type=source)
 
@@ -180,38 +180,13 @@ def write_to_csv(auth_token, payload):
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
     
     if temp_url:
-        email_subject = "Link for csv export"
+        email_subject = "[Adya] Your download is ready"
         link = "<a href=" + temp_url + ">Link</a>"
-        rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>"
+        email_head = "<h3>Hi " + existing_user.first_name + ",</h3></br></br>"
+        email_body = "<h3>Your requested file is ready for download at this link - " + link + "</h3></br></br>"
+        email_signature = "<h3>Best,</br> Team Adya</h3>"
+        rendered_html = email_head + email_body + email_signature
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+        # adya_emails.send_csv_export_email(logged_in_user, domain_id, temp_url)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
-
-# def write_to_csv(auth_token, payload):
-#     column_headers = payload["column_headers"]
-#     column_fields = payload["column_fields"]
-#     auth_token = payload["auth_token"]
-#     resources_query = payload["resource_query"]
-#     resource_alias = payload["resource_alias"]
-#     domain_id = payload["domain_id"]
-#     logged_in_user = payload["logged_in_user"]
-
-#     resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
-
-#     temp_csv = utils.convert_data_to_csv(resources, column_headers)
-#     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
-#     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
-#     #now = str(datetime.now())
-#     key = domain_id + "/export/resource-" + now
-#     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
-    
-#     if temp_url:
-#         email_subject = "Link for csv export"
-#         link = "<a href=" + temp_url + ">Link</a>"
-#         rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>"
-#         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
-#     else:
-#         Logger().exception("Failed to generate url. Please contact administrator")
-    
-
-

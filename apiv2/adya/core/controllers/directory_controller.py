@@ -390,34 +390,12 @@ def write_to_csv(auth_token, payload):
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
 
     if temp_url:
-        email_subject = "Link for csv export"
+        email_subject = "[Adya] Your download is ready"
         link = "<a href=" + temp_url + ">Link</a>"
-        rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>" 
+        email_head = "<h3>Hi " + existing_user.first_name + ",</h3></br></br>"
+        email_body = "<h3>Your requested file is ready for download at this link - " + link + "</h3></br></br>"
+        email_signature = "<h3>Best,</br> Team Adya</h3>"
+        rendered_html = email_head + email_body + email_signature
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
-
-# def write_to_csv(auth_token, payload):
-#     column_headers = payload["column_headers"]
-#     column_fields = payload["column_fields"]
-#     auth_token = payload["auth_token"]
-#     users_query = payload["users_query"]
-#     domain_id = payload["domain_id"]
-#     logged_in_user = payload["logged_in_user"]
-
-#     users = users_query.with_entities(*column_fields).all()
-
-#     temp_csv = utils.convert_data_to_csv(users, column_headers)
-#     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
-#     now = datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M-%S")
-#     key = domain_id + "/export/user-" + now
-#     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
-
-#     if temp_url:
-#         email_subject = "Link for csv export"
-#         link = "<a href=" + temp_url + ">Link</a>"
-#         rendered_html = "<h1>Your requested file is ready for download at this link -" + link + "</h1>" 
-#         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
-#     else:
-#         Logger().exception("Failed to generate url. Please contact administrator")
-    
