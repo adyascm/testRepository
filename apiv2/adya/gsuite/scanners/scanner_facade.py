@@ -67,11 +67,11 @@ def request_scanner_data(auth_token, query_params):
 
     next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else None
     if next_page_token:
-        scanner.next_page_token = str(next_page_token)
-        query_params["nextPageNumber"] = scanner.next_page_token
+        scanner.page_token = str(next_page_token)
+        query_params["nextPageNumber"] = scanner.page_token
         messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
     else:
-        scanner.next_page_token = ""
+        scanner.page_token = ""
 
     entities_list = response["payload"]
     fetched_entities_count = len(entities_list)
@@ -102,7 +102,7 @@ def request_scanner_data(auth_token, query_params):
         scanner_data = {}
         scanner_data["entities"] = entities_list[sent_member_count:sent_member_count + batch_size]
         #If this is the last set of users, in the process call, send the next page number as empty
-        if fetched_entities_count - sent_member_count <= batch_size and not scanner.next_page_token:
+        if fetched_entities_count - sent_member_count <= batch_size and not scanner.page_token:
             query_params["nextPageNumber"] = ""
         messaging.trigger_post_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, scanner_data, "gsuite")
         sent_member_count += batch_size
