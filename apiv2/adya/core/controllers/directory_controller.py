@@ -391,10 +391,10 @@ def write_to_csv(auth_token, payload):
 
     if temp_url:
         email_subject = "[Adya] Your download is ready"
-        link = "<a href=" + temp_url + ">Link</a>"
-        email_head = "<h3>Hi " + existing_user.first_name + ",</h3></br></br>"
-        email_body = "<h3>Your requested file is ready for download at this link - " + link + "</h3></br></br>"
-        email_signature = "<h3>Best,</br> Team Adya</h3>"
+        link = "<a href=" + temp_url + ">link</a>"
+        email_head = "<p>Hi " + existing_user.first_name + ",</p></br></br>"
+        email_body = "<p>Your requested file is ready for download at this " + link + "</p></br></br>"
+        email_signature = "<p>Best,</br> Team Adya</p>"
         rendered_html = email_head + email_body + email_signature
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
