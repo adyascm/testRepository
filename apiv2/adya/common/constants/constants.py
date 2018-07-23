@@ -167,3 +167,5 @@ datasource_to_installed_app_map = {
 class TrustedTypes(Enum):
     DOMAINS = 'DOMAINS'
     APPS = 'APPS'
+
+COMMON_TAGS = [{"key": "domain_id", "desc": "Customer's domain", "default": ""}, {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE"}, {"key": "actor", "desc": "Entity triggering this event", "default": ""}]

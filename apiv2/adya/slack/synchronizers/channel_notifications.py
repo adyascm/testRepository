@@ -1,7 +1,9 @@
 from sqlalchemy import and_
 
 from adya.common.constants import constants
+from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
+from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import DataSource, DomainUser, DirectoryStructure, ResourcePermission
 from adya.slack import slack_constants
 from adya.slack.mappers import entities
@@ -46,12 +48,22 @@ def process_channel_archive(db_session, datasource_id, payload):
     channel_id = payload['channel']
     db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                              DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: True})
+    datasource_obj = get_datasource(datasource_id)
+    if datasource_obj:
+        activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='CHANNEL_ARCHIVE', actor=None,
+                                tags={})
 
 
 def process_channel_unarchive(db_session, datasource_id, payload):
     channel_id = payload['channel']
     db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                              DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: False})
+    datasource_obj = get_datasource(datasource_id)
+    if datasource_obj:
+        activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='CHANNEL_UNARCHIVE', actor=None,
+                                tags={})
 
 
 def process_channel_rename(db_session, datasource_id, payload):

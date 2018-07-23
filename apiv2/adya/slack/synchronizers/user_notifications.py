@@ -3,6 +3,7 @@ from sqlalchemy import and_
 
 from adya.common.constants import constants, urls
 from adya.common.db import db_utils
+from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
 from adya.common.db.db_utils import get_datasource_credentials
 from adya.common.db.models import Resource, DataSource, DomainUser, ApplicationUserAssociation, Application, \
@@ -64,6 +65,10 @@ def update_user(db_session, domain_id, datasource_id, user_info):
             messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload,
                                          "slack")
 
+        activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='ROLE_CHANGED', actor=user_info.email,
+                                tags={"is_admin":user_info.is_admin})
+
 
 def process_app(db_session, domain_id, datasource_id, payload):
     slack_client = slack_utils.get_slack_client(datasource_id)
@@ -90,6 +95,9 @@ def process_app(db_session, domain_id, datasource_id, payload):
                 db_connection().commit()
 
                 db_session.delete(app_info)
+            activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                    event_type='OAUTH_REVOKE', actor=None,
+                                    tags={"display_text":app_info.display_text})
 
 
     else:
@@ -138,6 +146,10 @@ def process_app(db_session, domain_id, datasource_id, payload):
                     Logger().info("added_app : payload : {}".format(app_payload))
                     messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params,
                                                  policy_payload, "slack")
+
+                activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                            event_type='OAUTH_GRANT', actor=user_id,
+                            tags={"score":max_score, "display_text":display_text})
 
 
 

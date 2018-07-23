@@ -1,6 +1,7 @@
+from adya.common.constants import constants
 
 GSUITE_EVENT_TYPES = {
-    "FILE_SHARE_PUBLIC": {"display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "", "tags": [{"key": "domain_id", "desc": "Customer's domain", "default": ""}, {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE"}, {"key": "actor", "desc": "Entity triggering this event", "default": ""}], "enabled": True},
+    "FILE_SHARE_PUBLIC": {"display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "", "tags": constants.COMMON_TAGS, "enabled": True},
     "FILE_SHARE_ANYONEWITHLINK": {"display_name": "File shared with anyone with link", "desc": "A file is anyone with a link", "event_template": ""},
     "FILE_SHARE_EXTERNAL": {"display_name": "File shared externally", "desc": "A file is shared outside of organisation", "event_template": ""},
     "OAUTH_GRANT": {"display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": ""},
@@ -15,12 +16,14 @@ GSUITE_EVENT_TYPES = {
 
 SLACK_EVENT_TYPES = {
     "FILE_SHARE_ANYONEWITHLINK": {"display_name": "Public link created", "desc": "A public link for file is created", "event_template": ""},
-    "OAUTH_GRANT": {"display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": ""},
-    "OAUTH_REVOKE": {"display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": ""},
-    "USER_ADDED": {"display_name": "New user added", "desc": "A new user is added", "event_template": ""},
+    "OAUTH_GRANT": {"display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "score", "desc": "App score", "default": ""}, {"key": "display_text", "desc": "App name", "default": ""}])},
+    "OAUTH_REVOKE": {"display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "display_text", "desc": "App name", "default": ""}])},
+    "USER_ADDED": {"display_name": "New user added", "desc": "A new user is added", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "member_type", "desc": "User member type", "default": "EXT"}])},
     "USER_SUSPENDED": {"display_name": "User suspended", "desc": "A user is suspended", "event_template": ""},
     "CHANNEL_MEMBERSHIP_CHANGED": {"display_name": "Group members changed", "desc": "Members in group has changed", "event_template": ""},
-    "ROLE_CHANGED": {"display_name": "User role changed", "desc": "Role for user is changed", "event_template": ""}
+    "ROLE_CHANGED": {"display_name": "User role changed", "desc": "Role for user is changed", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "user_role", "desc": "User role as admin or not", "default": ""}])},
+    "CHANNEL_ARCHIVE": {"display_name": "Channel archieved", "desc": "Channel archieved", "event_template": "", "tags":constants.COMMON_TAGS},
+    "CHANNEL_UNARCHIVE": {"display_name": "Channel unarchieved", "desc": "Channel is unarchieved", "event_template": "", "tags":constants.COMMON_TAGS}
 } 
 
 GITHUB_EVENT_TYPES = {
