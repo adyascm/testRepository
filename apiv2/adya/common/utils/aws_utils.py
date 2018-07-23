@@ -211,6 +211,6 @@ def upload_file_in_s3_bucket(bucket_name, key, temp_csv):
             'Bucket': bucket_name,
             'Key': key,
         },
-        ExpiresIn=60)
+        ExpiresIn=3600)
         
     return temp_url
