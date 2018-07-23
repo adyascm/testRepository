@@ -225,7 +225,7 @@ functions:
           method: post
           cors: true
   
-  post-common-resourceexport:
+  post-common-resource-export:
     handler: adya.core.services.resource_handler.export_to_csv
     events:
       - http:
@@ -233,7 +233,7 @@ functions:
           method: post
           cors: true
   
-  post-common-userexport:
+  post-common-users-export:
     handler: adya.core.services.directory_handler.export_to_csv
     events:
       - http:
