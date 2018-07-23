@@ -60,17 +60,17 @@ def post_scheduled_report(event, context):
     if req_error:
         return req_error
 
-    report = reports_controller.create_report(
+    reports = reports_controller.create_report(
         req_session.get_auth_token(), req_session.get_body())
+    for report in reports:
+        cron_expression = report.frequency
+        report_id = report.report_id
+        payload = {'report_id': report_id}
+        function_name = aws_utils.get_lambda_name('get', urls.EXECUTE_SCHEDULED_REPORT)
 
-    cron_expression = report.frequency
-    report_id = report.report_id
-    payload = {'report_id': report_id}
-    function_name = aws_utils.get_lambda_name('get', urls.EXECUTE_SCHEDULED_REPORT)
+        aws_utils.create_cloudwatch_event(report_id, cron_expression, function_name, payload)
 
-    aws_utils.create_cloudwatch_event(report_id, cron_expression, function_name, payload)
-
-    return req_session.generate_sqlalchemy_response(201, report)
+    return req_session.generate_sqlalchemy_response(201, reports)
 
 
 def modify_scheduled_report(event, context):

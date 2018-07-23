@@ -263,6 +263,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 def create_report(auth_token, payload):
     db_session = db_connection().get_session()
     if "is_default" in payload:
+        reports = []
         db_session = db_connection().get_session()
         login_user = db_utils.get_user_session(auth_token).email
         domain_id = db_session.query(DataSource).filter(
@@ -274,9 +275,10 @@ def create_report(auth_token, payload):
             if not existing_report:
                 report["receivers"] = login_user
                 report["datasource_id"] = payload["datasource_id"]
-                return insert_entry_into_report_table(db_session, auth_token, report)
+                reports.append(insert_entry_into_report_table(db_session, auth_token, report))
+        return reports        
     else:
-        return insert_entry_into_report_table(db_session, auth_token, payload)
+        return [insert_entry_into_report_table(db_session, auth_token, payload)]
 
 
 def get_reports(auth_token):
