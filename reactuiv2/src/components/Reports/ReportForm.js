@@ -71,10 +71,6 @@ class ReportForm extends Component {
     Object.assign(copyFinalInputObj, this.state.finalReportObj)
     copyFinalInputObj.datasource_id = this.props.datasources[0]['datasource_id']
 
-    if (!copyFinalInputObj['is_active']) {
-      copyFinalInputObj['is_active'] = 0
-    }
-
     var populatedDataForParticularReport = {}
     if (this.props.formType === 'modify_report') {
       populatedDataForParticularReport = this.state.reportDataForReportId
@@ -148,6 +144,7 @@ class ReportForm extends Component {
   }
 
   onChangeReportInput = (key, value) => {
+    
     var copyFinalReportObj = {};
     Object.assign(copyFinalReportObj, this.state.finalReportObj)
 
@@ -228,7 +225,7 @@ class ReportForm extends Component {
             <div className="column">
               <Form.Field>
                 <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
-                checked={this.state.finalReportObj['is_active'] || this.props.reportsMap['is_active']} />
+                checked={ 'is_active' in this.state.finalReportObj ? this.state.finalReportObj['is_active']: this.props.reportsMap['is_active']} />
               </Form.Field>
               <Form.Field >
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
