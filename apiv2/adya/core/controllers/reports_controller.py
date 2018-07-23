@@ -300,7 +300,7 @@ def get_reports(auth_token):
             "receivers": report.receivers,
             "creation_time": report.creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_trigger_time": last_trigger_time,
-            "is_active": str(report.is_active),
+            "is_active": report.is_active,
             "report_type": config_data['report_type'],
             "selected_entity": config_data['selected_entity'],
             "selected_entity_type": config_data['selected_entity_type'],

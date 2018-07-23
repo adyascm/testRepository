@@ -56,14 +56,6 @@ class ReportForm extends Component {
     }
   }
   
-  // componentWillReceiveProps(nextProps) {
-  //   console.log('componentWillReceiveProps', nextProps)
-  //   if (nextProps.selectedUserItem && (nextProps.selectedUserItem !== this.props.selectedUserItem)) {
-  //     if (this.state.finalReportObj['selected_entity_type'] !== 'user')
-  //       this.onChangeReportInput('receivers', nextProps.selectedUserItem.email)
-  //   }
-  // }
-
 
   submit = () => {
 
@@ -78,10 +70,6 @@ class ReportForm extends Component {
     var copyFinalInputObj = {}
     Object.assign(copyFinalInputObj, this.state.finalReportObj)
     copyFinalInputObj.datasource_id = this.props.datasources[0]['datasource_id']
-
-    if (!copyFinalInputObj['is_active']) {
-      copyFinalInputObj['is_active'] = 0
-    }
 
     var populatedDataForParticularReport = {}
     if (this.props.formType === 'modify_report') {
@@ -114,11 +102,6 @@ class ReportForm extends Component {
 
 
     if (valid && this.props.formType === 'modify_report') {
-      // var inputdata = {}
-      // Object.assign(inputdata, this.state.reportDataForReportId)
-      // Object.assign(inputdata, copyFinalInputObj)
-      // copyFinalInputObj['report_id'] = this.state.reportDataForReportId['report_id']
-
       success = true
       this.props.updateScheduledReport(populatedDataForParticularReport)
       this.props.close()
@@ -161,6 +144,7 @@ class ReportForm extends Component {
   }
 
   onChangeReportInput = (key, value) => {
+    
     var copyFinalReportObj = {};
     Object.assign(copyFinalReportObj, this.state.finalReportObj)
 
@@ -168,15 +152,6 @@ class ReportForm extends Component {
       value = "cron(" + value + ")"
     }
     if(key === 'report_type'){
-
-      if (Object.keys(this.state.reportDataForReportId).length > 0) {
-        var reportsMapcopy = {}
-        Object.assign(reportsMapcopy, this.state.reportDataForReportId)
-        reportsMapcopy['selected_entity'] = "";
-        this.setState({
-          reportDataForReportId: reportsMapcopy
-        })
-      }
       copyFinalReportObj['selected_entity'] = ""
       if(value != 'Inactive'){
         copyFinalReportObj['selected_entity_type'] = "user"
@@ -198,21 +173,16 @@ class ReportForm extends Component {
     }
 
 
-    // if (key === 'selected_entity_type') {
-    //   if (Object.keys(this.state.reportDataForReportId).length > 0) {
-    //     var reportsMapcopy = {}
-    //     Object.assign(reportsMapcopy, this.state.reportDataForReportId)
-    //     reportsMapcopy['selected_entity_type'] = "";
-    //     this.setState({
-    //       reportDataForReportId: reportsMapcopy
-    //     })
-    //   }
-    //   else {
-
-    //   }
-
-
-    // }
+    if (key === 'selected_entity_type'|| key === 'report_type') {
+      if (Object.keys(this.state.reportDataForReportId).length > 0) {
+        var reportsMapcopy = {}
+        Object.assign(reportsMapcopy, this.state.reportDataForReportId)
+        reportsMapcopy['selected_entity'] = "";
+        this.setState({
+          reportDataForReportId: reportsMapcopy
+        })
+      }
+    }
 
     this.setState({
       finalReportObj: copyFinalReportObj,
@@ -255,7 +225,7 @@ class ReportForm extends Component {
             <div className="column">
               <Form.Field>
                 <Checkbox onChange={(e, data) => this.onChangeReportInput('is_active', data.checked)} label='IsActive' width={2}
-                defaultChecked />
+                checked={ 'is_active' in this.state.finalReportObj ? this.state.finalReportObj['is_active']: this.props.reportsMap['is_active']} />
               </Form.Field>
               <Form.Field >
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
@@ -270,8 +240,8 @@ class ReportForm extends Component {
                   onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                 />
                 <Form.Radio label='Group/User' value='user'
-                    checked={( this.state.finalReportObj['selected_entity_type'] === 'user' ||  
-                    this.handleMultipleOptions('selected_entity_type'))}
+                    checked={((this.state.finalReportObj['selected_entity_type'] ||  
+                    this.handleMultipleOptions('selected_entity_type')) == 'user')}
                     onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
                   />
                 </Form.Group>):<span>Group/User</span> ) : null 

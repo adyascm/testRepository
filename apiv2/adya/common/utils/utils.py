@@ -133,7 +133,7 @@ def add_license_for_scanned_app(db_session, datasource):
     unit_price = None
     inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
     inventory_app_id = inventory_app.id if inventory_app else None
-    if inventory_app_id:
+    if inventory_app:
             unit_price = db_session.query(AppLicenseInventory).filter(AppLicenseInventory.app_id == inventory_app_id,
                                                                       AppLicenseInventory.price > 0).first()
     if not application:
@@ -145,6 +145,8 @@ def add_license_for_scanned_app(db_session, datasource):
         application.unit_num = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value).count()
         if inventory_app_id:
             application.inventory_app_id = inventory_app_id
+            application.category = inventory_app.category
+            application.image_url = inventory_app.image_url
         if unit_price:
             application.unit_price = unit_price.price
         ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)

@@ -284,7 +284,8 @@ class SlackApplication:
         inventory_app_id = inventory_app.id if inventory_app else None
         if inventory_app_id:
             self._application.inventory_app_id = inventory_app_id
-
+            self._application.category = inventory_app.category
+            self._application.image_url = inventory_app.image_url
 
 
     def get_model(self):

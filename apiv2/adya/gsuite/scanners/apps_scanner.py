@@ -42,6 +42,8 @@ def process(db_session, auth_token, query_params, scanner_data):
                 application = Application()
                 if inventory_app_id:
                     application.inventory_app_id = inventory_app_id 
+                    application.category = inventory_app.category
+                    application.image_url = inventory_app.image_url
                 application.domain_id = domain_id
                 application.display_text = app_name
                 application.anonymous = app.get("anonymous")

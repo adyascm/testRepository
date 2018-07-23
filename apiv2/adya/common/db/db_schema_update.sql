@@ -33,4 +33,7 @@ ALTER TABLE domain_user
 ADD last_login_time DateTime;
 
 ALTER TABLE application 
-ADD inactive_users int;
+ADD inactive_users int,
+ADD image_url text,
+ADD category varchar(255);
+
