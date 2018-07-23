@@ -274,7 +274,7 @@ def create_report(auth_token, payload):
             if not existing_report:
                 report["receivers"] = login_user
                 report["datasource_id"] = payload["datasource_id"]
-                insert_entry_into_report_table(db_session, auth_token, report)
+                return insert_entry_into_report_table(db_session, auth_token, report)
     else:
         return insert_entry_into_report_table(db_session, auth_token, payload)
 
