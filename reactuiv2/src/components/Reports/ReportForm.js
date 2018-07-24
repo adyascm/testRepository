@@ -34,8 +34,6 @@ const reportOptions = [
   { text: 'Access Permission Report', value: 'Permission' },
   { text: 'Activity Log Report', value: 'Activity' },
   { text: 'Inactive Users Report', value: 'Inactive'},
-  { text: 'Empty GSuite Groups Report', value: 'EmptyGSuiteGroup'},
-  { text: 'Empty Slack Channels Report', value: 'EmptySlackChannel'}
 ]
 
 class ReportForm extends Component {
@@ -214,6 +212,13 @@ class ReportForm extends Component {
       />
     </Form.Group>):<span>Group/User</span> ) : null 
 
+  var reportTypeForm = ['EmptyGSuiteGroup','EmptySlackChannel'].indexOf(this.handleMultipleOptions('report_type')) >= 0 ?
+      <Form.Input 
+      defaultValue={this.handleMultipleOptions('report_type')} /> :
+      <Form.Select id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
+      label='Report Type' options={reportOptions} placeholder='Report Type'
+      defaultValue={this.handleMultipleOptions('report_type')} />
+
 
     var modalContent = (
       <div>
@@ -229,10 +234,7 @@ class ReportForm extends Component {
                 <Form.Input onChange={(e) => this.onChangeReportInput('description', e.target.value)} label='Description' placeholder='Description'
                   defaultValue={this.props.reportsMap['description']} />
 
-                <Form.Select id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
-                  label='Report Type' options={reportOptions} placeholder='Report Type'
-                  defaultValue={this.handleMultipleOptions('report_type')} />
-
+                {reportTypeForm}
                 {/* <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}
                   label='Email To' placeholder='Email To' control={Input}
                   defaultValue={this.props.reportsMap['receivers']} /> */}
