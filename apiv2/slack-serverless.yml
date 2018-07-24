@@ -19,6 +19,8 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
+    ACTIVITY_DB_HOST: ${opt:ACTIVITY_DB_HOST, 'localhost'}
+    ACTIVITY_DB_PORT: ${opt:ACTIVITY_DB_PORT, 27017}
     DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
   iamRoleStatements:
     - Effect: 'Allow'
