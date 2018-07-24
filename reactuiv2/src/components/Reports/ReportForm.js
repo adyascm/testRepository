@@ -33,7 +33,9 @@ const mapDispatchToProps = dispatch => ({
 const reportOptions = [
   { text: 'Access Permission Report', value: 'Permission' },
   { text: 'Activity Log Report', value: 'Activity' },
-  { text: 'Inactive Users Report', value: 'Inactive'}
+  { text: 'Inactive Users Report', value: 'Inactive'},
+  { text: 'Empty GSuite Groups Report', value: 'EmptyGSuiteGroup'},
+  { text: 'Empty Slack Channels Report', value: 'EmptySlackChannel'}
 ]
 
 class ReportForm extends Component {
@@ -86,11 +88,11 @@ class ReportForm extends Component {
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if ( copyFinalInputObj.report_type && copyFinalInputObj.report_type != 'Inactive' && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
+    else if ( copyFinalInputObj.report_type && !(copyFinalInputObj.report_type in  ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel']) && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if (copyFinalInputObj.report_type && copyFinalInputObj.report_type != 'Inactive' && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
+    else if (copyFinalInputObj.report_type && !(copyFinalInputObj.report_type in ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'] && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity)) {
       errorMessage = "Please select the entity "
       valid = false
     }
@@ -110,7 +112,7 @@ class ReportForm extends Component {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
       }
-      if(copyFinalInputObj["report_type"] === 'Inactive'){
+      if(copyFinalInputObj["report_type"] in ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel']){
         copyFinalInputObj.selected_entity = ""
         copyFinalInputObj.selected_entity_type = ""
         copyFinalInputObj.selected_entity_name = ""
@@ -153,10 +155,10 @@ class ReportForm extends Component {
     }
     if(key === 'report_type'){
       copyFinalReportObj['selected_entity'] = ""
-      if(value != 'Inactive'){
+      if(!value in ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel']){
         copyFinalReportObj['selected_entity_type'] = "user"
       } else{
-        copyFinalReportObj['selected_entity_type'] = "inactive";    
+        copyFinalReportObj['selected_entity_type'] = value
       } 
     }
 
@@ -231,7 +233,7 @@ class ReportForm extends Component {
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
                   formType={this.props.formType} defaultCronVal={this.props.reportsMap['frequency']} />
               </Form.Field>
-              { (this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']) != 'Inactive' ?
+              { !(this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']) in ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'] ?
                 ((this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']) != 'Activity' ?
                 (<Form.Group inline>
                 <Form.Radio label='File/Folder' value='resource'
