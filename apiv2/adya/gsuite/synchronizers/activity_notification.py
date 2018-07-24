@@ -3,6 +3,7 @@ import json
 
 from adya.common.constants import urls, constants
 from adya.common.db import db_utils
+from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
 from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import PushNotificationsSubscription, Resource, ResourcePermission, Application, \
@@ -104,6 +105,7 @@ def process_token_activity(datasource_id, incoming_activity):
 
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
             inventory_app_id = inventory_app.id if inventory_app else None
+            max_score = 0
             if not application:
                 application = Application()
                 application.anonymous = 1
@@ -116,7 +118,6 @@ def process_token_activity(datasource_id, incoming_activity):
 
                 # check for trusted apps
                 trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
-                max_score = 0
                 if scopes and not app_name in trusted_domain_apps:
                     max_score = gutils.get_app_score(scopes)
 
@@ -151,6 +152,11 @@ def process_token_activity(datasource_id, incoming_activity):
                 Logger().info("user app association was already present for the app : {} and user: {}".format(app_name, actor_email))
                 db_session.rollback()
 
+            activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type='OAUTH_GRANT', actor=actor_email,
+                                    tags={"score": max_score, "display_text": app_name})
+
+
         elif event_name == "revoke":
             if application:
                 try:
@@ -162,6 +168,10 @@ def process_token_activity(datasource_id, incoming_activity):
                 except:
                     Logger().info("not able to delete app - {} from the db for user: {}".format(app_name, actor_email))
                     db_session.rollback()
+
+                activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
+                                        event_type='OAUTH_REVOKE', actor=actor_email,
+                                        tags={"display_text": app_name})
 
 
 def process_drive_activity(datasource_id, incoming_activity):
@@ -269,6 +279,11 @@ def process_group_related_activities(datasource_id, event):
                 Logger().info("new_user : payload : {}".format(payload))
                 messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload,
                                              "gsuite")
+
+        datasource_obj = get_datasource(datasource_id)
+        activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type='ADD_GROUP_MEMBER', actor=None,
+                                tags={"group_email": group_email})
         db_connection().commit()
 
 
@@ -283,6 +298,7 @@ def process_user_related_activities(datasource_id, actor_email, event):
         if name == 'USER_EMAIL':
             user_email = param['value']
 
+    datasource_obj = get_datasource(datasource_id)
     if event_name == 'CREATE_USER':
         if user_email:
             directory_service = gutils.get_directory_service(None, actor_email)
@@ -302,6 +318,12 @@ def process_user_related_activities(datasource_id, actor_email, event):
 
                 call_validate_policies_for_admin_user(user_obj, datasource_id)
 
+
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type='CREATE_USER', actor=None,
+                                    tags={"is_admin": user_obj.is_admin})
+
     elif event_name == 'GRANT_ADMIN_PRIVILEGE':
         user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).first()
@@ -309,13 +331,25 @@ def process_user_related_activities(datasource_id, actor_email, event):
             user_obj.is_admin = True
 
         call_validate_policies_for_admin_user(user_obj, datasource_id)
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type='GRANT_ADMIN_PRIVILEGE', actor=None,
+                                tags={})
 
     elif event_name == "SUSPEND_USER":
        db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).update({DomainUser.is_suspended: True})
+       activity_db().add_event(domain_id=datasource_obj.domain_id,
+                               connector_type=constants.ConnectorTypes.GSUITE.value,
+                               event_type='SUSPEND_USER', actor=None,
+                               tags={"user_email": user_obj.email})
 
     elif event_name == "DELETE_USER":
         delete_user_info(db_session, user_email, datasource_id)
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type='DELETE_USER', actor=None,
+                                tags={})
 
     db_connection().commit()
 

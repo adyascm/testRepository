@@ -94,6 +94,12 @@ def new_channel_created(db_session, datasource_id, payload):
     channel_info['channel_type'] = slack_constants.ChannelTypes.PUBLIC.value
     channel_obj = entities.SlackChannel(datasource_id, channel_info)
     db_session.add(channel_obj)
+    datasource_obj = get_datasource(datasource_id)
+    if datasource_obj:
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='CHANNEL_CREATED', actor=None,
+                                tags={})
 
 
 def process_member_joined_channel(db_session, datasource_id, payload):
@@ -109,6 +115,13 @@ def process_member_joined_channel(db_session, datasource_id, payload):
         directory_member_obj = entities.SlackDirectoryMember(db_session, datasource_id, user_info, joined_user_id, None, payload)
         db_session.add(directory_member_obj)
 
+        datasource_obj = get_datasource(datasource_id)
+        if datasource_obj:
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.SLACK.value,
+                                    event_type='MEMBER_JOINED_CHANNEL', actor=None,
+                                    tags={"channel_id": channel_id})
+
 
 def process_member_left_channel(db_session, datasource_id, payload):
     left_user_id = payload['user']
@@ -120,6 +133,13 @@ def process_member_left_channel(db_session, datasource_id, payload):
     db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id == datasource_id,
                                                      DirectoryStructure.parent_email == channel_info.email,
                                                      DirectoryStructure.member_email == user_info.email)).delete()
+
+    datasource_obj = get_datasource(datasource_id)
+    if datasource_obj:
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='MEMBER_LEFT_CHANNEL', actor=None,
+                                tags={"channel_id": channel_id})
 
 
 def get_user_and_channel_info_based_on_ids(db_session, datasource_id, user_id, channel_id):
