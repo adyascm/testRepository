@@ -2,6 +2,7 @@ import os
 from enum import Enum
 
 from adya.common.constants import default_policies
+from adya.common.constants import default_reports
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
@@ -148,6 +149,11 @@ class ConnectorTypes(Enum):
 datasource_to_default_policy_map = {
     ConnectorTypes.SLACK.value: default_policies.default_policies_slack,
     ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
+}
+
+datasource_to_default_report_map = {
+    ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
+    ConnectorTypes.GSUITE.value: default_reports.default_reports_gsuite
 }
 
 class BillingCycle(Enum):
