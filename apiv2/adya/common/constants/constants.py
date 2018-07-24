@@ -20,7 +20,7 @@ DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
 ACTIVITY_DB_HOST = os.environ.get('ACTIVITY_DB_HOST', 'localhost')
-ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', 27017)
+ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', '27017')
 ACTIVITY_DB_USERNAME = os.environ.get('ACTIVITY_DB_USERNAME', 'root')
 ACTIVITY_DB_PWD = os.environ.get('ACTIVITY_DB_PWD', 'root')
 
