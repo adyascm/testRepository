@@ -131,7 +131,7 @@ def execute_cron_report(event, context):
 
     if len(csv_records) > 0:
         Logger().info("call send_email_with_attachment function ")
-
+        report_desc = '[Adya] ' + report_desc
         aws_utils.send_email_with_attachment(email_list, csv_records, report_desc, report_name)
 
     return req_session.generate_response(200)

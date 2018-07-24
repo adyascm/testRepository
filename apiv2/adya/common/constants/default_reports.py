@@ -1,4 +1,12 @@
 default_reports = [
     {"name":"Inactive Users Report", "description":"Users who have been inactive for more than 90 days","domain_id" :"","frequency":"cron(0 10 1 * ? *)", "report_type":"Inactive", "selected_entity":"",
-    "selected_entity_type":"","selected_entity_name":"","is_active":False}
+    "selected_entity_type":"","selected_entity_name":"","is_active":False},
+]
+default_reports_gsuite = [
+    {"name":"Empty Google Groups", "description":"Groups having 0 member","domain_id" :"","frequency":"cron(0 10 1 * ? *)", "report_type":"EmptyGSuiteGroup", "selected_entity":"",
+    "selected_entity_type":"","selected_entity_name":"","is_active":False},
+]
+default_reports_slack = [
+    {"name":"Empty Slack Channels", "description":"Channels having 0 member","domain_id" :"","frequency":"cron(0 10 1 * ? *)", "report_type":"EmptySlackChannel", "selected_entity":"",
+    "selected_entity_type":"","selected_entity_name":"","is_active":False},
 ]
