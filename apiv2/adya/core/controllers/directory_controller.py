@@ -386,7 +386,7 @@ def write_to_csv(auth_token, payload):
     temp_csv = utils.convert_data_to_csv(users, column_headers)
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.utcnow(), "%Y-%m-%d-%H-%M-%S")
-    key = domain_id + "/export/user-" + now
+    key = domain_id + "/export/user-" + now + ".csv"
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
 
     if temp_url:
