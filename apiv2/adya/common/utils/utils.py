@@ -3,15 +3,13 @@ import datetime
 
 from sqlalchemy import and_
 
-from adya.common.constants import constants
+from adya.common.constants import constants, urls
 import os, tempfile, csv
 
-from adya.common.constants.constants import TrustedTypes
 from adya.common.db import models
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DomainUser, ResourcePermission, Resource, Application, ApplicationUserAssociation, \
     AppInventory, AppLicenseInventory, TrustedEntities
-from adya.common.utils.response_messages import Logger
 
 def get_call_with_authorization_header(session, url, auth_token):
     headers = {"Authorization": auth_token}
@@ -69,60 +67,6 @@ def get_cost(app):
         else:
             cost = float(app.unit_num * app.unit_price)    
     return cost
-
-
-def update_data_for_trutsted_entities(db_session, datasource_id, domain_id):
-    trusted_entities = db_session.query(models.TrustedEntities).filter(
-        models.TrustedEntities.domain_id == domain_id).first()
-    if not trusted_entities:
-        return
-    trusted_domains = trusted_entities.trusted_domains
-    trusted_domains_list = trusted_domains.split(',') if trusted_domains else []
-
-    trusted_apps = trusted_entities.trusted_apps
-    trusted_apps_list = trusted_apps.split(',') if trusted_apps else []
-
-    if len(trusted_domains_list) > 0:
-        for trusted_domain in trusted_domains_list:
-            update_data_for_trusted_domains(db_session, [datasource_id], trusted_domain)
-    # update apps data
-    if len(trusted_apps_list) > 0:
-       db_session.query(Application).filter(and_(Application.id == ApplicationUserAssociation.application_id,
-                                ApplicationUserAssociation.datasource_id == datasource_id,
-                                Application.display_text.in_(trusted_apps_list))).update({Application.score: 0})
-
-    db_connection().commit()
-
-
-def update_data_for_trusted_domains(db_session, datasource_ids, new_trusted_domain):
-    # update the domain user table ; make the user as trusted if he belongs to given trusted domain
-    db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids),
-                                             DomainUser.email.endswith("%{0}".format(new_trusted_domain)))). \
-        update({DomainUser.member_type: constants.EntityExposureType.TRUSTED.value}
-               , synchronize_session='fetch')
-
-    resource_perms = db_session.query(ResourcePermission).filter(
-        and_(ResourcePermission.datasource_id.in_(datasource_ids),
-             ResourcePermission.email.endswith(
-                 "%{0}".format(new_trusted_domain)))).all()
-
-    resource_ids = set()
-    for perm in resource_perms:
-        perm.exposure_type = constants.EntityExposureType.TRUSTED.value
-        resource_ids.add(perm.resource_id)
-
-    db_connection().commit()
-
-    for resource_id in resource_ids:
-        external_permission_check = db_session.query(ResourcePermission).filter(
-            and_(ResourcePermission.datasource_id.in_(datasource_ids),
-                 ResourcePermission.resource_id == resource_id,
-                 ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value)).count()
-
-        if external_permission_check <= 0:
-            db_session.query(Resource).filter(
-                and_(Resource.datasource_id.in_(datasource_ids), Resource.resource_id == resource_id)). \
-                update({Resource.exposure_type: constants.EntityExposureType.TRUSTED.value}, synchronize_session='fetch')
 
 
 def add_license_for_scanned_app(db_session, datasource):

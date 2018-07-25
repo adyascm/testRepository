@@ -238,71 +238,93 @@ def update_datasource_column_count(db_session, domain_id, datasource_id):
 def create_trusted_entities_for_a_domain(auth_token, payload):
     db_session = db_connection().get_session()
     if payload:
-        new_domains = payload['trusted_domains']
-        new_apps = payload['trusted_apps']
-        domain_id = payload['domain_id']
-
+        more_to_execute = False if not 'more_to_execute' in payload else payload['more_to_execute']
         existing_domains = []
         existing_apps = []
-        
         datasource_ids = []
-        datasources = get_datasource(auth_token)
-        for datasource in datasources:
-            datasource_ids.append(datasource.datasource_id)
+        if not more_to_execute:
+            domain_id = payload['domain_id']
+            new_domains = payload['trusted_domains']
+            new_apps = payload['trusted_apps']
+            datasources = get_datasource(auth_token)
+            for datasource in datasources:
+                datasource_ids.append(datasource.datasource_id)
 
-        all_trusted_entities_for_domain = get_all_trusted_entities(domain_id)
-        #Try to remove trusts which existed earlier and removed in the update
-        if all_trusted_entities_for_domain:
-            existing_domains = all_trusted_entities_for_domain['trusted_domains']
-            existing_apps = all_trusted_entities_for_domain['trusted_apps']
+            all_trusted_entities_for_domain = get_all_trusted_entities(domain_id)
+            #Try to remove trusts which existed earlier and removed in the update
+            if all_trusted_entities_for_domain:
+                existing_domains = all_trusted_entities_for_domain['trusted_domains']
+                existing_apps = all_trusted_entities_for_domain['trusted_apps']
 
-            remove_domains = set(existing_domains) - set(new_domains)
-            if len(remove_domains) > 0:
-                for domain_name in remove_domains:
-                    delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, domain_name, None)
+                remove_domains = set(existing_domains) - set(new_domains)
+                if len(remove_domains) > 0:
+                    for domain_name in remove_domains:
+                        more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, domain_name, None)
+                        if more_to_execute:
+                            payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                                       "remove_domain": domain_name}
+                            messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
 
-            remove_apps = set(existing_apps) - set(new_apps)
-            if len(remove_apps) > 0:
-                for apps_name in remove_apps:
-                    delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, None, apps_name)
+                remove_apps = set(existing_apps) - set(new_apps)
+                if len(remove_apps) > 0:
+                    for apps_name in remove_apps:
+                        delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, None, apps_name)
 
-        #Now add the new trusts
-        add_domains = set(new_domains) - set(existing_domains)
-        add_apps = set(new_apps) - set(existing_apps)
+            #Now add the new trusts
+            add_domains = set(new_domains) - set(existing_domains)
+            add_apps = set(new_apps) - set(existing_apps)
 
-        if len(add_domains) > 0:
-            for new_trusted_domain in add_domains:
-                utils.update_data_for_trusted_domains(db_session, datasource_ids, new_trusted_domain)
+            if len(add_domains) > 0:
+                for new_trusted_domain in add_domains:
+                    more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, new_trusted_domain)
+                    if more_to_execute:
+                        payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                                   "add_domain": add_trusted_domain}
+                        messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
 
-        if len(add_apps) > 0:
-            for apps_name in add_apps:
-                db_session.query(Application).filter(
-                    and_(Application.domain_id == domain_id, Application.display_text == apps_name)) \
-                    .update({Application.score: 0})
+            if len(add_apps) > 0:
+                for apps_name in add_apps:
+                    db_session.query(Application).filter(
+                        and_(Application.domain_id == domain_id, Application.display_text == apps_name)) \
+                        .update({Application.score: 0})
 
-        trusted_domain_string = ",".join(str(x) for x in new_domains)
-        trusted_app_string = ",".join(str(x) for x in new_apps)
-        if all_trusted_entities_for_domain:
-            db_session.query(TrustedEntities).filter(TrustedEntities.domain_id == domain_id).update({
-                TrustedEntities.trusted_domains: trusted_domain_string, TrustedEntities.trusted_apps: trusted_app_string
-            })
-            db_connection().commit()
-            return payload
+            trusted_domain_string = ",".join(str(x) for x in new_domains)
+            trusted_app_string = ",".join(str(x) for x in new_apps)
+            if all_trusted_entities_for_domain:
+                db_session.query(TrustedEntities).filter(TrustedEntities.domain_id == domain_id).update({
+                    TrustedEntities.trusted_domains: trusted_domain_string, TrustedEntities.trusted_apps: trusted_app_string
+                })
+                db_connection().commit()
+                return payload
+            else:
+                # new entry
+                db_entry = TrustedEntities()
+                db_entry.domain_id = domain_id
+                db_entry.trusted_domains = trusted_domain_string
+                db_entry.trusted_apps = trusted_app_string
+
+                try:
+                    db_session.add(db_entry)
+                except Exception as ex:
+                    Logger().exception("error while inserting trusted entities in db - {}".format(ex))
+                    db_session.rollback()
+                    raise Exception(ex)
+                db_connection().commit()
+                return db_entry
         else:
-            # new entry
-            db_entry = TrustedEntities()
-            db_entry.domain_id = domain_id
-            db_entry.trusted_domains = trusted_domain_string
-            db_entry.trusted_apps = trusted_app_string
+            datasource_ids = payload['datasource_ids']
+            if 'add_domain' in payload:
+                more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, payload['add_domain'])
+                if more_to_execute:
+                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "add_domain": add_trusted_domain}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
 
-            try:
-                db_session.add(db_entry)
-            except Exception as ex:
-                Logger().exception("error while inserting trusted entities in db - {}".format(ex))
-                db_session.rollback()
-                raise Exception(ex)
-            db_connection().commit()
-            return db_entry
+            elif 'remove_domain' in payload:
+                more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, payload['domain_id'], datasource_ids, payload['remove_domain'], None)
+                if more_to_execute:
+                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "remove_domain": domain_name}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+
 
 def get_all_trusted_entities(domain_id):
     db_session = db_connection().get_session()
@@ -321,30 +343,38 @@ def get_all_trusted_entities(domain_id):
                 trusted_entities_for_domain.trusted_apps) > 0) else []
     return entities
 
-def delete_trusted_entities_for_domain(auth_token, domain_id, domain_datasource_ids, domain_name=None, app_name=None):
+def delete_trusted_entities_for_domain(auth_token, domain_id, domain_datasource_ids, domain_name=None, app_name=None, first_call=True):
     db_session = db_connection().get_session()
 
     if domain_name:
-        db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
-                                                 DomainUser.member_type == constants.EntityExposureType.TRUSTED.value)). \
-            filter(DomainUser.email.endswith("%{0}".format(domain_name))).update(
-            {DomainUser.member_type: constants.EntityExposureType.EXTERNAL.value}
-            , synchronize_session='fetch')
+        if first_call:
+            db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
+                                                     DomainUser.member_type == constants.EntityExposureType.TRUSTED.value)). \
+                filter(DomainUser.email.endswith("%{0}".format(domain_name))).update(
+                {DomainUser.member_type: constants.EntityExposureType.EXTERNAL.value}
+                , synchronize_session='fetch')
 
         resource_perms = db_session.query(ResourcePermission).filter(
             and_(ResourcePermission.datasource_id.in_(domain_datasource_ids),
                  ResourcePermission.exposure_type == constants.EntityExposureType.TRUSTED.value)). \
-            filter(ResourcePermission.email.endswith("%{0}".format(domain_name))).all()
+            filter(ResourcePermission.email.endswith("%{0}".format(domain_name))).limit(1000).all()
 
-        resource_ids = set()
-        for perms in resource_perms:
-            resource_ids.add(perms.resource_id)
-            perms.exposure_type = constants.EntityExposureType.EXTERNAL.value
+        more_to_execute = False
+        if resource_perms:
+            resource_ids = set()
+            for perms in resource_perms:
+                resource_ids.add(perms.resource_id)
+                perms.exposure_type = constants.EntityExposureType.EXTERNAL.value
 
-        db_session.query(Resource).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.exposure_type ==
-                 constants.EntityExposureType.TRUSTED.value)).filter(Resource.resource_id.in_(resource_ids)). \
-            update({Resource.exposure_type: constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
+            db_session.query(Resource).filter(
+                and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.exposure_type ==
+                     constants.EntityExposureType.TRUSTED.value)).filter(Resource.resource_id.in_(resource_ids)). \
+                update({Resource.exposure_type: constants.EntityExposureType.EXTERNAL.value}, synchronize_session='fetch')
+
+            if len(resource_perms) == 1000:
+                more_to_execute = True
+
+        return more_to_execute, domain_name
 
     elif app_name:
         apps_info = db_session.query(Application).filter(
@@ -357,4 +387,45 @@ def delete_trusted_entities_for_domain(auth_token, domain_id, domain_datasource_
             apps.score = app_score
     db_connection().commit()
 
+
+def update_data_for_trusted_domains(auth_token, db_session, datasource_ids, new_trusted_domain, first_call=True):
+    if first_call:
+        # update the domain user table ; make the user as trusted if he belongs to given trusted domain
+        db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids),
+                                                 DomainUser.email.endswith("%{0}".format(new_trusted_domain)))). \
+            update({DomainUser.member_type: constants.EntityExposureType.TRUSTED.value}
+                   , synchronize_session='fetch')
+
+    resource_perms = db_session.query(ResourcePermission).filter(
+        and_(ResourcePermission.datasource_id.in_(datasource_ids),
+             ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value,
+             ResourcePermission.email.endswith(
+                 "%{0}".format(new_trusted_domain)))).limit(1000).all()
+
+    more_to_execute = False
+    if resource_perms:
+        resource_ids = set()
+        for perm in resource_perms:
+            perm.exposure_type = constants.EntityExposureType.TRUSTED.value
+            resource_ids.add(perm.resource_id)
+
+        db_connection().commit()
+
+        for resource_id in resource_ids:
+            higher_permission_check = db_session.query(ResourcePermission).filter(
+                and_(ResourcePermission.datasource_id.in_(datasource_ids),
+                     ResourcePermission.resource_id == resource_id,
+                     ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value)).count()
+
+            if higher_permission_check <= 0:
+                db_session.query(Resource).filter(
+                    and_(Resource.datasource_id.in_(datasource_ids), Resource.resource_id == resource_id,
+                         Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value)). \
+                    update({Resource.exposure_type: constants.EntityExposureType.TRUSTED.value}, synchronize_session='fetch')
+
+        db_connection().commit()
+        if len(resource_perms) == 1000:
+            more_to_execute = True
+
+    return more_to_execute, new_trusted_domain
 
