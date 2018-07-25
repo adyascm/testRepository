@@ -172,3 +172,4 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
     utils.add_license_for_scanned_app(db_session, datasource)
     body = {'datasource_id': datasource_id, "is_default": True}
     messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
+    messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)

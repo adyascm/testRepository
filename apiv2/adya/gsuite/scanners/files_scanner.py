@@ -28,7 +28,7 @@ def query(auth_token, query_params, scanner):
                     "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                     "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
                     "owners,size,createdTime, modifiedTime), "
-                    "nextPageToken", pageSize=1000, quotaUser= quotaUser, pageToken=next_page_token).execute()
+                    "nextPageToken", pageSize=100, quotaUser= quotaUser, pageToken=next_page_token).execute()
     if results and "files" in results:
         files = results["files"]
 

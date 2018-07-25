@@ -129,7 +129,7 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
         #If its not complete delete, then just clear out the scan entities, and reset the scan state 
         if complete_delete:
             db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
-            db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
+            # db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
             db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
             #Delete Policies
             db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)

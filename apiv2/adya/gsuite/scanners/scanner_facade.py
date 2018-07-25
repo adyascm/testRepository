@@ -45,6 +45,66 @@ def update_scan(auth_token, datasource_id, domain_id):
             Logger().info("update_scan : call Scan completed processing method")
             scan_complete_processing(db_session, auth_token, datasource_id, domain_id)
 
+# def request_scanner_data(auth_token, query_params):
+#     #try:
+#     datasource_id = query_params["dataSourceId"]
+#     scanner_id = query_params["scannerId"]
+    
+#     db_session = db_connection().get_session()
+#     scanner = db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)).first()
+#     if not scanner:
+#         return
+    
+#     response = None
+#     try:
+#         response = get_scanner_processor(scanner.scanner_type).query(auth_token, query_params, scanner)
+#     except Exception as ex:
+#         Logger().exception("Exception occurred while querying scan data for - {} - {} ".format(query_params, ex))
+#         db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
+#             update({DatasourceScanners.in_progress: 0})
+#         db_connection().commit()
+#         return
+
+#     next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else None
+#     if next_page_token:
+#         scanner.page_token = str(next_page_token)
+#         query_params["nextPageNumber"] = scanner.page_token
+#         messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
+#     else:
+#         scanner.page_token = ""
+
+#     entities_list = response["payload"]
+#     fetched_entities_count = len(entities_list)
+
+#     in_progress = 0 if fetched_entities_count < 1 else 1
+#     db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
+#             update({DatasourceScanners.total_count: DatasourceScanners.total_count + fetched_entities_count, 
+#             DatasourceScanners.query_status: DatasourceScanners.query_status + 1})
+    
+#     if in_progress == 0:
+#         db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
+#             update({DatasourceScanners.in_progress: in_progress})
+#         db_connection().commit()
+#         messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
+#         return
+    
+#     datasource_metric_column = get_datasource_column(scanner.scanner_type)
+#     if datasource_metric_column:
+#         db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
+#                 update({datasource_metric_column: datasource_metric_column + fetched_entities_count})
+#     db_connection().commit()
+    
+#     sent_member_count = 0
+#     batch_size = response["batchSize"] if "batchSize" in response else fetched_entities_count
+#     while sent_member_count < fetched_entities_count:
+#         scanner_data = {}
+#         scanner_data["entities"] = entities_list[sent_member_count:sent_member_count + batch_size]
+#         #If this is the last set of users, in the process call, send the next page number as empty
+#         if fetched_entities_count - sent_member_count <= batch_size and not scanner.page_token:
+#             query_params["nextPageNumber"] = ""
+#         messaging.trigger_post_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, scanner_data, "gsuite")
+#         sent_member_count += batch_size
+
 def request_scanner_data(auth_token, query_params):
     #try:
     datasource_id = query_params["dataSourceId"]
@@ -65,13 +125,9 @@ def request_scanner_data(auth_token, query_params):
         db_connection().commit()
         return
 
-    next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else None
-    if next_page_token:
-        scanner.page_token = str(next_page_token)
-        query_params["nextPageNumber"] = scanner.page_token
-        messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
-    else:
-        scanner.page_token = ""
+    next_page_token = response["nextPageNumber"] if "nextPageNumber" in response else ""
+    scanner.page_token = str(next_page_token)
+    query_params["nextPageNumber"] = next_page_token
 
     entities_list = response["payload"]
     fetched_entities_count = len(entities_list)
@@ -88,36 +144,21 @@ def request_scanner_data(auth_token, query_params):
         messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
         return
     
-    datasource_metric_column = get_datasource_column(scanner.scanner_type)
-    if datasource_metric_column:
-        db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-                update({datasource_metric_column: datasource_metric_column + fetched_entities_count})
     db_connection().commit()
-    #datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
-    #messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
-    #db_connection().close_connection()
-    sent_member_count = 0
-    batch_size = response["batchSize"] if "batchSize" in response else fetched_entities_count
-    while sent_member_count < fetched_entities_count:
-        scanner_data = {}
-        scanner_data["entities"] = entities_list[sent_member_count:sent_member_count + batch_size]
-        #If this is the last set of users, in the process call, send the next page number as empty
-        if fetched_entities_count - sent_member_count <= batch_size and not scanner.page_token:
-            query_params["nextPageNumber"] = ""
-        messaging.trigger_post_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, scanner_data, "gsuite")
-        sent_member_count += batch_size
-    # except Exception as ex:
-    #     print ex.message
+    
+    process_scanner_data(db_session, scanner, auth_token, query_params, {"entities": entities_list})
+    if next_page_token:
+        messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
 
-def process_scanner_data(auth_token, query_params, scanner_data):
+def process_scanner_data(db_session, scanner, auth_token, query_params, scanner_data):
     datasource_id = query_params["dataSourceId"]
     scanner_id = query_params["scannerId"]
     next_page_token = query_params["nextPageNumber"]
 
-    db_session = db_connection().get_session()
-    scanner = db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)).first()
-    if not scanner:
-        return
+    # db_session = db_connection().get_session()
+    # scanner = db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)).first()
+    # if not scanner:
+    #     return
     
     scanner_processor = get_scanner_processor(scanner.scanner_type)
     processed_results = 0
@@ -130,12 +171,10 @@ def process_scanner_data(auth_token, query_params, scanner_data):
     in_progress = 1
     if not next_page_token:
         in_progress = 0
-        db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
-            update({DatasourceScanners.in_progress: in_progress})
 
     db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.process_status: DatasourceScanners.process_status + 1, DatasourceScanners.processed_count: DatasourceScanners.processed_count + processed_results,
-            DatasourceScanners.updated_at: datetime.utcnow()})
+            DatasourceScanners.updated_at: datetime.utcnow(), DatasourceScanners.in_progress: in_progress})
     
     datasource_metric_column = get_datasource_column(scanner.scanner_type, False)
     if datasource_metric_column:
