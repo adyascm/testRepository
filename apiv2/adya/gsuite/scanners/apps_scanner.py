@@ -14,14 +14,13 @@ from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 
 def query(auth_token, query_params, scanner):
-    next_page_token = query_params["nextPageNumber"]
     user_key = query_params["userEmail"]
     directory_service = gutils.get_directory_service(auth_token)
     tokens = []
     results = directory_service.tokens().list(userKey=user_key, quotaUser = user_key[0:41]).execute()
     if results and "items" in results:
         tokens = results["items"]
-    return {"payload": tokens, "nextPageNumber": ""}
+    return {"payload": tokens}
 
 def process(db_session, auth_token, query_params, scanner_data):
     user_email = query_params["userEmail"]

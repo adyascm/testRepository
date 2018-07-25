@@ -227,6 +227,7 @@ def delete_permissions(auth_token, permissions, owner_email, initiated_by_email,
                 break
         
     try:
+        Logger().info("updated_permissions to be deleted from db - {}".format(updated_permissions))
         delete_resource_permission(initiated_by_email, datasource_id, updated_permissions)
     except Exception:
         Logger().exception("Exception occurred while removing permission from db")

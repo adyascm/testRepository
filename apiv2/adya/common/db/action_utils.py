@@ -6,6 +6,8 @@ from adya.common.constants import constants
 from adya.common.db.connection import db_connection
 from adya.common.db.models import ResourcePermission, Resource, DomainUser
 from adya.common.utils import utils
+from adya.common.utils.response_messages import Logger
+
 
 def update_resource_permissions(initiated_by_email, datasource_id, updated_permissions):
     db_session = db_connection().get_session()
@@ -121,6 +123,7 @@ def update_old_owner_permission(db_session, datasource_id, resource_id, updated_
 
 
 def delete_resource_permission(initiated_by_email, datasource_id, updated_permissions):
+    Logger().info("delete permission from db ")
     db_session = db_connection().get_session()
     external_users = {}
     for resource_id in updated_permissions:

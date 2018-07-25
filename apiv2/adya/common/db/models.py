@@ -112,7 +112,7 @@ class DatasourceScanners(Base):
     channel_id = Column(String(100), primary_key=True)
     scanner_type = Column(String(50))
     user_email = Column(String(255))
-    page_token = Column(String(225))
+    page_token = Column(String(1024))
     total_count = Column(BigInteger, default=0)
     processed_count = Column(BigInteger, default=0)
     in_progress = Column(Boolean)

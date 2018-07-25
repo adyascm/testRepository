@@ -188,12 +188,13 @@ def get_trusted_entity_for_domain(db_session, domain_id):
     return {'trusted_domains': trusted_domains_list, 'trusted_apps': trusted_apps_list}
 
 
-def check_if_external_user(db_session, domain_id, email):
+def check_if_external_user(db_session, domain_id, email, trusted_domains=None):
     exposure_type = constants.EntityExposureType.INTERNAL.value
     if '@' in email and not email.endswith(domain_id):
         exposure_type = constants.EntityExposureType.EXTERNAL.value
-        trusted_domains_list = (get_trusted_entity_for_domain(db_session, domain_id))['trusted_domains']
-        for trusted_domain in trusted_domains_list:
+        if not trusted_domains:
+            trusted_domains = (get_trusted_entity_for_domain(db_session, domain_id))['trusted_domains']
+        for trusted_domain in trusted_domains:
             if email.endswith(trusted_domain):
                 exposure_type = constants.EntityExposureType.TRUSTED.value
                 break

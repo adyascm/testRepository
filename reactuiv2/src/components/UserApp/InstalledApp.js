@@ -318,7 +318,7 @@ class InstalledApp extends Component {
                             {!is_category_box_visible ? <Label color={catColor} size='mini' >
                                 {category}
                                 <Icon name='close' onClick={(event) => this.handleRowChange(event, index, 'CHANGE_CATEGORY')} />
-                            </Label>: <Input style={{maxWidth:'100px'}} transparent type="text" placeholder='preferred category' value={category} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_CATEGORY')} />
+                            </Label>: <Input transparent type="text" placeholder='Add Category' value={category} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_CATEGORY')} />
                             }
                         </Table.Cell>
                         <Table.Cell collapsing><Input style={{maxWidth:'100px'}} transparent type="text" placeholder='#licenses' value={unitNum > 0 ? unitNum : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_NUM')} /></Table.Cell>

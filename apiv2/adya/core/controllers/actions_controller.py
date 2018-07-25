@@ -288,11 +288,13 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         log_entry.total_count = resource_permissions.count()
         db_connection().commit()
 
+    Logger().info("remove_all_permissions_for_user : retrieve permission for a user from db")
     resource_permissions = resource_permissions.order_by(Resource.resource_owner_id.asc()).limit(BATCH_COUNT).all()
     more_to_execute = False
     if len(resource_permissions) == BATCH_COUNT:
         more_to_execute = True
 
+    Logger().info("remove_all_permissions_for_user : form a permission payload for each owner")
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
         owner = permission.resource.resource_owner_id
@@ -310,6 +312,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         200, 'Action submitted successfully')
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
+        Logger().info("remove_all_permissions_for_user : call execute_batch_delete function")
         response = execute_batch_delete(
             auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key, more_to_execute)
 
