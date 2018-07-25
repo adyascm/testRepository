@@ -39,6 +39,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     domain_id = query_params["domainId"]
     datasource_id = query_params["dataSourceId"]
     user_email = query_params["userEmail"]
+    trusted_domains = (utils.get_trusted_entity_for_domain(db_session, domain_id))['trusted_domains']
     resource_count = 0
     try:
         Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
@@ -84,8 +85,10 @@ def process(db_session, auth_token, query_params, scanner_data):
                     if email_address:
                         if email_address == resource["resource_owner_id"]:
                             permission_exposure = constants.EntityExposureType.PRIVATE.value
+                        elif email_address in external_user_map:
+                            permission_exposure = external_user_map[email_address]["member_type"]
                         else:
-                            permission_exposure = utils.check_if_external_user(db_session, domain_id,email_address)
+                            permission_exposure = utils.check_if_external_user(db_session, domain_id, email_address, trusted_domains)
 
                         if permission_exposure == constants.EntityExposureType.EXTERNAL.value or permission_exposure == constants.EntityExposureType.TRUSTED.value:
                             ## insert non domain user as External user in db, Domain users will be
