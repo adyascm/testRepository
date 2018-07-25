@@ -7,7 +7,7 @@ class activity_db:
         _db = None
         def __init__(self):
             if not self._client:
-                self._client = MongoClient(constants.ACTIVITY_DB_HOST, constants.ACTIVITY_DB_PORT)
+                self._client = MongoClient(constants.ACTIVITY_DB_HOST, int(constants.ACTIVITY_DB_PORT))
             if not self._db:
                 self._db = self._client[constants.DEPLOYMENT_ENV + "_activities"]
         

@@ -6,6 +6,8 @@ DB_USERNAME=${2:-'root'}
 DB_PWD=${3:-'root'}
 DB_NAME=${4:-'dev'}
 STAGE=${5:-'dev'}
+ACTIVITY_DB_HOST=${6:-'localhost'}
+ACTIVITY_DB_PORT=${7:-'27017'}
 
 #clean up
 rm -rf target/dist/adyaapp &> /dev/null
@@ -37,13 +39,13 @@ cp github-serverless.yml target/dist/adyaapp/github/serverless.yml
 cd target/dist/adyaapp/core
 
 sls create_domain --stage=$STAGE
-sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE
+sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE --ACTIVITY_DB_HOST=$ACTIVITY_DB_HOST --ACTIVITY_DB_PORT=$ACTIVITY_DB_PORT
 
 cd ../gsuite
-sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE
+sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE --ACTIVITY_DB_HOST=$ACTIVITY_DB_HOST --ACTIVITY_DB_PORT=$ACTIVITY_DB_PORT
 
 cd ../slack
-sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE
+sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE --ACTIVITY_DB_HOST=$ACTIVITY_DB_HOST --ACTIVITY_DB_PORT=$ACTIVITY_DB_PORT
 
 cd ../github
-sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE
+sls deploy --DB_URL=$DB_URL --DB_USERNAME=$DB_USERNAME --DB_PWD=$DB_PWD --DB_NAME=$DB_NAME --stage=$STAGE --ACTIVITY_DB_HOST=$ACTIVITY_DB_HOST --ACTIVITY_DB_PORT=$ACTIVITY_DB_PORT

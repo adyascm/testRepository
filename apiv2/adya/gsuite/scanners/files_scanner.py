@@ -33,7 +33,7 @@ def query(auth_token, query_params, scanner):
         files = results["files"]
 
     next_page_token = results.get('nextPageToken')
-    return {"payload": files, "nextPageNumber": next_page_token, "batchSize": 20}
+    return {"payload": files, "nextPageNumber": next_page_token, "batchSize": 10}
 
 def process(db_session, auth_token, query_params, scanner_data):
     domain_id = query_params["domainId"]

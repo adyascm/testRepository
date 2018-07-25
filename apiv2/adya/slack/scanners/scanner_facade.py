@@ -60,11 +60,11 @@ def request_scanner_data(auth_token, query_params):
     response = get_scanner_processor(scanner.scanner_type).query(auth_token, query_params, scanner)
     next_page_token = response["nextPageNumber"]
     if next_page_token:
-        scanner.next_page_token = str(next_page_token)
-        query_params["nextPageNumber"] = scanner.next_page_token
+        scanner.page_token = str(next_page_token)
+        query_params["nextPageNumber"] = scanner.page_token
         messaging.trigger_get_event(urls.SCAN_SLACK_ENTITIES, auth_token, query_params, "slack")
     else:
-        scanner.next_page_token = ""
+        scanner.page_token = ""
 
     entities_list = response["payload"]
     fetched_entities_count = len(entities_list)
@@ -94,7 +94,7 @@ def request_scanner_data(auth_token, query_params):
         scanner_data = {}
         scanner_data["entities"] = entities_list[sent_member_count:sent_member_count + 30]
         #If this is the last set of users, in the process call, send the next page number as empty
-        if fetched_entities_count - sent_member_count <= 30 and not scanner.next_page_token:
+        if fetched_entities_count - sent_member_count <= 30 and not scanner.page_token:
             query_params["nextPageNumber"] = ""
         messaging.trigger_post_event(urls.SCAN_SLACK_ENTITIES, auth_token, query_params, scanner_data, "slack")
         sent_member_count += 30
@@ -172,3 +172,4 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
     utils.add_license_for_scanned_app(db_session, datasource)
     body = {'datasource_id': datasource_id, "is_default": True}
     messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
+    messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)

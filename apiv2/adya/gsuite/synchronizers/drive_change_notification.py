@@ -5,7 +5,9 @@ from sqlalchemy import and_
 
 from adya.common.constants import urls, constants
 from adya.common.db import db_utils
+from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
+from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import DataSource, PushNotificationsSubscription, LoginUser, DataSource, Resource, ResourcePermission, \
     DomainUser, alchemy_encoder
 from adya.common.utils import messaging
@@ -176,11 +178,25 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
             #Delete the permission
             db_session.delete(existing_permission)
 
-
+    datasource_obj = get_datasource(datasource_id)
     #Now add all the other new permissions
     for new_permission in new_permissions_map.values():
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(ResourcePermission, new_permission)))
-
+        if new_permission.exposure_type == constants.EntityExposureType.PUBLIC.value:
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type='FILE_SHARE_PUBLIC', actor=db_resource.resource_owner_id,
+                                    tags={})
+        elif new_permission.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value:
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type='FILE_SHARE_ANYONEWITHLINK', actor=db_resource.resource_owner_id,
+                                    tags={})
+        elif new_permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type='FILE_SHARE_EXTERNAL', actor=db_resource.resource_owner_id,
+                                    tags={})
     #Update external users
     if len(external_users)>0:
         external_users_values = []

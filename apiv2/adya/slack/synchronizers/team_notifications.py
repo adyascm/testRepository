@@ -104,3 +104,7 @@ def process_application(db_session, datasource_id, payload):
             Logger().info("added_app : payload : {}".format(app_payload))
             messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params,
                                          policy_payload, "slack")
+
+        activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                    event_type ='OAUTH_GRANT', actor=user_id,
+                                    tags={"score":max_score, "display_text":display_text})

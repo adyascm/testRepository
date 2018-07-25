@@ -13,6 +13,7 @@ from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
+from adya.common.constants.constants import datasource_to_default_report_map
 
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
@@ -263,20 +264,28 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 def create_report(auth_token, payload):
     db_session = db_connection().get_session()
     if "is_default" in payload:
+        result = []
         db_session = db_connection().get_session()
+        datasource_id = payload["datasource_id"]
         login_user = db_utils.get_user_session(auth_token).email
         domain_id = db_session.query(DataSource).filter(
-            DataSource.datasource_id == payload["datasource_id"]).first().domain_id
+            DataSource.datasource_id == datasource_id).first().domain_id
         reports = default_reports.default_reports
+        datasource_type = db_utils.get_datasource(datasource_id).datasource_type
+        default_datasource_reports = datasource_to_default_report_map[datasource_type]
+        if default_datasource_reports:
+            reports.extend(default_datasource_reports)
         for report in reports:
             existing_report = db_session.query(Report).filter(Report.domain_id == domain_id,
                                                               Report.name == report["name"]).first()
             if not existing_report:
                 report["receivers"] = login_user
-                report["datasource_id"] = payload["datasource_id"]
-                insert_entry_into_report_table(db_session, auth_token, report)
+                report["datasource_id"] = datasource_id
+                result.append(insert_entry_into_report_table(db_session, auth_token, report))    
+        return result
     else:
-        return insert_entry_into_report_table(db_session, auth_token, payload)
+        return [insert_entry_into_report_table(db_session, auth_token, payload)]
+        
 
 
 def get_reports(auth_token):
@@ -300,7 +309,7 @@ def get_reports(auth_token):
             "receivers": report.receivers,
             "creation_time": report.creation_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_trigger_time": last_trigger_time,
-            "is_active": str(report.is_active),
+            "is_active": report.is_active,
             "report_type": config_data['report_type'],
             "selected_entity": config_data['selected_entity'],
             "selected_entity_type": config_data['selected_entity_type'],
@@ -393,15 +402,33 @@ def run_report(auth_token, report_id):
                                                            DomainUser.type == constants.DirectoryEntityType.USER.value).all()
         for user in domain_users:
             user_num_days = (datetime.datetime.utcnow() - user.last_login_time).days
-            user_app = db_session.query(DataSource).filter(DataSource.datasource_id == user.datasource_id).first().datasource_type
             data_map = {
                 "name": user.full_name,
                 "email": user.email,
-                "app": user_app,
                 "login_time": str(user.last_login_time),
                 "num_days": user_num_days
             }
             response_data.append(data_map)
+    elif report_type == 'EmptyGSuiteGroup':
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
+        empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.GROUP.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
+        for grp in empty_grps:
+            data_map = {
+                "name":grp.full_name,
+                "email":grp.email
+            }          
+            response_data.append(data_map)
+    elif report_type == 'EmptySlackChannel':
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
+        empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.CHANNEL.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
+        for grp in empty_grps:
+            data_map = {
+                "name":grp.full_name,
+                "email":grp.email
+            }          
+            response_data.append(data_map)        
     return response_data, email_list, report_type, report_desc, report_name
 
 
@@ -457,8 +484,11 @@ def generate_csv_report(report_id):
             report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
 
         elif report_type == 'Inactive':
-            csv_display_header = ['Name', 'Email', 'Application', 'Last Login', 'Number of days since last login']
-            report_data_header = ["name", 'email', 'app', 'login_time', 'num_days']
+            csv_display_header = ['Name', 'Email', 'Last Login', 'Number of days since last login']
+            report_data_header = ["name", 'email', 'login_time', 'num_days']
+        elif report_type == 'EmptyGSuiteGroup' or report_type == 'EmptySlackChannel':
+            csv_display_header = ['Name','Email']
+            report_data_header = ["name",'email']    
 
         Logger().info("making csv")
 

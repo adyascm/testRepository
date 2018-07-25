@@ -2,6 +2,7 @@ import os
 from enum import Enum
 
 from adya.common.constants import default_policies
+from adya.common.constants import default_reports
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
@@ -19,7 +20,7 @@ DB_PWD = os.environ.get('DB_PWD', 'root')
 DB_NAME = os.environ.get('DB_NAME', 'dev')
 
 ACTIVITY_DB_HOST = os.environ.get('ACTIVITY_DB_HOST', 'localhost')
-ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', 27017)
+ACTIVITY_DB_PORT = os.environ.get('ACTIVITY_DB_PORT', '27017')
 ACTIVITY_DB_USERNAME = os.environ.get('ACTIVITY_DB_USERNAME', 'root')
 ACTIVITY_DB_PWD = os.environ.get('ACTIVITY_DB_PWD', 'root')
 
@@ -150,6 +151,11 @@ datasource_to_default_policy_map = {
     ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
 }
 
+datasource_to_default_report_map = {
+    ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
+    ConnectorTypes.GSUITE.value: default_reports.default_reports_gsuite
+}
+
 class BillingCycle(Enum):
     MONTHLY = "MONTHLY"
     YEARLY = "YEARLY"
@@ -167,3 +173,5 @@ datasource_to_installed_app_map = {
 class TrustedTypes(Enum):
     DOMAINS = 'DOMAINS'
     APPS = 'APPS'
+
+COMMON_TAGS = [{"key": "domain_id", "desc": "Customer's domain", "default": ""}, {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE"}, {"key": "actor", "desc": "Entity triggering this event", "default": ""}]

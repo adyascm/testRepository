@@ -22,8 +22,8 @@ const ResourcePermissions = props => {
         { text: 'Can Read', value: 'reader' },
         { text: 'Can Write', value: 'writer' },
         { text: 'Owner', value: 'owner' },
-        {text: 'Can Comment', value: 'commenter'},
-        {text: 'Admin', value: 'admin'}
+        { text: 'Can Comment', value: 'commenter'},
+        { text: 'Admin', value: 'admin'}
     ]
 
     let permissions = props.rowData.permissions
@@ -32,6 +32,7 @@ const ResourcePermissions = props => {
 
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission, index) => {
+            let permEmailStyle = ["PUBLIC","ANYONEWITHLINK","EXT"].indexOf(permission["exposure_type"]) >= 0 ? {color:"red"} : null
             if (permission["permission_id"] !== undefined)
                 return (
                     <Table.Row key={index}>
@@ -43,9 +44,9 @@ const ResourcePermissions = props => {
                                 </Button.Content>
                             </Button>
                         </Table.Cell>
-                        <Table.Cell>
+                        <Table.Cell style={permEmailStyle}>
                             {permission["email"]}
-                        </Table.Cell>
+                        </Table.Cell> 
                         <Table.Cell>
                             <Dropdown fluid selection disabled={props.datasourceType != "GSUITE"} options={permissionOptions} value={permission.permission_type} onChange={(event, data) => props.onPermissionChange(event, permission, data.value)} selectOnBlur={false} />
                         </Table.Cell>

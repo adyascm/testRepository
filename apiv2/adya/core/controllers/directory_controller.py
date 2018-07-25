@@ -290,6 +290,7 @@ def update_apps(auth_token, payload):
         app["unit_num"] = payload["unit_num"]
         app["unit_price"] = payload["unit_price"]
         app["pricing_model"] = payload["pricing_model"]
+        app["category"] = payload["category"]
         db_session.query(Application).filter(Application.id == payload["application_id"]).update(app)
         db_connection().commit()
         return payload
@@ -309,6 +310,8 @@ def insert_apps(auth_token, payload):
             app.domain_id = domain_id
             app.display_text = inventory_app.name
             app.inventory_app_id = id
+            app.category = inventory_app.category
+            app.image_url = inventory_app.image_url
             app.timestamp = str(datetime.utcnow().isoformat())
             app.unit_num = 0
             db_session.add(app)

@@ -226,13 +226,14 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         return False
 
 
-def send_app_install_policy_violate_email(user_email,policy,application):
+def send_app_install_policy_violate_email(user_email,policy,application, is_reverted):
     try:
         template_name = "app_install_policy_violation"
         template_parameters = {
             "policy_name": policy.name,
             "app_name": application["display_text"],
-            "user_name":application["user_email"]
+            "user_name":application["user_email"],
+            "is_reverted": is_reverted
         } 
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in GSuite account"
@@ -246,12 +247,14 @@ def send_app_install_policy_violate_email(user_email,policy,application):
 def send_new_user_policy_violate_email(user_email, policy, new_user):
     try:
         datasource_name = (policy.name).split("::")[0] if policy.name else None
-        template_name = "new_user_policy_violation"
+        user_type =  "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
+                                                        constants.EntityExposureType.EXTERNAL.value) else None)
+        template_name = "new_administrator_policy_violation" if (user_type == "Administrator") else \
+                            ("add_external_user_policy_violation" if (user_type == "external_user") else None)
         template_parameters = {
             "policy_name": policy.name,
             "user_email": new_user["email"],
-            "datasource_name": datasource_name,
-            "new_user_type": "Administrator" if new_user['is_admin'] else ("external user" if new_user['member_type'] else None)
+            "datasource_name": datasource_name
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in {} account".format(datasource_name)
