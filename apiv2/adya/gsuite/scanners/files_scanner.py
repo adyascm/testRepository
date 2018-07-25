@@ -1,7 +1,7 @@
 from __future__ import division  # necessary
 
 from requests_futures.sessions import FuturesSession
-import uuid,json,time,datetime,sys
+import uuid,json,datetime,sys
 from sqlalchemy import and_
 
 from adya.gsuite import gutils
@@ -36,6 +36,8 @@ def query(auth_token, query_params, scanner):
     return {"payload": files, "nextPageNumber": next_page_token, "batchSize": 10}
 
 def process(db_session, auth_token, query_params, scanner_data):
+    start_time = datetime.datetime.utcnow()
+    #Logger().info("File processing started at - {}".format(start_time))
     domain_id = query_params["domainId"]
     datasource_id = query_params["dataSourceId"]
     user_email = query_params["userEmail"]
@@ -138,11 +140,15 @@ def process(db_session, auth_token, query_params, scanner_data):
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)
         
+        Logger().info("File processing - collected the data in - {}".format(datetime.datetime.utcnow() - start_time))
         db_session.execute(Resource.__table__.insert().prefix_with("IGNORE").values(resourceList))
+        Logger().info("File processing - inserted in resource table in - {}".format(datetime.datetime.utcnow() - start_time))
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(data_for_permission_table))
+        Logger().info("File processing - inserted in permissions table in - {}".format(datetime.datetime.utcnow() - start_time))
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()
+        Logger().info("File processing - committed everything in - {}".format(datetime.datetime.utcnow() - start_time))
         return resource_count
     except Exception as ex:
         Logger().exception("Exception occurred while processing data for drive resources using email: {} - {}".format(user_email, ex))
