@@ -185,7 +185,6 @@ def process_scanner_data(db_session, scanner, auth_token, query_params, scanner_
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
 
     if in_progress == 0:
-        scanner_processor.post_process(db_session, auth_token, query_params)
         messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
 
 def get_scanner_processor(scanner_type):
