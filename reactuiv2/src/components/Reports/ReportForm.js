@@ -213,8 +213,7 @@ class ReportForm extends Component {
     </Form.Group>):<span>Group/User</span> ) : null 
 
   var reportTypeForm = ['EmptyGSuiteGroup','EmptySlackChannel'].indexOf(this.handleMultipleOptions('report_type')) >= 0 ?
-      <Form.Input 
-      defaultValue={this.handleMultipleOptions('report_type')} /> :
+      <Form.Input label='Report Type' readOnly value={this.handleMultipleOptions('report_type')} />:
       <Form.Select id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
       label='Report Type' options={reportOptions} placeholder='Report Type'
       defaultValue={this.handleMultipleOptions('report_type')} />
