@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Button, Icon, Dropdown, Table, Input } from 'semantic-ui-react'
+import { Grid, Button, Icon, Dropdown, Table, Input, Popup } from 'semantic-ui-react'
 
 
 let newPermission = {
@@ -28,14 +28,22 @@ const ResourcePermissions = props => {
 
     let permissions = props.rowData.permissions
     let permissionUsers = []
-
+    let permMap = {'PUBLIC': {'color':'red','content':'Publicly discoverable'},'ANYONEWITHLINK':{'color':'orange','content':'Shared public link'},'EXT':{'color':'yellow','content':'Shared with users outside company'},'TRUST':{'color':'grey','content':'Shared with trusted domain'}}
 
     if (permissions && permissions.length > 0) {
         permissionUsers = permissions.map((permission, index) => {
-            let permEmailStyle = ["PUBLIC","ANYONEWITHLINK","EXT"].indexOf(permission["exposure_type"]) >= 0 ? {color:"red"} : null
+            let permColorValue = permission['exposure_type'] in permMap ? permMap[permission['exposure_type']]['color'] : null
             if (permission["permission_id"] !== undefined)
                 return (
                     <Table.Row key={index}>
+                        <Table.Cell compact style={{textAlign:'center'}}>
+                            {permColorValue ?
+                            <Popup trigger={<Icon circular inverted color={permColorValue} name='exclamation' />}
+                            basic> 
+                            {permMap[permission['exposure_type']]['content']}
+                            </Popup>
+                            : null }
+                        </Table.Cell>    
                         <Table.Cell>
                             <Button animated='vertical' basic color='red' disabled={props.datasourceType == "SLACK"} onClick={(event) => props.onRemovePermission(event, permission)}>
                                 <Button.Content hidden>Remove</Button.Content>
@@ -44,7 +52,7 @@ const ResourcePermissions = props => {
                                 </Button.Content>
                             </Button>
                         </Table.Cell>
-                        <Table.Cell style={permEmailStyle}>
+                        <Table.Cell>
                             {permission["email"]}
                         </Table.Cell> 
                         <Table.Cell>
@@ -62,6 +70,8 @@ const ResourcePermissions = props => {
             <Table.Header>
                 <Table.Row>
                     <Table.HeaderCell>
+                    </Table.HeaderCell>    
+                    <Table.HeaderCell>
                         Add/Remove
                     </Table.HeaderCell>
                     <Table.HeaderCell>
@@ -74,6 +84,8 @@ const ResourcePermissions = props => {
             </Table.Header>
             <Table.Body>
                 <Table.Row>
+                    <Table.Cell>
+                    </Table.Cell>
                     <Table.Cell>
                         <Button animated='vertical' basic disabled={props.datasourceType != "GSUITE"} color='green' onClick={(event) => props.onAddPermission(event,newPermission,newPermissionType)}>
                             <Button.Content hidden>Add</Button.Content>
