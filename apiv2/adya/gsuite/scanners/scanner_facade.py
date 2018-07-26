@@ -32,7 +32,7 @@ def start_scan(auth_token, datasource_id, domain_id, user_email):
         messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
 
 def update_scan(auth_token, datasource_id, domain_id):
-    time.sleep(3)
+    #time.sleep(3)
     db_session = db_connection().get_session()
     scan_complete = db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.in_progress > 0)).count()
     #print "Total scanners in progress - {}".format(scan_complete)
