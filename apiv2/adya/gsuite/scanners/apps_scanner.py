@@ -71,6 +71,3 @@ def process(db_session, auth_token, query_params, scanner_data):
         db_session.bulk_insert_mappings(ApplicationUserAssociation, application_associations)
         db_connection().commit()
     return apps_count
-    
-def post_process(db_session, auth_token, query_params):
-    pass

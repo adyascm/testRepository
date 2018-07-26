@@ -23,7 +23,7 @@ def query(auth_token, query_params, scanner):
     directory_service = gutils.get_directory_service(auth_token)
     users = []
     try:
-        results = directory_service.users().list(customer='my_customer', maxResults=50, pageToken=next_page_token,
+        results = directory_service.users().list(customer='my_customer', maxResults=25, pageToken=next_page_token,
                                                 orderBy='email').execute()
     except RefreshError as ex:
         Logger().info("User query : Not able to refresh credentials")
@@ -75,6 +75,34 @@ def process(db_session, auth_token, query_params, scanner_data):
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_connection().commit()
+        now = datetime.datetime.utcnow()
+        for user_email in user_email_list:
+            file_scanner = DatasourceScanners()
+            file_scanner.datasource_id = datasource_id
+            file_scanner.scanner_type = gsuite_constants.ScannerTypes.FILES.value
+            file_scanner.channel_id = str(uuid.uuid4())
+            file_scanner.user_email = user_email
+            file_scanner.started_at = now
+            file_scanner.in_progress = 1
+            db_session.add(file_scanner)
+            db_connection().commit()
+            file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(file_scanner.id), 
+                        'userEmail': user_email, 'ownerEmail': user_email}
+            messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, file_query_params, "gsuite")
+
+            app_scanner = DatasourceScanners()
+            app_scanner.datasource_id = datasource_id
+            app_scanner.scanner_type = gsuite_constants.ScannerTypes.APPS.value
+            app_scanner.channel_id = str(uuid.uuid4())
+            app_scanner.user_email = user_email
+            app_scanner.started_at = now
+            app_scanner.in_progress = 1
+            db_session.add(app_scanner)
+            db_connection().commit()
+            app_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(app_scanner.id), 
+                        'userEmail': user_email}
+            messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, app_query_params, "gsuite")
+
         Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
         return user_count
 
@@ -82,35 +110,3 @@ def process(db_session, auth_token, query_params, scanner_data):
         Logger().exception("Exception occurred while processing google directory users for domain_id: {} - {} ".format(domain_id, ex))
         db_session.rollback()
         return 0
-        
-def post_process(db_session, auth_token, query_params):
-    domain_id = query_params["domainId"]
-    datasource_id = query_params["dataSourceId"]
-    now = datetime.datetime.utcnow()
-    internal_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.type == constants.DirectoryEntityType.USER.value, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)).all()
-    for internal_user in internal_users:
-        file_scanner = DatasourceScanners()
-        file_scanner.datasource_id = datasource_id
-        file_scanner.scanner_type = gsuite_constants.ScannerTypes.FILES.value
-        file_scanner.channel_id = str(uuid.uuid4())
-        file_scanner.user_email = internal_user.email
-        file_scanner.started_at = now
-        file_scanner.in_progress = 1
-        db_session.add(file_scanner)
-        db_connection().commit()
-        file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(file_scanner.id), 
-                    'userId': internal_user.user_id, 'userEmail': internal_user.email, 'ownerEmail': internal_user.email}
-        messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, file_query_params, "gsuite")
-
-        app_scanner = DatasourceScanners()
-        app_scanner.datasource_id = datasource_id
-        app_scanner.scanner_type = gsuite_constants.ScannerTypes.APPS.value
-        app_scanner.channel_id = str(uuid.uuid4())
-        app_scanner.user_email = internal_user.email
-        app_scanner.started_at = now
-        app_scanner.in_progress = 1
-        db_session.add(app_scanner)
-        db_connection().commit()
-        file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(app_scanner.id), 
-                    'userId': internal_user.user_id, 'userEmail': internal_user.email}
-        messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, file_query_params, "gsuite")

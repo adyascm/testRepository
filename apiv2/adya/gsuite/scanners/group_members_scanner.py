@@ -64,6 +64,3 @@ def process(db_session, auth_token, query_params, scanner_data):
 
         db_connection().commit()
     return members_count
-    
-def post_process(db_session, auth_token, query_params):
-    pass
