@@ -183,18 +183,18 @@ class DirectoryStructure(Base):
     )
 
 
-class DomainGroup(Base):
-    __tablename__ = 'domain_group'
-    datasource_id = Column(String(36), ForeignKey(
-        'datasource.datasource_id'), primary_key=True)
-    group_id = Column(String(260), nullable=False)
-    email = Column(String(320), primary_key=True)
-    name = Column(String(255))
-    direct_members_count = Column(Integer, default=0)
-    description = Column(Text)
-    include_all_user = Column(Boolean, default=False)
-    aliases = Column(Text)
-    is_external = Column(Boolean, default=False)
+# class DomainGroup(Base):
+#     __tablename__ = 'domain_group'
+#     datasource_id = Column(String(36), ForeignKey(
+#         'datasource.datasource_id'), primary_key=True)
+#     group_id = Column(String(260), nullable=False)
+#     email = Column(String(320), primary_key=True)
+#     name = Column(String(255))
+#     direct_members_count = Column(Integer, default=0)
+#     description = Column(Text)
+#     include_all_user = Column(Boolean, default=False)
+#     aliases = Column(Text)
+#     is_external = Column(Boolean, default=False)
 
 
 class Resource(Base):
@@ -220,13 +220,13 @@ class Resource(Base):
         "ResourcePermission", backref="resource")
 
 
-class ResourceParent(Base):
-    __tablename__ = 'resource_parent_table'
-    domain_id = Column(String(255))
-    datasource_id = Column(String(36))
-    resource_id = Column(String(100), primary_key=True)
-    email = Column(String(320), primary_key=True)
-    parent_id = Column(String(260))
+# class ResourceParent(Base):
+#     __tablename__ = 'resource_parent_table'
+#     domain_id = Column(String(255))
+#     datasource_id = Column(String(36))
+#     resource_id = Column(String(100), primary_key=True)
+#     email = Column(String(320), primary_key=True)
+#     parent_id = Column(String(260))
 
 
 class ResourcePermission(Base):

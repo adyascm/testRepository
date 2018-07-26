@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PolicyCondition from './PolicyCondition'
-import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon, Modal } from 'semantic-ui-react';
-
+import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon, Modal, TextArea } from 'semantic-ui-react';
 import agent from '../../utils/agent';
 
 import {
@@ -11,24 +10,28 @@ import {
     CREATE_POLICY_LOADED,
     UPDATE_POLICY_FILTER,
     POLICY_LOAD_START,
-    POLICY_LOADED
+    POLICY_LOADED,
+    UPDATE_POLICY_ACTION_EMAIL
 } from '../../constants/actionTypes';
 
 import GroupSearch from '../Search/GroupSearch'
+import UserTagging from '../UserTagging';
 
 
 const mapStateToProps = state => ({
     ...state.policy,
     datasources: state.common.datasources,
     currentUser: state.common.currentUser,
-    selectedUser: state.users.selectedUserItem
+    // selectedUser: state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
     policyLoadStart: () =>
         dispatch({ type: POLICY_LOAD_START }),
     policyLoaded: (payload) =>
-        dispatch({ type: POLICY_LOADED, payload })
+        dispatch({ type: POLICY_LOADED, payload }),
+    updateActionEmail: (actionType, email='') => 
+        dispatch({ type: UPDATE_POLICY_ACTION_EMAIL, actionType, email })
 });
 
 class PolicyItemDetail extends Component {
@@ -118,6 +121,8 @@ class PolicyItemDetail extends Component {
                         disableEmailField: disableEmailField,
                         actions: action
                     })
+                    let emails = emailConfig.to.split(",")
+                    this.props.updateActionEmail('SETMULTIPLE', emails)
                   }
                 else if (actionType == "REVERT") {
                   let revertBackAction = {
@@ -146,14 +151,36 @@ class PolicyItemDetail extends Component {
             })
         }
 
-        if (nextProps.selectedUser && (nextProps.selectedUser !== this.props.selectedUser)) {
+        // if (nextProps.selectedUser && (nextProps.selectedUser !== this.props.selectedUser)) {
+        //     let emailAction = {
+        //         action_type: 'SEND_EMAIL',
+        //         config: {
+        //             to: nextProps.selectedUser.email
+        //         }
+        //     }
+        //     let action = this.state.actions
+        //     action.push(emailAction)
+        //     this.setState({
+        //         actions: action
+        //     })
+        // }
+        if (nextProps.actionEmail && (nextProps.actionEmail !== this.props.actionEmail)) {
             let emailAction = {
                 action_type: 'SEND_EMAIL',
                 config: {
-                    to: nextProps.selectedUser.email
+                    to: nextProps.actionEmail.join(",")
                 }
             }
             let action = this.state.actions
+            let actionIndex = -1
+            for (let index in action) {
+                if (action[index].action_type === 'SEND_EMAIL') {
+                    actionIndex = index
+                    break
+                }
+            }
+            if (actionIndex !== -1)
+                action.splice(actionIndex, 1)
             action.push(emailAction)
             this.setState({
                 actions: action
@@ -203,27 +230,27 @@ class PolicyItemDetail extends Component {
       })
     }
 
-    handleInputEmailChange = (event, emailCategory) => {
-        if (emailCategory === 'To') {
-            this.setState({
-                To: event.target.value
-            })
-        }
-    }
+    // handleInputEmailChange = (event, emailCategory) => {
+    //     if (emailCategory === 'To') {
+    //         this.setState({
+    //             To: event.target.value
+    //         })
+    //     }
+    // }
 
-    updateEmailAction = () => {
-        let emailAction = {
-            action_type: 'SEND_EMAIL',
-            config: {
-                to: this.state.To
-            }
-        }
-        let action = this.state.actions
-        action.push(emailAction)
-        this.setState({
-            actions: action
-        })
-    }
+    // updateEmailAction = () => {
+    //     let emailAction = {
+    //         action_type: 'SEND_EMAIL',
+    //         config: {
+    //             to: this.state.To
+    //         }
+    //     }
+    //     let action = this.state.actions
+    //     action.push(emailAction)
+    //     this.setState({
+    //         actions: action
+    //     })
+    // }
 
     handlePolicyTriggerTypeChange = (event, data) => {
         this.setState({
@@ -284,6 +311,7 @@ class PolicyItemDetail extends Component {
             policyDetails: undefined,
             policyId: undefined
         })
+        this.props.updateActionEmail('CLEAR')
     }
 
     render() {
@@ -294,9 +322,7 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                {/* <Form.Field required control={Input} label='To' placeholder='Enter email...' value={this.state.To} onChange={(event) => this.handleInputEmailChange(event, 'To')} onBlur={this.updateEmailAction} /> */}
-                {/* <Form.Field control={Input} label='CC' placeholder='Enter email...' onChange={(event) => this.props.sendEmail(event,'CC')} /> */}
-                <Form.Field><GroupSearch defaultValue={this.state.To} /></Form.Field>
+                <Form.Field><UserTagging datasource={this.state.datasource_id} /></Form.Field>
             </Form.Group>
         )
 
@@ -348,13 +374,13 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>
+                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                     <Form.Field control={Checkbox} label='Send Email To' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                     {this.state.disableEmailField ? null : emailFieldInput}
-                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                 </Segment>
                             </Segment.Group>
                             <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>
-                            <Button positive content='Submit'></Button>
+                            <Button positive content='Submit' disabled={!this.state.disableEmailField && (!this.props.actionEmail || !this.props.actionEmail.length)}></Button>
                         </Form>
                     </Modal.Content>
                 </Modal>

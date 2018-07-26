@@ -34,6 +34,7 @@
     "react-router-dom": "^4.1.2",
     "react-router-redux": "^4.0.8",
     "react-scripts": "1.0.17",
+    "react-tag-autocomplete": "^5.5.1",
     "react-tagsinput": "^3.19.0",
     "realtime-messaging": "^2.1.42",
     "redux": "^3.6.0",

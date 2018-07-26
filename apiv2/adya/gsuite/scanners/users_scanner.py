@@ -23,7 +23,7 @@ def query(auth_token, query_params, scanner):
     directory_service = gutils.get_directory_service(auth_token)
     users = []
     try:
-        results = directory_service.users().list(customer='my_customer', maxResults=25, pageToken=next_page_token,
+        results = directory_service.users().list(customer='my_customer', maxResults=10, pageToken=next_page_token,
                                                 orderBy='email').execute()
     except RefreshError as ex:
         Logger().info("User query : Not able to refresh credentials")
