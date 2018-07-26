@@ -20,8 +20,8 @@ def get_app_stats(auth_token, datasource_id=None, user_email=None):
     for app in apps:
         cost = utils.get_cost(app)
         category = 'un-categorised'
-        if app.inventory and app.inventory.category:
-            category = app.inventory.category
+        if app.category:
+            category = app.category
         if not category in apps_category_cost:
             apps_category_cost[category] = 0    
         apps_category_cost[category] += cost
@@ -44,7 +44,7 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
     if not page_number:
         if apps_query.count():
             total_pages_count = int(math.ceil(float(apps_query.count())/page_limit))
-    if sort_column_name == "score":
+    if sort_column_name == "score": 
         if sort_order == 'desc':
             apps_query = apps_query.order_by(Application.score.desc())
         else:
@@ -69,15 +69,15 @@ def get_installed_apps(auth_token, page_number, page_limit, app_name, sort_colum
             apps_query = apps_query.order_by(Application.unit_num.desc())
         else:
             apps_query = apps_query.order_by(Application.unit_num.asc())
+    elif sort_column_name == 'potential_saving':
+        if sort_order == 'desc':
+            apps_query = apps_query.order_by(Application.inactive_users.desc())
+        else:
+            apps_query = apps_query.order_by(Application.inactive_users.asc())       
     apps_query = apps_query.offset(page_number * page_limit).limit(page_limit)        
     installed_apps = apps_query.all()
     for app in installed_apps:
         app.is_installed_via_ds = db_session.query(ApplicationUserAssociation).filter(ApplicationUserAssociation.application_id == app.id).count() > 0
-        if app.inventory:
-            app.image_url = app.inventory.image_url
-            app.category = app.inventory.category
-            app.desc_name = app.inventory.desc_name
-            app.rating = app.inventory.rating
     return installed_apps, total_pages_count
 
 

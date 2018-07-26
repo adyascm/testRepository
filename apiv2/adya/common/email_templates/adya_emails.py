@@ -155,17 +155,16 @@ def convert_list_pystache_format(placeholder, list_items):
     return pystache_list
 
 
-def send_clean_files_email(datasource_id,user_email,full_name):
+def send_clean_files_email(datasource_id,user_email,full_name,initiated_by):
     try:
         if not datasource_id:
             return "Invalid datasource! Aborting..."
         db_session = db_connection().get_session()
-        datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
-        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id).first()
+        datasource = db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).first()
+        login_user = db_session.query(LoginUser).filter(LoginUser.domain_id == datasource.domain_id, LoginUser.email == initiated_by).first()
         admin_user = login_user.first_name + " " + login_user.last_name
         
         template_name = "clean_files"
-        #template_parameters=get_gdrive_scan_summary(datasource,None,user_email)
         template_parameters = {
             "user_name": full_name,
             "admin_user": admin_user,
@@ -179,7 +178,8 @@ def send_clean_files_email(datasource_id,user_email,full_name):
         Logger().exception("Exception occurred sending clean files email")
         return False
 
-def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions):
+
+def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions, violated_permissions, new_permissions_left):
     try:
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
@@ -190,12 +190,32 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
             permissions.append(permission_str)
 
+        violated_perm = []
+        if violated_permissions:
+            for violated_permission in violated_permissions:
+                user_name = violated_permission["email"]
+                violated_perm_str = user_name + " (" + constants.permission_friendly_name_map[
+                    violated_permission["permission_type"]] + ")"
+                violated_perm.append(violated_perm_str)
+
+        new_perm_left = []
+        for perm_left in new_permissions_left:
+            user_name = perm_left["email"]
+            permission_str = user_name + " (" + constants.permission_friendly_name_map[
+                perm_left["permission_type"]] + ")"
+            new_perm_left.append(permission_str)
+
         template_parameters = {
             "policy_name": policy.name,
             "document_name": resource["resource_name"],
             "modifying_user": resource["last_modifying_user_email"],
             "owner_name": resource_owner.first_name,
-            "permissions": permissions
+            "permissions": permissions,
+            "revert_back": True if violated_permissions else False,
+            "violated_permissions": violated_perm,
+            "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
+            "new_permissions_left": new_perm_left,
+            "new_permissions_str": "New permissions for this document are - " if len(new_perm_left) > 0 else ""
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in your GSuite account"
@@ -206,13 +226,14 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         return False
 
 
-def send_app_install_policy_violate_email(user_email,policy,application):
+def send_app_install_policy_violate_email(user_email,policy,application, is_reverted):
     try:
         template_name = "app_install_policy_violation"
         template_parameters = {
             "policy_name": policy.name,
             "app_name": application["display_text"],
-            "user_name":application["user_email"]
+            "user_name":application["user_email"],
+            "is_reverted": is_reverted
         } 
         rendered_html = get_rendered_html(template_name, template_parameters)
         email_subject = "[Adya] A policy is violated in GSuite account"
@@ -225,13 +246,18 @@ def send_app_install_policy_violate_email(user_email,policy,application):
 
 def send_new_user_policy_violate_email(user_email, policy, new_user):
     try:
-        template_name = "new_user_policy_violation"
+        datasource_name = (policy.name).split("::")[0] if policy.name else None
+        user_type =  "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
+                                                        constants.EntityExposureType.EXTERNAL.value) else None)
+        template_name = "new_administrator_policy_violation" if (user_type == "Administrator") else \
+                            ("add_external_user_policy_violation" if (user_type == "external_user") else None)
         template_parameters = {
             "policy_name": policy.name,
-            "user_email": new_user["email"]
+            "user_email": new_user["email"],
+            "datasource_name": datasource_name
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in GSuite account"
+        email_subject = "[Adya] A policy is violated in {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:

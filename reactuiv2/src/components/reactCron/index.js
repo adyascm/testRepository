@@ -26,7 +26,7 @@ class ReactCron extends Component {
   state = {
     cronexp: '',
     loadPrevState: false,
-    selectedPeriod: 'day',
+    selectedPeriod: 'month',
     selectedDayOption: {
       hour: 0,
       min: 0
@@ -141,8 +141,8 @@ class ReactCron extends Component {
   }
 
   getWeekComponent = () => {
+    
     const { hourOptions, minuteOptions, dayOptions, selectedWeekOption } = this.state;
-
     return (
       (this.state.selectedPeriod === 'week') &&
       <cron-week-component>
@@ -162,7 +162,7 @@ class ReactCron extends Component {
   }
 
   getMonthComponent = () => {
-    const { monthDaysOptions, hourOptions, minuteOptions, selectedMonthOption } = this.state;
+    const { monthDaysOptions, hourOptions, minuteOptions, selectedMonthOption} = this.state;
 
     return (
       (this.state.selectedPeriod === 'month') &&
@@ -228,24 +228,23 @@ class ReactCron extends Component {
     selectedPeriod: 'day'}) : null}
     ;
   {cronArray[4] !== '*' && cronArray[4] !== '?'? this.setState({
-    selectedWeekOption: {'day': cronArray[4], 'hour': cronArray[1], 'min':  cronArray[0].split('(')[1] },
+    selectedWeekOption: Object.assign({},{'day': cronArray[4], 'hour': cronArray[1], 'min':  cronArray[0].split('(')[1] }),
      selectedPeriod: 'week'
    }) : null
   };
   {cronArray[2] !== '*' && cronArray[2] !== '?'? this.setState({
-    selectedWeekOption: {'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0].split('(')[1]},
+    selectedMonthOption: Object.assign({},{'day': cronArray[2], 'hour': cronArray[1], 'min': cronArray[0].split('(')[1]}),
     selectedPeriod: 'month'}) : null
   };
   {cronArray[3] !== '*' ? this.setState({
-    selectedWeekOption: {'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min':  cronArray[0].split('(')[1]},
+    selectedWeekOption: Object.assign({},{'mon': cronArray[3], 'day': cronArray[2],'hour': cronArray[1], 'min':  cronArray[0].split('(')[1]}),
     selectedPeriod: 'year'}) : null
   };
-
+  
  }
 
 
   render() {
-
     const { className } = this.props;
     const { selectedPeriod, periodOptions } = this.state;
 

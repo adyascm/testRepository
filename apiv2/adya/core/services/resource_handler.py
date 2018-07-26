@@ -43,3 +43,16 @@ def get_resource_tree_data(event, context):
                                                       resource_type, search_prefix, owner_email_id, parent_folder,
                                                       selected_date, sort_column_name, sort_type, datasource_id, source_type)
     return req_session.generate_sqlalchemy_response(200, resource_list)
+
+
+def export_to_csv(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+    
+    response = resource_controller.export_to_csv(req_session.get_auth_token(), req_session.get_body())
+    if response:
+        return req_session.generate_sqlalchemy_response(response.response_code, response.get_response_body())
+    else:
+        return req_session.generate_response(202)

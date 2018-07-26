@@ -11,15 +11,5 @@ def execute_github_actions(event, context):
 
     #Navigate to actions_facade
     response = github_action_facade.execute_github_actions(req_session.get_auth_token(), req_session.get_body())
-
-    log_status = action_constants.ActionStatus.SUCCESS.value
-    status_code = 200
-    status_message = "Action completed successfully"
-
-    if response['action_status'] == constants.ResponseType.ERROR.value:
-        log_status = action_constants.ActionStatus.FAILED.value
-        status_code = 404
-        status_message = "Action Failed"
-
-    return req_session.generate_response(status_code, response)
+    return req_session.generate_sqlalchemy_response(response.get_response_code(), response.get_response_body())     
     

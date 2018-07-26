@@ -170,5 +170,6 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
     utils.add_license_for_scanned_app(db_session, datasource)
-    query_params = {'dataSourceId': datasource_id}
-    messaging.trigger_post_event(urls.CREATE_DEFAULT_POLICES_PATH, auth_token, query_params, {})
+    body = {'datasource_id': datasource_id, "is_default": True}
+    messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
+    messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)

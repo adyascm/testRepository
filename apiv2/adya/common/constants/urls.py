@@ -25,6 +25,8 @@ GET_APPS = "/common/getappsdata"
 GET_RESOURCE_TREE_PATH = "/common/getresourcetree"
 GET_DATASOURCE_PATH = '/common/datasources'
 GET_GROUP_MEMBERS = '/common/getgroupmembers'
+RESOURCES_EXPORT = '/common/resource/export'
+USERS_EXPORT = '/common/users/export'
 
 ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
 
@@ -38,7 +40,6 @@ INITIATE_ACTION_PATH = '/common/initiateaction'
 GET_AUDITLOG_PATH = '/common/getauditlog'
 
 POLICIES_PATH = '/common/policies'
-CREATE_DEFAULT_POLICES_PATH ='/common/policies/default'
 
 ALERTS_PATH = '/common/alerts'
 ALERTS_COUNT_PATH = '/common/alerts/count'

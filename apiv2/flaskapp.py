@@ -40,6 +40,7 @@ api.add_resource(flask_wrapper_core.UserStats, urls.GET_USERS_STATS_PATH)
 api.add_resource(flask_wrapper_core.UsersList, urls.GET_USERS_LIST_PATH)
 api.add_resource(flask_wrapper_core.UserApps, urls.GET_APPS)
 api.add_resource(flask_wrapper_core.GroupMembers, urls.GET_GROUP_MEMBERS)
+api.add_resource(flask_wrapper_core.UsersExport, urls.USERS_EXPORT)
 
 # incremental scan
 api.add_resource(flask_wrapper_gsuite.subscribe, urls.SUBSCRIBE_GDRIVE_NOTIFICATIONS_PATH)
@@ -49,7 +50,7 @@ api.add_resource(flask_wrapper_gsuite.process_activity_notifications, urls.PROCE
 
 # get file resource data
 api.add_resource(flask_wrapper_core.GetResources, urls.GET_RESOURCE_TREE_PATH)
-
+api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
 
 #create scheduled report
 api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_PATH)
@@ -70,7 +71,6 @@ api.add_resource(flask_wrapper_core.get_audit_log, urls.GET_AUDITLOG_PATH)
 #policies
 api.add_resource(flask_wrapper_core.Policy, urls.POLICIES_PATH)
 api.add_resource(flask_wrapper_gsuite.PolicyValidator, urls.GSUITE_POLICIES_VALIDATE_PATH)
-api.add_resource(flask_wrapper_core.DefaultPoliciesCreator, urls.CREATE_DEFAULT_POLICES_PATH)
 api.add_resource(flask_wrapper_slack.SlackPolicyValidator, urls.SLACK_POLICIES_VALIDATE_PATH)
 
 #alerts
@@ -97,9 +97,6 @@ api.add_resource(flask_wrapper_slack.ExecuteSlackActions, urls.EXECUTE_SLACK_ACT
 api.add_resource(flask_wrapper_slack.ProcessSlackNotifications, urls.PROCESS_SLACK_NOTIFICATIONS_PATH)
 
 #github_scan
-# api.add_resource(flask_wrapper_github.GithubScan, urls.GITHUB_SCAN_START)
-# api.add_resource(flask_wrapper_github.GithubScanUsers, urls.GITHUB_SCAN_USERS)
-# api.add_resource(flask_wrapper_github.GithubScanRepository, urls.GITHUB_SCAN_REPOSITORY)
 api.add_resource(flask_wrapper_github.GithubEntities, urls.GITHUB_SCAN_ENTITIES)
 api.add_resource(flask_wrapper_github.GithubScanUpdate, urls.GITHUB_SCAN_UPDATE)
 
@@ -110,6 +107,5 @@ api.add_resource(flask_wrapper_github.ProcessGithubNotifications, urls.PROCESS_G
 
 #github_actions
 api.add_resource(flask_wrapper_github.ExecuteGithubActions, urls.EXECUTE_GITHUB_ACTION)
-
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

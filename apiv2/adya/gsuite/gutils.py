@@ -45,6 +45,9 @@ def revoke_appaccess(auth_token, user_email=None, db_session = None):
 
 
 def get_credentials(auth_token, user_email=None, db_session = None):
+    if auth_token == constants.INTERNAL_SECRET:
+        auth_token = None
+
     if not db_session:
         db_session = db_connection().get_session()
 

@@ -1,14 +1,23 @@
-from influxdb import InfluxDBClient
-from influxdb import SeriesHelper
+import datetime
+from pymongo import MongoClient
 from adya.common.constants import constants
 class activity_db:
     class __activity_db:
         _client = None
+        _db = None
         def __init__(self):
-            self._client = InfluxDBClient(constants.ACTIVITY_DB_HOST, constants.ACTIVITY_DB_PORT, constants.ACTIVITY_DB_USERNAME, constants.ACTIVITY_DB_PWD, constants.ACTIVITY_DB_NAME)
+            if not self._client:
+                self._client = MongoClient(constants.ACTIVITY_DB_HOST, int(constants.ACTIVITY_DB_PORT))
+            if not self._db:
+                self._db = self._client[constants.DEPLOYMENT_ENV + "_activities"]
         
-        def get_client(self):
-            return self._client
+        def get_db(self):
+            return self._db
+        def get_collection(self, collection_name):
+            if self._db:
+                return self._db[collection_name]
+            else:
+                return None
 
 
     instance = None
@@ -18,28 +27,8 @@ class activity_db:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-class ConnectorEvent(SeriesHelper):
-    """Instantiate SeriesHelper to write points to the backend."""
+    def add_event(self, domain_id, connector_type, event_type, actor, tags):
+        event_collection = activity_db.instance.get_collection("events")
+        event_collection.insert_one({"domain_id": domain_id, "connector_type": connector_type, 
+            "event_type": event_type, "actor": actor, "timestamp": datetime.datetime.utcnow()})
 
-    class Meta:
-        """Meta class stores time series helper configuration."""
-
-        # The client should be an instance of InfluxDBClient.
-        client = activity_db().get_client()
-
-        # The series name must be a string. Add dependent fields/tags
-        # in curly brackets.
-        series_name = 'events'
-
-        # Defines all the fields in this time series.
-        fields = ['event']
-
-        # Defines all the tags for the series.
-        tags = ['domain_id', 'datasource_id', 'ds_type', 'event_type', 'actor']
-
-        # Defines the number of data points to store prior to writing
-        # on the wire.
-        bulk_size = 1
-
-        # autocommit must be set to True when using bulk_size
-        autocommit = True

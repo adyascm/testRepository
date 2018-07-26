@@ -176,7 +176,7 @@
             <td class="text-xs-center" valign="middle" width="95%" style="padding-right: 20px; font-size: 19px;
     font-family: Raleway, sans-serif; color: #fff;">
 
-                Alert! - Policy violation on new user
+                Alert! -  Policy violation on adding external users on {{datasource_name}}
 
             </td>
 
@@ -197,7 +197,9 @@
           </tr>
           <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; color:#000000;font-weight: 500; ">
-            <div style="text-align:left;">New user - "{{ user_email }} has violated policy - "{{ policy_name }}"</div>
+            <div style="text-align:left;">
+                Adya has detected an external user - {{user_email}} - has been added to a {{datasource_name}}
+            </div>
             </td>
           </tr>
           <tr>

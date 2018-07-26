@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
-import { Container, Dimmer, Loader, Grid, Checkbox } from 'semantic-ui-react'
+import { Container, Dimmer, Loader, Grid, Checkbox, Button, Modal, Header } from 'semantic-ui-react'
 
 import agent from '../../utils/agent';
 import Actions from '../actions/Actions'
-
 
 import {
   USERS_PAGE_UNLOADED,
@@ -21,6 +20,7 @@ import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown'
 
 const mapStateToProps = state => ({
   selectedUserItem: state.users.selectedUserItem,
+  ...state.users
 });
 
 const mapDispatchToProps = dispatch => ({

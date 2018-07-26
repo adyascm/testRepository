@@ -33,6 +33,7 @@ class InstalledApp extends Component {
                 "#Users",
                 "Subscription (in $)",
                 "Annual Cost",
+                "Potential Saving",
                 ""
             ],
             showInventoryForm: false,
@@ -42,19 +43,18 @@ class InstalledApp extends Component {
                 "Category": 'category',
                 "Application":'application',
                 "#Users":'num_users',
-                "Subscription (in $)":'unit_price'
+                "Subscription (in $)":'unit_price',
+                "Potential Saving":"potential_saving"
             },
             sortColumnName: this.props.sortColumnName,
             sortOrder: this.props.sortOrder,
-            isLoadingApps: false,
             totalCost: null,
             appIdToBeDeleted: undefined,
             currentPage: 1,
             lastPage: undefined,
             appsPayload: undefined,
             isLoadingApps: true,
-            listFilters:{},
-            isLicenseUpdating:{}
+            listFilters:{}
         }
     }
 
@@ -68,7 +68,6 @@ class InstalledApp extends Component {
         agent.AppsPrice.getPriceStats().then((res) => {
             this.setState({
                 totalCost: res["totalCount"],
-                isLoadingApps: false
             })
         })
         this.fetchFirstInstalledApps();
@@ -112,17 +111,17 @@ class InstalledApp extends Component {
     }
 
 
-    saveAppLicense = (event, index, unitNum, unitPrice, selectedModel, app_id) => {
-        if (unitNum && unitPrice) {
-            const isLicenseUpdating = this.state.isLicenseUpdating
-            isLicenseUpdating[index] = true
-            this.setState({
-                isLicenseUpdating
-            })
-            agent.Apps.updateApps({ "unit_num": unitNum, "unit_price": unitPrice, "pricing_model": selectedModel, "application_id": app_id }).then((resp) => {
-                isLicenseUpdating[index] = false
+    saveAppLicense = (event, index, unitNum, unitPrice, category, selectedModel, app_id) => {
+        let newPayload = [...this.state.appsPayload]
+        if (newPayload[index]['is_category_box_visible'] || unitNum && unitPrice) {
+            newPayload[index]['is_license_updating'] = true
+            agent.Apps.updateApps({"category": category, "unit_num": unitNum, "unit_price": unitPrice, "pricing_model": selectedModel, "application_id": app_id }).then((resp) => {
+                newPayload[index]['is_license_updating'] = false
+                if(newPayload[index]['is_category_box_visible']){
+                    newPayload[index]['is_category_box_visible'] = false
+                }
                 this.setState({
-                    isLicenseUpdating
+                    appsPayload:newPayload
                 })
             }).catch((err) => {
                 this.state.failedMsg = err["message"]
@@ -140,6 +139,14 @@ class InstalledApp extends Component {
         else if (event_type == 'SELECT_PLAN_PRICING_MODEL') {
             newPayload[index]['pricing_model'] = data.value;
         }
+        else if(event_type == 'CHANGE_CATEGORY'){
+            newPayload[index]['category'] = ''
+            newPayload[index]['is_category_box_visible'] = true 
+        }
+        else if(event_type == 'ENTER_CATEGORY'){
+            newPayload[index]['category'] = event.target.value;
+        }
+
         this.setState({
             appsPayload: newPayload
         })
@@ -171,12 +178,12 @@ class InstalledApp extends Component {
             this.setState({
                 isLoadingApps: true
             })
-            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'desc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
+            agent.Apps.getInstalledApps(this.state.currentPage - 1, mappedColumnName, 'asc', this.state.listFilters.appName ? this.state.listFilters.appName.value:"").then((payload) => {
                 let lastPage = payload.last_page ? payload.last_page : null;
                 this.setState({
                     isLoadingApps: false,
                     sortColumnName: mappedColumnName,
-                    sortOrder: 'desc',
+                    sortOrder: 'asc',
                     lastPage: lastPage,
                     appsPayload: payload.apps
                 })
@@ -249,11 +256,11 @@ class InstalledApp extends Component {
         let exploreBtn = <Button style={{margin:"5px", fontSize: this.props.style.fontSize}} positive onClick={(event) => this.exploreAppsLicenses()} content='Add Applications' />
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            let isSortable = (['Riskiness', 'Annual Cost', 'Category', 'Application', '#Users', 'Subscription'].indexOf(headerName) >=0)  
+            let isSortable = (['Riskiness', 'Annual Cost', 'Category', 'Application', '#Users', 'Subscription', 'Potential Saving'].indexOf(headerName) >=0)  
             let headerCellStyle = !isSortable ? {pointerEvents:"none"}:{pointerEvents:'auto'}
             return (
                 <Table.HeaderCell key={headerName} style={headerCellStyle} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}>
-                {headerName === "Application" ? <Input style={{ 'width': '20rem' }} icon={this.state.listFilters.appName && this.state.listFilters.appName.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "appName")} /> : null} placeholder="Filter by Application ..."
+                {headerName === "Application" ? <Input icon={this.state.listFilters.appName && this.state.listFilters.appName.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "appName")} /> : null} placeholder="Filter by Application ..."
                         value={this.state.listFilters.appName ? this.state.listFilters.appName.value : ''} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "appName")} /> : headerName}
                </Table.HeaderCell>
             )
@@ -273,53 +280,64 @@ class InstalledApp extends Component {
         let dsMap = this.props.datasourcesMap
         if (this.state.appsPayload && this.state.appsPayload.length) {
             tableRowData = this.state.appsPayload.map((rowData, index) => {
-                let appInfo = rowData
                 let selectedModel = rowData["pricing_model"]
                 let dsImage = null
-                let appId = appInfo.id
-                let score = appInfo["score"]
+                let appId = rowData.id
+                let score = rowData["score"]
                 let scoreColor = score < 1 ? 'grey' : (score < 4 ? 'blue' : (score > 7 ? 'red' : 'yellow'))
                 let appCost = null
+                let appSavings = null
                 let unitNum = rowData["unit_num"]
                 let unitPrice = rowData["unit_price"]
-                if (appInfo.datasource_id) {
-                    dsImage = <Image inline size='mini' src={dsMap[appInfo.datasource_id] && dsMap[appInfo.datasource_id].logo} circular></Image>
+                let inactive_users = rowData["inactive_users"]
+                let is_category_box_visible = rowData["is_category_box_visible"] 
+                if (rowData.datasource_id) {
+                    dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
                 }
-                if (unitNum && unitPrice) {
+                if (unitNum) {
                     let multiplier = multiplierValues[selectedModel]
-                    appCost = (parseFloat(unitNum) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    if(unitPrice){
+                        appCost = (parseFloat(unitNum) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    }
+                    if(inactive_users){
+                        appSavings = (parseFloat(inactive_users) * parseFloat(unitPrice) * multiplier).toFixed(2)
+                    }
                 }
-                let catColor = appInfo && appInfo["category"] ? 'teal' : 'orange'
+                
+                let catColor = rowData && rowData["category"] ? 'teal' : 'orange'
+                let category = !is_category_box_visible ? (rowData && rowData["category"] ? rowData["category"] : 'Un-categorized'): rowData["category"]
                 return (
                     <Table.Row key={index}>
-                        <Table.Cell width="1" style={{textAlign:'center'}}>{rowData['is_installed_via_ds']?<Button style={{cursor:'pointer'}} circular icon="angle right" onClick={(e) => this.onCardClicked(e, appInfo)} />: null}</Table.Cell>
-                        <Table.Cell width="1"><Label color={scoreColor}></Label></Table.Cell>
-                        <Table.Cell width="4" style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
-                            <span style={{ padding: "2px"}}>{(appInfo && appInfo['publisher_url']) ? <a target="_blank" href={appInfo["publisher_url"]}>{appInfo["display_text"]}</a> : appInfo["display_text"]}</span>
-                            {appInfo ? <Image inline style={{ float: "right" }} src={appInfo["image_url"]} rounded size='mini' /> : ''}
+                        <Table.Cell collapsing style={{textAlign:'center'}}>{rowData['is_installed_via_ds']?<Button style={{cursor:'pointer'}} circular icon="angle right" onClick={(e) => this.onCardClicked(e, rowData)} />: null}</Table.Cell>
+                        <Table.Cell collapsing textAlign="center"><Label color={scoreColor}></Label></Table.Cell>
+                        <Table.Cell style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
+                            <span style={{ padding: "2px"}}>{(rowData && rowData['publisher_url']) ? <a target="_blank" href={rowData["publisher_url"]}>{rowData["display_text"]}</a> : rowData["display_text"]}</span>
+                            {rowData ? <Image inline style={{ float: "right" }} src={rowData["image_url"]} rounded size='mini' /> : ''}
                         </Table.Cell>
-                        <Table.Cell width="2">
-                            <Label color={catColor} size='mini' >
-                                {appInfo && appInfo["category"] ? appInfo["category"] : 'Un-categorized'}
-                            </Label>
+                        <Table.Cell >
+                            {!is_category_box_visible ? <Label color={catColor} size='mini' >
+                                {category}
+                                <Icon name='close' onClick={(event) => this.handleRowChange(event, index, 'CHANGE_CATEGORY')} />
+                            </Label>: <Input transparent type="text" placeholder='Add Category' value={category} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_CATEGORY')} />
+                            }
                         </Table.Cell>
-                        <Table.Cell width='2'><Input transparent compact type="text" placeholder='#licenses' value={unitNum > 0 ? unitNum : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_NUM')} />  </Table.Cell>
-                        <Table.Cell width='3'>
-                        <Input transparent compact type="text" placeholder='Price' value={unitPrice > 0 ? unitPrice : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_PRICE')} label={<Dropdown width="1" basic defaultValue={selectedModel} options={modelOptions} onChange={(event, data) => this.handleRowChange(event, index, 'SELECT_PLAN_PRICING_MODEL', data)} />}
+                        <Table.Cell collapsing><Input style={{maxWidth:'100px'}} transparent type="text" placeholder='#licenses' value={unitNum > 0 ? unitNum : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_NUM')} /></Table.Cell>
+                        <Table.Cell collapsing>
+                        <Input transparent type="text" placeholder='Price' value={unitPrice > 0 ? unitPrice : null} onChange={(event, data) => this.handleRowChange(event, index, 'ENTER_UNIT_PRICE')} label={<Dropdown basic defaultValue={selectedModel} options={modelOptions} onChange={(event, data) => this.handleRowChange(event, index, 'SELECT_PLAN_PRICING_MODEL', data)} />}
                                 labelPosition='right' /></Table.Cell>
-                        <Table.Cell width='1'>{unitNum && unitPrice ? <IntlProvider><FormattedNumber value={appCost} style="currency" currency="USD" /></IntlProvider> : null}</Table.Cell>
-                        <Table.Cell width='3' style={{ 'textAlign': 'center' }}><span><Button size="mini" negative onClick={(e) => this.triggerDeleteAction(e, appId, appInfo.display_text)}>Remove</Button> <Button size="mini" positive loading={this.state.isLicenseUpdating[index]} onClick={(event) => this.saveAppLicense(event, index, unitNum, unitPrice, selectedModel, appInfo.id)} content='Update' /></span> </Table.Cell>
+                        <Table.Cell style={{maxWidth:'100px'}}>{unitNum && unitPrice ? <IntlProvider><FormattedNumber value={appCost} style="currency" currency="USD" /></IntlProvider> : null}</Table.Cell>
+                        <Table.Cell collapsing>{inactive_users && unitPrice ? <IntlProvider><FormattedNumber value={appSavings} style="currency" currency="USD" /></IntlProvider> : null}</Table.Cell>
+                        <Table.Cell collapsing style={{ 'textAlign': 'center'}}><span><Button size="mini" negative onClick={(e) => this.triggerDeleteAction(e, appId, rowData.display_text)}>Remove</Button> <Button size="mini" positive loading={rowData['is_license_updating']} onClick={(event) => this.saveAppLicense(event, index, unitNum, unitPrice, category, selectedModel, rowData.id)} content='Update' /></span> </Table.Cell>
                     </Table.Row>
                 )
             })
         }
-
         return (
             <div style={{ 'minHeight': document.body.clientHeight / 1.25, display: "block" }}>
                 <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {this.state.totalCost ? <span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}
                 </div>
                 <div style={{ position: 'relative', top: '10px', left: '10px', right: '10px', overflowY: 'scroll', height: '70vh' }}>
-                    <Table style={{ minWidth: "1300px" }} sortable selectable striped celled compact='very'>
+                    <Table sortable selectable striped celled compact='very'>
                         <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                             <Table.Row>
                                 {tableHeaders}

@@ -20,7 +20,8 @@ def query(auth_token, query_params, scanner):
     group_key = query_params["groupEmail"]
     directory_service = gutils.get_directory_service(auth_token)
     members = []
-    results = directory_service.members().list(groupKey=group_key, quotaUser = group_key[0:41]).execute()
+    results = directory_service.members().list(groupKey=group_key, maxResults=50,
+                                                    pageToken=next_page_token, quotaUser = group_key[0:41]).execute()
 
     if results and "members" in results:
         members = results["members"]
@@ -63,6 +64,3 @@ def process(db_session, auth_token, query_params, scanner_data):
 
         db_connection().commit()
     return members_count
-    
-def post_process(db_session, auth_token, query_params):
-    pass

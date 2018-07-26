@@ -1,14 +1,15 @@
 from sqlalchemy import and_, desc, asc
-import json
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.utils import utils
-from adya.common.constants import constants
+from adya.common.utils import utils, aws_utils, messaging
+from adya.common.constants import constants, urls
 from datetime import datetime
-import os, uuid
-from adya.common.utils.response_messages import Logger
+import os, uuid, csv, tempfile, json, boto3
+from adya.common.utils.response_messages import Logger, ResponseMessage
+from boto3.s3.transfer import S3Transfer
+from sqlalchemy import case
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,10 +37,12 @@ def get_user_stats(auth_token):
 
     shared_files_with_external_users =[]
     if is_service_account_is_enabled and not is_admin:
-        shared_files_with_external_users = users.filter(and_(Resource.resource_owner_id == login_user.email,
-                                                                   ResourcePermission.resource_id == Resource.resource_id,
-                                                                   DomainUser.email == ResourcePermission.email,
-                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
+        shared_files_with_external_users = users.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
+                                                           Resource.resource_id == ResourcePermission.resource_id,
+                                                           Resource.resource_owner_id == login_user.email,
+                                                           ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                                           ResourcePermission.email == DomainUser.email,
+                                                           DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
 
         users = users.filter(DomainUser.email == login_user.email)
 
@@ -93,22 +96,24 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     login_user_email = login_user.email
     is_login_user_admin = login_user.is_admin
     is_service_account_is_enabled = login_user.is_serviceaccount_enabled
-
-    users_query = db_session.query(DomainUser)
-
+    domain_datasource_ids = []
     if not datasource_id:
         datasources = db_session.query(DataSource).filter(
             DataSource.domain_id == user_domain_id).all()
-        domain_datasource_ids = []
         for ds in datasources:
             domain_datasource_ids.append(ds.datasource_id)
-        users_query = users_query.filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    else:
+        domain_datasource_ids = [datasource_id]
+
+    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
 
     shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
-        shared_files_with_external_users = users_query.filter(and_(Resource.resource_owner_id == login_user_email,
-                                                                   ResourcePermission.resource_id == Resource.resource_id,
-                                                                   DomainUser.email == ResourcePermission.email,
+        shared_files_with_external_users = users_query.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
+                                                                   Resource.resource_owner_id == login_user_email,
+                                                                   Resource.resource_id == ResourcePermission.resource_id,
+                                                                   ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                                                   ResourcePermission.email == DomainUser.email,
                                                                    DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value))
 
         shared_files_with_external_users = filter_on_get_user_list(shared_files_with_external_users, full_name, email,
@@ -126,8 +131,6 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
                    sort_order=None, is_admin=None, type=None, page_number=0):
-    if datasource_id:
-        entity = entity.filter(DomainUser.datasource_id == datasource_id)
     if full_name:
         entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
     if email:
@@ -152,6 +155,8 @@ def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None
         sort_column_obj = DomainUser.member_type
     elif sort_column == "type":
         sort_column_obj = DomainUser.type
+    elif sort_column == "last_login":
+        sort_column_obj = DomainUser.last_login_time
 
     if sort_column_obj:
         if sort_order == "asc":
@@ -206,7 +211,7 @@ def get_all_apps(auth_token):
     return apps_data
 
 
-def get_users_for_app(auth_token, domain_id, app_id):
+def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order):
     db_session = db_connection().get_session()
 
     # check for non-admin user
@@ -226,10 +231,16 @@ def get_users_for_app(auth_token, domain_id, app_id):
                  )).all()
 
     domain_user_emails = [r for r, in domain_user_emails]
-
-    apps_query_data = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
-    )).all()
-
+    apps_query = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
+    ))
+    
+    if sort_column_name == "last_login": 
+        if sort_order == 'desc':
+            apps_query = apps_query.order_by(DomainUser.last_login_time.desc())
+        else:
+            apps_query = apps_query.order_by(DomainUser.last_login_time.asc())  
+    apps_query_data = apps_query.all()
+    
     return apps_query_data
 
 
@@ -279,6 +290,7 @@ def update_apps(auth_token, payload):
         app["unit_num"] = payload["unit_num"]
         app["unit_price"] = payload["unit_price"]
         app["pricing_model"] = payload["pricing_model"]
+        app["category"] = payload["category"]
         db_session.query(Application).filter(Application.id == payload["application_id"]).update(app)
         db_connection().commit()
         return payload
@@ -298,6 +310,8 @@ def insert_apps(auth_token, payload):
             app.domain_id = domain_id
             app.display_text = inventory_app.name
             app.inventory_app_id = id
+            app.category = inventory_app.category
+            app.image_url = inventory_app.image_url
             app.timestamp = str(datetime.utcnow().isoformat())
             app.unit_num = 0
             db_session.add(app)
@@ -305,3 +319,83 @@ def insert_apps(auth_token, payload):
         return payload
     else:
         return None
+
+def export_to_csv(auth_token, payload):
+    if not 'is_async' in payload:
+        payload['is_async'] = True
+        messaging.trigger_post_event(urls.USERS_EXPORT, auth_token, None, payload)
+        return ResponseMessage(202, "Your download request is in process, you shall receive an email with the download link soon...")
+    else:
+        write_to_csv(auth_token, payload)
+
+def write_to_csv(auth_token, payload):
+    source = payload["datasource_id"]
+    type = payload["type"]
+    name = payload["full_name"]
+    email = payload["email"]
+    is_admin = payload["is_admin"]
+    member_type = payload["member_type"]
+    logged_in_user = payload["logged_in_user"]
+    selected_fields = payload['selectedFields']
+
+    db_session = db_connection().get_session()
+    existing_user = db_utils.get_user_session(auth_token)
+    domain_id = existing_user.domain_id
+
+    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+    domain_datasource_ids = []
+    for datasource in datasources:
+        domain_datasource_ids.append(datasource.datasource_id)
+    
+    users_query = db_session.query(DomainUser).join(DataSource).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    users_query = filter_on_get_user_list(users_query, full_name=name, email=email, member_type=member_type, datasource_id=source,
+                    is_admin=is_admin, type=type)
+
+    column_fields = []
+    column_headers = []
+
+    if 'datasource_id' in selected_fields:
+        column_fields.append(DataSource.datasource_type)
+        column_headers.append('Source')
+    if 'full_name' in selected_fields:
+        column_name = case([(DomainUser.full_name != None, DomainUser.full_name),],
+            else_ = DomainUser.first_name + " " + DomainUser.last_name)
+        column_fields.append(column_name)
+        column_headers.append('Name')
+    if 'email' in selected_fields:
+        column_fields.append(DomainUser.email)
+        column_headers.append('Email')
+    if '' in selected_fields:
+        column_fields.append(DomainUser.photo_url)
+        column_headers.append('Avatar')
+    if 'type' in selected_fields:
+        column_fields.append(DomainUser.type)
+        column_headers.append('Type')
+    if 'last_login' in selected_fields:
+        column_fields.append(DomainUser.last_login_time)
+        column_headers.append('Last Login')
+    if 'is_admin' in selected_fields:
+        column_fields.append(DomainUser.is_admin)
+        column_headers.append('Is Admin')
+    if 'member_type' in selected_fields:
+        column_fields.append(DomainUser.member_type)
+        column_headers.append('Exposure Type')
+    
+    users = users_query.with_entities(*column_fields).all()
+
+    temp_csv = utils.convert_data_to_csv(users, column_headers)
+    bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
+    now = datetime.strftime(datetime.utcnow(), "%Y-%m-%d-%H-%M-%S")
+    key = domain_id + "/export/user-" + now + ".csv"
+    temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
+
+    if temp_url:
+        email_subject = "[Adya] Your download is ready"
+        link = "<a href=" + temp_url + ">link</a>"
+        email_head = "<p>Hi " + existing_user.first_name + ",</p></br></br>"
+        email_body = "<p>Your requested file is ready for download at this " + link + "</p></br></br>"
+        email_signature = "<p>Best,</br> Team Adya</p>"
+        rendered_html = email_head + email_body + email_signature
+        aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+    else:
+        Logger().exception("Failed to generate url. Please contact administrator")

@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
 import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid } from 'semantic-ui-react';
+import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
+import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
 
 import {
@@ -47,8 +49,9 @@ class UserListNew extends Component {
                 "Name",
                 "Email",
                 "Avatar",
+                "Last Login",
                 "Is Admin",
-                "Type"
+                "Exposure Type"
             ],
             columnHeaderDataNameMap: {
                 "Source": "datasource_id",
@@ -56,7 +59,9 @@ class UserListNew extends Component {
                 "Email": "email",
                 "Avatar": "",
                 "Type": "type",
+                "Last Login": "last_login",
                 "Is Admin": "is_admin",
+                "Exposure Type": "member_type"
             },
             columnNameClicked: this.props.sortColumnName,
             sortOrder: this.props.sortType,
@@ -181,8 +186,10 @@ class UserListNew extends Component {
         let tableRowData = null;
         let usersData = this.props.usersList;
         let dsMap = this.props.datasourcesMap;
+        let ninety_days_ago = new Date(Date.now() - 77760e5) // 7776000000 ms = 90 days
         if (usersData)
             tableRowData = usersData.map(rowData => {
+                let is_inactive = null
                 var avatarImage = null;
                 if (!rowData.full_name)
                     rowData.full_name = rowData.first_name + " " + (rowData.last_name || "")
@@ -195,7 +202,20 @@ class UserListNew extends Component {
                 if (rowData.datasource_id) {
                     dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
                 }
-
+                let last_login_time = null
+                if(rowData.last_login_time){
+                    last_login_time = rowData.last_login_time
+                    is_inactive = new Date(last_login_time) < ninety_days_ago 
+                }
+                let formattedTime = (last_login_time ?
+                    <IntlProvider locale={'en'} >
+                        <FormattedDate
+                            value={(new Date(last_login_time))}
+                            year='numeric'
+                            month='long'
+                            day='2-digit'
+                        />
+                    </IntlProvider> : null)   
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
@@ -203,6 +223,10 @@ class UserListNew extends Component {
                         <Table.Cell >{rowData["full_name"]}</Table.Cell>
                         <Table.Cell >{rowData["email"]}</Table.Cell>
                         <Table.Cell textAlign="center" >{avatarImage}</Table.Cell>
+                        <Table.Cell textAlign="center">
+                            {formattedTime}
+                            {is_inactive ? <span><b> (Inactive) </b></span> : null } 
+                        </Table.Cell>
                         <Table.Cell textAlign="center">{rowData["is_admin"] ? <Icon name="checkmark" /> : null}</Table.Cell>
                         <Table.Cell textAlign="center">{rowData["member_type"]}</Table.Cell>
                     </Table.Row>
@@ -216,6 +240,15 @@ class UserListNew extends Component {
         )
 
         if (this.props.isLoadingUsers || usersData) {
+            let filterMetadata = {
+                "full_name": this.props.listFilters.full_name ? this.props.listFilters.full_name.value || "" : "",
+                "email": this.props.listFilters.email ? this.props.listFilters.email.value || "" : "",
+                "member_type": this.props.listFilters.member_type ? this.props.listFilters.member_type.value || "" : "",
+                "datasource_id": this.props.listFilters.datasource_id ? this.props.listFilters.datasource_id.value || "" : "",
+                "is_admin": this.props.listFilters.is_admin ? this.props.listFilters.is_admin.value : "",
+                "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : "",
+                "logged_in_user": this.props.currentUser['email']
+            }
             return (
                 <Grid fluid >
                     <Container fluid textAlign="left">
@@ -239,9 +272,12 @@ class UserListNew extends Component {
                                 </Table>
                                 {this.props.isLoadingUsers ? dimmer : null}
                             </div>
-                            <div style={{ marginTop: '5px' }} >
-                                {this.props.isLoadingUsers || (usersData && usersData.length < 50) ? null : (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                                {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ float: 'right', width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                            <div style={{ marginTop: '10px' }} >
+                                <div style={{float: 'right'}}>
+                                    {this.props.isLoadingUsers || (usersData && usersData.length < 10) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                                    {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                                </div>
+                                <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
                             </div>
                         </Grid.Column >
                     </Grid.Row>

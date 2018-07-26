@@ -278,6 +278,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
     resource_permissions = db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                                             ResourcePermission.email == user_email,
                                                                             ResourcePermission.permission_type != "owner",
+                                                                            Resource.datasource_id == ResourcePermission.datasource_id,
                                                                             Resource.resource_id == ResourcePermission.resource_id))
 
     if is_service_account_is_enabled and not is_admin:
@@ -287,11 +288,13 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         log_entry.total_count = resource_permissions.count()
         db_connection().commit()
 
+    Logger().info("remove_all_permissions_for_user : retrieve permission for a user from db")
     resource_permissions = resource_permissions.order_by(Resource.resource_owner_id.asc()).limit(BATCH_COUNT).all()
     more_to_execute = False
     if len(resource_permissions) == BATCH_COUNT:
         more_to_execute = True
 
+    Logger().info("remove_all_permissions_for_user : form a permission payload for each owner")
     permissions_to_update_by_resource_owner = {}
     for permission in resource_permissions:
         owner = permission.resource.resource_owner_id
@@ -309,6 +312,7 @@ def remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_e
         200, 'Action submitted successfully')
     for owner in permissions_to_update_by_resource_owner:
         permissions_to_update = permissions_to_update_by_resource_owner[owner]
+        Logger().info("remove_all_permissions_for_user : call execute_batch_delete function")
         response = execute_batch_delete(
             auth_token, datasource_id, owner, initiated_by, permissions_to_update, log_entry, action_key, more_to_execute)
 
@@ -421,27 +425,6 @@ def delete_repository(auth_token, datasource_id, action_key, action_parameters, 
     db_connection().commit()
     return response_messages.ResponseMessage(200, status_message)
 
-
-def remove_external_collaborators(auth_token, datasource_id, action_key, action_parameters, log_entry):
-    datasource_obj = get_datasource(datasource_id)
-    datasource_type = datasource_obj.datasource_type
-    status_message = "Action submitted successfully"
-
-    payload = {
-        "resource_name": action_parameters["resource_name"],
-        "action_type": action_key,
-        "datasource_id": datasource_id,
-        "domain_id": datasource_obj.domain_id
-    }
-    messaging.trigger_post_event(datasource_execute_action_map[datasource_type], auth_token, None,
-                                 payload, connector_servicename_map[datasource_type])
-
-    log_entry.status = action_constants.ActionNames.SUCCESS.value
-    log_entry.message = status_message
-    db_connection().commit()
-    return response_messages.ResponseMessage(200, status_message)
-
-
 def execute_action(auth_token, domain_id, datasource_id, action_config, action_payload, log_entry):
     action_parameters = action_payload['parameters']
     response_msg = ''
@@ -455,11 +438,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value:
         user_email = action_parameters['user_email']
         full_name = action_parameters['full_name']
+        initiated_by = action_payload['initiated_by']
         status_message = "Notification sent to {} for cleanUp".format(
             user_email)
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         status_code = 200
-        if not adya_emails.send_clean_files_email(datasource_id, user_email, full_name):
+        if not adya_emails.send_clean_files_email(datasource_id, user_email, full_name, initiated_by):
             status_message = "Sending Notification failed for {}".format(
                 user_email)
             log_entry.status = action_constants.ActionStatus.FAILED.value
@@ -535,11 +519,6 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     #Deleting a repository
     elif action_key == action_constants.ActionNames.DELETE_REPOSITORY.value:
         response_msg = delete_repository(
-            auth_token, datasource_id, action_key, action_parameters, log_entry)
-
-    #Removing external users as collaborator
-    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_USER_AS_COLLABORATOR.value:
-        response_msg = remove_external_collaborators(
             auth_token, datasource_id, action_key, action_parameters, log_entry)
 
     return response_msg
@@ -658,7 +637,7 @@ def revoke_user_app_access(auth_token, datasource_id, user_email, app_id, log_en
         return response_messages.ResponseMessage(400, status_message)
 
 
-def remove_app_for_domain(auth_token, app_id, log_entry):
+def remove_app_for_domain(auth_token, app_id, log_entry=None):
     if not auth_token:
         return None
     db_session = db_connection().get_session()
@@ -672,9 +651,10 @@ def remove_app_for_domain(auth_token, app_id, log_entry):
         db_session.query(Application).filter(Application.id == app_id).delete()
     except:
         Logger().exception("Exception occured while deleting the app")
-        
-    log_entry.status = action_constants.ActionStatus.SUCCESS.value
+
     status_message = "Action completed successfully"
-    log_entry.message = status_message
-    db_connection().commit()
+    if log_entry:
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        log_entry.message = status_message
+        db_connection().commit()
     return response_messages.ResponseMessage(200, status_message)

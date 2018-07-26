@@ -19,6 +19,8 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
+    ACTIVITY_DB_HOST: ${opt:ACTIVITY_DB_HOST, 'localhost'}
+    ACTIVITY_DB_PORT: ${opt:ACTIVITY_DB_PORT, '27017'}
     DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
   iamRoleStatements:
     - Effect: 'Allow'
@@ -102,37 +104,6 @@ functions:
           path: oauthcallback
           method: get
   
-  # post-github-scan-start:
-  #   handler: adya.github.services.scan_handler.start_github_scan
-  #   events:
-  #     - http:
-  #         path: scan/start
-  #         method: post
-  #         cors: true
-  
-  # get-github-scan-users:
-  #   handler: adya.github.services.scan_handler.get_github_users
-  #   events:
-  #     - http:
-  #         path: scan/users
-  #         method: get
-
-  # post-github-scan-users:
-  #   handler: adya.github.services.scan_handler.process_github_users
-  #   events:
-  #     - http:
-  #         path: scan/users
-  #         method: post
-  #         cors: true
-
-  # post-github-scan-repository:
-  #   handler: adya.github.services.scan_handler.process_github_repository
-  #   events:
-  #     - http:
-  #         path: scan/repository
-  #         method: post
-  #         cors: true
-
   get-github-scan-entities:
     handler: adya.github.services.scan_handler.request_scanner_data
     events:
@@ -149,6 +120,14 @@ functions:
           method: post
           cors: true
   
+  get-github-scan:
+    handler: adya.github.services.scan_handler.start_scan
+    events:
+      - http:
+          path: scan
+          method: get
+          cors: true
+
   post-github-scan:
     handler: adya.github.services.scan_handler.update_scan
     events:

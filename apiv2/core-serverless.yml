@@ -32,6 +32,8 @@ provider:
     DB_USERNAME: ${opt:DB_USERNAME, 'root'}
     DB_PWD: ${opt:DB_PWD, 'root'}
     DB_NAME: ${opt:DB_NAME, 'dev'}
+    ACTIVITY_DB_HOST: ${opt:ACTIVITY_DB_HOST, 'localhost'}
+    ACTIVITY_DB_PORT: ${opt:ACTIVITY_DB_PORT, '27017'}
     DEPLOYMENT_ENV: ${self:provider.stage, 'dev'}
   iamRoleStatements:
     - Effect: 'Allow'
@@ -49,6 +51,8 @@ provider:
         - "ec2:DescribeNetworkInterfaces"
         - "ec2:DeleteNetworkInterface"
         - "lambda:GetPolicy"
+        - "s3:PutObject"
+        - "s3:GetObject"
       Resource:
         "*"
   vpc: 
@@ -160,7 +164,7 @@ functions:
           cors: true
 
   get-common-users:
-    handler: adya.core.services.reports_handler.get_users_list
+    handler: adya.core.services.directory_handler.get_users_list
     events:
       - http:
           path: users
@@ -168,7 +172,7 @@ functions:
           cors: true
 
   get-common-users-stats:
-    handler: adya.core.services.reports_handler.get_user_stats
+    handler: adya.core.services.directory_handler.get_user_stats
     events:
       - http:
           path: users/stats
@@ -176,7 +180,7 @@ functions:
           cors: true
   
   get-common-groupmembers:
-    handler: adya.core.services.reports_handler.get_group_members
+    handler: adya.core.services.directory_handler.get_group_members
     events:
       - http:
           path: getgroupmembers
@@ -220,6 +224,22 @@ functions:
     events:
       - http:
           path: getresourcetree
+          method: post
+          cors: true
+  
+  post-common-resource-export:
+    handler: adya.core.services.resource_handler.export_to_csv
+    events:
+      - http:
+          path: resource/export
+          method: post
+          cors: true
+  
+  post-common-users-export:
+    handler: adya.core.services.directory_handler.export_to_csv
+    events:
+      - http:
+          path: users/export
           method: post
           cors: true
 
@@ -317,14 +337,6 @@ functions:
           method: delete
           cors: true
 
-  post-common-policies-default:
-    handler: adya.core.services.policy_handler.create_default_policies
-    events:
-      - http:
-          path: policies/default
-          method: post
-          cors: true        
-  
   get-common-alerts:
     handler: adya.core.services.alert_handler.get_alert
     events:

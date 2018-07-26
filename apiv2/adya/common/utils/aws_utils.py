@@ -2,6 +2,7 @@ import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from adya.common.utils.response_messages import Logger, ResponseMessage
+from boto3.s3.transfer import S3Transfer
 
 import boto3
 import json
@@ -9,6 +10,7 @@ import json
 from slugify import slugify
 
 from adya.common.constants import constants
+from datetime import datetime
 
 # create cloudwatch event
 
@@ -190,3 +192,25 @@ def get_lambda_name(httpmethod, endpoint, service_name="core"):
         constants.DEPLOYMENT_ENV + '-' + \
         str(httpmethod) + '-' + slugify(endpoint)
     return lambda_name
+
+
+def upload_file_in_s3_bucket(bucket_name, key, temp_csv):    
+    try:
+        client = boto3.client('s3')
+        transfer = S3Transfer(client)
+        transfer.upload_file(temp_csv.name, bucket_name, key)
+    
+    except Exception as ex:
+        print ex
+        return None
+    
+    #Constructing a temporary file url 
+    temp_url = client.generate_presigned_url(
+        'get_object', 
+        Params = {
+            'Bucket': bucket_name,
+            'Key': key,
+        },
+        ExpiresIn=3600)
+        
+    return temp_url

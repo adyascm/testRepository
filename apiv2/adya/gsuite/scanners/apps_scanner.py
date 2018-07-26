@@ -14,14 +14,13 @@ from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 
 def query(auth_token, query_params, scanner):
-    next_page_token = query_params["nextPageNumber"]
     user_key = query_params["userEmail"]
     directory_service = gutils.get_directory_service(auth_token)
     tokens = []
     results = directory_service.tokens().list(userKey=user_key, quotaUser = user_key[0:41]).execute()
     if results and "items" in results:
         tokens = results["items"]
-    return {"payload": tokens, "nextPageNumber": ""}
+    return {"payload": tokens}
 
 def process(db_session, auth_token, query_params, scanner_data):
     user_email = query_params["userEmail"]
@@ -42,6 +41,8 @@ def process(db_session, auth_token, query_params, scanner_data):
                 application = Application()
                 if inventory_app_id:
                     application.inventory_app_id = inventory_app_id 
+                    application.category = inventory_app.category
+                    application.image_url = inventory_app.image_url
                 application.domain_id = domain_id
                 application.display_text = app_name
                 application.anonymous = app.get("anonymous")
@@ -70,6 +71,3 @@ def process(db_session, auth_token, query_params, scanner_data):
         db_session.bulk_insert_mappings(ApplicationUserAssociation, application_associations)
         db_connection().commit()
     return apps_count
-    
-def post_process(db_session, auth_token, query_params):
-    pass

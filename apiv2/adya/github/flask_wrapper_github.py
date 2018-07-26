@@ -32,6 +32,8 @@ class GithubEntities(Resource):
         scan_handler.process_scanner_data(request, None)
 
 class GithubScanUpdate(Resource):
+    def get(self):
+        scan_handler.start_scan(request, None)
     def post(self):
         scan_handler.update_scan(request, None)
 

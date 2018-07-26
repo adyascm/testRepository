@@ -4,7 +4,9 @@ from sqlalchemy import and_
 
 from adya.common.constants import constants, urls
 from adya.common.db import db_utils
+from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
+from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import Resource, DataSource, ResourcePermission, alchemy_encoder, DomainUser
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
@@ -77,7 +79,6 @@ def update_resource(db_session, datasource_id, updated_resource):
             db_utils.get_model_values(ResourcePermission, new_permission)))
 
     db_connection().commit()
-    # TODO : UPDATE THE DATA IN INFLUX DB
 
     # trigger policy
     payload = {}
@@ -87,5 +88,11 @@ def update_resource(db_session, datasource_id, updated_resource):
     policy_params = {'dataSourceId': datasource_id,
                      'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
     Logger().info("update_resource : payload : {}".format(payload))
-    messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, "Internal-Secret", policy_params, payload, "slack")
+    messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "slack")
+
+    datasource_obj = get_datasource(datasource_id)
+    #TODO : enter every new permission
+    activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                            event_type='FILE_CHANGED', actor=db_resource.resource_owner_id,
+                            tags={})
 
