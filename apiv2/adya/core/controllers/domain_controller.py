@@ -102,41 +102,32 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
         DataSource.datasource_id == datasource_id).first()
     try:
         app_name = constants.datasource_to_installed_app_map[existing_datasource.datasource_type]
-        
-        db_session.query(DirectoryStructure).filter(
-            DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(ResourcePermission).filter(
-            ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(Resource).filter(
-            Resource.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.execute(DirectoryStructure.__table__.delete().where(DirectoryStructure.datasource_id == datasource_id))
+        db_session.execute(ResourcePermission.__table__.delete().where(ResourcePermission.datasource_id == datasource_id))
+        db_session.execute(Resource.__table__.delete().where(Resource.datasource_id == datasource_id))
         app_query = db_session.query(ApplicationUserAssociation).filter(
             ApplicationUserAssociation.datasource_id == datasource_id)
         app_ids = [r.application_id for r in app_query.all()]
         app_query.delete(synchronize_session=False) 
         try:
-            db_session.query(Application).filter(Application.id.in_(app_ids)).delete(synchronize_session=False)
+            db_session.execute(Application.__table__.delete().where(Application.id.in_(app_ids)))
             # delete app wrt to datasource
             db_session.query(Application).filter(Application.display_text == app_name).delete(synchronize_session=False)
         except:
             Logger().info('App is present corresponding to other datasource')
         
-        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
-                                                               datasource_id).delete(synchronize_session=False)
-        db_session.query(DomainUser).filter(
-            DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.execute(PushNotificationsSubscription.__table__.delete().where(PushNotificationsSubscription.datasource_id == datasource_id))
+        db_session.execute(DomainUser.__table__.delete().where(DomainUser.datasource_id == datasource_id))
+        db_session.execute(DatasourceScanners.__table__.delete().where(DatasourceScanners.datasource_id == datasource_id))
 
-        db_session.query(DatasourceScanners).filter(DatasourceScanners.datasource_id == datasource_id).delete(synchronize_session= False)
         #If its not complete delete, then just clear out the scan entities, and reset the scan state 
         if complete_delete:
-            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
-            # db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
-            db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
-            #Delete Policies
-            db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            
-            db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
+            db_session.execute(AuditLog.__table__.delete().where(AuditLog.datasource_id == datasource_id))
+            db_session.execute(Alert.__table__.delete().where(Alert.datasource_id == datasource_id))
+            db_session.execute(PolicyAction.__table__.delete().where(PolicyAction.datasource_id == datasource_id))
+            db_session.execute(PolicyCondition.__table__.delete().where(PolicyCondition.datasource_id == datasource_id))
+            db_session.execute(Policy.__table__.delete().where(Policy.datasource_id == datasource_id))
+            db_session.execute(DatasourceCredentials.__table__.delete().where(DatasourceCredentials.datasource_id == datasource_id))
             db_session.delete(existing_datasource)
         else:
             existing_datasource.processed_file_count = 0
