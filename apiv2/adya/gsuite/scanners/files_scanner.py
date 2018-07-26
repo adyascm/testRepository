@@ -10,7 +10,7 @@ from adya.common.utils.response_messages import Logger
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
 from adya.common.db import models
-from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,ResourceParent,Application,ApplicationUserAssociation,alchemy_encoder
+from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,Application,ApplicationUserAssociation,alchemy_encoder
 from adya.common.utils import utils, messaging
 from adya.common.email_templates import adya_emails
 from adya.common.utils.response_messages import Logger
