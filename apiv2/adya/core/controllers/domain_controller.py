@@ -261,9 +261,9 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
                     for domain_name in remove_domains:
                         more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, domain_name, None)
                         if more_to_execute:
-                            payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                            entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
                                        "remove_domain": domain_name}
-                            messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                            messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
                 remove_apps = set(existing_apps) - set(new_apps)
                 if len(remove_apps) > 0:
@@ -278,9 +278,9 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
                 for new_trusted_domain in add_domains:
                     more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, new_trusted_domain)
                     if more_to_execute:
-                        payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                        entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
                                    "add_domain": add_trusted_domain}
-                        messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                        messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
             if len(add_apps) > 0:
                 for apps_name in add_apps:
@@ -316,14 +316,14 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
             if 'add_domain' in payload:
                 more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, payload['add_domain'])
                 if more_to_execute:
-                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "add_domain": add_trusted_domain}
-                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                    entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "add_domain": add_trusted_domain}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
             elif 'remove_domain' in payload:
-                more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, payload['domain_id'], datasource_ids, payload['remove_domain'], None)
+                more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, None, datasource_ids, payload['remove_domain'], None)
                 if more_to_execute:
-                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "remove_domain": domain_name}
-                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                    entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "remove_domain": domain_name}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
 
 def get_all_trusted_entities(domain_id):
