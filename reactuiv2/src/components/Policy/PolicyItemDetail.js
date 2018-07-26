@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PolicyCondition from './PolicyCondition'
 import { Loader, Dimmer, Container, Segment, Form, Select, Header, Input, Checkbox, Button, Label, Icon, Modal, TextArea } from 'semantic-ui-react';
-import MultiUserSelect from '../MultiUserSelect'
 import agent from '../../utils/agent';
 
 import {
@@ -323,8 +322,6 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                {/* <Form.Field><GroupSearch defaultValue={this.state.To} /></Form.Field> */}
-                {/* <Form.Field><MultiUserSelect email={this.state.To} /></Form.Field> */}
                 <Form.Field><UserTagging datasource={this.state.datasource_id} /></Form.Field>
             </Form.Group>
         )
