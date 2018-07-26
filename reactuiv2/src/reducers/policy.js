@@ -27,13 +27,11 @@ export default (state=defaultState, action) => {
                 isLoadingPolicy: false
             }
         case UPDATE_POLICY_ACTION_EMAIL:
-            let actionEmail = state.actionEmail ? [...state.actionEmail] : []
+            let actionEmail = []
             if (action.actionType === 'SET') {
-                actionEmail.push(action.email)
-            }
-            else if (action.actionType === 'UNSET') {
-                let index = actionEmail.indexOf(action.email)
-                actionEmail.splice(index,1)
+                for (let index in action.email) {
+                    actionEmail.push(action.email[index]['name'])
+                }
             }
             else if (action.actionType === 'SETMULTIPLE') {
                 actionEmail = [...action.email]

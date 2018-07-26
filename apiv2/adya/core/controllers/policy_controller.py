@@ -110,9 +110,6 @@ def insert_entry_into_policy_table(db_session, payload):
             policy_action.policy_id = policy_id
             policy_action.datasource_id = payload["datasource_id"]
             policy_action.action_type = action["action_type"]
-            action_config_to = action["config"]["to"] if "config" in action else None
-            if action_config_to:
-                action["config"]["to"] = (",").join(action_config_to)
             policy_action.config = json.dumps(action["config"]) if 'config' in action else None
             db_session.add(policy_action)
 

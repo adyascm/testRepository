@@ -16,6 +16,7 @@ import {
 } from '../../constants/actionTypes';
 
 import GroupSearch from '../Search/GroupSearch'
+import UserTagging from '../UserTagging';
 
 
 const mapStateToProps = state => ({
@@ -168,7 +169,7 @@ class PolicyItemDetail extends Component {
             let emailAction = {
                 action_type: 'SEND_EMAIL',
                 config: {
-                    to: nextProps.actionEmail
+                    to: nextProps.actionEmail.join(",")
                 }
             }
             let action = this.state.actions
@@ -323,7 +324,8 @@ class PolicyItemDetail extends Component {
         let emailFieldInput = (
             <Form.Group widths='equal'>
                 {/* <Form.Field><GroupSearch defaultValue={this.state.To} /></Form.Field> */}
-                <Form.Field><MultiUserSelect email={this.state.To} /></Form.Field>
+                {/* <Form.Field><MultiUserSelect email={this.state.To} /></Form.Field> */}
+                <Form.Field><UserTagging datasource={this.state.datasource_id} /></Form.Field>
             </Form.Group>
         )
 
@@ -375,13 +377,13 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>
+                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                     <Form.Field control={Checkbox} label='Send Email To' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                     {this.state.disableEmailField ? null : emailFieldInput}
-                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                 </Segment>
                             </Segment.Group>
                             <Button negative onClick={this.props.closePolicyModalForm}>Close</Button>
-                            <Button positive content='Submit'></Button>
+                            <Button positive content='Submit' disabled={!this.state.disableEmailField && (!this.props.actionEmail || !this.props.actionEmail.length)}></Button>
                         </Form>
                     </Modal.Content>
                 </Modal>
