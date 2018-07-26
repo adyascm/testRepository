@@ -192,12 +192,12 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
         elif new_permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
             event_name = 'FILE_SHARE_EXTERNAL'
 
-        additional_payload = {"resource_id": db_resource.resource_id, "resource_name": db_resource.resource_name, "permission_email": new_permission.email,
+        tags = {"resource_id": db_resource.resource_id, "resource_name": db_resource.resource_name, "permission_email": new_permission.email,
                               "permission_type": new_permission.permission_type, "permission_exposure_type": new_permission.exposure_type}
         activity_db().add_event(domain_id=datasource_obj.domain_id,
                                 connector_type=constants.ConnectorTypes.GSUITE.value,
-                                event_type=event_name, actor=db_resource.resource_owner_id, additional_payload = additional_payload,
-                                tags={})
+                                event_type=event_name, actor=db_resource.resource_owner_id,
+                                tags=tags)
     #Update external users
     if len(external_users)>0:
         external_users_values = []
