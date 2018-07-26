@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid, Checkbox } from 'semantic-ui-react';
 import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
 import ExportCsvModal from '../ExportCsvModal'
@@ -44,6 +44,7 @@ class UserListNew extends Component {
         super(props);
         this.state = {
             columnHeaders: [
+                "Select All",
                 "Source",
                 "Type",
                 "Name",
@@ -65,7 +66,9 @@ class UserListNew extends Component {
             },
             columnNameClicked: this.props.sortColumnName,
             sortOrder: this.props.sortType,
-            numberAppliedFilter: this.props.listFilters ? Object.keys(this.props.listFilters).length : 0
+            numberAppliedFilter: this.props.listFilters ? Object.keys(this.props.listFilters).length : 0,
+            selectAllColumns:false,
+            selectedFieldColumns:{}
         }
 
         this.exposureFilterMap = {
@@ -153,9 +156,37 @@ class UserListNew extends Component {
     handleClick = (event) => {
         event.stopPropagation()
     }
+    
+    handleAllFieldsSelection = (event, data) => {
+        console.log('checked', data);
+        
+        let selectAllColumns = !this.state.selectAllColumns
+        let selectedFieldColumns = this.state.selectedFieldColumns
+        for(var i in this.props.usersList){
+            selectedFieldColumns[i] = selectAllColumns
+        }    
+        this.setState({
+            selectAllColumns: selectAllColumns,
+            selectedFieldColumns:selectedFieldColumns
+        })
+    }
+    handleFieldSelection = (event, data, index) => {
+        console.log('--',index, data, this.state.selectedFieldColumns);
+        event.stopPropagation()
+        let selectedFieldColumns = this.state.selectedFieldColumns
+        selectedFieldColumns[index] = index in this.state.selectedFieldColumns ? !this.state.selectedFieldColumns[index] : true
+        this.setState({
+            selectedFieldColumns:selectedFieldColumns
+        })
+        if (!this.state.selectedFieldColumns[index]) {
+            this.setState({
+                selectAllColumns: false
+            })
+        }
+    }
 
     render() {
-
+        console.log('render ____', this.state.selectedFieldColumns);
         let datasourceFilterOptions = [{ text: "All", value: 'ALL' }];
         for (var index in this.props.datasources) {
             let ds = this.props.datasources[index];
@@ -163,15 +194,23 @@ class UserListNew extends Component {
         }
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            return (
-                <Table.HeaderCell key={headerName}
-                    sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
-                    onClick={(event) => this.handleColumnSort(event, mappedColumnName)}
-                >
-                    {headerName === "Email" ? <Input style={{ 'width': '20rem' }} icon={this.props.listFilters.email && this.props.listFilters.email.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "email")} /> : null} placeholder="Filter by email ..."
-                        value={this.props.listFilters.email ? this.props.listFilters.email.value : ""} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "email")} /> : headerName}
-                </Table.HeaderCell>
-            )
+            if(headerName == 'Select All'){
+                return (
+                    <Table.HeaderCell key={headerName}>
+                        <Checkbox onChange={this.handleAllFieldsSelection} checked={this.state.selectAllColumns} />
+                    </Table.HeaderCell>
+                )
+            }else{
+                return (
+                    <Table.HeaderCell key={headerName}
+                        sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
+                        onClick={(event) => this.handleColumnSort(event, mappedColumnName)}>
+                        {headerName === "Email" ? <Input style={{ 'width': '20rem' }} icon={this.props.listFilters.email && this.props.listFilters.email.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "email")} /> : null} placeholder="Filter by email ..."
+                            value={this.props.listFilters.email ? this.props.listFilters.email.value : ""} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "email")} /> : headerName}
+                    </Table.HeaderCell>
+                )
+            }
+            
         })
         let filterSelections = [];
         if (this.state.numberAppliedFilter) {
@@ -188,7 +227,7 @@ class UserListNew extends Component {
         let dsMap = this.props.datasourcesMap;
         let ninety_days_ago = new Date(Date.now() - 77760e5) // 7776000000 ms = 90 days
         if (usersData)
-            tableRowData = usersData.map(rowData => {
+            tableRowData = usersData.map((rowData, index)=> {
                 let is_inactive = null
                 var avatarImage = null;
                 if (!rowData.full_name)
@@ -218,6 +257,9 @@ class UserListNew extends Component {
                     </IntlProvider> : null)   
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
+                        <Table.Cell>
+                            <Checkbox onChange={(event, data) => this.handleFieldSelection(event, data, index)} checked={this.state.selectedFieldColumns[index]} />
+                        </Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
                         <Table.Cell>{rowData["type"]}</Table.Cell>
                         <Table.Cell >{rowData["full_name"]}</Table.Cell>
