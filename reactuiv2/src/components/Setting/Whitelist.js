@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Button, Form, Header, Container } from 'semantic-ui-react'
+import { Button, Form, Header, Container, Dimmer, Loader } from 'semantic-ui-react'
 import agent from '../../utils/agent';
 import TagsInput from 'react-tagsinput';
 import 'react-tagsinput/react-tagsinput.css'
@@ -16,9 +16,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addTrustedEntities: (trustedEntities) => {
-    dispatch({ type: CREATE_TRUSTED_ENTITIES, payload: agent.Setting.createTrustedEntities(trustedEntities) })
-  },
   setTrustedEntities: (trustedEntities) =>
     dispatch({ type: SET_TRUSTED_ENTITIES, payload: trustedEntities }),
 
@@ -31,7 +28,8 @@ class WhitelistItem extends Component {
       this.state = {
         trustedEntitiesMap: {
           'trusted_domains' : [],
-          'trusted_apps': []
+          'trusted_apps': [],
+          isLoading: false
         }
       }
   }
@@ -51,10 +49,16 @@ class WhitelistItem extends Component {
   }
 
   handleSubmit = () => {
+    this.setState({
+        isLoading: true
+    })
     var input = this.state.trustedEntitiesMap
     input['domain_id'] = this.props.currentUser['domain_id']
-    this.props.addTrustedEntities(input)
-
+    agent.Setting.createTrustedEntities(input).then(res => {
+      this.setState({
+          isLoading: false
+      })
+  }).catch({ });
   }
 
 
@@ -86,7 +90,8 @@ class WhitelistItem extends Component {
                    inputProps={{placeholder:"apps..."}} addOnBlur={true}
                   />
       </div>
-          <Button basic color='green' type='reset' onClick={this.handleSubmit}>Save</Button>
+          <Button basic color='green' type='reset' loading={this.state.isLoading} onClick={this.handleSubmit}>Save
+          </Button>
       </Container>
 
 
