@@ -2,7 +2,7 @@ from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import aliased
 
 from adya.common.db.connection import db_connection
-from adya.common.db import db_utils
+from adya.common.db import db_utils, storage_db
 from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,Domain, DomainUser
 from adya.common.constants import constants, urls
 from adya.common.utils import utils, aws_utils, messaging
@@ -86,37 +86,21 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
     
     return resources_query, resource_alias, parent_alias
 
-def get_resources(auth_token, page_number, page_limit, accessible_by=None, exposure_type='EXT', resource_type='None', prefix='',
-                  owner_email_id=None, parent_folder=None, selected_date=None, sort_column_name=None, sort_type=None, datasource_id=None, source_type=None):
+def get_resources(auth_token, filters, page_number, page_limit, sort_column_name=None, sort_type=None):
     if not auth_token:
         return None
     
-    db_session = db_connection().get_session()
+    login_user = db_utils.get_user_session(auth_token)
+    
     page_number = page_number if page_number else 0
     page_limit = page_limit if page_limit else constants.PAGE_LIMIT
+    sort_column_name = sort_column_name if sort_column_name else "last_modified_time"
+    filters = filters if filters else {}
 
-    #Code moved to seperate common method fetch_filtered_resources
-    resources_query, resource_alias, parent_alias = fetch_filtered_resources(db_session, auth_token, accessible_by, exposure_type, resource_type, prefix,
-                  owner_email_id, parent_folder, selected_date, sort_column_name, sort_type, datasource_id, source_type)
-    resources = resources_query.offset(page_number * page_limit).limit(page_limit).all()
-    result = []
-    for resource in resources:
-        resource[0].parent_name = resource.resource_name
-        result.append(resource[0])
-    return result
-
-def search_resources(auth_token, prefix):
-    if not auth_token:
-        return None
-    if not prefix:
-        return []
-    db_session = db_connection().get_session()
-    domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == LoginUser.domain_id). \
-        filter(LoginUser.auth_token == auth_token).all()
-    domain_datasource_ids = [r for r, in domain_datasource_ids]
-    resources = db_session.query(Resource).filter(and_(Resource.datasource_id.in_(domain_datasource_ids), Resource.resource_name.ilike("%" + prefix + "%"))).limit(10).all()
-
-    return resources
+    if not login_user.is_admin:
+        filters["resource_owner_id"] = login_user.email
+    
+    return storage_db.storage_db().get_resources(login_user.domain_id, filters, sort_column_name, sort_type, page_number, page_limit)
 
 def export_to_csv(auth_token, payload):
     if not 'is_async' in payload:
@@ -128,65 +112,31 @@ def export_to_csv(auth_token, payload):
 
 
 def write_to_csv(auth_token, payload):
-    source = payload["sourceType"]
-    name = payload["resourceName"]
-    type = payload["resourceType"]
-    owner = payload["ownerEmailId"]
-    exposure_type = payload["exposureType"]
-    parent_folder = payload["parentFolder"]
-    modified_date = payload["selectedDate"]
-    logged_in_user = payload["logged_in_user"]
-    selected_fields = payload['selectedFields']
-
-    db_session = db_connection().get_session()
-    existing_user = db_utils.get_user_session(auth_token)
-    domain_id = existing_user.domain_id
+    if not auth_token:
+        return None
     
-    resources_query, resource_alias, parent_alias = fetch_filtered_resources(db_session, auth_token, exposure_type=exposure_type, resource_type=type, prefix=name,
-        owner_email_id=owner, parent_folder=parent_folder, selected_date=modified_date, source_type=source)
+    login_user = db_utils.get_user_session(auth_token)
+    
+    if not login_user.is_admin:
+        payload["resource_owner_id"] = login_user.email
+    
+    resources = storage_db.storage_db().get_resources(login_user.domain_id, payload, None, None, 0, 100000, payload['selectedFields'])
 
-    column_fields = []
-    column_headers = []
-
-    if 'source_type' in selected_fields:
-        column_fields.append(DataSource.datasource_type)
-        column_headers.append("Source")
-    if 'resource_name' in selected_fields:
-        column_fields.append(resource_alias.resource_name)
-        column_headers.append("Name")
-    if 'resource_type' in selected_fields:
-        column_fields.append(resource_alias.resource_type)
-        column_headers.append("Type")
-    if 'resource_owner_id' in selected_fields:
-        column_fields.append(resource_alias.resource_owner_id)
-        column_headers.append("Owner")
-    if 'exposure_type' in selected_fields:
-        column_fields.append(resource_alias.exposure_type)
-        column_headers.append("Exposure Type")
-    if 'parent_name' in selected_fields:
-        column_fields.append(parent_alias.resource_name)
-        column_headers.append("Parent Folder")
-    if 'last_modified_time' in selected_fields:
-        column_fields.append(resource_alias.last_modified_time)
-        column_headers.append("Modified On or Before")
-
-    resources = resources_query.with_entities(*column_fields).filter(DataSource.datasource_id == resource_alias.datasource_id).all()
-
-    temp_csv = utils.convert_data_to_csv(resources, column_headers)
+    temp_csv = utils.convert_data_to_csv(resources, payload['selectedFields'])
     bucket_name = "adyaapp-" + constants.DEPLOYMENT_ENV + "-data"
     now = datetime.strftime(datetime.utcnow(), "%Y-%m-%d-%H-%M-%S")
     #now = str(datetime.utcnow())
-    key = domain_id + "/export/resource-" + now + ".csv"
+    key = login_user.domain_id + "/export/resource-" + now + ".csv"
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
     
     if temp_url:
         email_subject = "[Adya] Your download is ready"
         link = "<a href=" + temp_url + ">link</a>"
-        email_head = "<p>Hi " + existing_user.first_name + ",</p></br></br>"
+        email_head = "<p>Hi " + login_user.first_name + ",</p></br></br>"
         email_body = "<p>Your requested file is ready for download at this " + link + "</p></br></br>"
         email_signature = "<p>Best,</br> Team Adya</p>"
         rendered_html = email_head + email_body + email_signature
-        aws_utils.send_email([logged_in_user], email_subject, rendered_html)
+        aws_utils.send_email([login_user.email], email_subject, rendered_html)
         # adya_emails.send_csv_export_email(logged_in_user, domain_id, temp_url)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")

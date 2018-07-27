@@ -6,98 +6,91 @@ from adya.common.db.models import Resource, ResourcePermission, DomainUser, Data
 
 
 class GsuiteResource:
-    def __init__(self, datasource_id, payload):
+    def __init__(self, domain_id, datasource_id, payload, external_user_map, trusted_domains):
+        self._domain_id = domain_id
         self._datasource_id = datasource_id
         self._payload = payload
-        self._external_users = []
-        self._resource = None
+        self._external_user_map = external_user_map
+        self._trusted_domains = trusted_domains
+        self._resource = {}
+        self._permissions = []
         self.parse()
 
     def parse(self):
-        self._resource = Resource()
-        self._resource.datasource_id = self._datasource_id
+        self._resource["datasource_id"] = self._datasource_id
         resource_id = self._payload['id']
-        self._resource.resource_id = resource_id
-        self._resource.resource_name = self._payload['name']
-        self._resource.resource_type = gutils.get_file_type_from_mimetype(self._payload['mimeType'])
-        self._resource.resource_owner_id = self._payload['owners'][0].get('emailAddress')
-        self._resource.resource_size = self._payload.get('size')
-        self._resource.creation_time = self._payload['createdTime'][:-1]
-        self._resource.last_modified_time = self._payload['modifiedTime'][:-1]
-        self._resource.web_content_link = self._payload.get("webContentLink")
-        self._resource.web_view_link = self._payload.get("webViewLink")
-        self._resource.icon_link = self._payload.get("iconLink")
-        self._resource.thumthumbnail_link = self._payload.get("thumbnailLink")
-        self._resource.description = self._payload.get("description")
-        self._resource.parent_id = self._payload.get('parents')[0] if self._payload.get('parents') else None
-        self._resource.last_modifying_user_email = ""
+        self._resource["resource_id"] = resource_id
+        self._resource["resource_name"] = self._payload['name']
+        self._resource["resource_type"] = gutils.get_file_type_from_mimetype(self._payload['mimeType'])
+        self._resource["resource_owner_id"] = self._payload['owners'][0].get('emailAddress')
+        self._resource["resource_size"] = self._payload.get('size')
+        self._resource["creation_time"] = self._payload['createdTime'][:-1]
+        self._resource["last_modified_time"] = self._payload['modifiedTime'][:-1]
+        self._resource["web_content_link"] = self._payload.get("webContentLink")
+        self._resource["web_view_link"] = self._payload.get("webViewLink")
+        self._resource["icon_link"] = self._payload.get("iconLink")
+        self._resource["thumthumbnail_link"] = self._payload.get("thumbnailLink")
+        self._resource["description"] = self._payload.get("description")
+        self._resource["parent_id"] = self._payload.get('parents')[0] if self._payload.get('parents') else None
+        self._resource["last_modifying_user_email"] = ""
         if self._payload.get("lastModifyingUser"):
-            self._resource.last_modifying_user_email = self._payload["lastModifyingUser"].get("emailAddress")
+            self._resource["last_modifying_user_email"] = self._payload["lastModifyingUser"].get("emailAddress")
 
         #1. Set resource exposure type based on highest exposure from all permissions
         #2. Collect all external users
         resource_exposure_type = constants.EntityExposureType.PRIVATE.value
-        external_user_map = {}
         permissions_payload = self._payload.get('permissions')
-        self._resource.permissions = []
         if permissions_payload:
-            for payload in permissions_payload:
-                permission = GsuitePermission(self._datasource_id, self._resource.resource_id, self._resource.resource_owner_id, payload)
-                permission_model = permission.get_model()
-                if not permission_model:
+            for permission_payload in permissions_payload:
+                permission = GsuitePermission(self._domain_id, self._datasource_id, resource_id, self._resource["resource_owner_id"], permission_payload, self._external_user_map, self._trusted_domains).parse()
+                if not permission:
                     continue
-                self._resource.permissions.append(permission_model)
-                resource_exposure_type = utils.get_highest_exposure_type(permission_model.exposure_type, resource_exposure_type)
-                if (not permission_model.email in external_user_map) and permission.get_external_user():
-                    external_user_map[permission_model.email]= permission.get_external_user()
+                self._permissions.append(permission)
+                resource_exposure_type = utils.get_highest_exposure_type(permission["exposure_type"], resource_exposure_type)
 
-        self._resource.exposure_type = resource_exposure_type
-        self._external_users = external_user_map.values()
-
-    def get_model(self):
+        self._resource["exposure_type"] = resource_exposure_type
         return self._resource
 
-    def get_external_users(self):
-        return self._external_users
+    def get_permissions(self):
+        return self._permissions
 
 
 class GsuitePermission:
-    def __init__(self, datasource_id, resource_id, resource_owner, payload):
+    def __init__(self, domain_id, datasource_id, resource_id, resource_owner, payload, external_user_map, trusted_domains):
+        self._domain_id = domain_id
         self._datasource_id = datasource_id
         self._resource_id = resource_id
         self._resource_owner = resource_owner
         self._payload = payload
-        self._external_user = None
-        self._permission = None
+        self._external_user_map = external_user_map
+        self._trusted_domains = trusted_domains
+        self._permission = {}
         self.parse()
 
     def parse(self):
-        self._permission = ResourcePermission()
         permission_id = self._payload.get('id')
         email_address = self._payload.get('emailAddress')
         display_name = self._payload.get('displayName')
 
-        self._permission.datasource_id = self._datasource_id
-        self._permission.resource_id = self._resource_id
-        self._permission.permission_id = permission_id
-        self._permission.permission_type = self._payload.get('role')
+        self._permission["datasource_id"] = self._datasource_id
+        self._permission["resource_id"] = self._resource_id
+        self._permission["permission_id"] = permission_id
+        self._permission["permission_type"] = self._payload.get('role')
         expiration_time = self._payload.get('expirationTime')
         if expiration_time:
-            self._permission.expiration_time = expiration_time[:-1]
+            self._permission["expiration_time"] = expiration_time[:-1]
         is_deleted = self._payload.get('deleted')
         if is_deleted:
             self._permission = None
             return
-        self._permission.is_deleted = is_deleted
 
         if email_address:
-            db_session = db_connection().get_session()
-            datasource = db_session.query(DataSource).filter(DataSource.datasource_id == self._datasource_id).first()
-
             if email_address == self._resource_owner:
                 permission_exposure = constants.EntityExposureType.PRIVATE.value
+            elif email_address in self._external_user_map:
+                permission_exposure = self._external_user_map[email_address]["member_type"]
             else:
-                permission_exposure = utils.check_if_external_user(db_session, datasource.domain_id, email_address)
+                permission_exposure = utils.check_if_external_user(None, self._domain_id, email_address, self._trusted_domains)
             if permission_exposure == constants.EntityExposureType.EXTERNAL.value or permission_exposure == constants.EntityExposureType.TRUSTED.value:
                 self.set_external_user(email_address, display_name, permission_exposure)
 
@@ -116,27 +109,24 @@ class GsuitePermission:
             email_address = constants.EntityExposureType.PUBLIC.value
             permission_exposure = constants.EntityExposureType.PUBLIC.value
         
-        self._permission.email = email_address
-        self._permission.exposure_type = permission_exposure
-
-    def get_model(self):
+        self._permission["email"] = email_address
+        self._permission["exposure_type"] = permission_exposure
         return self._permission
 
     def set_external_user(self, email, display_name, permission_exposure):
-        self._external_user = DomainUser()
-        self._external_user.datasource_id = self._datasource_id
-        self._external_user.email = email
-        self._external_user.first_name = ""
-        self._external_user.last_name = ""
+        external_user = {}
+        external_user["datasource_id"] = self._datasource_id
+        external_user["email"] = email
+        external_user["first_name"] = ""
+        external_user["last_name"] = ""
         if display_name and display_name != "":
             name_list = display_name.split(' ')
-            self._external_user.first_name = name_list[0]
+            external_user["first_name"] = name_list[0]
             if len(name_list) > 1:
-                self._external_user.last_name = name_list[1]
-        self._external_user.member_type = permission_exposure
+                external_user["last_name"] = name_list[1]
+        external_user["member_type"] = permission_exposure
+        self._external_user_map[email] = external_user
 
-    def get_external_user(self):
-        return self._external_user
         
 
     

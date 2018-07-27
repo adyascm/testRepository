@@ -17,10 +17,11 @@ def get_user_session(auth_token, db_session=None):
         return None
     if not db_session:
         db_session = db_connection().get_session()
-    user = db_session.query(LoginUser).filter(
-        LoginUser.auth_token == auth_token).first()
+    user = db_session.query(LoginUser).filter(LoginUser.auth_token == auth_token).first()
     if user:
-        domain_users = db_session.query(DomainUser).filter(and_(
+        domain_datasource_ids = db_session.query(DataSource.datasource_id).filter(DataSource.domain_id == user.domain_id).all()
+        user.datasource_ids = [r for r, in domain_datasource_ids]
+        domain_users = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(user.datasource_ids), 
             DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).all()
 
         #TODO : choose admin user in correct way
