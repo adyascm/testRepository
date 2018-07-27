@@ -14,8 +14,6 @@ from adya.gsuite.activities import activities
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
 from adya.common.constants.constants import datasource_to_default_report_map
-from adya.slack.slack_utils import get_last_login_time
-
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
     if not (auth_token or datasource_id):
@@ -396,11 +394,7 @@ def run_report(auth_token, report_id):
         domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
         ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
         datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
-        datasource_ids = []
-        for datasource in datasources:
-            datasource_ids = [r.datasource_id for r in datasource_ids]
-            if datasource.datasource_type == constants.ConnectorTypes.SLACK.value:
-                get_last_login_time(datasource.datasource_id)
+        datasource_ids = [r.datasource_id for r in datasources]
         domain_users = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_ids),
                                                            DomainUser.last_login_time < ninety_days_ago,
                                                            DomainUser.member_type == constants.EntityExposureType.INTERNAL.value,
