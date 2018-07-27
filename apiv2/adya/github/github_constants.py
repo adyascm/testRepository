@@ -15,3 +15,5 @@ class NotificationEvents(Enum):
     REPOSITORY = "repository"
     ORGANIZATION = "organization"
     TEAM = "team"
+    REPOSITORY_VULNERABILITY_ALERT = "repository_vulnerability_alert"
+    FORK = "fork"
