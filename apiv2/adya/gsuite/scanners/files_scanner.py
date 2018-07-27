@@ -48,18 +48,19 @@ def process(db_session, auth_token, query_params, scanner_data):
         Logger().info( "Initiating processing of drive resources for files using email: {}".format(user_email))
         resources_data = scanner_data["entities"]
         resources = []
-        permissions =[]
+        #permissions =[]
         external_user_map = {}
         
         for resource_data in resources_data:
             resource_count = resource_count + 1
             resource_mapper = GsuiteResource(domain_id, datasource_id, resource_data, external_user_map, trusted_domains)
             resource = resource_mapper.parse()
-            permissions.extend(resource_mapper.get_permissions())
+            resource["permissions"] = resource_mapper.get_permissions()
+            #permissions.extend(resource_mapper.get_permissions())
             resources.append(resource)
         
         storage_db.storage_db().add_resources(domain_id, resources)
-        storage_db.storage_db().add_permissions(domain_id, permissions)
+        #storage_db.storage_db().add_permissions(domain_id, permissions)
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
         db_connection().commit()

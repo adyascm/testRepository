@@ -39,15 +39,20 @@ class GsuiteResource:
         #1. Set resource exposure type based on highest exposure from all permissions
         #2. Collect all external users
         resource_exposure_type = constants.EntityExposureType.PRIVATE.value
+        shared_with = []
         permissions_payload = self._payload.get('permissions')
         if permissions_payload:
             for permission_payload in permissions_payload:
                 permission = GsuitePermission(self._domain_id, self._datasource_id, resource_id, self._resource["resource_owner_id"], permission_payload, self._external_user_map, self._trusted_domains).parse()
                 if not permission:
                     continue
+
+                if permission["exposure_type"] == constants.EntityExposureType.EXTERNAL.value or permission["exposure_type"] == constants.EntityExposureType.INTERNAL.value:
+                    shared_with.append(permission["email"])
                 self._permissions.append(permission)
                 resource_exposure_type = utils.get_highest_exposure_type(permission["exposure_type"], resource_exposure_type)
 
+        self._resource["shared_with"] = shared_with
         self._resource["exposure_type"] = resource_exposure_type
         return self._resource
 

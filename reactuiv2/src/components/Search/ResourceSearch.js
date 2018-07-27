@@ -79,38 +79,25 @@ class ResourceSearch extends Component {
             if (this.state.value.length < 1) return this.resetComponent()
             //const re = new RegExp(this.state.value, 'i')
             //var results = [];
-
-            if (this.props.filterMetadata) {
-                this.props.filterMetadata['prefix'] = this.state.value
-                agent.Resources.getResources(this.props.filterMetadata).then(res => {
-                    this.setState({
-                        isLoading: false,
-                        results: res,
-                        showNoResults: res.length > 0 ? false : true
-                    })
-                }, error => {
-                    this.setState({
-                        isLoading: false,
-                        results: [],
-                        showNoResults: true
-                    })
+            let filterMetadata = {};
+            if (this.props.filterMetadata)
+            {
+                filterMetadata = Object.assign({}, this.props.filterMetadata);;
+            } 
+            filterMetadata['prefix'] = this.state.value
+            agent.Resources.getResources(filterMetadata).then(res => {
+                this.setState({
+                    isLoading: false,
+                    results: res,
+                    showNoResults: res.length > 0 ? false : true
                 })
-            }            
-            else {
-                agent.Resources.searchResources(this.state.value).then(res => {
-                    this.setState({
-                        isLoading: false,
-                        results: res,
-                        showNoResults: res.length > 0 ? false : true
-                    })
-                }, error => {
-                    this.setState({
-                        isLoading: false,
-                        results: [],
-                        showNoResults: true
-                    })
-                });
-            }
+            }, error => {
+                this.setState({
+                    isLoading: false,
+                    results: [],
+                    showNoResults: true
+                })
+            })
         }, 1000)
     }
 

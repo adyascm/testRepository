@@ -1,7 +1,7 @@
 import superagentPromise from 'superagent-promise';
 import _superagent from 'superagent';
 import ReactGA from 'react-ga';
-import {API_ROOT} from '../constants/actionTypes'
+import { API_ROOT } from '../constants/actionTypes'
 
 const superagent = superagentPromise(_superagent, global.Promise);
 
@@ -12,7 +12,7 @@ const responseBody = res => res.body;
 
 let token = null;
 const tokenPlugin = req => {
-    if(req.url.startsWith("https://api.adya.io"))
+    if (req.url.startsWith("https://api.adya.io"))
         ReactGA.pageview(req.url);
     req.set('Content-Type', 'application/json');
     if (token) {
@@ -32,7 +32,7 @@ const requests = {
 };
 
 const Auth = {
-  current  : () =>
+    current: () =>
         requests.get('/common/user'),
     save: user =>
         requests.put('/common/user', { user })
@@ -54,10 +54,10 @@ const Setting = {
 };
 
 const Actions = {
-  getAllActions: () =>
-    requests.get('/common/getallactions'),
-  initiateAction: (action_payload) =>
-    requests.post('/common/initiateaction', action_payload)
+    getAllActions: () =>
+        requests.get('/common/getallactions'),
+    initiateAction: (action_payload) =>
+        requests.post('/common/initiateaction', action_payload)
 
 }
 
@@ -75,7 +75,7 @@ const Users = {
     getUserStats: () =>
         requests.get('/common/users/stats'),
     getUsersList: (full_name, email, member_type, datasource_id, is_admin, type, sort_column, sort_order, page_number) =>
-        requests.get('/common/users?full_name=' + full_name + '&email=' + email + '&member_type=' + member_type + '&datasource_id=' + datasource_id + '&is_admin=' + is_admin +'&type=' + type + '&sort_column=' + sort_column + '&sort_order=' + sort_order + '&page_number=' + page_number),
+        requests.get('/common/users?full_name=' + full_name + '&email=' + email + '&member_type=' + member_type + '&datasource_id=' + datasource_id + '&is_admin=' + is_admin + '&type=' + type + '&sort_column=' + sort_column + '&sort_order=' + sort_order + '&page_number=' + page_number),
     getUsersTree: () =>
         requests.get('/common/getusergrouptree'),
     getGroupMembers: (groupEmail, datasourceId) =>
@@ -86,36 +86,57 @@ const Users = {
 
 const Apps = {
     getapps: () => requests.get('/common/getappsdata'),
-    getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&userEmail=' + userEmail + '&datasourceId=' + datasourceId),
-    getappusers: (appId, domainId, sortCol, sortOrder) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&appId=' + appId +'&domainId='+ domainId + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder),
-    updateApps:(plan) => requests.put('/common/getappsdata', plan),
+    getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?filterType=' + 'USER_APPS' + '&userEmail=' + userEmail + '&datasourceId=' + datasourceId),
+    getappusers: (appId, domainId, sortCol, sortOrder) => requests.get('/common/getappsdata?filterType=' + 'USER_APPS' + '&appId=' + appId + '&domainId=' + domainId + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder),
+    updateApps: (plan) => requests.put('/common/getappsdata', plan),
     insertApps: (apps) => requests.post('/common/getappsdata', apps),
     getInstalledApps: (pageNum, sortCol, sortOrder, appName) =>
-        requests.get('/common/getappsdata?filterType='+ 'INSTALLED_APPS'+ '&pageNumber=' + pageNum + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&appName=' + (appName || "")),
-    getAvailableApps: (pageNum, appName) => 
-        requests.get('/common/getappsdata?filterType='+ 'INVENTORY_APPS'+ '&pageNumber=' + pageNum + '&appName=' + (appName || ""))      
+        requests.get('/common/getappsdata?filterType=' + 'INSTALLED_APPS' + '&pageNumber=' + pageNum + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&appName=' + (appName || "")),
+    getAvailableApps: (pageNum, appName) =>
+        requests.get('/common/getappsdata?filterType=' + 'INVENTORY_APPS' + '&pageNumber=' + pageNum + '&appName=' + (appName || ""))
 }
 
 const Resources = {
-    getResources: (filters) =>
-        requests.post('/common/getresourcetree', filters),
-    searchResources: (prefix) =>
-        requests.get('/common/getresourcetree?prefix=' + prefix),
+    getResources: (filters, pageNumber, pageLimit, sortColumn, sortType) => {
+        let url = '/common/resources?';
+        let separator = "";
+        if(pageNumber)
+        {
+            url += (separator + 'pageNumber=' + pageNumber)
+            separator = "&"
+        }
+        if(pageLimit)
+        {
+            url += (separator + 'pageLimit=' + pageLimit)
+            separator = "&"
+        }
+        if(sortColumn)
+        {
+            url += (separator + 'sortColumn=' + sortColumn)
+            separator = "&"
+        }
+        if(sortType)
+        {
+            url += (separator + 'sortType=' + sortType)
+            separator = "&"
+        }
+        return requests.post(url, filters)
+        },
     exportToCsv: (filters) =>
-        requests.post('/common/resource/export', filters)
+        requests.post('/common/resources/export', filters)
 }
 
 const Scheduled_Report = {
-   createReport: (report) =>
-     requests.post('/common/scheduledreport', report),
-   getReports: () =>
-     requests.get('/common/scheduledreport'),
-   deleteReport: (report_id) =>
-     requests.del('/common/scheduledreport?reportId=' + report_id),
-   getRunReportData: (report_id) =>
-     requests.get('/common/scheduledreport/runreport?reportId=' + report_id),
-   updateReport: (report) =>
-     requests.put('/common/scheduledreport', report)
+    createReport: (report) =>
+        requests.post('/common/scheduledreport', report),
+    getReports: () =>
+        requests.get('/common/scheduledreport'),
+    deleteReport: (report_id) =>
+        requests.del('/common/scheduledreport?reportId=' + report_id),
+    getRunReportData: (report_id) =>
+        requests.get('/common/scheduledreport/runreport?reportId=' + report_id),
+    updateReport: (report) =>
+        requests.put('/common/scheduledreport', report)
 
 }
 
@@ -143,7 +164,7 @@ const Alert = {
 }
 
 const AppsPrice = {
-    getPriceStats: () => 
+    getPriceStats: () =>
         requests.get('/common/categoryexpenses')
 }
 

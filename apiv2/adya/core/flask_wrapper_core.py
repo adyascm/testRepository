@@ -131,11 +131,8 @@ class UserApps(Resource):
 
 
 class GetResources(Resource):
-    def get(self):
-        return resource_handler.get_resources(request, None)
-
     def post(self):
-        return resource_handler.get_resource_tree_data(request, None)
+        return resource_handler.get_resources(request, None)
 
 class ResourcesExport(Resource):
     def post(self):

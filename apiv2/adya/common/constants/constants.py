@@ -67,7 +67,7 @@ class ActionType(Enum):
     CHANGE = 'change'
     DELETE = 'delete'
 
-PAGE_LIMIT = 50
+PAGE_LIMIT = 100
 INVENTORY_APPS_PAGE_LIMIT = 10
 INSTALLED_APPS_PAGE_LIMIT = 50
 

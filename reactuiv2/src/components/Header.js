@@ -2,7 +2,6 @@ import React from 'react'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { LOGOUT, SET_REDIRECT_PROPS, RESET_ALERTS_COUNT } from '../constants/actionTypes';
-import AppSearch from './Search/AppSearch'
 import AdyaLogo from '../AdyaLogo.png'
 import { Container, Image, Menu, Icon, Label } from 'semantic-ui-react'
 import Dropdown from 'semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown';
@@ -42,10 +41,6 @@ const LoggedInView = props => {
                 <Menu.Item >
                 {props.currentUser.first_name} ({props.currentUser.email})
                 </Menu.Item>
-                
-                    {/* <Menu.Item>
-                        <AppSearch icon='search' placeholder='Search...' />
-                    </Menu.Item> */}
                     <Menu.Item onClick={() => props.handleClick("/alerts")} active={props.currLocation === '/alerts'}>
                         <Icon name='bell' />
                         {!props.openAlertsCount ? null : <Label color='red' floating>{props.openAlertsCount}</Label>}
