@@ -29,6 +29,12 @@ class activity_db:
 
     def add_event(self, domain_id, connector_type, event_type, actor, tags):
         event_collection = activity_db.instance.get_collection("events")
-        event_collection.insert_one({"domain_id": domain_id, "connector_type": connector_type, 
-            "event_type": event_type, "actor": actor, "timestamp": datetime.datetime.utcnow()})
+        insert_payload = {"domain_id": domain_id, "connector_type": connector_type,
+            "event_type": event_type, "actor": actor, "timestamp": datetime.datetime.utcnow()}
+        if len(tags)> 0:
+            insert_payload.update(tags)
+        event_collection.insert_one(insert_payload)
+
+
+
 

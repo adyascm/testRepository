@@ -51,7 +51,8 @@ def process_user(db_session, datasource, payload):
                                          "slack")
 
         activity_db().add_event(domain_id=datasource.domain_id, connector_type=constants.ConnectorTypes.SLACK.value, 
-            event_type='USER_ADDED', actor=user_model_obj.email, tags={"exposure_type": user_model_obj.member_type})
+            event_type='USER_ADDED', actor=user_model_obj.email, tags={"exposure_type": user_model_obj.member_type ,
+                            "user_email": user_model_obj.email})
 
 
 def process_application(db_session, datasource_id, payload):

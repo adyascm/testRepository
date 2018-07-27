@@ -73,10 +73,16 @@ def update_resource(db_session, datasource_id, updated_resource):
             # Delete the permission
             db_session.delete(existing_permission)
 
+    datasource_obj = get_datasource(datasource_id)
     # Now add all the other new permissions
     for new_permission in new_permissions_map.values():
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(
             db_utils.get_model_values(ResourcePermission, new_permission)))
+        activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
+                                event_type='FILE_CHANGED', actor=db_resource.resource_owner_id,
+                                tags={"permission_email": new_permission.email, "resource_name": db_resource.resource_name,
+                               "permission_exposure_type": new_permission.exposure_type, "permission_type": new_permission.permission_type,
+                                      "resource_id": db_resource.resource_id})
 
     db_connection().commit()
 
@@ -90,9 +96,6 @@ def update_resource(db_session, datasource_id, updated_resource):
     Logger().info("update_resource : payload : {}".format(payload))
     messaging.trigger_post_event(urls.SLACK_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "slack")
 
-    datasource_obj = get_datasource(datasource_id)
     #TODO : enter every new permission
-    activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
-                            event_type='FILE_CHANGED', actor=db_resource.resource_owner_id,
-                            tags={})
+
 
