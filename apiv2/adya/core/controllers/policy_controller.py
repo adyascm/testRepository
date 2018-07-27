@@ -62,11 +62,11 @@ def create_policy(auth_token, payload):
                 if len(policy["actions"]) > 0:
                     policy["actions"][0]["config"]["to"] = login_user
                 policy["created_by"] = login_user
-                return insert_entry_into_policy_table(db_session, policy)
-        #return
+                insert_entry_into_policy_table(db_session, policy)
+        return
     else:
         return insert_entry_into_policy_table(db_session, payload)
-        #return ResponseMessage(400, "Bad Request - Improper payload")
+
 
 
 def update_policy(auth_token, policy_id, payload):
