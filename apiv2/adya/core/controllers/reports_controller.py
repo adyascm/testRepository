@@ -7,7 +7,7 @@ from adya.core.controllers import domain_controller, directory_controller, app_c
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, alchemy_encoder
 from adya.common.db.connection import db_connection
-from adya.common.db import db_utils
+from adya.common.db import db_utils, storage_db
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
@@ -88,32 +88,29 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 
     elif widget_id == 'sharedDocsByType':
         data = {}
-
-        shared_docsByType_query = db_session.query(Resource.exposure_type, func.count(Resource.exposure_type)).filter(
-            and_(Resource.exposure_type != constants.EntityExposureType.INTERNAL.value,
-                 Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type != constants.EntityExposureType.PRIVATE.value)).group_by(Resource.exposure_type)
-
+        filters = {"datasourceId": domain_datasource_ids}
+        filters["exposureType"] = [constants.EntityExposureType.PUBLIC.value, constants.EntityExposureType.ANYONEWITHLINK.value, constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.DOMAIN.value, constants.EntityExposureType.TRUSTED.value]
+        
         if is_service_account_is_enabled and not is_admin:
-            shared_docsByType_query = shared_docsByType_query.filter(Resource.resource_owner_id == login_user_email)
-
-        shared_docs_by_type = shared_docsByType_query.all()
+            filters["ownerEmailId"] = login_user_email
+        shared_docs_by_type = storage_db.storage_db().get_resources_stat(user_domain_id, filters, "exposure_type")
+        print shared_docs_by_type
         public_count = 0
         external_count = 0
         domain_count = 0
         anyone_with_link_count = 0
         trusted_count = 0
         for share_type in shared_docs_by_type:
-            if share_type[0] == constants.EntityExposureType.EXTERNAL.value:
-                external_count = share_type[1]
-            elif share_type[0] == constants.EntityExposureType.ANYONEWITHLINK.value:
-                anyone_with_link_count = share_type[1]
-            elif share_type[0] == constants.EntityExposureType.PUBLIC.value:
-                public_count = share_type[1]
-            elif share_type[0] == constants.EntityExposureType.DOMAIN.value:
-                domain_count = share_type[1]
-            elif share_type[0] == constants.EntityExposureType.TRUSTED.value:
-                trusted_count = share_type[1]
+            if share_type["_id"] == constants.EntityExposureType.EXTERNAL.value:
+                external_count = share_type["count"]
+            elif share_type["_id"] == constants.EntityExposureType.ANYONEWITHLINK.value:
+                anyone_with_link_count = share_type["count"]
+            elif share_type["_id"] == constants.EntityExposureType.PUBLIC.value:
+                public_count = share_type["count"]
+            elif share_type["_id"] == constants.EntityExposureType.DOMAIN.value:
+                domain_count = share_type["count"]
+            elif share_type["_id"] == constants.EntityExposureType.TRUSTED.value:
+                trusted_count = share_type["count"]
 
         data["rows"] = [[constants.DocType.PUBLIC_COUNT.value, public_count],
                         [constants.DocType.ANYONE_WITH_LINK_COUNT.value, anyone_with_link_count],
@@ -122,81 +119,20 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
                         [constants.DocType.TRUSTED.value, trusted_count]]
         data["totalCount"] = public_count + external_count + domain_count + anyone_with_link_count + trusted_count
 
-    elif widget_id == 'sharedDocsList':
-        data = {}
-        shared_docs_list_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 or_(Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value,
-                     Resource.exposure_type == constants.EntityExposureType.PUBLIC.value,
-                     Resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value)))
-
-        shared_docs_totalcount_query = db_session.query(Resource.resource_name, Resource.resource_type).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 or_(Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value,
-                     Resource.exposure_type == constants.EntityExposureType.PUBLIC.value,
-                     Resource.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value)))
-
-        if is_service_account_is_enabled and not is_admin:
-            shared_docs_list_query = shared_docs_list_query.filter(Resource.resource_owner_id == login_user_email)
-            shared_docs_totalcount_query = shared_docs_totalcount_query.filter(
-                Resource.resource_owner_id == login_user_email)
-
-        data["rows"] = shared_docs_list_query.limit(5).all()
-        data["totalCount"] = shared_docs_totalcount_query.count()
     elif widget_id == 'externalUsersList':
         data = {}
-        external_user_list = db_session.query(ResourcePermission.email, func.count(ResourcePermission.email)).filter(
-            and_(ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value,
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids), )).group_by(
-            ResourcePermission.email).order_by(
-            func.count(ResourcePermission.email).desc())
-
+        filters = {"datasourceId": domain_datasource_ids}
+        filters["exposureType"] = [constants.EntityExposureType.PUBLIC.value, constants.EntityExposureType.ANYONEWITHLINK.value, constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.DOMAIN.value, constants.EntityExposureType.TRUSTED.value]
+        
         if is_service_account_is_enabled and not is_admin:
-            external_user_list = external_user_list.filter(
-                and_(Resource.datasource_id == ResourcePermission.datasource_id,
-                     Resource.resource_owner_id == login_user_email,
-                     ResourcePermission.resource_id == Resource.resource_id))
+            filters["ownerEmailId"] = login_user_email
+        external_users_with_access = storage_db.storage_db().get_resources_stat(user_domain_id, filters, "external_users", 5, unwind=True)
+        exposure_by_external_users = []
+        for owner in external_users_with_access:
+            exposure_by_external_users.append((owner["_id"], owner["count"]))
 
-        user_group_emails_and_count = external_user_list.limit(5).all()
-        external_user_emails_count_map = {}
-
-        # get only external users ; removing channels/groups
-        for row in user_group_emails_and_count:
-            count_for_particular_email = row[1]
-            email = row[0]
-            directory_struct = db_session.query(DirectoryStructure).filter(
-                and_(DirectoryStructure.parent_email == email,
-                     DirectoryStructure.datasource_id.in_(domain_datasource_ids),
-                     DomainUser.datasource_id == DirectoryStructure.datasource_id,
-                     DomainUser.email == DirectoryStructure.member_email,
-                     DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)).all()
-            if directory_struct:
-                for memberdetails in directory_struct:
-                    user = memberdetails.member_email
-                    if user in external_user_emails_count_map:
-                        count = external_user_emails_count_map[user]
-                        external_user_emails_count_map[user] = count + count_for_particular_email
-                    else:
-                        external_user_emails_count_map[user] = count_for_particular_email
-            else:
-                if email in external_user_emails_count_map:
-                    count = external_user_emails_count_map[email]
-                    external_user_emails_count_map[email] = count + count_for_particular_email
-                else:
-                    external_user_emails_count_map[email] = count_for_particular_email
-
-        external_user_perms_count = []
-        total_count = 0
-
-        for key, value in external_user_emails_count_map.iteritems():
-            total_count = total_count + 1
-            input_list = [key, value]
-            external_user_perms_count.append(input_list)
-
-        sorted_external_user_list = sorted(external_user_perms_count, key=lambda x: x[1], reverse=True)
-
-        data["rows"] = sorted_external_user_list[:5]
-        data["totalCount"] = external_user_list.count()
+        data["rows"] = exposure_by_external_users
+        data["totalCount"] = 2
     elif widget_id == 'userAppAccess':
         data = {}
         apps = db_session.query(Application).distinct(Application.id).filter(
@@ -217,25 +153,22 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data["totalCount"] = low + medium + high
     elif widget_id == 'filesWithFileType':
         data = {}
-        file_type_query = db_session.query(Resource.resource_type, func.count(Resource.resource_type)).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type != constants.EntityExposureType.INTERNAL.value,
-                 Resource.exposure_type != constants.EntityExposureType.PRIVATE.value)).group_by(
-            Resource.resource_type).order_by(
-            func.count(Resource.resource_type).desc())
-
+        filters = {"datasourceId": domain_datasource_ids}
+        filters["exposureType"] = [constants.EntityExposureType.PUBLIC.value, constants.EntityExposureType.ANYONEWITHLINK.value, constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.DOMAIN.value, constants.EntityExposureType.TRUSTED.value]
+        
         if is_service_account_is_enabled and not is_admin:
-            file_type_query = file_type_query.filter(Resource.resource_owner_id == login_user_email)
+            filters["ownerEmailId"] = login_user_email
+        shared_docs_by_file_type = storage_db.storage_db().get_resources_stat(user_domain_id, filters, "resource_type")
 
-        all_file_types = file_type_query.all()
-        first_five = all_file_types[0:5]
-        others = all_file_types[5:]
+        first_five = []
         totalcount = 0
-        for count in first_five:
-            totalcount += count[1]
+        for count in shared_docs_by_file_type[0:5]:
+            first_five.append((count["_id"], count["count"]))
+            totalcount += count["count"]
+            
         others_count = 0
-        for count in others:
-            others_count += count[1]
+        for count in shared_docs_by_file_type[5:]:
+            others_count += count["count"]
         if others_count > 0:
             first_five.append(('Others', others_count))
             totalcount += others_count
@@ -244,17 +177,18 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 
     elif widget_id == "internalUserList":
         data = {}
-        internal_user_list = db_session.query(Resource.resource_owner_id, func.count(Resource.resource_id)).filter(
-            and_(Resource.datasource_id.in_(domain_datasource_ids),
-                 Resource.exposure_type.in_(
-                     [constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.PUBLIC.value])
-                 )).group_by(Resource.resource_owner_id).order_by(func.count(Resource.resource_id).desc())
-
+        filters = {"datasourceId": domain_datasource_ids}
+        filters["exposureType"] = [constants.EntityExposureType.PUBLIC.value, constants.EntityExposureType.ANYONEWITHLINK.value, constants.EntityExposureType.EXTERNAL.value, constants.EntityExposureType.DOMAIN.value, constants.EntityExposureType.TRUSTED.value]
+        
         if is_service_account_is_enabled and not is_admin:
-            internal_user_list = internal_user_list.filter(Resource.resource_owner_id == login_user_email)
+            filters["ownerEmailId"] = login_user_email
+        owners_with_shared_docs = storage_db.storage_db().get_resources_stat(user_domain_id, filters, "resource_owner_id", 5)
+        exposure_by_owners = []
+        for owner in owners_with_shared_docs:
+            exposure_by_owners.append((owner["_id"], owner["count"]))
 
-        data["rows"] = internal_user_list.limit(5).all()
-        data["totalCount"] = internal_user_list.count()
+        data["rows"] = exposure_by_owners
+        data["totalCount"] = 3
     elif widget_id == 'expensesByCategory':
         data = app_controller.get_app_stats(auth_token)
     return data
