@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid, Checkbox } from 'semantic-ui-react';
 import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
+import UserCheckActions from './UserCheckActions'
 import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
 
@@ -15,7 +16,8 @@ import {
     USERS_FILTER_CHANGE,
     USERS_LIST_PAGINATION_DATA,
     USERS_STATS_UDPATE,
-    USERS_COLUMN_SORT
+    USERS_COLUMN_SORT,
+    USERS_RESOURCE_ACTION_LOAD
 } from '../../constants/actionTypes';
 
 
@@ -35,7 +37,9 @@ const mapDispatchToProps = dispatch => ({
     setNextPageNumber: (pageNumber) =>
         dispatch({ type: USERS_LIST_PAGINATION_DATA, pageNumber }),
     setSortColumnField: (columnName, sortType) =>
-        dispatch({ type: USERS_COLUMN_SORT, columnName, sortType })
+        dispatch({ type: USERS_COLUMN_SORT, columnName, sortType }),
+    onMultiUsersAction: (payload, batchAction) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, batchAction}),    
 });
 
 
@@ -185,8 +189,50 @@ class UserListNew extends Component {
         }
     }
 
+    triggerActionOnMultiSelect(action) {
+        if(action){
+            let datasource_id = null
+            let users_email = []
+            let users_name = []
+            let payload = {}
+            if(action == 'remove_all_access_for_multiple_users'){
+                for(let i in this.state.selectedFieldColumns){
+                    if(this.state.selectedFieldColumns[i]){
+                        let user_obj = this.props.usersList[i];
+                        users_email.push(user_obj["email"])
+                        if(!datasource_id && this.props.datasourcesMap[user_obj["datasource_id"]] == 'GSUITE')
+                            datasource_id = user_obj["datasource_id"]
+                    }
+                } 
+                payload = {
+                    actionType:action,
+                    users_email:users_email,
+                    datasource_id:datasource_id
+                }
+            }
+            else if(action == 'notify_multiple_users_for_clean_up'){
+                for(let i in this.state.selectedFieldColumns){
+                    if(this.state.selectedFieldColumns[i]){
+                        let user_obj = this.props.usersList[i];
+                        users_email.push(user_obj["email"]);
+                        users_name.push(user_obj["full_name"]);
+                        if(!datasource_id)
+                            datasource_id = user_obj["datasource_id"]
+                    }
+                }
+                payload = {
+                    actionType:action,
+                    users_name:users_name,
+                    users_email:users_email,
+                    datasource_id:datasource_id
+                } 
+            }    
+            this.props.onMultiUsersAction(payload,"BULK_ACTION")
+        }
+            
+    }    
+
     render() {
-        console.log('render ____', this.state.selectedFieldColumns);
         let datasourceFilterOptions = [{ text: "All", value: 'ALL' }];
         for (var index in this.props.datasources) {
             let ds = this.props.datasources[index];
@@ -301,6 +347,14 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
                         </Grid.Column>
                         <Grid.Column width={this.props.selectedUserItem ? 16 : 13}>
+                            <div style={{ marginBottom:'10px' }}>
+                            <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
+                                <Button.Group>
+                                    <Button size="tiny" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Users</Button>
+                                    <Button size="tiny" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Send Emails</Button>
+                                </Button.Group>
+                            </div>
+                            
                             <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
@@ -319,7 +373,7 @@ class UserListNew extends Component {
                                     {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                                     {this.props.isLoadingUsers || (usersData && usersData.length < 10) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                                 </div>
-                                <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
+                                {/* <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} /> */}
                             </div>
                         </Grid.Column >
                     </Grid.Row>
