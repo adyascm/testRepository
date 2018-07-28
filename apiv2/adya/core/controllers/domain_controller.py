@@ -102,41 +102,32 @@ def async_delete_datasource(auth_token, datasource_id, complete_delete):
         DataSource.datasource_id == datasource_id).first()
     try:
         app_name = constants.datasource_to_installed_app_map[existing_datasource.datasource_type]
-        
-        db_session.query(DirectoryStructure).filter(
-            DirectoryStructure.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(ResourcePermission).filter(
-            ResourcePermission.datasource_id == datasource_id).delete(synchronize_session=False)
-        db_session.query(Resource).filter(
-            Resource.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.execute(DirectoryStructure.__table__.delete().where(DirectoryStructure.datasource_id == datasource_id))
+        db_session.execute(ResourcePermission.__table__.delete().where(ResourcePermission.datasource_id == datasource_id))
+        db_session.execute(Resource.__table__.delete().where(Resource.datasource_id == datasource_id))
         app_query = db_session.query(ApplicationUserAssociation).filter(
             ApplicationUserAssociation.datasource_id == datasource_id)
         app_ids = [r.application_id for r in app_query.all()]
         app_query.delete(synchronize_session=False) 
         try:
-            db_session.query(Application).filter(Application.id.in_(app_ids)).delete(synchronize_session=False)
+            db_session.execute(Application.__table__.delete().where(Application.id.in_(app_ids)))
             # delete app wrt to datasource
             db_session.query(Application).filter(Application.display_text == app_name).delete(synchronize_session=False)
         except:
             Logger().info('App is present corresponding to other datasource')
         
-        db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.datasource_id ==
-                                                               datasource_id).delete(synchronize_session=False)
-        db_session.query(DomainUser).filter(
-            DomainUser.datasource_id == datasource_id).delete(synchronize_session=False)
+        db_session.execute(PushNotificationsSubscription.__table__.delete().where(PushNotificationsSubscription.datasource_id == datasource_id))
+        db_session.execute(DomainUser.__table__.delete().where(DomainUser.datasource_id == datasource_id))
+        db_session.execute(DatasourceScanners.__table__.delete().where(DatasourceScanners.datasource_id == datasource_id))
 
-        db_session.query(DatasourceScanners).filter(DatasourceScanners.datasource_id == datasource_id).delete(synchronize_session= False)
         #If its not complete delete, then just clear out the scan entities, and reset the scan state 
         if complete_delete:
-            db_session.query(AuditLog).filter(AuditLog.datasource_id == datasource_id).delete(synchronize_session=False)
-            # db_session.query(Report).filter(Report.domain_id == existing_datasource.domain_id).delete(synchronize_session= False)
-            db_session.query(Alert).filter(Alert.datasource_id == datasource_id).delete(synchronize_session= False)
-            #Delete Policies
-            db_session.query(PolicyAction).filter(PolicyAction.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            db_session.query(PolicyCondition).filter(PolicyCondition.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            db_session.query(Policy).filter(Policy.datasource_id == existing_datasource.datasource_id).delete(synchronize_session= False)
-            
-            db_session.query(DatasourceCredentials).filter(DatasourceCredentials.datasource_id == datasource_id).delete(synchronize_session= False)
+            db_session.execute(AuditLog.__table__.delete().where(AuditLog.datasource_id == datasource_id))
+            db_session.execute(Alert.__table__.delete().where(Alert.datasource_id == datasource_id))
+            db_session.execute(PolicyAction.__table__.delete().where(PolicyAction.datasource_id == datasource_id))
+            db_session.execute(PolicyCondition.__table__.delete().where(PolicyCondition.datasource_id == datasource_id))
+            db_session.execute(Policy.__table__.delete().where(Policy.datasource_id == datasource_id))
+            db_session.execute(DatasourceCredentials.__table__.delete().where(DatasourceCredentials.datasource_id == datasource_id))
             db_session.delete(existing_datasource)
         else:
             existing_datasource.processed_file_count = 0
@@ -261,9 +252,9 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
                     for domain_name in remove_domains:
                         more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, domain_id, datasource_ids, domain_name, None)
                         if more_to_execute:
-                            payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                            entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
                                        "remove_domain": domain_name}
-                            messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                            messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
                 remove_apps = set(existing_apps) - set(new_apps)
                 if len(remove_apps) > 0:
@@ -278,9 +269,9 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
                 for new_trusted_domain in add_domains:
                     more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, new_trusted_domain)
                     if more_to_execute:
-                        payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
+                        entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids,
                                    "add_domain": add_trusted_domain}
-                        messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                        messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
             if len(add_apps) > 0:
                 for apps_name in add_apps:
@@ -316,14 +307,14 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
             if 'add_domain' in payload:
                 more_to_execute, add_trusted_domain = update_data_for_trusted_domains(auth_token, db_session, datasource_ids, payload['add_domain'])
                 if more_to_execute:
-                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "add_domain": add_trusted_domain}
-                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                    entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "add_domain": add_trusted_domain}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
             elif 'remove_domain' in payload:
-                more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, payload['domain_id'], datasource_ids, payload['remove_domain'], None)
+                more_to_execute, domain_name = delete_trusted_entities_for_domain(auth_token, None, datasource_ids, payload['remove_domain'], None)
                 if more_to_execute:
-                    payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "remove_domain": domain_name}
-                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, payload)
+                    entity_payload = {"more_to_execute": more_to_execute, "datasource_ids": datasource_ids, "remove_domain": domain_name}
+                    messaging.trigger_post_event(urls.TRUSTED_ENTITIES, auth_token, None, entity_payload)
 
 
 def get_all_trusted_entities(domain_id):

@@ -6,7 +6,8 @@ import  agent from '../../utils/agent'
 import {
     POLICY_LOAD_START,
     POLICY_LOADED,
-    USER_ITEM_SELECTED
+    USER_ITEM_SELECTED,
+    UPDATE_POLICY_ACTION_EMAIL
 } from '../../constants/actionTypes'
 
 const mapStateToProps = state => ({
@@ -19,7 +20,9 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USER_ITEM_SELECTED, payload: undefined })
     },
     policyLoaded: (payload) =>
-        dispatch({ type: POLICY_LOADED, payload })
+        dispatch({ type: POLICY_LOADED, payload }),
+    updateActionEmail: (actionType, email='') => 
+        dispatch({ type: UPDATE_POLICY_ACTION_EMAIL, actionType, email })
 })
 
 class Policy extends Component {    
@@ -61,6 +64,7 @@ class Policy extends Component {
             showPolicyForm: false,
             policyDetails: undefined
         })
+        this.props.updateActionEmail('CLEAR')
     }
 
     deletePolicy = (policyId) => {

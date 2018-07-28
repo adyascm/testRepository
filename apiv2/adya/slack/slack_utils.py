@@ -5,11 +5,14 @@ import uuid
 import datetime
 
 from enum import Enum
+from sqlalchemy import and_
+
 import slack_constants
 from adya.common.constants import urls, constants
 from adya.common.db.connection import db_connection
 
-from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials, DatasourceScanners, TrustedEntities
+from adya.common.db.models import LoginUser, DataSource, DatasourceCredentials, DatasourceScanners, TrustedEntities, \
+    DomainUser
 from slackclient import SlackClient
 
 from adya.common.utils import messaging

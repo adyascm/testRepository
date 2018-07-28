@@ -65,8 +65,8 @@ def create_policy(auth_token, payload):
                 insert_entry_into_policy_table(db_session, policy)
         return
     else:
-        insert_entry_into_policy_table(db_session, payload)
-        return ResponseMessage(400, "Bad Request - Improper payload")
+        return insert_entry_into_policy_table(db_session, payload)
+
 
 
 def update_policy(auth_token, policy_id, payload):

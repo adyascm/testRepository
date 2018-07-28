@@ -159,3 +159,13 @@ functions:
           path: policies/validate
           method: post
           cors: true
+
+  get-slack-accesslogs:
+  handler: adya.slack.services.notifications_handler.get_accesslogs_handler
+    events:
+      - http:
+          path: accesslogs
+          method: get
+          cors: true
+
+

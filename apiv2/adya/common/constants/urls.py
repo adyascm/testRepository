@@ -58,7 +58,7 @@ SLACK_ENDPOINT = "https://slack.com/oauth/authorize"
 SCAN_SLACK_UPDATE = "/slack/scan"
 SCAN_SLACK_ENTITIES = '/slack/scan/entities'
 PROCESS_SLACK_NOTIFICATIONS_PATH = '/slack/scan/processnotifications'
-
+SLACK_ACCESSLOGS = '/slack/accesslogs'
 # slack actions:
 SLACK_FILES_ACTION_PATH = '/slack/filesactions'
 SLACK_USER_ACTION_PATH = '/slack/usersactions'

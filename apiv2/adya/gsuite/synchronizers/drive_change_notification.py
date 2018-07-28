@@ -181,22 +181,23 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
     datasource_obj = get_datasource(datasource_id)
     #Now add all the other new permissions
     for new_permission in new_permissions_map.values():
+        event_name = ''
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(ResourcePermission, new_permission)))
         if new_permission.exposure_type == constants.EntityExposureType.PUBLIC.value:
-            activity_db().add_event(domain_id=datasource_obj.domain_id,
-                                    connector_type=constants.ConnectorTypes.GSUITE.value,
-                                    event_type='FILE_SHARE_PUBLIC', actor=db_resource.resource_owner_id,
-                                    tags={})
+            event_name = 'FILE_SHARE_PUBLIC'
+
         elif new_permission.exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value:
-            activity_db().add_event(domain_id=datasource_obj.domain_id,
-                                    connector_type=constants.ConnectorTypes.GSUITE.value,
-                                    event_type='FILE_SHARE_ANYONEWITHLINK', actor=db_resource.resource_owner_id,
-                                    tags={})
+            event_name = 'FILE_SHARE_ANYONEWITHLINK'
+
         elif new_permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
-            activity_db().add_event(domain_id=datasource_obj.domain_id,
-                                    connector_type=constants.ConnectorTypes.GSUITE.value,
-                                    event_type='FILE_SHARE_EXTERNAL', actor=db_resource.resource_owner_id,
-                                    tags={})
+            event_name = 'FILE_SHARE_EXTERNAL'
+
+        tags = {"resource_id": db_resource.resource_id, "resource_name": db_resource.resource_name, "permission_email": new_permission.email,
+                              "permission_type": new_permission.permission_type, "permission_exposure_type": new_permission.exposure_type}
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type=event_name, actor=db_resource.resource_owner_id,
+                                tags=tags)
     #Update external users
     if len(external_users)>0:
         external_users_values = []
