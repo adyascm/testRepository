@@ -520,6 +520,39 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.DELETE_REPOSITORY.value:
         response_msg = delete_repository(
             auth_token, datasource_id, action_key, action_parameters, log_entry)
+    elif action_key == action_constants.ActionNames.NOTIFY_MULTIPLE_USERS_FOR_CLEANUP.value:
+        users_email = action_parameters['users_email']
+        users_name = action_parameters['users_name']
+        initiated_by = action_payload['initiated_by']
+        status_message = "Notification sent to selected_users for cleanUp"
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        status_code = 200
+        notification_failed_for_users = []
+        if len(users_email)>0:
+            for i,user_email in enumerate(users_email):
+                if not adya_emails.send_clean_files_email(datasource_id, user_email, users_name[i], initiated_by):
+                    notification_failed_for_users.append(user_email)    
+            if len(notification_failed_for_users)> 0:
+                log_entry.status = action_constants.ActionStatus.FAILED.value
+                status_code = 400
+                status_message = "Sending Notification failed for selected_users : {}".format(', '.join(notification_failed_for_users))
+        log_entry.message = status_message
+        response_msg = ResponseMessage(status_code, status_message)        
+    elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
+        users_email = action_parameters['users_email']
+        initiated_by = action_payload['initiated_by']
+        status_message = "Action completed successfully"
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        remove_action_failed_for_users = []
+        for user_email in users_email:
+            response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
+                                                       log_entry, action_key)
+            if response_msg.get_response_code() != 200:
+                remove_action_failed_for_users.append(user_email)
+
+        if len(remove_action_failed_for_users) > 0:
+            status_message = "Remove action failed for selected_users : {}".format(', '.join(remove_action_failed_for_users))
+            response_msg = ResponseMessage(400, status_message)        
 
     return response_msg
 
