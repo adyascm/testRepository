@@ -108,18 +108,18 @@ class ExportCsvModal extends Component {
             </Dimmer>
         )
         let exportButtonStyle = {
-            'float': 'left',
+            'float': 'right',
             'width': '80px'
         }
 
         return (
-            <div>
-                <Button style={exportButtonStyle} size='mini' onClick={this.onExportClick} > Export </Button>
+            <span>
+                <Button size='mini' onClick={this.onExportClick} > Export </Button>
                 <Modal size='small' open={this.state.showModal}>
                     <Modal.Header>
                         Export to a csv file
                     </Modal.Header>
-                    <Modal.Content>
+                    <Modal.Content>  
                         {this.state.errorMessage ? <Message error>{this.state.errorMessage}</Message> : null}
                         {this.state.successMessage ? <Message success>{this.state.successMessage}</Message> : null}
                         <Checkbox label="Select all" onChange={this.handleAllFieldsSelection} checked={this.state.selectAllColumns} />
@@ -132,7 +132,7 @@ class ExportCsvModal extends Component {
                     </Modal.Content>
                     {this.state.isLoading ? dimmer : null}
                 </Modal>
-            </div>
+            </span>
         )
     }
 }

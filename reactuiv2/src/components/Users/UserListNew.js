@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid, Checkbox } from 'semantic-ui-react';
 import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
-import UserCheckActions from './UserCheckActions'
 import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
 
@@ -72,7 +71,8 @@ class UserListNew extends Component {
             sortOrder: this.props.sortType,
             numberAppliedFilter: this.props.listFilters ? Object.keys(this.props.listFilters).length : 0,
             selectAllColumns:false,
-            selectedFieldColumns:{}
+            selectedFieldColumns:{},
+            showActionBar:false
         }
 
         this.exposureFilterMap = {
@@ -99,6 +99,7 @@ class UserListNew extends Component {
         let numberAppliedFilter = nextProps.listFilters ? Object.keys(nextProps.listFilters).length : 0
         if (this.props.listFilters !== nextProps.listFilters || this.props.sortColumnName != nextProps.sortColumnName || this.props.sortType != nextProps.sortType ||
             nextProps.usersListPageNumber !== this.props.usersListPageNumber) {
+            this.disableAllRowsSelection()
             this.props.onLoadStart();
             let emailFilter = nextProps.listFilters.email ? nextProps.listFilters.email.value || "" : "";
             this.props.onLoad(emailFilter, agent.Users.getUsersList(nextProps.listFilters.full_name ? nextProps.listFilters.full_name.value || "" : "",
@@ -115,21 +116,33 @@ class UserListNew extends Component {
         }
     }
 
+    disableAllRowsSelection = () => {
+        this.setState({
+            selectedFieldColumns : {},
+            selectAllColumns:false,
+            showActionBar:false
+        })
+    }
+
     handleRowClick = (event, rowData) => {
+        this.disableAllRowsSelection()
         this.props.selectUserItem(rowData)
     }
 
     handleColumnFilterChange = (event, data, filterType) => {
+        this.disableAllRowsSelection()
         this.props.changeFilter(filterType, data.value, data.value)
     }
 
     clearFilter = (event, filterType) => {
         event.stopPropagation()
         this.props.changeFilter(filterType, '', '');
+        this.disableAllRowsSelection()
     }
 
     handleColumnSort = (event, mappedColumnName) => {
         event.stopPropagation()
+        this.disableAllRowsSelection()
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.setSortColumnField(mappedColumnName, 'asc')
             this.setState({
@@ -147,23 +160,24 @@ class UserListNew extends Component {
 
     handleStatsClick = (event, statType, statSubTypeDisplay, statSubTypeValue) => {
         this.props.changeFilter(statType, statSubTypeDisplay, statSubTypeValue)
+        this.disableAllRowsSelection()
     }
 
     handleNextClick = () => {
         this.props.setNextPageNumber(this.props.usersListPageNumber + 1)
+        this.disableAllRowsSelection()
     }
 
     handlePreviousClick = () => {
         this.props.setNextPageNumber(this.props.usersListPageNumber - 1)
+        this.disableAllRowsSelection()
     }
 
     handleClick = (event) => {
         event.stopPropagation()
     }
     
-    handleAllFieldsSelection = (event, data) => {
-        console.log('checked', data);
-        
+    handleAllRowsSelection = (event, data) => {
         let selectAllColumns = !this.state.selectAllColumns
         let selectedFieldColumns = this.state.selectedFieldColumns
         for(var i in this.props.usersList){
@@ -171,16 +185,19 @@ class UserListNew extends Component {
         }    
         this.setState({
             selectAllColumns: selectAllColumns,
-            selectedFieldColumns:selectedFieldColumns
+            selectedFieldColumns:selectedFieldColumns,
+            showActionBar:selectAllColumns
         })
     }
-    handleFieldSelection = (event, data, index) => {
-        console.log('--',index, data, this.state.selectedFieldColumns);
+
+    handleRowSelection = (event, data, index) => {
         event.stopPropagation()
         let selectedFieldColumns = this.state.selectedFieldColumns
         selectedFieldColumns[index] = index in this.state.selectedFieldColumns ? !this.state.selectedFieldColumns[index] : true
+        let showActionBar = Object.values(selectedFieldColumns).some(item => { return item;})
         this.setState({
-            selectedFieldColumns:selectedFieldColumns
+            selectedFieldColumns:selectedFieldColumns,
+            showActionBar:showActionBar
         })
         if (!this.state.selectedFieldColumns[index]) {
             this.setState({
@@ -216,7 +233,7 @@ class UserListNew extends Component {
                         let user_obj = this.props.usersList[i];
                         users_email.push(user_obj["email"]);
                         users_name.push(user_obj["full_name"]);
-                        if(!datasource_id)
+                        if(!datasource_id && this.props.datasourcesMap[user_obj["datasource_id"]] == 'GSUITE')
                             datasource_id = user_obj["datasource_id"]
                     }
                 }
@@ -243,7 +260,7 @@ class UserListNew extends Component {
             if(headerName == 'Select All'){
                 return (
                     <Table.HeaderCell key={headerName}>
-                        <Checkbox onChange={this.handleAllFieldsSelection} checked={this.state.selectAllColumns} />
+                        <Checkbox onChange={this.handleAllRowsSelection} checked={this.state.selectAllColumns} />
                     </Table.HeaderCell>
                 )
             }else{
@@ -304,7 +321,7 @@ class UserListNew extends Component {
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell>
-                            <Checkbox onChange={(event, data) => this.handleFieldSelection(event, data, index)} checked={this.state.selectedFieldColumns[index]} />
+                            <Checkbox onChange={(event, data) => this.handleRowSelection(event, data, index)} checked={this.state.selectedFieldColumns[index]} />
                         </Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
                         <Table.Cell>{rowData["type"]}</Table.Cell>
@@ -347,15 +364,17 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
                         </Grid.Column>
                         <Grid.Column width={this.props.selectedUserItem ? 16 : 13}>
-                            <div style={{ marginBottom:'10px' }}>
+                            <div style={{ float:'right', height:'30px'}}>
+                            {this.state.showActionBar ?
+                                <Button.Group style={{marginRight:'10px'}}>
+                                <Button size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Access</Button>
+                                <Button size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify Users</Button>
+                                </Button.Group> :
+                                null
+                            }
                             <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
-                                <Button.Group>
-                                    <Button size="tiny" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Users</Button>
-                                    <Button size="tiny" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Send Emails</Button>
-                                </Button.Group>
                             </div>
-                            
-                            <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                            <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'40px' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                                         <Table.Row>
@@ -373,7 +392,6 @@ class UserListNew extends Component {
                                     {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                                     {this.props.isLoadingUsers || (usersData && usersData.length < 10) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                                 </div>
-                                {/* <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} /> */}
                             </div>
                         </Grid.Column >
                     </Grid.Row>
