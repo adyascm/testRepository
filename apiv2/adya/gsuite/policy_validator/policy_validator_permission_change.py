@@ -2,6 +2,7 @@ import json
 from sqlalchemy import and_
 
 from adya.common.constants import constants
+from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import Policy
 from adya.common.utils.response_messages import Logger
 from adya.common.db.connection import db_connection
@@ -42,8 +43,9 @@ def validate_permission_change(auth_token, datasource_id, payload):
         if not policies or len(policies) < 1:
             Logger().info("No policies found for permission change trigger, ignoring...")
             return
+        datasource_obj = get_datasource(datasource_id)
         for policy in policies:
-            validate_permission_change_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions)
+            validate_permission_change_policy(db_session, auth_token, datasource_obj, policy, resource, new_permissions)
         return
     return
 

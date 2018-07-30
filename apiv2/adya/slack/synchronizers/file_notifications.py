@@ -4,9 +4,7 @@ from sqlalchemy import and_
 
 from adya.common.constants import constants, urls
 from adya.common.db import db_utils
-from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
-from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import Resource, DataSource, ResourcePermission, alchemy_encoder, DomainUser
 from adya.common.utils import messaging
 from adya.common.utils.response_messages import Logger
@@ -73,16 +71,10 @@ def update_resource(db_session, datasource_id, updated_resource):
             # Delete the permission
             db_session.delete(existing_permission)
 
-    datasource_obj = get_datasource(datasource_id)
     # Now add all the other new permissions
     for new_permission in new_permissions_map.values():
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(
             db_utils.get_model_values(ResourcePermission, new_permission)))
-        activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
-                                event_type='FILE_CHANGED', actor=db_resource.resource_owner_id,
-                                tags={"permission_email": new_permission.email, "resource_name": db_resource.resource_name,
-                               "permission_exposure_type": new_permission.exposure_type, "permission_type": new_permission.permission_type,
-                                      "resource_id": db_resource.resource_id})
 
     db_connection().commit()
 

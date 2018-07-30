@@ -79,11 +79,13 @@ def process_app(db_session, domain_id, datasource_id, payload):
                                       )
     app_name = None
     logs = None
+    user_id = ''
     if apps_logs:
         logs = apps_logs['logs']
         for log_data in logs:
             app_name = log_data['app_type']
             if app_name:
+                user_id = log_data['user_id']
                 break
 
     if payload['deleted']:
@@ -96,7 +98,7 @@ def process_app(db_session, domain_id, datasource_id, payload):
 
                 db_session.delete(app_info)
             activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
-                                    event_type='OAUTH_REVOKE', actor=None,
+                                    event_type='OAUTH_REVOKE', actor=user_id,
                                     tags={"display_text":app_info.display_text})
 
 

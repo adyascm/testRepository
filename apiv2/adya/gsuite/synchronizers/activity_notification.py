@@ -99,6 +99,7 @@ def process_token_activity(datasource_id, incoming_activity):
                                                            Application.domain_id == domain_id).first()
         tags = {"display_text": app_name , "score": application.score}
         if event_name == "authorize":
+            event_name = "OAUTH_GRANT"
             # Ignore Adya install
             if "Adya" in app_name:
                 continue
@@ -155,6 +156,7 @@ def process_token_activity(datasource_id, incoming_activity):
             tags["score"] = max_score
 
         elif event_name == "revoke":
+            event_name = "OAUTH_REVOKE"
             if application:
                 try:
                     app_id = application.id
@@ -218,12 +220,12 @@ def process_admin_activities(datasource_id, incoming_activity):
     for event in incoming_activity['events']:
         event_type = event['type']
         if event_type == 'GROUP_SETTINGS':
-            process_group_related_activities(datasource_id, event)
+            process_group_related_activities(datasource_id, actor_email, event)
         elif event_type == 'USER_SETTINGS':
             process_user_related_activities(datasource_id, actor_email, event)
 
 
-def process_group_related_activities(datasource_id, event):
+def process_group_related_activities(datasource_id, actor_email, event):
     event_name = event['name']
     if event_name == 'ADD_GROUP_MEMBER':
         activity_events_parameters = event['parameters']
@@ -279,7 +281,7 @@ def process_group_related_activities(datasource_id, event):
         datasource_obj = get_datasource(datasource_id)
         tags = {"group_email": group_email, "user_email":user_email}
         activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
-                                event_type='ADD_GROUP_MEMBER', actor=None, tags=tags)
+                                event_type='ADD_GROUP_MEMBER', actor=actor_email, tags=tags)
         db_connection().commit()
 
 
@@ -336,7 +338,7 @@ def process_user_related_activities(datasource_id, actor_email, event):
 
     activity_db().add_event(domain_id=datasource_obj.domain_id,
                             connector_type=constants.ConnectorTypes.GSUITE.value,
-                            event_type=event_name, actor=None, tags=tags)
+                            event_type=event_name, actor=actor_email, tags=tags)
     db_connection().commit()
 
 
