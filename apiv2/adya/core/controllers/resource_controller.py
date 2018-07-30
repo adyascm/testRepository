@@ -180,11 +180,11 @@ def write_to_csv(auth_token, payload):
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
     
     if temp_url:
-        email_subject = "[Adya] Your download is ready"
+        email_subject = "[Adya] Your requested report is ready for download"
         link = "<a href=" + temp_url + ">link</a>"
         email_head = "<p>Hi " + existing_user.first_name + ",</p></br></br>"
-        email_body = "<p>Your requested file is ready for download at this " + link + "</p></br></br>"
-        email_signature = "<p>Best,</br> Team Adya</p>"
+        email_body = "<p>Your requested report is now ready for download from this " + link + ".</p></br></br><p>In case of any questions, please send a mail to support@adya.io</p></br></br>"
+        email_signature = "<p>Thanks,</br></br> Team Adya</p>"
         rendered_html = email_head + email_body + email_signature
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
         # adya_emails.send_csv_export_email(logged_in_user, domain_id, temp_url)
