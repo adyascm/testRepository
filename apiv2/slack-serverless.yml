@@ -161,11 +161,11 @@ functions:
           cors: true
 
   get-slack-accesslogs:
-  handler: adya.slack.services.notifications_handler.get_accesslogs_handler
-  events:
-    - http:
-        path: accesslogs
-        method: get
-        cors: true
+    handler: adya.slack.services.notifications_handler.get_accesslogs_handler
+    events:
+      - http:
+          path: accesslogs
+          method: get
+          cors: true
 
 
