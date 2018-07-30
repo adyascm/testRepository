@@ -24,15 +24,15 @@ def fetch_event_type(payload):
 
 def get_handler(event_type):
     handler = None
-    if event_type == github_constants.NotificationEvents.REPOSITORY.value or \
-        event_type == github_constants.NotificationEvents.REPOSITORY_VULNERABILITY_ALERT.value or \
-        event_type == github_constants.NotificationEvents.FORK.value:
+    if event_type == github_constants.GithubNativeEventTypes.REPOSITORY.value or \
+        event_type == github_constants.GithubNativeEventTypes.REPOSITORY_VULNERABILITY_ALERT.value or \
+        event_type == github_constants.GithubNativeEventTypes.FORK.value:
         handler = repository_notifications
 
-    elif event_type == github_constants.NotificationEvents.ORGANIZATION.value:
+    elif event_type == github_constants.GithubNativeEventTypes.ORGANIZATION.value:
         handler = organization_notifications
     
-    elif event_type == github_constants.NotificationEvents.TEAM.value:
+    elif event_type == github_constants.GithubNativeEventTypes.TEAM.value:
         handler = team_notifications
 
     return handler
