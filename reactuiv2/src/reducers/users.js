@@ -157,9 +157,9 @@ export default (state = defaultState, action) => {
             var rows = [];
             if (!action.error) {
                 if (action.payload) {
-                  let group_emails_for_selected_user = []
+                  let group_emails_for_selected_user = {}
                   for(let index in state.selectedUserItem.groups){
-                    group_emails_for_selected_user.push(state.selectedUserItem.groups[index]['email'])
+                    group_emails_for_selected_user[state.selectedUserItem.groups[index]['email']] = state.selectedUserItem.groups[index]
                   }
                     var keys = Object.keys(action.payload)
                     for (let index = 0; index < keys.length; index++) {
@@ -169,7 +169,7 @@ export default (state = defaultState, action) => {
                                 row.myPermission = row.permissions[pIndex].permission_type
                                 break;
                             }
-                            else if ((group_emails_for_selected_user.indexOf(row.permissions[pIndex].email) >= 0) &&
+                            else if ((row.permissions[pIndex].email in  group_emails_for_selected_user) &&
                             ((Object.keys(row).indexOf('myPermission') !== -1 && row.myPermission !== 'writer')||
                             (Object.keys(row).indexOf('myPermission') === -1))) {
                                     row.myPermission = row.permissions[pIndex].permission_type
