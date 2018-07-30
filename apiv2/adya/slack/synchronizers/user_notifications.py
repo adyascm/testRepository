@@ -56,7 +56,7 @@ def update_user(db_session, domain_id, datasource_id, user_info):
             db_utils.get_model_values(DomainUser, user_obj))
 
         #check for new admin creation
-        if existing_user_info and (not existing_user_info.is_admin) and user_info.is_admin:
+        if existing_user_info and (not existing_user_info.is_admin) and user_obj.is_admin:
             payload = {}
             payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
             policy_params = {'dataSourceId': datasource_id,
@@ -66,8 +66,8 @@ def update_user(db_session, domain_id, datasource_id, user_info):
                                          "slack")
 
         activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
-                                event_type='ROLE_CHANGED', actor=user_info.email,
-                                tags={"is_admin":user_info.is_admin})
+                                event_type='ROLE_CHANGED', actor=user_obj.email,
+                                tags={"is_admin":user_obj.is_admin})
 
 
 def process_app(db_session, domain_id, datasource_id, payload):
