@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid, Checkbox } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Container, Input, Icon, Image, Label, Grid, Checkbox, Menu, Dropdown } from 'semantic-ui-react';
 import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
 import ExportCsvModal from '../ExportCsvModal'
@@ -370,17 +370,33 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
                         </Grid.Column>
                         <Grid.Column width={this.props.selectedUserItem ? 16 : 13}>
-                            <div style={{ float:'right', height:'30px'}}>
-                            {this.state.showActionBar ?
-                                <Button.Group style={{marginRight:'10px'}}>
-                                <Button size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Access</Button>
-                                <Button size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify Users</Button>
-                                </Button.Group> :
-                                null
-                            }
-                            <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
-                            </div>
-                            <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'40px' }}>
+                                    <Dropdown  button style={{ float:'left'}} item text='Actions'>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item>
+                                                    <Dropdown text='System'>
+                                                            <Dropdown.Menu>
+                                                                <Dropdown.Item>
+                                                                    <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
+                                                                </Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                    </Dropdown>
+                                            </Dropdown.Item>
+                                            <Dropdown.Item>
+                                                <Dropdown text='GSuite'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Item>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Access</span>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify Users</span>
+                                                        </Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+
+                                    </Dropdown>
+                            <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                                         <Table.Row>

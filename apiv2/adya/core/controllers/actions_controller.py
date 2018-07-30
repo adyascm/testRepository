@@ -80,7 +80,7 @@ def initiate_action(auth_token, action_payload):
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
             action_payload['log_id'] = log_entry.log_id
             messaging.trigger_post_event(
-                urls.INITIATE_ACTION_PATH, auth_token, None, action_payload)
+                urls.INITIATE_ACTION_PATH, auth_token, None, action_payload,)
 
         return ResponseMessage(execution_status.response_code, None, response_body)
 
@@ -524,38 +524,27 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         users_email = action_parameters['users_email']
         users_name = action_parameters['users_name']
         initiated_by = action_payload['initiated_by']
-        status_message = "Notification sent to selected_users for cleanUp"
+        status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
-        status_code = 200
-        notification_failed_for_users = []
         if len(users_email)>0:
             for i,user_email in enumerate(users_email):
-                if not adya_emails.send_clean_files_email(datasource_id, user_email, users_name[i], initiated_by):
-                    notification_failed_for_users.append(user_email)    
-            if len(notification_failed_for_users)> 0:
-                log_entry.status = action_constants.ActionStatus.FAILED.value
-                status_code = 400
-                status_message = "Sending Notification failed for selected_users : {}".format(', '.join(notification_failed_for_users))
-        log_entry.message = status_message
-        response_msg = ResponseMessage(status_code, status_message)        
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'user_email':user_email, 'full_name': users_name[i]}
+                modified_action_payload['key'] = action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
+        response_msg = ResponseMessage(200, status_message)        
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
         users_email = action_parameters['users_email']
         initiated_by = action_payload['initiated_by']
-        status_message = "Action completed successfully"
+        status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
-        remove_action_failed_for_users = []
         response_msg = ResponseMessage(200, status_message)        
         if len(users_email)>0:
             for user_email in users_email:
-                response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                        log_entry, action_key)
-                if response_msg.get_response_code() != 200:
-                    remove_action_failed_for_users.append(user_email)
-
-            if len(remove_action_failed_for_users) > 0:
-                status_message = "Remove action failed for selected_users : {}".format(', '.join(remove_action_failed_for_users))
-                response_msg = ResponseMessage(400, status_message)        
-
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'user_email':user_email}
+                modified_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
     return response_msg
 
 

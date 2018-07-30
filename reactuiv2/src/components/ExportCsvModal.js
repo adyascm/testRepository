@@ -114,7 +114,7 @@ class ExportCsvModal extends Component {
 
         return (
             <span>
-                <Button size='mini' onClick={this.onExportClick} > Export </Button>
+                <span size='mini' onClick={this.onExportClick} > Export </span>
                 <Modal size='small' open={this.state.showModal}>
                     <Modal.Header>
                         Export to a csv file
