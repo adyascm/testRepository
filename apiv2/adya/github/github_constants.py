@@ -11,7 +11,7 @@ class AppChangedTypes(Enum):
     ADDED = "added"
     REMOVED = "removed"
 
-class NotificationEvents(Enum):
+class GithubNativeEventTypes(Enum):
     REPOSITORY = "repository"
     ORGANIZATION = "organization"
     TEAM = "team"
