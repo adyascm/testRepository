@@ -157,14 +157,22 @@ export default (state = defaultState, action) => {
             var rows = [];
             if (!action.error) {
                 if (action.payload) {
+                  let group_emails_for_selected_user = []
+                  for(let index in state.selectedUserItem.groups){
+                    group_emails_for_selected_user.push(state.selectedUserItem.groups[index]['email'])
+                  }
                     var keys = Object.keys(action.payload)
-
                     for (let index = 0; index < keys.length; index++) {
                         let row = action.payload[keys[index]]
                         for (let pIndex = 0; pIndex < row.permissions.length; pIndex++) {
                             if (state.selectedUserItem.email == row.permissions[pIndex].email) {
                                 row.myPermission = row.permissions[pIndex].permission_type
                                 break;
+                            }
+                            else if ((group_emails_for_selected_user.indexOf(row.permissions[pIndex].email) >= 0) &&
+                            ((Object.keys(row).indexOf('myPermission') !== -1 && row.myPermission !== 'writer')||
+                            (Object.keys(row).indexOf('myPermission') === -1))) {
+                                    row.myPermission = row.permissions[pIndex].permission_type
                             }
                         }
                         row.isExpanded = row.isExpanded || false;
