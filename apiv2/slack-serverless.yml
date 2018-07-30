@@ -162,10 +162,10 @@ functions:
 
   get-slack-accesslogs:
   handler: adya.slack.services.notifications_handler.get_accesslogs_handler
-    events:
-      - http:
-          path: accesslogs
-          method: get
-          cors: true
+  events:
+    - http:
+        path: accesslogs
+        method: get
+        cors: true
 
 
