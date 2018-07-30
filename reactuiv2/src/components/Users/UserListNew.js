@@ -216,8 +216,10 @@ class UserListNew extends Component {
                 for(let i in this.state.selectedFieldColumns){
                     if(this.state.selectedFieldColumns[i]){
                         let user_obj = this.props.usersList[i];
-                        users_email.push(user_obj["email"])
-                        if(!datasource_id && this.props.datasourcesMap[user_obj["datasource_id"]] == 'GSUITE')
+                        let user_ds_type_is_gsuite = this.props.datasourcesMap[user_obj["datasource_id"]].datasource_type == 'GSUITE'
+                        if(user_ds_type_is_gsuite && user_obj.type == 'USER')
+                            users_email.push(user_obj["email"])
+                        if(!datasource_id && user_ds_type_is_gsuite)
                             datasource_id = user_obj["datasource_id"]
                     }
                 } 
@@ -231,9 +233,12 @@ class UserListNew extends Component {
                 for(let i in this.state.selectedFieldColumns){
                     if(this.state.selectedFieldColumns[i]){
                         let user_obj = this.props.usersList[i];
-                        users_email.push(user_obj["email"]);
-                        users_name.push(user_obj["full_name"]);
-                        if(!datasource_id && this.props.datasourcesMap[user_obj["datasource_id"]] == 'GSUITE')
+                        let user_ds_type_is_gsuite = this.props.datasourcesMap[user_obj["datasource_id"]].datasource_type == 'GSUITE'
+                        if(user_ds_type_is_gsuite && user_obj.type == 'USER'){
+                            users_email.push(user_obj["email"]);
+                            users_name.push(user_obj["full_name"]);
+                        }
+                        if(!datasource_id && user_ds_type_is_gsuite)
                             datasource_id = user_obj["datasource_id"]
                     }
                 }
@@ -242,9 +247,10 @@ class UserListNew extends Component {
                     users_name:users_name,
                     users_email:users_email,
                     datasource_id:datasource_id
-                } 
+                }
             }    
             this.props.onMultiUsersAction(payload,"BULK_ACTION")
+            this.disableAllRowsSelection()
         }
             
     }    

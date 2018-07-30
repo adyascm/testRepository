@@ -544,15 +544,17 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         status_message = "Action completed successfully"
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         remove_action_failed_for_users = []
-        for user_email in users_email:
-            response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
-                                                       log_entry, action_key)
-            if response_msg.get_response_code() != 200:
-                remove_action_failed_for_users.append(user_email)
+        response_msg = ResponseMessage(200, status_message)        
+        if len(users_email)>0:
+            for user_email in users_email:
+                response_msg = remove_all_permissions_for_user(auth_token, domain_id, datasource_id, user_email, initiated_by,
+                                                        log_entry, action_key)
+                if response_msg.get_response_code() != 200:
+                    remove_action_failed_for_users.append(user_email)
 
-        if len(remove_action_failed_for_users) > 0:
-            status_message = "Remove action failed for selected_users : {}".format(', '.join(remove_action_failed_for_users))
-            response_msg = ResponseMessage(400, status_message)        
+            if len(remove_action_failed_for_users) > 0:
+                status_message = "Remove action failed for selected_users : {}".format(', '.join(remove_action_failed_for_users))
+                response_msg = ResponseMessage(400, status_message)        
 
     return response_msg
 
@@ -623,6 +625,12 @@ def audit_action(domain_id, datasource_id, initiated_by, action_config, action_p
     elif action_key == action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value:
         audit_log.affected_entity = action_parameters['user_email']
         audit_log.affected_entity_type = "User"
+    elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
+        audit_log.affected_entity = ','.join(action_parameters['users_email'])
+        audit_log.affected_entity_type = "Document"    
+    elif action_key == action_constants.ActionNames.NOTIFY_MULTIPLE_USERS_FOR_CLEANUP.value:
+        audit_log.affected_entity = ','.join(action_parameters['users_email'])
+        audit_log.affected_entity_type = "User"    
 
     db_session.add(audit_log)
     db_connection().commit()

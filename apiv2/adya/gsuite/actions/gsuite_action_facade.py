@@ -26,6 +26,7 @@ def execute_action(auth_token, payload):
         response = gsuite_actions.delete_user_from_group(auth_token, group_email, user_email)
     elif action_type == action_constants.ActionNames.DELETE_PERMISSION_FOR_USER.value or \
                     action_type == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value or \
+                    action_type == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value or \
                     action_type == action_constants.ActionNames.MAKE_ALL_FILES_PRIVATE.value or \
                     action_type == action_constants.ActionNames.MAKE_RESOURCE_PRIVATE.value or \
                     action_type == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS.value or \
