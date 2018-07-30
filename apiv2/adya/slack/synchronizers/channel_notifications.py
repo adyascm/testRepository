@@ -1,6 +1,7 @@
 from sqlalchemy import and_
 
 from adya.common.constants import constants
+from adya.common.db import db_utils
 from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
 from adya.common.db.db_utils import get_datasource
@@ -117,7 +118,8 @@ def process_member_joined_channel(db_session, datasource_id, payload):
         payload['name'] = channel_info.email
 
         directory_member_obj = entities.SlackDirectoryMember(db_session, datasource_id, user_info, joined_user_id, None, payload)
-        db_session.add(directory_member_obj.get_model())
+        db_session.execute(DirectoryStructure.__table__.insert().prefix_with("IGNORE").
+                           values(db_utils.get_model_values(DirectoryStructure, directory_member_obj.get_model())))
 
         datasource_obj = get_datasource(datasource_id)
         if datasource_obj:
