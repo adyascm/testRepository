@@ -195,18 +195,30 @@ export default (state = defaultState, action) => {
                 isLoadingUserResources: false,
             }
         case USERS_RESOURCE_ACTION_LOAD:
-            return {
-                ...state,
-                action: {
-                    key: action.actionType,
-                    datasource_id: state.selectedUserItem.datasource_id,
-                    old_owner_email: state.selectedUserItem.email,
-                    full_name: state.selectedUserItem.full_name,
-                    user_email: state.selectedUserItem.email,
-                    resource_id: action.resource ? action.resource.resource_id : undefined,
-                    resource_name: action.resource ? action.resource.resource_name : undefined,
-                    resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
-                    new_permission_role: action.newValue,
+            if(action.multiSelectAction){
+                return {
+                    ...state,
+                    action: {
+                        key: action.payload.actionType,
+                        users_email: action.payload.users_email,
+                        users_name: action.payload.users_name,
+                        datasource_id: action.payload.datasource_id,
+                    }
+                }
+            }else{
+                return {
+                    ...state,
+                    action: {
+                        key: action.actionType,
+                        datasource_id: state.selectedUserItem.datasource_id,
+                        old_owner_email: state.selectedUserItem.email,
+                        full_name: state.selectedUserItem.full_name,
+                        user_email: state.selectedUserItem.email,
+                        resource_id: action.resource ? action.resource.resource_id : undefined,
+                        resource_name: action.resource ? action.resource.resource_name : undefined,
+                        resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
+                        new_permission_role: action.newValue,
+                    }
                 }
             }
         case USERS_GROUP_ACTION_LOAD:
