@@ -30,7 +30,7 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: POLICY_LOAD_START }),
     policyLoaded: (payload) =>
         dispatch({ type: POLICY_LOADED, payload }),
-    updateActionEmail: (actionType, email='') => 
+    updateActionEmail: (actionType, email='') =>
         dispatch({ type: UPDATE_POLICY_ACTION_EMAIL, actionType, email })
 });
 
@@ -374,7 +374,7 @@ class PolicyItemDetail extends Component {
                                 </Segment>
                                 <Segment>
                                     <Header as='h4' color='red'>ACTIONS</Header>
-                                    <Form.Field control={Checkbox} label='Revert on Alert' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
+                                    <Form.Field control={Checkbox} label='Automatically revert on action (Beta)' onChange={this.handlePolicyRevertType} checked={this.state.revertOnAlert} />
                                     <Form.Field control={Checkbox} label='Send Email To' onChange={this.sendEmailChange} checked={!this.state.disableEmailField} />
                                     {this.state.disableEmailField ? null : emailFieldInput}
                                 </Segment>
