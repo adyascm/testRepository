@@ -107,10 +107,17 @@ class ExportCsvModal extends Component {
                 <Loader inverted content='Loading' />
             </Dimmer>
         )
+        let exportButtonStyle = {
+            'float': 'left',
+            'width': '80px'
+        }
+
+        let headerElement = this.props.isResourceView? (<Button style={exportButtonStyle} size='mini' onClick={this.onExportClick} > Export </Button>) :
+                            <span size='mini' onClick={this.onExportClick}>Export</span>
 
         return (
-            <span>
-                <span size='mini' onClick={this.onExportClick} > Export </span>
+            <div>
+                {headerElement}
                 <Modal size='small' open={this.state.showModal}>
                     <Modal.Header>
                         Export to a csv file
@@ -128,7 +135,7 @@ class ExportCsvModal extends Component {
                     </Modal.Content>
                     {this.state.isLoading ? dimmer : null}
                 </Modal>
-            </span>
+            </div>
         )
     }
 }
