@@ -107,10 +107,6 @@ class ExportCsvModal extends Component {
                 <Loader inverted content='Loading' />
             </Dimmer>
         )
-        let exportButtonStyle = {
-            'float': 'right',
-            'width': '80px'
-        }
 
         return (
             <span>

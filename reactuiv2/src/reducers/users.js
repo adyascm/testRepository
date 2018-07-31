@@ -195,7 +195,7 @@ export default (state = defaultState, action) => {
                 isLoadingUserResources: false,
             }
         case USERS_RESOURCE_ACTION_LOAD:
-            if(action.batchAction){
+            if(action.multiSelectAction){
                 return {
                     ...state,
                     action: {

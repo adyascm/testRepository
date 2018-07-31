@@ -37,8 +37,8 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USERS_LIST_PAGINATION_DATA, pageNumber }),
     setSortColumnField: (columnName, sortType) =>
         dispatch({ type: USERS_COLUMN_SORT, columnName, sortType }),
-    onMultiUsersAction: (payload, batchAction) =>
-        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, batchAction}),    
+    onMultiUsersAction: (payload, multiSelectAction) =>
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, multiSelectAction}),    
 });
 
 
@@ -249,7 +249,7 @@ class UserListNew extends Component {
                     datasource_id:datasource_id
                 }
             }    
-            this.props.onMultiUsersAction(payload,"BULK_ACTION")
+            this.props.onMultiUsersAction(payload,true)
             this.disableAllRowsSelection()
         }
             
@@ -384,12 +384,15 @@ class UserListNew extends Component {
                                             <Dropdown.Item>
                                                 <Dropdown text='GSuite'>
                                                     <Dropdown.Menu>
-                                                        <Dropdown.Item>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove Access</span>
+                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Offboard Users</span>
                                                         </Dropdown.Item>
-                                                        <Dropdown.Item>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify Users</span>
+                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove access for documents</span>
                                                         </Dropdown.Item>
+                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify users to audit</span>
+                                                        </Dropdown.Item> 
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Dropdown.Item>
