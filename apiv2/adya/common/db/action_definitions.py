@@ -47,4 +47,8 @@ actions = [
         "description": "Add user to a channel/group", "parameters": [{"key": "user_email", "label": "User Email", "editable": 0}, {"key": "group_email", "label": "To Channel/Group", "editable": 1}], "is_admin_only": False},
     {"datasource_type": "ALL", "action_type": "INLINE", "action_entity": "APP", "key": action_constants.ActionNames.REMOVE_APP_FOR_DOMAIN.value, "name": "Uninstall App ",
         "description": "Uninstall application from domain", "parameters": [{"key": "app_id", "label": "AppId", "editable": 0, "hidden": 1}, {"key": "app_name", "label": "Application Name", "editable": 0}], "is_admin_only": True},
+    {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "USER", "key": action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value, "name": "Remove access for users",
+        "description": "Remove access to all selected users for any documents owned by others", "parameters": [{"key": "users_email", "label": "For users", "editable": 1}], "is_admin_only": False},
+    {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "INTERNAL_USER", "key": action_constants.ActionNames.NOTIFY_MULTIPLE_USERS_FOR_CLEANUP.value, "name": "Notify users for cleanup",
+        "description": "Send mail to selected users to audit documents", "parameters": [{"key": "users_email", "label": "For users", "editable": 1}, {"key": "users_name", "label": "Users Name", "editable": 1}], "is_admin_only": True},        
 ]

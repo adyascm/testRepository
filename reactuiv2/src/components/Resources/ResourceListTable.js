@@ -339,7 +339,7 @@ class ResourcesListTable extends Component {
                             {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                             {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                         </div>
-                        <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
+                        <ExportCsvModal isResourceView={true} columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
                     </div>
                 </div>
             )
