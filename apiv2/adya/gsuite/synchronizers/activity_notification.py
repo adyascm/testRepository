@@ -97,7 +97,7 @@ def process_token_activity(datasource_id, incoming_activity):
 
         application = db_session.query(Application).filter(Application.display_text == app_name,
                                                            Application.domain_id == domain_id).first()
-        tags = {"display_text": app_name , "score": application.score}
+        tags = {"display_text": app_name}
         if event_name == "authorize":
             event_name = "OAUTH_GRANT"
             # Ignore Adya install
@@ -168,6 +168,8 @@ def process_token_activity(datasource_id, incoming_activity):
                     Logger().info("not able to delete app - {} from the db for user: {}".format(app_name, actor_email))
                     db_session.rollback()
 
+                tags["score"] = application.score
+
         activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
                                 event_type=event_name, actor=actor_email, tags=tags)
 
@@ -223,6 +225,9 @@ def process_admin_activities(datasource_id, incoming_activity):
             process_group_related_activities(datasource_id, actor_email, event)
         elif event_type == 'USER_SETTINGS':
             process_user_related_activities(datasource_id, actor_email, event)
+        elif event_type == 'DELEGATED_ADMIN_SETTINGS':
+            delegate_admin_settings(datasource_id, actor_email, event)
+
 
 
 def process_group_related_activities(datasource_id, actor_email, event):
@@ -399,4 +404,27 @@ def delete_user_info(db_session, user_email, datasource_id):
     db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id, DomainUser.email == user_email)).delete()
 
 
+def delegate_admin_settings(datasource_id, actor_email, event):
+    db_session = db_connection().get_session()
+    event_name = event['name']
+    activity_events_parameters = event['parameters']
+    if event_name == 'ASSIGN_ROLE':
+        user_email = None
+        for param in activity_events_parameters:
+            name = param['name']
+            if name == 'USER_EMAIL':
+                user_email = param['value']
+
+        user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                            DomainUser.email == user_email)).first()
+        if user_obj:
+            user_obj.is_admin = True
+
+        call_validate_policies_for_admin_user(user_obj, datasource_id)
+        datasource_obj = get_datasource(datasource_id)
+        tags = {"user_email": user_email, "is_admin": user_obj.is_admin}
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type=event_name, actor=actor_email, tags=tags)
+        db_connection().commit()
 
