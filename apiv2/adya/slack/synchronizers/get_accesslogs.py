@@ -33,7 +33,7 @@ def get_accesslogs(datasource_id, page_num=1):
 
         if current_page != total_pages:
             query_param = {'datasource_id': datasource_id, 'page_num': current_page+1}
-            messaging.trigger_get_event(urls.SLACK_ACCESSLOGS, constants.INTERNAL_SECRET, query_param)
+            messaging.trigger_get_event(urls.SLACK_ACCESSLOGS, constants.INTERNAL_SECRET, query_param, constants.ConnectorTypes.SLACK.value)
             return constants.ACCEPTED_STATUS_CODE
 
     return constants.SUCCESS_STATUS_CODE

@@ -2,6 +2,7 @@ import json
 
 from adya.common.constants import constants, urls, action_constants
 from adya.common.constants.action_constants import datasource_execute_action_map, connector_servicename_map
+from adya.common.db.activity_db import activity_db
 from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import alchemy_encoder
 from adya.common.email_templates import adya_emails
@@ -10,6 +11,7 @@ from adya.common.utils.response_messages import Logger
 
 
 # check for apps installed policy violation
+from adya.common.utils.utils import get_highest_exposure_type
 from adya.core.controllers.actions_controller import remove_app_for_domain
 
 
@@ -48,11 +50,13 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
         messaging.trigger_post_event(urls.ALERTS_PATH, auth_token, None, payload)
 
 # check file permission change policy violation
-def validate_permission_change_policy(db_session, auth_token, datasource_id, policy, resource, new_permissions):
+def validate_permission_change_policy(db_session, auth_token, datasource_obj, policy, resource, new_permissions):
+    datasource_id = datasource_obj.datasource_id
     Logger().info("validating_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_policy_violated = False
     violated_permissions = []
     new_permissions_left = []
+    highest_exposure_type = constants.EntityExposureType.PRIVATE.value
     for permission in new_permissions:
         is_permission_violated = 1
         for policy_condition in policy.conditions:
@@ -69,6 +73,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             is_policy_violated = True
             if not permission["permission_type"] == constants.Role.OWNER.value:
                 violated_permissions.append(permission)
+                highest_exposure_type = get_highest_exposure_type(permission["exposure_type"], highest_exposure_type)
             else:
                 new_permissions_left.append(permission)
         else:
@@ -77,6 +82,13 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
     send_email_action = []
     check_if_revert_action = False
     if is_policy_violated:
+        if highest_exposure_type in constants.permission_exposure_to_event_constants:
+            tags = {"resource_id": resource["resource_owner_id"], "resource_name": resource["resource_name"],
+                    "new_permissions": violated_permissions}
+            activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type=constants.permission_exposure_to_event_constants[highest_exposure_type],
+                                    actor=resource["resource_owner_id"], tags=tags)
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
@@ -84,7 +96,6 @@ def validate_permission_change_policy(db_session, auth_token, datasource_id, pol
             elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
                 Logger().info("violated permissions : {}".format(violated_permissions))
                 check_if_revert_action = True
-                datasource_obj = get_datasource(datasource_id)
                 datasource_type = datasource_obj.datasource_type
                 body = json.dumps(violated_permissions, cls=alchemy_encoder())
                 payload = {"permissions": body, "datasource_id": datasource_id,

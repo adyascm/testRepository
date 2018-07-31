@@ -46,6 +46,7 @@ provider:
     subnetIds:
       - subnet-ccc4cae3
       - subnet-30c5c86d
+      - subnet-53a7c00e
 
 plugins:
   - serverless-domain-manager
@@ -161,7 +162,7 @@ functions:
           cors: true
 
   get-slack-accesslogs:
-  handler: adya.slack.services.notifications_handler.get_accesslogs_handler
+    handler: adya.slack.services.notifications_handler.get_accesslogs_handler
     events:
       - http:
           path: accesslogs

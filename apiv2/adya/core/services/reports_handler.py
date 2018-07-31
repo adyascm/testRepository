@@ -110,9 +110,8 @@ def run_scheduled_report(event, context):
 
     auth_token = req_session.get_auth_token()
 
-    run_report_data, email_list, report_type, report_desc, report_name = reports_controller.run_report(auth_token,
-                                                                req_session.get_req_param('reportId'))
-    return req_session.generate_sqlalchemy_response(200, run_report_data)
+    response = reports_controller.run_report(auth_token, req_session.get_req_param('reportId'))
+    return req_session.generate_sqlalchemy_response(200, response['response_data'])
 
 
 def execute_cron_report(event, context):
@@ -127,12 +126,12 @@ def execute_cron_report(event, context):
 
     Logger().info("call generate_csv_report function ")
     Logger().info("report id " + str(req_session.get_req_param('report_id')))
-    csv_records, email_list, report_desc, report_name = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
+    response = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
 
-    if len(csv_records) > 0:
+    if len(response['csv_records']) > 0:
         Logger().info("call send_email_with_attachment function ")
-        report_desc = '[Adya] ' + report_desc
-        aws_utils.send_email_with_attachment(email_list, csv_records, report_desc, report_name)
+        report_desc = '[Adya] ' + response['report_desc']
+        aws_utils.send_email_with_attachment(response['email_list'], response['csv_records'], report_desc, response['report_name'])
 
     return req_session.generate_response(200)
 

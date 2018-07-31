@@ -342,10 +342,13 @@ def write_to_csv(auth_token, payload):
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
 
-    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
     domain_datasource_ids = []
-    for datasource in datasources:
-        domain_datasource_ids.append(datasource.datasource_id)
+    if not source:
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        for datasource in datasources:
+            domain_datasource_ids.append(datasource.datasource_id)
+    else:
+        domain_datasource_ids = [source]
     
     users_query = db_session.query(DomainUser).join(DataSource).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     users_query = filter_on_get_user_list(users_query, full_name=name, email=email, member_type=member_type, datasource_id=source,
@@ -390,11 +393,11 @@ def write_to_csv(auth_token, payload):
     temp_url = aws_utils.upload_file_in_s3_bucket(bucket_name, key, temp_csv)
 
     if temp_url:
-        email_subject = "[Adya] Your download is ready"
+        email_subject = "[Adya] Your requested report is ready for download"
         link = "<a href=" + temp_url + ">link</a>"
         email_head = "<p>Hi " + existing_user.first_name + ",</p></br></br>"
-        email_body = "<p>Your requested file is ready for download at this " + link + "</p></br></br>"
-        email_signature = "<p>Best,</br> Team Adya</p>"
+        email_body = "<p>Your requested report is now ready for download from this " + link + ".</p></br></br><p>In case of any questions, please send a mail to support@adya.io</p></br></br>"
+        email_signature = "<p>Thanks,</p></br><p>Team Adya</p>"
         rendered_html = email_head + email_body + email_signature
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:

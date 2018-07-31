@@ -335,6 +335,9 @@ def run_report(auth_token, report_id):
     db_session = db_connection().get_session()
 
     get_report_info = db_session.query(Report).filter(Report.report_id == report_id).first()
+    if not get_report_info:
+        Logger().info("No report exist")
+        return None
     config_data = json.loads(get_report_info.config)
     emails = str(get_report_info.receivers)
     email_list = emails.split(',')
@@ -427,8 +430,11 @@ def run_report(auth_token, report_id):
                 "name":grp.full_name,
                 "email":grp.email
             }          
-            response_data.append(data_map)        
-    return response_data, email_list, report_type, report_desc, report_name
+            response_data.append(data_map)
+
+    final_response = {"response_data": response_data, "email_list": email_list, "report_type": report_type,
+                      "report_desc": report_desc, "report_name": report_name}
+    return final_response
 
 
 def update_report(auth_token, payload):
@@ -465,45 +471,48 @@ def update_report(auth_token, payload):
 
 def generate_csv_report(report_id):
     Logger().info("generate_csv_report :  start")
-
-    report_data, email_list, report_type, report_desc, report_name = run_report(constants.INTERNAL_SECRET, report_id)
-    Logger().info("generate_csv_report : report data : " + str(report_data))
-    Logger().info("report type : " + str(report_type))
+    response = run_report(constants.INTERNAL_SECRET, report_id)
     csv_records = ""
-    if len(report_data) > 0:
-        if report_type == "Permission":
-            csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
-                                  "File Exposure", "User Email", "Permission"]
-            report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
-                                  "last_modified_time", "creation_time",
-                                  "exposure_type", "user_email", "permission_type"]
+    if response:
+        report_data = response['response_data']
+        report_type = response['report_type']
 
-        elif report_type == "Activity":
-            csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
-            report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
+        Logger().info("generate_csv_report : report data : " + str(report_data))
+        Logger().info("report type : " + str(report_type))
+        if report_data and len(report_data) > 0:
+            if report_type == "Permission":
+                csv_display_header = ["File Name", "File Type", "Size", "Owner", "Last Modified Date", "Creation Date",
+                                      "File Exposure", "User Email", "Permission"]
+                report_data_header = ["resource_name", "resource_type", "resource_size", "resource_owner_id",
+                                      "last_modified_time", "creation_time",
+                                      "exposure_type", "user_email", "permission_type"]
 
-        elif report_type == 'Inactive':
-            csv_display_header = ['Name', 'Email', 'Last Login', 'Number of days since last login']
-            report_data_header = ["name", 'email', 'login_time', 'num_days']
-        elif report_type == 'EmptyGSuiteGroup' or report_type == 'EmptySlackChannel':
-            csv_display_header = ['Name','Email']
-            report_data_header = ["name",'email']    
+            elif report_type == "Activity":
+                csv_display_header = ["Date", "Operation", "Datasource", "Resource", "Type", "IP Address"]
+                report_data_header = ["date", "operation", "datasource", "resource", "type", "ip_address"]
 
-        Logger().info("making csv")
+            elif report_type == 'Inactive':
+                csv_display_header = ['Name', 'Email', 'Last Login', 'Number of days since last login']
+                report_data_header = ["name", 'email', 'login_time', 'num_days']
+            elif report_type == 'EmptyGSuiteGroup' or report_type == 'EmptySlackChannel':
+                csv_display_header = ['Name','Email']
+                report_data_header = ["name",'email']
 
-        csv_records += ",".join(csv_display_header) + "\n"
-        for data in report_data:
-            for i in range(len(report_data_header)):
-                if i == len(report_data_header) - 1:
-                    csv_records += (str(data[report_data_header[i]]))
-                else:
-                    csv_records += (str(data[report_data_header[i]])) + ','
-            csv_records += "\n"
+            Logger().info("making csv")
 
-        Logger().info("csv_ record " + str(csv_records))
+            csv_records += ",".join(csv_display_header) + "\n"
+            for data in report_data:
+                for i in range(len(report_data_header)):
+                    if i == len(report_data_header) - 1:
+                        csv_records += (str(data[report_data_header[i]]))
+                    else:
+                        csv_records += (str(data[report_data_header[i]])) + ','
+                csv_records += "\n"
 
-    return csv_records, email_list, report_desc, report_name
+            Logger().info("csv_ record " + str(csv_records))
 
+    response['csv_records'] = csv_records
+    return response
 
 def insert_entry_into_report_table(db_session, auth_token, payload):
     report_id = str(uuid.uuid4())
@@ -540,3 +549,5 @@ def insert_entry_into_report_table(db_session, auth_token, payload):
         return report
     else:
         return None
+
+

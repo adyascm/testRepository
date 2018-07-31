@@ -5,7 +5,6 @@ from sqlalchemy import and_
 
 from adya.common.constants import urls, constants
 from adya.common.db import db_utils
-from adya.common.db.activity_db import activity_db
 from adya.common.db.connection import db_connection
 from adya.common.db.db_utils import get_datasource
 from adya.common.db.models import DataSource, PushNotificationsSubscription, LoginUser, DataSource, Resource, ResourcePermission, \
@@ -178,7 +177,6 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
             #Delete the permission
             db_session.delete(existing_permission)
 
-    datasource_obj = get_datasource(datasource_id)
     #Now add all the other new permissions
     for new_permission in new_permissions_map.values():
         event_name = ''
@@ -192,12 +190,6 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
         elif new_permission.exposure_type == constants.EntityExposureType.EXTERNAL.value:
             event_name = 'FILE_SHARE_EXTERNAL'
 
-        tags = {"resource_id": db_resource.resource_id, "resource_name": db_resource.resource_name, "permission_email": new_permission.email,
-                              "permission_type": new_permission.permission_type, "permission_exposure_type": new_permission.exposure_type}
-        activity_db().add_event(domain_id=datasource_obj.domain_id,
-                                connector_type=constants.ConnectorTypes.GSUITE.value,
-                                event_type=event_name, actor=db_resource.resource_owner_id,
-                                tags=tags)
     #Update external users
     if len(external_users)>0:
         external_users_values = []

@@ -157,14 +157,22 @@ export default (state = defaultState, action) => {
             var rows = [];
             if (!action.error) {
                 if (action.payload) {
+                  let group_emails_for_selected_user = {}
+                  for(let index in state.selectedUserItem.groups){
+                    group_emails_for_selected_user[state.selectedUserItem.groups[index]['email']] = state.selectedUserItem.groups[index]
+                  }
                     var keys = Object.keys(action.payload)
-
                     for (let index = 0; index < keys.length; index++) {
                         let row = action.payload[keys[index]]
                         for (let pIndex = 0; pIndex < row.permissions.length; pIndex++) {
                             if (state.selectedUserItem.email == row.permissions[pIndex].email) {
                                 row.myPermission = row.permissions[pIndex].permission_type
                                 break;
+                            }
+                            else if ((row.permissions[pIndex].email in  group_emails_for_selected_user) &&
+                            ((Object.keys(row).indexOf('myPermission') !== -1 && row.myPermission !== 'writer')||
+                            (Object.keys(row).indexOf('myPermission') === -1))) {
+                                    row.myPermission = row.permissions[pIndex].permission_type
                             }
                         }
                         row.isExpanded = row.isExpanded || false;
@@ -187,18 +195,30 @@ export default (state = defaultState, action) => {
                 isLoadingUserResources: false,
             }
         case USERS_RESOURCE_ACTION_LOAD:
-            return {
-                ...state,
-                action: {
-                    key: action.actionType,
-                    datasource_id: state.selectedUserItem.datasource_id,
-                    old_owner_email: state.selectedUserItem.email,
-                    full_name: state.selectedUserItem.full_name,
-                    user_email: state.selectedUserItem.email,
-                    resource_id: action.resource ? action.resource.resource_id : undefined,
-                    resource_name: action.resource ? action.resource.resource_name : undefined,
-                    resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
-                    new_permission_role: action.newValue,
+            if(action.multiSelectAction){
+                return {
+                    ...state,
+                    action: {
+                        key: action.payload.actionType,
+                        users_email: action.payload.users_email,
+                        users_name: action.payload.users_name,
+                        datasource_id: action.payload.datasource_id,
+                    }
+                }
+            }else{
+                return {
+                    ...state,
+                    action: {
+                        key: action.actionType,
+                        datasource_id: state.selectedUserItem.datasource_id,
+                        old_owner_email: state.selectedUserItem.email,
+                        full_name: state.selectedUserItem.full_name,
+                        user_email: state.selectedUserItem.email,
+                        resource_id: action.resource ? action.resource.resource_id : undefined,
+                        resource_name: action.resource ? action.resource.resource_name : undefined,
+                        resource_owner_id: action.resource ? action.resource.resource_owner_id : undefined,
+                        new_permission_role: action.newValue,
+                    }
                 }
             }
         case USERS_GROUP_ACTION_LOAD:
