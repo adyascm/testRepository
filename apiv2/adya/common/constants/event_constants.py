@@ -12,7 +12,8 @@ GSUITE_EVENT_TYPES = {
     "SUSPEND_USER": {"display_name": "User suspended", "desc": "A user is suspended", "event_template": "", "tags": constants.COMMON_TAGS.extend({"user_email":''})},
     "GROUP_MEMBERSHIP_CHANGED": {"display_name": "Group members changed", "desc": "Members in group has changed", "event_template": ""},
     "GRANT_ADMIN_PRIVILEGE": {"display_name": "User role changed", "desc": "Role for user is changed", "event_template": "", "tags": constants.COMMON_TAGS},
-    "ADD_GROUP_MEMBER": {"display_name": "Member added to group", "desc": "Member is added to group", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"group_email": ""}])}
+    "ADD_GROUP_MEMBER": {"display_name": "Member added to group", "desc": "Member is added to group", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"group_email": ""}])},
+    "DOWNLOAD": {"display_name": "File downloaded", "desc": "File is downloaded", "event_template": "", "tags": constants.COMMON_TAGS}
 }
 
 SLACK_EVENT_TYPES = {

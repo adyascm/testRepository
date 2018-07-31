@@ -68,8 +68,8 @@ def process_incoming_activity(datasource_id, incoming_activity):
         process_admin_activities(datasource_id, incoming_activity)
     elif app_name == 'login':
         process_login_activity(datasource_id, incoming_activity)
-    # elif app_name == "drive":
-    #     process_drive_activity(datasource_id, incoming_activity)
+    elif app_name == "drive":
+        process_drive_activity(datasource_id, incoming_activity)
 
 
 def process_token_activity(datasource_id, incoming_activity):
@@ -186,33 +186,45 @@ def process_drive_activity(datasource_id, incoming_activity):
 
         event_name = event['name']
         event_type = event['type']
-
+        activity_events_parameters = event['parameters']
+        primary_name = activity_events_parameters[0]['name']
         if event_type == 'acl_change':
-            activity_events_parameters = event['parameters']
-            primary_name = activity_events_parameters[0]['name']
+            pass
+            # if primary_name == 'primary_event':
+            #     boolValue = activity_events_parameters[0]['boolValue']
+            #     if boolValue:
+            #         max_perm_string = None
+            #         for parameter in activity_events_parameters:
+            #             if parameter['name'] == 'doc_id':
+            #                 resource["resource_id"] = parameter['value']
+            #                 resource_permission["resource_id"] =parameter['value']
+            #             elif parameter['name'] == 'owner':
+            #                 resource['resource_owner_id'] = parameter['value']
+            #             # permission change activity
+            #             elif parameter['name'] == 'target_user':
+            #                 resource_permission['email'] = parameter['value']
+            #             elif parameter['name'] == 'new_value':
+            #                 perm_values = parameter['multiValue'] # ['can_edit','can_view']
+            #                 for perm in perm_values:
+            #                     curr_perm_value = constants.permission_priority[perm] if perm in constants.permission_priority else 0
+            #                     max_perm_Value = constants.permission_priority[max_perm_string] if max_perm_string in constants.permission_priority else 0
+            #                     max_perm_string = perm if curr_perm_value > max_perm_Value else max_perm_string
+            #
+            #                 resource_permission['permission_type'] = constants.Permission_Role_mapping[max_perm_string]
+            #             elif parameter['name'] == 'visibility':
+            #                 resource_permission['exposure_type'] = parameter['value']
+        elif event_type == 'download':
+            resource_id = None
             if primary_name == 'primary_event':
                 boolValue = activity_events_parameters[0]['boolValue']
                 if boolValue:
-                    max_perm_string = None
                     for parameter in activity_events_parameters:
                         if parameter['name'] == 'doc_id':
-                            resource["resource_id"] = parameter['value']
-                            resource_permission["resource_id"] =parameter['value']
-                        elif parameter['name'] == 'owner':
-                            resource['resource_owner_id'] = parameter['value']
-                        # permission change activity
-                        elif parameter['name'] == 'target_user':
-                            resource_permission['email'] = parameter['value']
-                        elif parameter['name'] == 'new_value':
-                            perm_values = parameter['multiValue'] # ['can_edit','can_view']
-                            for perm in perm_values:
-                                curr_perm_value = constants.permission_priority[perm] if perm in constants.permission_priority else 0
-                                max_perm_Value = constants.permission_priority[max_perm_string] if max_perm_string in constants.permission_priority else 0
-                                max_perm_string = perm if curr_perm_value > max_perm_Value else max_perm_string
+                           resource_id = parameter['value']
 
-                            resource_permission['permission_type'] = constants.Permission_Role_mapping[max_perm_string]
-                        elif parameter['name'] == 'visibility':
-                            resource_permission['exposure_type'] = parameter['value']
+            datasource_obj = get_datasource(datasource_id)
+            activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    event_type="DOWNLOAD", actor=actor_email, tags={'resource_id': resource_id})
 
 
 def process_admin_activities(datasource_id, incoming_activity):
@@ -408,13 +420,12 @@ def delegate_admin_settings(datasource_id, actor_email, event):
     db_session = db_connection().get_session()
     event_name = event['name']
     activity_events_parameters = event['parameters']
+    user_email = None
+    for param in activity_events_parameters:
+        name = param['name']
+        if name == 'USER_EMAIL':
+            user_email = param['value']
     if event_name == 'ASSIGN_ROLE':
-        user_email = None
-        for param in activity_events_parameters:
-            name = param['name']
-            if name == 'USER_EMAIL':
-                user_email = param['value']
-
         user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).first()
         if user_obj:
@@ -426,5 +437,9 @@ def delegate_admin_settings(datasource_id, actor_email, event):
         activity_db().add_event(domain_id=datasource_obj.domain_id,
                                 connector_type=constants.ConnectorTypes.GSUITE.value,
                                 event_type=event_name, actor=actor_email, tags=tags)
-        db_connection().commit()
 
+    elif event_name == 'UNASSIGN_ROLE':
+       db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                        DomainUser.email == user_email, DomainUser.is_admin == True)).update({DomainUser.is_admin: False})
+
+    db_connection().commit()
