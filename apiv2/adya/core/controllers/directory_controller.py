@@ -342,10 +342,13 @@ def write_to_csv(auth_token, payload):
     existing_user = db_utils.get_user_session(auth_token)
     domain_id = existing_user.domain_id
 
-    datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
     domain_datasource_ids = []
-    for datasource in datasources:
-        domain_datasource_ids.append(datasource.datasource_id)
+    if not source:
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        for datasource in datasources:
+            domain_datasource_ids.append(datasource.datasource_id)
+    else:
+        domain_datasource_ids = [source]
     
     users_query = db_session.query(DomainUser).join(DataSource).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
     users_query = filter_on_get_user_list(users_query, full_name=name, email=email, member_type=member_type, datasource_id=source,
