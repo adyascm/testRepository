@@ -110,8 +110,8 @@ def get_gdrive_scan_summary(datasource,login_user_first_name,auth_token=None,use
         #restUsers = externalUserListData["totalCount"] - len(externalUserListData["rows"])
 
         domainId = datasource.domain_id
-        usersCount = datasource.total_user_count
-        groupsCount = datasource.total_group_count
+        usersCount = datasource.processed_user_count
+        groupsCount = datasource.processed_group_count
         appsCount = apps["totalCount"]
         highRiskAppsCount = apps["rows"]["High Risk"]
 
@@ -263,4 +263,3 @@ def send_new_user_policy_violate_email(user_email, policy, new_user):
     except Exception as e:
         Logger().exception("Exception occured while sending new user policy violation email")
         return False
-
