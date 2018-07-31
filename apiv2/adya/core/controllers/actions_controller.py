@@ -80,7 +80,7 @@ def initiate_action(auth_token, action_payload):
         if execution_status.response_code == constants.ACCEPTED_STATUS_CODE:
             action_payload['log_id'] = log_entry.log_id
             messaging.trigger_post_event(
-                urls.INITIATE_ACTION_PATH, auth_token, None, action_payload,)
+                urls.INITIATE_ACTION_PATH, auth_token, None, action_payload)
 
         return ResponseMessage(execution_status.response_code, None, response_body)
 
@@ -531,6 +531,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                 modified_action_payload = dict(action_payload)
                 modified_action_payload['parameters'] = {'user_email':user_email, 'full_name': users_name[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value
+                modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
         response_msg = ResponseMessage(200, status_message)        
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
@@ -544,6 +545,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                 modified_action_payload = dict(action_payload)
                 modified_action_payload['parameters'] = {'user_email':user_email}
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
+                modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
     return response_msg
 

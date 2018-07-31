@@ -47,7 +47,7 @@ class UserListNew extends Component {
         super(props);
         this.state = {
             columnHeaders: [
-                "Select All",
+                "SelectAll",
                 "Source",
                 "Type",
                 "Name",
@@ -263,7 +263,7 @@ class UserListNew extends Component {
         }
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            if(headerName == 'Select All'){
+            if(headerName == 'SelectAll'){
                 return (
                     <Table.HeaderCell key={headerName}>
                         <Checkbox onChange={this.handleAllRowsSelection} checked={this.state.selectAllColumns} />
