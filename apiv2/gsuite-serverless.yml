@@ -47,6 +47,7 @@ provider:
     subnetIds:
       - subnet-ccc4cae3
       - subnet-30c5c86d       
+      - subnet-53a7c00e
 
 plugins:
   - serverless-domain-manager
