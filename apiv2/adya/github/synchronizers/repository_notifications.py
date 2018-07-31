@@ -7,9 +7,6 @@ from adya.common.constants import constants
 from adya.common.db.activity_db import activity_db
 
 def process_activity(auth_token, payload, event_type):
-    git_client = github_utils.get_github_client(payload["datasource_id"])
-    # action = payload["action"]
-    # repository = payload["repository"]
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_type == constants.ConnectorTypes.GITHUB.value).first()
     domain_id = datasource.domain_id
@@ -20,9 +17,9 @@ def process_activity(auth_token, payload, event_type):
         owner_id = repository["owner"]["id"]
         if action == "created":
             # Update the Resource table with the new repository
-            repo = entities.GithubRepository(datasource.datasource_id, payload)
+            repo = entities.GithubRepository(datasource.datasource_id, repository)
             repo_model = repo.get_model()
-            repo_permission = entities.GithubRepositoryPermission(datasource.datasource_id, payload)
+            repo_permission = entities.GithubRepositoryPermission(datasource.datasource_id, repository)
             repo_permission_model = repo_permission.get_model()
             db_session.add(repo_model)
             db_session.add(repo_permission_model)
