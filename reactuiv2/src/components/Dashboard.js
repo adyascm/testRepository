@@ -44,6 +44,9 @@ class Dashboard extends Component {
       { id: "expensesByCategory", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
       { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'score', sortOrder: 'desc'}}},
     ];
+    this.activityWidgets = [
+      { id: "activitiesByEventType", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
+    ];
   }
 
   componentWillMount() {
@@ -95,9 +98,18 @@ class Dashboard extends Component {
             })
           }
         </Card.Group>
-        <Card.Group itemsPerRow='2'>
-          
-        </Card.Group>
+        {/* <Card.Group itemsPerRow='1'>
+        {
+            this.activityWidgets.map(config => {
+              if(config.renderType === "ChartWidget")
+              {
+                return (
+                  <ChartWidget key={config["id"]} config={config} />
+                )
+              }
+            })
+          }
+        </Card.Group> */}
       </Container>
     )
   }

@@ -1,4 +1,4 @@
-import datetime
+import datetime, json
 from pymongo import MongoClient
 from adya.common.constants import constants
 class activity_db:
@@ -34,6 +34,38 @@ class activity_db:
         if len(tags)> 0:
             insert_payload.update(tags)
         event_collection.insert_one(insert_payload)
+
+    def get_event_stats(self, domain_id, connector_type, event_type, actor, tags):
+        event_collection = activity_db.instance.get_collection("events")
+        pipeline = [
+            { "$group": {
+                    "_id": {
+                        "event_type": "$event_type" ,
+                        "year": { "$year": "$timestamp" },
+                        "month": { "$month": "$timestamp" },
+                        "day": { "$dayOfMonth": "$timestamp" },
+                        "hour": {
+                            "$subtract": [
+                                { "$hour": "$timestamp" },
+                                { "$mod": [ { "$hour": "$timestamp" }, 24 ] }
+                            ]
+                        }
+                    },
+                    "count": { "$sum": 1 }
+            }},
+            {"$project": {
+                "_id": 0,
+                "event_type": "$_id.event_type",
+                "year": "$_id.year",
+                "month": "$_id.month",
+                "day": "$_id.day",
+                "count": "$count"
+                
+            }}
+        ]
+        activities = event_collection.aggregate(pipeline)
+        #return json.loads(json_util.dumps(activities))
+        return activities
 
 
 

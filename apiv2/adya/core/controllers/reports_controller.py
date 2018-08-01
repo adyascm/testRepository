@@ -7,7 +7,7 @@ from adya.core.controllers import domain_controller, directory_controller, app_c
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, alchemy_encoder
 from adya.common.db.connection import db_connection
-from adya.common.db import db_utils
+from adya.common.db import db_utils, activity_db
 from adya.common.constants import constants
 from adya.common.utils import utils, request_session
 from adya.gsuite.activities import activities
@@ -257,6 +257,21 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data["totalCount"] = internal_user_list.count()
     elif widget_id == 'expensesByCategory':
         data = app_controller.get_app_stats(auth_token)
+
+    elif widget_id == 'activitiesByEventType':
+        activities = activity_db.activity_db().get_event_stats(None, None, None, None, None)
+        series_map = {}
+        for activity in activities:
+            print activity
+            event_type = activity["event_type"]
+            date = str(activity["year"]) + "-" +str(activity["month"]) + "-" + str(activity["day"])
+            if event_type in series_map:
+                series_map[event_type]["data"][date] = activity["count"]
+            else:
+                series_map[event_type] = {"name": event_type, "data": {}}
+        print series_map
+        data = series_map.values()
+
     return data
 
 

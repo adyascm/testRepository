@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom'
-import { PieChart, BarChart } from 'react-chartkick';
+import { PieChart, BarChart, LineChart } from 'react-chartkick';
 import { Card, Loader, Dimmer, Label } from 'semantic-ui-react'
 import { DASHBOARD_WIDGET_LOADED, DASHBOARD_WIDGET_LOAD_START, SET_REDIRECT_PROPS } from '../../constants/actionTypes';
 import agent from '../../utils/agent';
@@ -33,14 +33,17 @@ class ChartWidget extends Component {
     render() {
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoadingWidget) {
-                if (!this.props[this.props.config.id].data.totalCount)
-                    return null
+                // if (!this.props[this.props.config.id].data.totalCount)
+                //     return null
                 let chart = null    
                 let maxLimit = null
                 if(this.props.config.id == 'expensesByCategory'){
                     if(! Number(this.props[this.props.config.id].data.totalCount))
                         maxLimit = 10
                     chart = <BarChart min={0} max={maxLimit} prefix="$" thousands="," label="Annual Cost/Category" legend="bottom"  data={this.props[this.props.config.id].data.rows} />
+                }
+                else if(this.props.config.id == 'activitiesByEventType'){
+                    chart = <LineChart min={0} max={maxLimit} thousands="," label="Events" legend="bottom"  data={this.props[this.props.config.id].data} />
                 }
                 else if (this.props.config.id === 'filesWithFileType') {
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} />
@@ -53,11 +56,11 @@ class ChartWidget extends Component {
                 }
                 
                 return (
-                        <Card onClick={this.widgetClick} >
+                        <Card >
                             <Card.Content>
                                 {chart}
                             </Card.Content>
-                            <Card.Content extra>
+                            <Card.Content extra onClick={this.widgetClick} >
                                 <div className='ui'>
                                     <Label color='green'>{this.props[this.props.config.id].data.totalCount}
                                         &nbsp;{this.props.config.footer}</Label>
