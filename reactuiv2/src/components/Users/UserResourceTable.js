@@ -128,7 +128,7 @@ class UserResourceTable extends Component {
                     <Table.Row key={index}>
                         <Table.Cell style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell textAlign="center" width='3'>
+                        <Table.Cell textAlign="center" width='3' style={{'overflow': 'unset'}}>
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event, data) => this.onPermissionChange(event, rowData, data.value)} />
                         </Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
