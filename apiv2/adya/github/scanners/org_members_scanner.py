@@ -27,7 +27,12 @@ def query(auth_token, query_params, scanner):
                 }
                 events = ["membership","organization","org_block","team","team_add"]
                 org.create_hook(name="web", config=config, events=events, active=True)
-            except (github.GithubException, Exception) as ex:
+            except github.GithubException as ex:
+                if ex.status == 422:
+                    Logger().info("Webhook already exist for organization - {} with exception - {}".format(org_name, ex))
+                else:
+                    Logger().exception("Github Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
+            except Exception as ex:
                 Logger().exception("Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
 
     return {"payload": members}
