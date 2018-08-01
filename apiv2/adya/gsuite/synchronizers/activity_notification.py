@@ -107,6 +107,7 @@ def process_token_activity(datasource_id, incoming_activity):
             inventory_app = db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
             inventory_app_id = inventory_app.id if inventory_app else None
             max_score = 0
+            is_app_whitelisted = True
             if not application:
                 application = Application()
                 application.anonymous = 1
@@ -119,11 +120,13 @@ def process_token_activity(datasource_id, incoming_activity):
 
                 # check for trusted apps
                 trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
-                if scopes and not app_name in trusted_domain_apps:
-                    max_score = gutils.get_app_score(scopes)
+                if not app_name in trusted_domain_apps:
+                    is_app_whitelisted = False
+                    max_score = gutils.get_app_score(scopes) if scopes else max_score
 
                 application.score = max_score
                 application.scopes = ','.join(scopes) if scopes else None
+                application.is_whitelisted = is_app_whitelisted
                 if app_name:
                     application.display_text = app_name
                 application.unit_num = 0

@@ -37,3 +37,6 @@ ADD inactive_users int,
 ADD image_url text,
 ADD category varchar(255);
 
+ALTER TABLE application
+ADD is_whitelisted Boolean
+

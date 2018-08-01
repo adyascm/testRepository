@@ -23,6 +23,8 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
             is_violated = is_violated & check_value_violation(policy_condition, application["display_text"])
         elif policy_condition.match_type == constants.PolicyMatchType.APP_RISKINESS.value:
             is_violated = is_violated & check_value_violation(policy_condition, application["score"])
+        elif policy_condition.match_type == constants.PolicyMatchType.IS_APP_WHITELISTED.vlaue:
+            is_violated = is_violated & check_value_violation(policy_condition, application["is_whitelisted"])
 
     send_email_action = []
     is_reverted = False
