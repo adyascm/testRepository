@@ -28,7 +28,7 @@ class PolicyCondition extends Component {
                 { text: 'Application Riskiness', value: 'APP_RISKINESS' },
                 {text: 'User Member type', value: 'USER_TYPE'},
                 {text: 'User Role', value: 'USER_ROLE'},
-                { text: 'Is Application Whitelisted', value: 'IS_APP_WHITELISTED' }
+                { text: 'Application Trusted', value: 'TRUSTED' }
             ],
             filterConditionOptions: [
                 { text: 'Equals', value: 'equal' },
