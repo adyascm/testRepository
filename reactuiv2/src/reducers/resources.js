@@ -68,18 +68,31 @@ export default (state = defaultState, action) => {
                 rowData: action.payload
             }
         case RESOURCES_ACTION_LOAD:
-            return {
-                ...state,
-                action: {
-                    key: action.actionType,
-                    datasource_id: state.rowData.datasource_id,
-                    resource_id: state.rowData.resource_id,
-                    resource_name: state.rowData.resource_name,
-                    old_owner_email: state.rowData.resource_owner_id,
-                    resource_owner_id: state.rowData.resource_owner_id,
-                    new_permission_role: action.newValue,
-                    user_email: action.permission ? action.permission.email : undefined,
-                    user_type: action.permission ? action.permission.type: undefined
+            if(action.multiSelectAction){
+                return {
+                    ...state,
+                    action: {
+                        key: action.payload.actionType,
+                        resources_ids: action.payload.resources_ids,
+                        resources_names: action.payload.resources_names,
+                        old_owner_emails: action.payload.old_owner_emails,
+                        datasource_id: action.payload.datasource_id
+                    }
+                }
+            }else{
+                return {
+                    ...state,
+                    action: {
+                        key: action.actionType,
+                        datasource_id: state.rowData.datasource_id,
+                        resource_id: state.rowData.resource_id,
+                        resource_name: state.rowData.resource_name,
+                        old_owner_email: state.rowData.resource_owner_id,
+                        resource_owner_id: state.rowData.resource_owner_id,
+                        new_permission_role: action.newValue,
+                        user_email: action.permission ? action.permission.email : undefined,
+                        user_type: action.permission ? action.permission.type: undefined
+                    }
                 }
             }
         case RESOURCES_ACTION_CANCEL:

@@ -58,4 +58,10 @@ actions = [
      "description": "Offboard internal user","parameters": [{"key": "users_email", "label": "For users", "editable": 0},
                     {"key": "users_info", "label": "User Name", "editable": 0, "hidden": 1}, {"key": "new_owner_email", "label": "New Owner", "editable": 1}], "is_admin_only": True},
 
+    {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.CHANGE_OWNER_OF_MULIPLE_FILES.value, "name": "Transfer Ownership", "description": "Transfer ownership of selected files", "parameters": [
+        {"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1},{"key": "old_owner_emails", "label": "From Users", "editable": 0}, {"key": "resources_names", "label": "Selected Documents", "editable": 1}, {"key": "new_owner_email", "label": "New Owner", "editable": 1}], "is_admin_only": False},
+    {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES.value, "name": "Remove external sharing",
+        "description": "Remove access from outside the company for selected documents", "parameters": [{"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1}, {"key": "resources_names", "label": "Selected Documents", "editable": 1}], "is_admin_only": False},
+    {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.MAKE_MULTIPLE_RESOURCES_PRIVATE.value, "name": "Remove all sharing",
+        "description": "Remove access to everyone (except owner) for selected documents", "parameters": [{"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1}, {"key": "resources_names", "label": "Selected Documents", "editable": 0}], "is_admin_only": False}            
 ]

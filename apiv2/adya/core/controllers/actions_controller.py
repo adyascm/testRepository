@@ -520,10 +520,10 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.DELETE_REPOSITORY.value:
         response_msg = delete_repository(
             auth_token, datasource_id, action_key, action_parameters, log_entry)
+    # multi-select users view actions        
     elif action_key == action_constants.ActionNames.NOTIFY_MULTIPLE_USERS_FOR_CLEANUP.value:
         users_email = action_parameters['users_email']
         users_name = action_parameters['users_name']
-        initiated_by = action_payload['initiated_by']
         status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUBMITTED.value
         if len(users_email)>0:
@@ -585,6 +585,48 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                                              remove_from_group_action_payload)
 
 
+    # multi-select docs view actions
+    elif action_key == action_constants.ActionNames.CHANGE_OWNER_OF_MULIPLE_FILES.value:
+        old_owner_emails = action_parameters["old_owner_emails"]
+        new_owner_email = action_parameters["new_owner_email"]
+        resources_ids = action_parameters['resources_ids']
+        resources_names = action_parameters['resources_names']
+        status_message = 'Action submitted successfully'
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        response_msg = ResponseMessage(200, status_message)        
+        if len(old_owner_emails)>0:
+            for i,old_owner_email in enumerate(old_owner_emails):
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'new_owner_email':new_owner_email, 'old_owner_email': old_owner_email, 'resource_id':resources_ids[i],'resource_name':resources_names[i]}
+                modified_action_payload['key'] = action_constants.ActionNames.CHANGE_OWNER_OF_FILE.value
+                modified_action_payload['log_id'] = log_entry.log_id
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
+    elif action_key == action_constants.ActionNames.MAKE_MULTIPLE_RESOURCES_PRIVATE.value:
+        resources_ids = action_parameters['resources_ids']
+        resources_names = action_parameters['resources_names']
+        status_message = 'Action submitted successfully'
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        response_msg = ResponseMessage(200, status_message)  
+        if len(resources_ids)>0:
+            for i,resource_id in enumerate(resources_ids):
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'resource_id':resource_id,'resource_name':resources_names[i]}
+                modified_action_payload['key'] = action_constants.ActionNames.MAKE_RESOURCE_PRIVATE.value
+                modified_action_payload['log_id'] = log_entry.log_id
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES.value:
+        resources_ids = action_parameters['resources_ids']
+        resources_names = action_parameters['resources_names']
+        status_message = 'Action submitted successfully'
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        response_msg = ResponseMessage(200, status_message)  
+        if len(resources_ids)>0:
+            for i,resource_id in enumerate(resources_ids):
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'resource_id':resource_id,'resource_name':resources_names[i]}
+                modified_action_payload['key'] = action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value
+                modified_action_payload['log_id'] = log_entry.log_id
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)            
     return response_msg
 
 
@@ -659,7 +701,18 @@ def audit_action(domain_id, datasource_id, initiated_by, action_config, action_p
         audit_log.affected_entity_type = "Document"    
     elif action_key == action_constants.ActionNames.NOTIFY_MULTIPLE_USERS_FOR_CLEANUP.value:
         audit_log.affected_entity = ','.join(action_parameters['users_email'])
-        audit_log.affected_entity_type = "User"    
+        audit_log.affected_entity_type = "User"   
+    elif action_key == action_constants.ActionNames.CHANGE_OWNER_OF_MULIPLE_FILES.value:
+        audit_log.affected_entity = ','.join(action_parameters['old_owner_emails'])
+        audit_log.affected_entity_type = "Document"   
+    elif action_key == action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES.value:
+        audit_log.affected_entity = ','.join(action_parameters['resources_ids'])
+        audit_log.affected_entity_type = "Document"   
+    elif action_key == action_constants.ActionNames.MAKE_MULTIPLE_RESOURCES_PRIVATE.value:
+        audit_log.affected_entity = ','.join(action_parameters['resources_ids'])
+        audit_log.affected_entity_type = "Document"               
+
+
 
     db_session.add(audit_log)
     db_connection().commit()
