@@ -35,7 +35,12 @@ def query(auth_token, query_params, scanner):
                 }
                 events = ["repository","repository_vulnerability_alert","fork","member","public","push","create"]
                 repo.create_hook(name="web", config=config, events=events, active=True)
-            except (github.GithubException, Exception) as ex:
+            except github.GithubException as ex:
+                if ex.status == 422:
+                    Logger().info("Webhook already exist for repository - {} with exception - {}".format(repo_name, ex))
+                else:
+                    Logger().exception("Github Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
+            except Exception as ex:
                 Logger().exception("Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
 
     return {"payload": collaborators_list}
