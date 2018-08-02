@@ -288,6 +288,7 @@ class ResourcesListTable extends Component {
             if(headerName == 'SelectAll'){
                 return (
                     <Table.HeaderCell key={headerName}>
+                        <Checkbox onChange={this.handleAllRowsChecked} checked={this.state.selectAllColumns} />
                     </Table.HeaderCell>
                 )
             }else{
@@ -361,7 +362,6 @@ class ResourcesListTable extends Component {
                             <Table.Body>
                                 <Table.Row>
                                     <Table.Cell>
-                                        <Checkbox onChange={this.handleAllRowsChecked} checked={this.state.selectAllColumns} />
                                     </Table.Cell>
                                     <Table.Cell width='2'>
                                         <Dropdown

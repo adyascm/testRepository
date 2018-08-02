@@ -29,6 +29,7 @@ class ActionNames(Enum):
     CHANGE_OWNER_OF_MULIPLE_FILES = "change_owner_of_multiple_files"
     REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES = "remove_external_access_to_mutiple_resources"
     MAKE_MULTIPLE_RESOURCES_PRIVATE = "make_multiple_resources_private"
+    REMOVE_MULTIPLE_APPS_FOR_DOMAIN = "remove_multiple_apps_for_domain"
 
 
 class ActionStatus(Enum):

@@ -117,12 +117,24 @@ export default (state = defaultState, action) => {
                 action: undefined
             }
         case DELETE_APP_ACTION_LOAD:
-            return {
-                ...state,
-                action: {
-                    key: action.payload.actionType,
-                    app_id: action.payload.app_id,
-                    app_name: action.payload.app_name
+            if(action.multiSelectAction){
+                return {
+                    ...state,
+                    action: {
+                        key: action.payload.actionType,
+                        apps_ids: action.payload.apps_ids,
+                        apps_names: action.payload.apps_names
+                    }
+                }
+            }    
+            else{
+                return {
+                    ...state,
+                    action: {
+                        key: action.payload.actionType,
+                        app_id: action.payload.app_id,
+                        app_name: action.payload.app_name
+                    }
                 }
             }
         case APPS_PAGINATION_DATA:

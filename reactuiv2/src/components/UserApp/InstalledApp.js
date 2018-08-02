@@ -8,6 +8,7 @@ import Actions from '../actions/Actions'
 import {
     APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD
 } from '../../constants/actionTypes';
+import ActionsNavBar from '../ActionsNavBar'
 
 
 const mapStateToProps = state => ({
@@ -26,6 +27,7 @@ class InstalledApp extends Component {
 
         this.state = {
             columnHeaders: [
+                "SelectAll",
                 "",
                 "Riskiness",
                 "Application",
@@ -54,7 +56,10 @@ class InstalledApp extends Component {
             lastPage: undefined,
             appsPayload: undefined,
             isLoadingApps: true,
-            listFilters:{}
+            listFilters:{},
+            selectAllColumns:false,
+            selectedRowFields:{},
+            showActionBar:false
         }
     }
 
@@ -252,18 +257,65 @@ class InstalledApp extends Component {
         event.stopPropagation()
     }
 
+    disableAllRowsChecked = () => {
+        this.setState({
+            selectedRowFields : {},
+            selectAllColumns:false,
+            showActionBar:false
+        })
+    }
+
+    handleAllRowsChecked = (event, data) => {
+        let selectAllColumns = !this.state.selectAllColumns
+        let selectedRowFields = this.state.selectedRowFields
+        for(var i in this.state.appsPayload){
+            selectedRowFields[i] = selectAllColumns
+        }    
+        this.setState({
+            selectAllColumns: selectAllColumns,
+            selectedRowFields:selectedRowFields,
+            showActionBar:selectAllColumns
+        })
+    }
+
+    handleRowChecked = (event, data, index) => {
+        event.stopPropagation()
+        let selectedRowFields = this.state.selectedRowFields
+        selectedRowFields[index] = index in this.state.selectedRowFields ? !this.state.selectedRowFields[index] : true
+        let showActionBar = Object.values(selectedRowFields).some(item => { return item;})
+        this.setState({
+            selectedRowFields:selectedRowFields,
+            showActionBar:showActionBar
+        })
+        if (!this.state.selectedRowFields[index]) {
+            this.setState({
+                selectAllColumns: false
+            })
+        }
+    }
+
     render() {
         let exploreBtn = <Button style={{margin:"5px", fontSize: this.props.style.fontSize}} positive onClick={(event) => this.exploreAppsLicenses()} content='Add Applications' />
+        let multiSelectOptns = [{'actionKey':'change_owner_of_multiple_files','actionText':'Transfer Ownership'},{'actionKey':'remove_external_access_to_mutiple_resources','actionText':'Remove external sharing'}]
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
             let isSortable = (['Riskiness', 'Annual Cost', 'Category', 'Application', '#Users', 'Subscription', 'Potential Saving'].indexOf(headerName) >=0)  
             let headerCellStyle = !isSortable ? {pointerEvents:"none"}:{pointerEvents:'auto'}
-            return (
-                <Table.HeaderCell key={headerName} style={headerCellStyle} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}>
-                {headerName === "Application" ? <Input icon={this.state.listFilters.appName && this.state.listFilters.appName.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "appName")} /> : null} placeholder="Filter by Application ..."
-                        value={this.state.listFilters.appName ? this.state.listFilters.appName.value : ''} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "appName")} /> : headerName}
-               </Table.HeaderCell>
-            )
+            if(headerName == 'SelectAll'){
+                return (
+                    <Table.HeaderCell key={headerName}>
+                        <Checkbox onChange={this.handleAllRowsChecked} checked={this.state.selectAllColumns} />
+                    </Table.HeaderCell>
+                )
+            }else{
+                return (
+                    <Table.HeaderCell key={headerName} style={headerCellStyle} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}>
+                    {headerName === "Application" ? <Input icon={this.state.listFilters.appName && this.state.listFilters.appName.value ? <Icon name='close' link onClick={(event) => this.clearFilter(event, "appName")} /> : null} placeholder="Filter by Application ..."
+                            value={this.state.listFilters.appName ? this.state.listFilters.appName.value : ''} onClick={(event) => this.handleClick(event)} onChange={(event, data) => this.handleColumnFilterChange(event, data, "appName")} /> : headerName}
+                   </Table.HeaderCell>
+                )
+            }
+            
         })
         let containerStyle = {
             height: "100%",
@@ -278,8 +330,9 @@ class InstalledApp extends Component {
         let modelOptions = [{ 'text': '/month', 'value': 'MONTHLY' }, { 'text': '/year', 'value': 'YEARLY' }]
         let multiplierValues = { 'MONTHLY': 12, 'YEARLY': 1 }
         let dsMap = this.props.datasourcesMap
-        if (this.state.appsPayload && this.state.appsPayload.length) {
-            tableRowData = this.state.appsPayload.map((rowData, index) => {
+        let appData = this.state.appsPayload
+        if (appData && appData.length) {
+            tableRowData = appData.map((rowData, index) => {
                 let selectedModel = rowData["pricing_model"]
                 let dsImage = null
                 let appId = rowData.id
@@ -308,6 +361,7 @@ class InstalledApp extends Component {
                 let category = !is_category_box_visible ? (rowData && rowData["category"] ? rowData["category"] : 'Un-categorized'): rowData["category"]
                 return (
                     <Table.Row key={index}>
+                        <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
                         <Table.Cell collapsing style={{textAlign:'center'}}>{rowData['is_installed_via_ds']?<Button style={{cursor:'pointer'}} circular icon="angle right" onClick={(e) => this.onCardClicked(e, rowData)} />: null}</Table.Cell>
                         <Table.Cell collapsing textAlign="center"><Label color={scoreColor}></Label></Table.Cell>
                         <Table.Cell style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
@@ -334,8 +388,9 @@ class InstalledApp extends Component {
         }
         return (
             <div style={{ 'minHeight': document.body.clientHeight / 1.25, display: "block" }}>
-                <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {this.state.totalCost ? <span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}
+                <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {this.state.totalCost ?<span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}
                 </div>
+                <ActionsNavBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={appData} viewType={'APPS'} options={multiSelectOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} />
                 <div style={{ position: 'relative', top: '10px', left: '10px', right: '10px', overflowY: 'scroll', height: '70vh' }}>
                     <Table sortable selectable striped celled compact='very'>
                         <Table.Header style={{'width': '100%' }}>

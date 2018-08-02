@@ -627,6 +627,19 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)            
+    # multi-select apps view actions
+    elif action_key == action_constants.ActionNames.REMOVE_MULTIPLE_APPS_FOR_DOMAIN.value:
+        apps_ids = action_parameters["apps_ids"]
+        apps_names = action_parameters["apps_names"]
+        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        response_msg = ResponseMessage(200, status_message)  
+        if len(apps_ids)>0:
+            for i,app_id in enumerate(apps_ids):
+                modified_action_payload = dict(action_payload)
+                modified_action_payload['parameters'] = {'app_id':app_id,'app_name':apps_names[i]}
+                modified_action_payload['key'] = action_constants.ActionNames.REMOVE_APP_FOR_DOMAIN.value
+                modified_action_payload['log_id'] = log_entry.log_id
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload) 
     return response_msg
 
 

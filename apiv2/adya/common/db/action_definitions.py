@@ -63,5 +63,7 @@ actions = [
     {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES.value, "name": "Remove external sharing",
         "description": "Remove access from outside the company for selected documents", "parameters": [{"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1}, {"key": "resources_names", "label": "Selected Documents", "editable": 1}], "is_admin_only": False},
     {"datasource_type": "GSUITE", "action_type": "BULK_ACTION", "action_entity": "DOCUMENT", "key": action_constants.ActionNames.MAKE_MULTIPLE_RESOURCES_PRIVATE.value, "name": "Remove all sharing",
-        "description": "Remove access to everyone (except owner) for selected documents", "parameters": [{"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1}, {"key": "resources_names", "label": "Selected Documents", "editable": 0}], "is_admin_only": False}            
+        "description": "Remove access to everyone (except owner) for selected documents", "parameters": [{"key": "resources_ids", "label": "Ids", "editable": 0, "hidden": 1}, {"key": "resources_names", "label": "Selected Documents", "editable": 0}], "is_admin_only": False},
+    {"datasource_type": "ALL", "action_type": "BULK_ACTION", "action_entity": "APP", "key": action_constants.ActionNames.REMOVE_MULTIPLE_APPS_FOR_DOMAIN.value, "name": "Uninstall Apps",
+        "description": "Uninstall selected applications for domain", "parameters": [{"key": "apps_ids", "label": "AppIds", "editable": 0, "hidden": 1}, {"key": "apps_names", "label": "Application Names", "editable": 0}], "is_admin_only": True},                
 ]

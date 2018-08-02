@@ -3,8 +3,7 @@ import { Dropdown } from 'semantic-ui-react'
 import { connect } from 'react-redux';
 import ExportCsvModal from './ExportCsvModal'
 import agent from '../utils/agent';
-import {USERS_RESOURCE_ACTION_LOAD} from '../constants/actionTypes';
-import { RESOURCES_ACTION_LOAD } from '../constants/actionTypes';
+import { USERS_RESOURCE_ACTION_LOAD, RESOURCES_ACTION_LOAD, DELETE_APP_ACTION_LOAD } from '../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.users,
@@ -16,7 +15,8 @@ const mapDispatchToProps = dispatch => ({
     onMultiUsersAction: (payload, multiSelectAction) =>
         dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, multiSelectAction}),
     onMultiResourcesAction: (payload, multiSelectAction) =>
-        dispatch({ type: RESOURCES_ACTION_LOAD, payload, multiSelectAction})    
+        dispatch({ type: RESOURCES_ACTION_LOAD, payload, multiSelectAction}),
+    onMultiDeleteAppAction: (payload, multiSelectAction) => dispatch({ type: DELETE_APP_ACTION_LOAD, payload, multiSelectAction})      
 })
 
 class ActionsNavBar extends Component{
@@ -90,6 +90,21 @@ class ActionsNavBar extends Component{
                     // FOR NOW NO ADDITIONAL OPERATIONS
                 }   
                 this.props.onMultiResourcesAction(payload,true)
+            }
+            else if(viewType == 'APPS'){
+                if(actionKey == 'remove_multiple_apps_for_domain'){
+                    payload = {
+                        actionType:actionKey,
+                        apps_ids:[],
+                        apps_names:[],
+                    }
+                    for(let i in this.props.selectedRowFields){
+                        let entity_obj = this.props.entityList[i];
+                        payload.resources_ids.push(entity_obj['id'])
+                        payload.resources_names.push(entity_obj['display_text'])
+                    }
+                }   
+                this.props.onMultiDeleteAppAction(payload,true)
             }
             this.props.disableAllRowsChecked()
         }
