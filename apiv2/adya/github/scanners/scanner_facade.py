@@ -151,7 +151,7 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
 
 def get_datasource_column(scanner_type, is_total = True):
     column_name = None
-    if scanner_type == github_constants.ScannerTypes.ORG_MEMBERS.value or scanner_type == github_constants.ScannerTypes.REP_COLLABORATORS.value:
+    if scanner_type == github_constants.ScannerTypes.ORG_MEMBERS.value:
         column_name = DataSource.total_user_count if is_total else DataSource.processed_user_count
     elif scanner_type == github_constants.ScannerTypes.ORGANISATIONS.value:
         column_name = DataSource.total_group_count if is_total else DataSource.processed_group_count
