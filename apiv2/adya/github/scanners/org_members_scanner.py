@@ -5,6 +5,7 @@ from datetime import datetime
 from adya.common.db.connection import db_connection
 from adya.common.constants import constants, urls
 from adya.common.utils.response_messages import Logger
+import github
 
 def query(auth_token, query_params, scanner):
     datasource_id = query_params["dataSourceId"]
@@ -26,6 +27,11 @@ def query(auth_token, query_params, scanner):
                 }
                 events = ["membership","organization","org_block","team","team_add"]
                 org.create_hook(name="web", config=config, events=events, active=True)
+            except github.GithubException as ex:
+                if ex.status == 422:
+                    Logger().info("Webhook already exist for organization - {} with exception - {}".format(org_name, ex))
+                else:
+                    Logger().exception("Github Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
             except Exception as ex:
                 Logger().exception("Exception occurred while subscribing for push notification for organisation = {} with exception - {}".format(org_name, ex))
 

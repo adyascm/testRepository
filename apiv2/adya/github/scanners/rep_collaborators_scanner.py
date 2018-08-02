@@ -6,7 +6,7 @@ from adya.common.db.models import DatasourceCredentials, DomainUser, DataSource,
 from adya.github import github_utils
 from adya.common.utils.response_messages import Logger
 from datetime import datetime
-import json
+import json, github
 
 
 def query(auth_token, query_params, scanner):
@@ -35,6 +35,11 @@ def query(auth_token, query_params, scanner):
                 }
                 events = ["repository","repository_vulnerability_alert","fork","member","public","push","create"]
                 repo.create_hook(name="web", config=config, events=events, active=True)
+            except github.GithubException as ex:
+                if ex.status == 422:
+                    Logger().info("Webhook already exist for repository - {} with exception - {}".format(repo_name, ex))
+                else:
+                    Logger().exception("Github Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
             except Exception as ex:
                 Logger().exception("Exception occurred while subscribing for push notification for repository = {} with exception - {}".format(repo_name, ex))
 
@@ -84,13 +89,14 @@ def process(db_session, auth_token, query_params, scanner_data):
 
         new_collaborator_list.append(collaborator_info)
         new_permission_list.append(repo_permission_dict)
-        processed_collaborators_count += 1
+        # processed_collaborators_count += 1
     try:
         db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(new_collaborator_list))
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(new_permission_list))
         db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repo_id). \
             update({ Resource.exposure_type: max_repository_exposure })
         db_connection().commit()
+        processed_collaborators_count += 1
     except Exception as ex:
         Logger().exception("Exception occurred while adding respository collaborators with exception - {}".format(ex))
         db_session.rollback()

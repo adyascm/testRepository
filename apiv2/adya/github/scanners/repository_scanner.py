@@ -36,7 +36,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         
         owner_email = ''
         repo_owner_obj = repo["owner"]
-        print repo_owner_obj
+        # print repo_owner_obj
         if "email" in repo_owner_obj:
             owner_email = repo_owner_obj["email"]
         else:
