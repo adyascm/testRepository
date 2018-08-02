@@ -9,7 +9,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 import GroupSearch from '../Search/GroupSearch';
 import ExportCsvModal from '../ExportCsvModal'
-import ActionsNavBar from '../ActionsNavBar'
+import ActionsMenuBar from '../ActionsMenuBar'
 
 import {
     RESOURCES_PAGE_LOADED,
@@ -307,7 +307,7 @@ class ResourcesListTable extends Component {
         let resourceData = null
         let dsMap = this.props.datasourcesMap;
         let sourceFilterOptions = [{ "text": "All", "value": "" }];
-        let multiSelectOptns = [{'actionKey':'change_owner_of_multiple_files','actionText':'Transfer Ownership'},{'actionKey':'remove_external_access_to_mutiple_resources','actionText':'Remove external sharing'},
+        let gsuiteOptns = [{'actionKey':'change_owner_of_multiple_files','actionText':'Transfer Ownership'},{'actionKey':'remove_external_access_to_mutiple_resources','actionText':'Remove external sharing'},
         {'actionKey':'make_multiple_resources_private','actionText':'Remove all sharing'}]
         for (var index = 0; index < this.props.datasources.length; index++) {
             sourceFilterOptions.push({ "text": this.props.datasources[index].datasource_type, "value": this.props.datasources[index].datasource_id });
@@ -351,7 +351,7 @@ class ResourcesListTable extends Component {
 
             return (
                 <div>
-                    <ActionsNavBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={resourceData} viewType={'RESOURCES'} options={multiSelectOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
+                    <ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={resourceData} viewType={'RESOURCES'} gsuiteOptns={gsuiteOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
                     <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header style={{'width': '100%' }}>

@@ -631,6 +631,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
     elif action_key == action_constants.ActionNames.REMOVE_MULTIPLE_APPS_FOR_DOMAIN.value:
         apps_ids = action_parameters["apps_ids"]
         apps_names = action_parameters["apps_names"]
+        status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)  
         if len(apps_ids)>0:

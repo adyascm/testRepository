@@ -6,7 +6,7 @@ import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
 import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
-import ActionsNavBar from '../ActionsNavBar'
+import ActionsMenuBar from '../ActionsMenuBar'
 
 import {
     USER_ITEM_SELECTED,
@@ -387,7 +387,7 @@ class UserListNew extends Component {
                 "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : "",
                 "logged_in_user": this.props.currentUser['email']
             }
-            let multiSelectOptns = [{'actionKey':'remove_all_access_for_multiple_users','actionText':'Offboard Users'},{'actionKey':'remove_all_access_for_multiple_users','actionText':'Remove access for documents'},{'actionKey':'notify_multiple_users_for_clean_up','actionText':'Notify users to audit'}]
+            let gsuiteOptns = [{'actionKey':'remove_all_access_for_multiple_users','actionText':'Offboard Users'},{'actionKey':'remove_all_access_for_multiple_users','actionText':'Remove access for documents'},{'actionKey':'notify_multiple_users_for_clean_up','actionText':'Notify users to audit'}]
 
             return (
                 <Grid fluid >
@@ -399,7 +399,7 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
                         </Grid.Column>
                         <Grid.Column width={this.props.selectedUserItem ? 16 : 13}>
-                                    <ActionsNavBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={this.props.usersList} options={multiSelectOptns} viewType={'USERS'} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
+                                <ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={this.props.usersList} gsuiteOptns={gsuiteOptns}  viewType={'USERS'} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
                             <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{'width': '100%' }}>

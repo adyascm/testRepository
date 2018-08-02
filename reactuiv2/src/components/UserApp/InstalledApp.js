@@ -8,7 +8,7 @@ import Actions from '../actions/Actions'
 import {
     APPS_ITEM_SELECTED, DELETE_APP_ACTION_LOAD
 } from '../../constants/actionTypes';
-import ActionsNavBar from '../ActionsNavBar'
+import ActionsMenuBar from '../ActionsMenuBar'
 
 
 const mapStateToProps = state => ({
@@ -132,6 +132,7 @@ class InstalledApp extends Component {
                 this.state.failedMsg = err["message"]
             })
         }
+        this.disableAllRowsChecked()
     }
 
     handleRowChange = (event, index, event_type, data) => {
@@ -155,12 +156,14 @@ class InstalledApp extends Component {
         this.setState({
             appsPayload: newPayload
         })
+        this.disableAllRowsChecked()
     }
 
     exploreAppsLicenses = () => {
         this.setState({
             showInventoryForm: true,
         })
+        this.disableAllRowsChecked()
     }
 
     closeInventoryForm = (event) => {
@@ -175,6 +178,7 @@ class InstalledApp extends Component {
             appIdToBeDeleted: appId
         })
         this.props.deleteApp({ 'actionType': 'remove_app_for_domain', 'app_id': appId, 'app_name': appName })
+        this.disableAllRowsChecked()
     }
 
     handleColumnSort = (mappedColumnName) => {
@@ -209,6 +213,7 @@ class InstalledApp extends Component {
                 })
             })
         }
+        this.disableAllRowsChecked()
     }
 
     handleNextClick = () => {
@@ -216,25 +221,31 @@ class InstalledApp extends Component {
         this.setState({
             currentPage: this.state.currentPage + 1
         })
+        this.disableAllRowsChecked()
     }
+
     handlePrevClick = () => {
         this.getInstalledApps(this.state.currentPage-2, this.state.sortColumnName, this.state.sortOrder, this.state.listFilters.appName ? this.state.listFilters.appName.value:"")
         this.setState({
             currentPage: this.state.currentPage - 1
         })
+        this.disableAllRowsChecked()
     }
 
     onCardClicked = (e, param) => {
         this.props.selectAppItem(param)
+        this.disableAllRowsChecked()
     }
 
     handleColumnFilterChange = (event, data, filterType) => {
         this.changeFilter(filterType, data.value, data.value)
+        this.disableAllRowsChecked()
     }
 
     clearFilter = (event, filterType) => {
         event.stopPropagation()
         this.changeFilter(filterType, '', '');
+        this.disableAllRowsChecked()
     }
 
     changeFilter = (filterType, filterText, filterValue) => {
@@ -249,8 +260,8 @@ class InstalledApp extends Component {
             listFilters:newFilter,
             isLoadingApps:true
         })
-
         this.getInstalledApps(this.state.currentPage - 1, this.state.sortColumnName, this.state.sortOrder, filterValue || "")
+        this.disableAllRowsChecked()
     }
 
     handleClick = (event) => {
@@ -295,8 +306,8 @@ class InstalledApp extends Component {
     }
 
     render() {
-        let exploreBtn = <Button style={{margin:"5px", fontSize: this.props.style.fontSize}} positive onClick={(event) => this.exploreAppsLicenses()} content='Add Applications' />
-        let multiSelectOptns = [{'actionKey':'change_owner_of_multiple_files','actionText':'Transfer Ownership'},{'actionKey':'remove_external_access_to_mutiple_resources','actionText':'Remove external sharing'}]
+        let exploreBtn = <Button positive onClick={(event) => this.exploreAppsLicenses()} content='Add Applications' />
+        let systemOptns = [{'actionKey':'remove_multiple_apps_for_domain','actionText':'Uninstall Apps'}]
         let tableHeaders = this.state.columnHeaders.map((headerName, index) => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
             let isSortable = (['Riskiness', 'Annual Cost', 'Category', 'Application', '#Users', 'Subscription', 'Potential Saving'].indexOf(headerName) >=0)  
@@ -361,7 +372,9 @@ class InstalledApp extends Component {
                 let category = !is_category_box_visible ? (rowData && rowData["category"] ? rowData["category"] : 'Un-categorized'): rowData["category"]
                 return (
                     <Table.Row key={index}>
-                        <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
+                        <Table.Cell>
+                            <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
+                        </Table.Cell>
                         <Table.Cell collapsing style={{textAlign:'center'}}>{rowData['is_installed_via_ds']?<Button style={{cursor:'pointer'}} circular icon="angle right" onClick={(e) => this.onCardClicked(e, rowData)} />: null}</Table.Cell>
                         <Table.Cell collapsing textAlign="center"><Label color={scoreColor}></Label></Table.Cell>
                         <Table.Cell style={{maxWidth:"350px", overflow:'hidden', textOverflow:'ellipsis',whiteSpace:'no-wrap'}}>
@@ -386,11 +399,12 @@ class InstalledApp extends Component {
                 )
             })
         }
+        let actionMenuBar = this.props.selectedAppItem ? null :(<ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={appData} viewType={'APPS'} systemOptns={systemOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} />) 
         return (
             <div style={{ 'minHeight': document.body.clientHeight / 1.25, display: "block" }}>
-                <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {this.state.totalCost ?<span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}
+                <div style={{ position: 'relative', height: '50px', width: '100%' }}> {exploreBtn} {actionMenuBar} {this.state.totalCost ?<span style={{ float: "right", fontWeight: 600, fontSize: this.props.style.fontSize, padding: "5px", width: this.props.style.width }}>Total Annual Cost -  {<IntlProvider><FormattedNumber value={this.state.totalCost} style="currency" currency="USD" /></IntlProvider>}</span> : null}
                 </div>
-                <ActionsNavBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={appData} viewType={'APPS'} options={multiSelectOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} />
+                
                 <div style={{ position: 'relative', top: '10px', left: '10px', right: '10px', overflowY: 'scroll', height: '70vh' }}>
                     <Table sortable selectable striped celled compact='very'>
                         <Table.Header style={{'width': '100%' }}>
