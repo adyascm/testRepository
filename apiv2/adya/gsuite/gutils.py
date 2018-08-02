@@ -172,6 +172,7 @@ def create_user_payload_for_nonadmin_nonserviceaccount(auth_token):
                           "id": user_info.email,
                           "thumbnailPhotoUrl": "",
                           "aliases": [],
-                          "customerId": ""
+                          "customerId": "",
+                          "lastLoginTime": str(datetime.datetime.utcnow())
                           }]}
     return results
