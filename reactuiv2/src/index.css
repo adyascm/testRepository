@@ -188,6 +188,7 @@ hr.divider {
     
       /* clicking anywhere will focus the input */
       cursor: text;
+      width: fit-content;
     }
     
     .react-tags.is-focused {
