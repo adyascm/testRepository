@@ -89,14 +89,13 @@ def process(db_session, auth_token, query_params, scanner_data):
 
         new_collaborator_list.append(collaborator_info)
         new_permission_list.append(repo_permission_dict)
-        # processed_collaborators_count += 1
+        processed_collaborators_count += 1
     try:
         db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(new_collaborator_list))
         db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(new_permission_list))
         db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repo_id). \
             update({ Resource.exposure_type: max_repository_exposure })
         db_connection().commit()
-        processed_collaborators_count += 1
     except Exception as ex:
         Logger().exception("Exception occurred while adding respository collaborators with exception - {}".format(ex))
         db_session.rollback()
