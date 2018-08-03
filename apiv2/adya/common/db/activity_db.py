@@ -101,3 +101,5 @@ def generate_filter_query(filters):
         query_filter["event_type"] = filters.get("event_type")
     if filters.get("timestamp"):
         query_filter["timestamp"] = {"$gte": datetime.datetime.strptime(filters.get("timestamp"), '%Y-%m-%d %H:%M:%S')}
+
+    return query_filter
