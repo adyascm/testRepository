@@ -58,6 +58,7 @@ api.add_resource(flask_wrapper_core.ScheduledReport, urls.GET_SCHEDULED_REPORT_P
 api.add_resource(flask_wrapper_core.RunReport, urls.RUN_SCHEDULED_REPORT)
 
 # activities
+api.add_resource(flask_wrapper_core.Activities, urls.GET_ALL_ACTIVITIES)
 api.add_resource(flask_wrapper_gsuite.get_activities_for_user,
                  urls.GET_ACTIVITIES_FOR_USER_PATH)
 

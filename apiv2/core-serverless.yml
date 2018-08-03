@@ -385,3 +385,11 @@ functions:
           path: categoryexpenses
           method: get
           cors: true
+
+  post-common-getallactivities:
+    handler: adya.core.services.activity_handler.get_all_activities
+    events:
+      - http:
+          path: activities
+          method: post
+          cors: true

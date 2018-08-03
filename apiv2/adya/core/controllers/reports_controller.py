@@ -259,7 +259,8 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
         data = app_controller.get_app_stats(auth_token)
 
     elif widget_id == 'activitiesByEventType':
-        activities = activity_db.activity_db().get_event_stats(None, None, None, None, None)
+        filters = {}
+        activities = activity_db.activity_db().get_event_stats(filters, None, None)
         series_map = {}
         for activity in activities:
             print activity

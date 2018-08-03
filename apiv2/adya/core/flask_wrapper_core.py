@@ -1,7 +1,7 @@
 from flask import request
 from flask_restful import Resource
 from adya.core.services import actions_handler, alert_handler, auditlog_handler, auth_handler, domain_handler, \
-    policy_handler, reports_handler, directory_handler, resource_handler, app_handler
+    policy_handler, reports_handler, directory_handler, resource_handler, app_handler, activity_handler
 
 
 class get_all_actions(Resource):
@@ -144,6 +144,10 @@ class ResourcesExport(Resource):
 class UsersExport(Resource):
     def post(self):
         return directory_handler.export_to_csv(request, None)
+
+class Activities(Resource):
+    def post(self):
+        return activity_handler.get_all_activities(request, None)
 
 
 

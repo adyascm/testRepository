@@ -62,8 +62,10 @@ const Actions = {
 }
 
 const Activity = {
-    getActivitiesForUser: (user_email) =>
-        requests.get('/google/getactivitiesforuser?user_email=' + user_email)
+    getActivitiesForGsuiteUser: (user_email) =>
+        requests.get('/google/getactivitiesforuser?user_email=' + user_email),
+    getAllActivites: (filters) =>
+       requests.post('/common/activities', filters)
 }
 
 const Dashboard = {
@@ -92,8 +94,8 @@ const Apps = {
     insertApps: (apps) => requests.post('/common/getappsdata', apps),
     getInstalledApps: (pageNum, sortCol, sortOrder, appName) =>
         requests.get('/common/getappsdata?filterType='+ 'INSTALLED_APPS'+ '&pageNumber=' + pageNum + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&appName=' + (appName || "")),
-    getAvailableApps: (pageNum, appName) => 
-        requests.get('/common/getappsdata?filterType='+ 'INVENTORY_APPS'+ '&pageNumber=' + pageNum + '&appName=' + (appName || ""))      
+    getAvailableApps: (pageNum, appName) =>
+        requests.get('/common/getappsdata?filterType='+ 'INVENTORY_APPS'+ '&pageNumber=' + pageNum + '&appName=' + (appName || ""))
 }
 
 const Resources = {
@@ -143,7 +145,7 @@ const Alert = {
 }
 
 const AppsPrice = {
-    getPriceStats: () => 
+    getPriceStats: () =>
         requests.get('/common/categoryexpenses')
 }
 
