@@ -22,7 +22,15 @@ const mapDispatchToProps = dispatch => ({
 class ChartWidget extends Component {
     componentWillMount() {
         this.props.onLoadStart(this.props.config.id);
-        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id));
+        let filters = this.props.filters !== undefined?this.props.filters:{};
+        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id, JSON.stringify(filters)));
+    }
+
+    componentWillReceiveProps(nextProps){
+       if(nextProps.filters !== this.props.filters){
+         let filters =nextProps.filters !== undefined?nextProps.filters:{};
+         agent.Dashboard.getWidgetData(this.props.config.id, JSON.stringify(filters))
+       }
     }
 
     widgetClick = () => {
@@ -35,7 +43,7 @@ class ChartWidget extends Component {
             if (this.props[this.props.config.id].isLoadingWidget) {
                 // if (!this.props[this.props.config.id].data.totalCount)
                 //     return null
-                let chart = null    
+                let chart = null
                 let maxLimit = null
                 if(this.props.config.id == 'expensesByCategory'){
                     if(! Number(this.props[this.props.config.id].data.totalCount))
@@ -54,7 +62,7 @@ class ChartWidget extends Component {
                         color = ['#db4437', '#fbbd08', '#4285f4']
                     chart = <PieChart legend="bottom" donut={true} data={this.props[this.props.config.id].data.rows} colors={color} />
                 }
-                
+
                 return (
                         <Card >
                             <Card.Content>
@@ -69,7 +77,7 @@ class ChartWidget extends Component {
                         </Card>
                 )
 
-                
+
             }
             else {
                 return (

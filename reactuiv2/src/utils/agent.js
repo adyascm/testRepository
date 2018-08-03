@@ -69,8 +69,8 @@ const Activity = {
 }
 
 const Dashboard = {
-    getWidgetData: (widgetId) =>
-        requests.get('/common/widgets?widgetId=' + widgetId)
+    getWidgetData: (widgetId, event_filters) =>
+        requests.get('/common/widgets?widgetId=' + widgetId + '&event_filters='+event_filters)
 }
 
 const Users = {

@@ -44,9 +44,9 @@ class Dashboard extends Component {
       { id: "expensesByCategory", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
       { id: "userAppAccess", header: "", footer: "installed Apps", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'score', sortOrder: 'desc'}}},
     ];
-    this.activityWidgets = [
-      { id: "activitiesByEventType", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
-    ];
+    // this.activityWidgets = [
+    //   { id: "activitiesByEventType", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
+    // ];
   }
 
   componentWillMount() {
@@ -78,7 +78,7 @@ class Dashboard extends Component {
                   <ListWidget key={config["id"]} config={config} />
                 )
               }
-              
+
             })
           }
         </Card.Group>
@@ -98,7 +98,7 @@ class Dashboard extends Component {
             })
           }
         </Card.Group>
-        {/* <Card.Group itemsPerRow='1'>
+        { /*<Card.Group itemsPerRow='1'>
         {
             this.activityWidgets.map(config => {
               if(config.renderType === "ChartWidget")
@@ -109,7 +109,7 @@ class Dashboard extends Component {
               }
             })
           }
-        </Card.Group> */}
+        </Card.Group>*/ }
       </Container>
     )
   }

@@ -233,13 +233,13 @@ class ActivityListTable extends Component {
                                 </Input>
                             </Table.Cell>
                             <Table.Cell width='2'>
-                                <Input fluid placeholder='Filter by type...' icon={this.state.filterConnectorType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterConnectorType')} /> : false} value={this.state.filterConnectorType} onChange={this.handleConnectorTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "filterConnectorType", this.state.filterConnectorType)} />
+                                <Input fluid placeholder='Filter by type...' icon={this.state.filterConnectorType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterConnectorType')} /> : false} value={this.state.filterConnectorType} onChange={this.handleConnectorTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "connector_type", this.state.filterConnectorType)} />
                             </Table.Cell>
                             <Table.Cell width='2'>
-                                <Input fluid placeholder='Filter by type...' icon={this.state.filteractor.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filteractor')} /> : false} value={this.state.filteractor} onChange={this.handleActorChange} onKeyPress={(event) => this.handleKeyPress(event, "filteractor", this.state.filteractor)} />
+                                <Input fluid placeholder='Filter by type...' icon={this.state.filteractor.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filteractor')} /> : false} value={this.state.filteractor} onChange={this.handleActorChange} onKeyPress={(event) => this.handleKeyPress(event, "actor", this.state.filteractor)} />
                             </Table.Cell>
                             <Table.Cell width='3'>
-                                <Input fluid placeholder='Filter by folder...' icon={this.state.filterEventType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEventType')} /> : false} value={this.state.filterEventType} onChange={this.handleEventTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "filterEventType", this.state.filterEventType)} />
+                                <Input fluid placeholder='Filter by folder...' icon={this.state.filterEventType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEventType')} /> : false} value={this.state.filterEventType} onChange={this.handleEventTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "event_type", this.state.filterEventType)} />
                             </Table.Cell>
                         </Table.Row>
                         {tableRowData}

@@ -15,7 +15,7 @@ from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
 from adya.common.constants.constants import datasource_to_default_report_map
 
-def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
+def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, event_filters = None):
     if not (auth_token or datasource_id):
         return None
 
@@ -260,6 +260,9 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None):
 
     elif widget_id == 'activitiesByEventType':
         filters = {}
+        if (event_filters and len(event_filters) > 0):
+            filters = json.loads(event_filters)
+
         activities = activity_db.activity_db().get_event_stats(filters, None, None)
         series_map = {}
         for activity in activities:

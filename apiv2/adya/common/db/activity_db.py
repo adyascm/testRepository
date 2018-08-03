@@ -45,9 +45,6 @@ class activity_db:
     def get_event_stats(self, filters, sort_column, sort_type):
         event_collection = activity_db.instance.get_collection("events")
         filter_query = generate_filter_query(filters)
-        sort_query = {}
-        if sort_column and sort_type:
-            sort_query = {sort_column: pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING}
         pipeline = [
             {"$match": filter_query},
             {"$group": {
@@ -73,9 +70,11 @@ class activity_db:
                 "day": "$_id.day",
                 "count": "$count"
 
-            }},
-            {"$sort": sort_query}
+            }}
         ]
+        if sort_column and sort_type:
+            sort_query = {sort_column: pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING}
+            pipeline.append({"$sort": sort_query})
         activities = event_collection.aggregate(pipeline)
         # return json.loads(json_util.dumps(activities))
         return activities

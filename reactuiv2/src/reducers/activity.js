@@ -18,7 +18,8 @@ const defaultState = {
     filteractor: '',
     filterByDate: '',
     pageNumber: 0,
-    pageLimit: 100
+    pageLimit: 100,
+    filterList: {}
 };
 
 export default (state = defaultState, action) => {
@@ -48,9 +49,12 @@ export default (state = defaultState, action) => {
                 rowData: action.payload
             }
         case ACTIVITIES_FILTER_CHANGE:
+            let newFilter = Object.assign({}, state.filterList);
+            newFilter[action.property] = action.value
             state[action.property] = action.value
             return {
                 ...state,
+                filterList: newFilter
             }
         case LOGOUT:
             return {
