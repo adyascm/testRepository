@@ -76,7 +76,7 @@ class Policy(Resource):
 
 
 class DashboardWidget(Resource):
-    def get(self):
+    def post(self):
         return reports_handler.get_widget_data(request, None)
 
 

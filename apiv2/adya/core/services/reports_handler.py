@@ -8,12 +8,13 @@ from adya.common.utils.response_messages import Logger
 
 def get_widget_data(event, context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True, ['widgetId'], ['event_filters'])
+    req_error = req_session.validate_authorized_request(True)
     if req_error:
         return req_error
 
+    body = req_session.get_body()
     data = reports_controller.get_widget_data(
-        req_session.get_auth_token(), req_session.get_req_param('widgetId'), None, None, req_session.get_req_param('event_filters'))
+        req_session.get_auth_token(), body.get('widget_id'), None, None, body.get('event_filters'))
     return req_session.generate_sqlalchemy_response(200, data)
 
 def get_user_stats(event, context):

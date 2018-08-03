@@ -35,7 +35,7 @@ class Activity extends Component {
          gridWidth = 4
     }
 
-    let filter = this.props.filterList !== undefined? this.props.filterList : '{}'
+    let filter = this.props.filterList !== undefined? this.props.filterList : {}
     filter['domain_id'] = this.props.currentUser['domain_id']
     return(
         <Container fluid style={containerStyle}>

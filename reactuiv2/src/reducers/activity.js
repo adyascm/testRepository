@@ -50,7 +50,7 @@ export default (state = defaultState, action) => {
             }
         case ACTIVITIES_FILTER_CHANGE:
             let newFilter = Object.assign({}, state.filterList);
-            newFilter[action.property] = action.value
+            newFilter[action.key] = action.value
             state[action.property] = action.value
             return {
                 ...state,

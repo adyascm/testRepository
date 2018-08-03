@@ -22,14 +22,18 @@ const mapDispatchToProps = dispatch => ({
 class ChartWidget extends Component {
     componentWillMount() {
         this.props.onLoadStart(this.props.config.id);
-        let filters = this.props.filters !== undefined?this.props.filters:{};
-        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id, JSON.stringify(filters)));
+        let filters = {'event_filters': this.props.filters !== undefined?this.props.filters:{}};
+        let payload = {'widget_id': this.props.config.id}
+        Object.assign(payload, filters)
+        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(payload));
     }
 
     componentWillReceiveProps(nextProps){
        if(nextProps.filters !== this.props.filters){
-         let filters =nextProps.filters !== undefined?nextProps.filters:{};
-         agent.Dashboard.getWidgetData(this.props.config.id, JSON.stringify(filters))
+         let filters ={'event_filters': nextProps.filters !== undefined?nextProps.filters:{}};
+         let payload = {'widget_id': nextProps.config.id}
+         Object.assign(payload, filters)
+         agent.Dashboard.getWidgetData(payload)
        }
     }
 
