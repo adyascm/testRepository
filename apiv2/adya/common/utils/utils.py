@@ -133,6 +133,8 @@ def get_trusted_entity_for_domain(db_session, domain_id):
 
 
 def check_if_external_user(db_session, domain_id, email, trusted_domains=None):
+    if not db_session:
+        db_session = db_connection().get_session()
     exposure_type = constants.EntityExposureType.INTERNAL.value
     if '@' in email and not email.endswith(domain_id):
         exposure_type = constants.EntityExposureType.EXTERNAL.value

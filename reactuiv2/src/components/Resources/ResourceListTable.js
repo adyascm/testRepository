@@ -101,7 +101,11 @@ class ResourcesListTable extends Component {
 
     componentWillMount() {
         this.props.onLoadStart()
-        this.props.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'sourceType': this.props.filterSourceType }))
+        this.props.onLoad(agent.Resources.getResources({ 
+            'exposureType': this.props.filterExposureType, 
+            'resourceType': this.props.filterResourceType, 
+            'datasourceId': this.props.filterSourceType 
+        }, this.props.pageNumber))
     }
 
     componentWillUnmount() {
@@ -116,7 +120,15 @@ class ResourcesListTable extends Component {
                 ((nextProps.prefix !== this.props.prefix) && nextProps.prefix === undefined) || nextProps.filterSourceType !== this.props.filterSourceType) {
                 let ownerEmailId = nextProps.selectedUser && (nextProps.selectedUser !== this.props.selectedUser) ? nextProps.selectedUser.email : ''
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc', 'sourceType': nextProps.filterSourceType }))
+                nextProps.onLoad(agent.Resources.getResources({ 
+                    'exposureType': nextProps.filterExposureType, 
+                    'resourceType': nextProps.filterResourceType, 
+                    'ownerEmailId': ownerEmailId, 
+                    'parentFolder': nextProps.filterParentFolder, 
+                    'selectedDate': nextProps.filterByDate, 
+                    'prefix': nextProps.prefix, 
+                    'datasourceId': nextProps.filterSourceType 
+                }, nextProps.pageNumber, nextProps.pageLimit, this.state.columnNameClicked, (this.state.sortOrder === 'ascending' ? 'asc' : 'desc')))
             }
 
             if (nextProps.filterResourceType !== this.state.filterResourceType)
@@ -200,29 +212,25 @@ class ResourcesListTable extends Component {
 
     handleColumnSort = (mappedColumnName) => {
         let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
-        if (this.state.columnNameClicked !== mappedColumnName) {
-            this.props.onLoadStart()
-
-            this.props.onLoad(agent.Resources.getResources({
-                'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                'sortColumn': mappedColumnName, 'sortType': 'asc', 'sourceType': this.props.filterSourceType
-            }))
-            this.setState({
-                columnNameClicked: mappedColumnName,
-                sortOrder: 'ascending'
-            })
+        let sortType = 'asc';
+        if (this.state.columnNameClicked === mappedColumnName) {
+            sortType = this.state.sortOrder === 'ascending' ? 'desc' : 'asc';
         }
-        else {
-            this.props.onLoadStart()
+        this.props.onLoadStart()
 
-            this.props.onLoad(agent.Resources.getResources({
-                'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'prefix': this.props.prefix,
-                'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc', 'sourceType': this.props.filterSourceType
-            }))
-            this.setState({
-                sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
-            })
-        }
+        this.props.onLoad(agent.Resources.getResources({
+            'exposureType': this.props.filterExposureType,
+            'resourceType': this.props.filterResourceType,
+            'ownerEmailId': ownerEmailId,
+            'parentFolder': this.props.filterParentFolder,
+            'selectedDate': this.props.filterByDate,
+            'prefix': this.props.prefix,
+            'datasourceId': this.props.filterSourceType
+        }, this.props.pageNumber, this.props.pageLimit, mappedColumnName, sortType))
+        this.setState({
+            columnNameClicked: mappedColumnName,
+            sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
+        })
     }
 
     render() {
@@ -277,7 +285,7 @@ class ResourcesListTable extends Component {
 
         if (this.props.isLoadingResources || resourceData) {
             let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
-            let filterMetadata = { 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType,  'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'resourceName': this.props.prefix !== undefined ? this.props.prefix : '', 'sourceType': this.props.filterSourceType, 'logged_in_user': this.props.currentUser['email'] }
+            let filterMetadata = { 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType,  'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'resourceName': this.props.prefix !== undefined ? this.props.prefix : '', 'datasourceId': this.props.filterSourceType, 'logged_in_user': this.props.currentUser['email'] }
             return (
                 <div>
                     <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>

@@ -20,7 +20,7 @@ def get_app_stats(event, context):
 
 def get_user_app(event,context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True,optional_params=["filterType", "appId", "domainId", "userEmail", "datasourceId", "pageNumber","pageSize","sortColumn","sortOrder","appName"])
+    req_error = req_session.validate_authorized_request(True,optional_params=["filterType", "appId", "domainId", "userEmail", "datasourceId", "pageNumber","pageLimit","sortColumn","sortOrder","appName"])
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
@@ -42,16 +42,16 @@ def get_user_app(event,context):
     elif filter_type == 'INSTALLED_APPS':
         app_name = req_session.get_req_param("appName")
         page_number = req_session.get_req_param("pageNumber")
-        page_size = req_session.get_req_param("pageSize")
+        page_limit = req_session.get_req_param("pageLimit")
         sort_column_name = req_session.get_req_param("sortColumn")
         sort_order = req_session.get_req_param("sortOrder")
-        apps, total_count = app_controller.get_installed_apps(auth_token, page_number, page_size, app_name, sort_column_name, sort_order)
+        apps, total_count = app_controller.get_installed_apps(auth_token, page_number, page_limit, app_name, sort_column_name, sort_order)
         data = {'apps':apps, 'last_page':total_count}
     elif filter_type == 'INVENTORY_APPS':  
         app_name = req_session.get_req_param("appName")
         page_num =  req_session.get_req_param("pageNumber")
-        page_size =  req_session.get_req_param("pageSize")
-        apps, total_count = app_controller.get_inventory_apps(auth_token, page_num, page_size, app_name)
+        page_limit =  req_session.get_req_param("pageLimit")
+        apps, total_count = app_controller.get_inventory_apps(auth_token, page_num, page_limit, app_name)
         data = {'apps':apps, 'last_page':total_count}
     return req_session.generate_sqlalchemy_response(200, data)
 

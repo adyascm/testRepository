@@ -22,10 +22,10 @@ GSUITE_POLICIES_VALIDATE_PATH = '/google/policies/validate'
 GET_USERS_LIST_PATH = "/common/users"
 GET_USERS_STATS_PATH = "/common/users/stats"
 GET_APPS = "/common/getappsdata"
-GET_RESOURCE_TREE_PATH = "/common/getresourcetree"
+GET_RESOURCES_PATH = "/common/resources"
 GET_DATASOURCE_PATH = '/common/datasources'
 GET_GROUP_MEMBERS = '/common/getgroupmembers'
-RESOURCES_EXPORT = '/common/resource/export'
+RESOURCES_EXPORT = '/common/resources/export'
 USERS_EXPORT = '/common/users/export'
 
 ASYNC_DELETE_DATASOURCE_PATH = '/common/asyncdatasourcedelete'
