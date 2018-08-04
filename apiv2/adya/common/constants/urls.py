@@ -45,6 +45,7 @@ ALERTS_PATH = '/common/alerts'
 ALERTS_COUNT_PATH = '/common/alerts/count'
 
 TRUSTED_ENTITIES = '/common/trustedentities'
+GET_ALL_ACTIVITIES = '/common/activities'
 
 # slack
 SLACK_OAUTH_LOGIN = '/slack/oauthlogin'

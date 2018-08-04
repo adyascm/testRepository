@@ -256,18 +256,19 @@ def unsubscribe_subscription(subscription):
 
 def gdrive_periodic_changes_poll(datasource_id=None):
     db_session = db_connection().get_session()
-    hour_back = datetime.datetime.utcnow()+timedelta(hours=-1, minutes=-5)
-    subscription_list = db_session.query(PushNotificationsSubscription)
+    twelve_hour_back = datetime.datetime.utcnow()+timedelta(hours=-12, minutes=-5)
+    subscription_list = db_session.query(PushNotificationsSubscription).filter(and_(PushNotificationsSubscription.in_progress == 0))
     if datasource_id:
         subscription_list = subscription_list.filter(PushNotificationsSubscription.datasource_id == datasource_id)
     else:
-        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < hour_back)
-    for row in subscription_list.all():
-        headers={"X-Goog-Channel-Token": row.datasource_id, "X-Goog-Channel-ID": row.channel_id, 'X-Goog-Resource-State': "adya"}
-        if row.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE.value:
-            messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
-        else:
-            messaging.trigger_post_event_with_headers(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
+        subscription_list = subscription_list.filter(PushNotificationsSubscription.last_accessed < twelve_hour_back)
+    for row in subscription_list.limit(100).all():
+        if row.page_token:
+            headers={"X-Goog-Channel-Token": row.datasource_id, "X-Goog-Channel-ID": row.channel_id, 'X-Goog-Resource-State': "adya"}
+            if row.notification_type == constants.GSuiteNotificationType.DRIVE_CHANGE.value:
+                messaging.trigger_post_event_with_headers(urls.PROCESS_DRIVE_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
+            else:
+                messaging.trigger_post_event_with_headers(urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH, constants.INTERNAL_SECRET, {}, headers, {}, "gsuite")
 
 def unsubscribed_all_the_previous_subscription(datasource_id):
     db_session = db_connection().get_session()

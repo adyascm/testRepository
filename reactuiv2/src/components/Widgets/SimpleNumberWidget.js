@@ -16,24 +16,25 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: DASHBOARD_WIDGET_LOAD_START, widgetId }),
     onLoad: (widgetId, payload) =>
         dispatch({ type: DASHBOARD_WIDGET_LOADED, widgetId, payload }),
-    onWidgetClick: (url, states) => 
+    onWidgetClick: (url, states) =>
         dispatch({ type: SET_REDIRECT_PROPS, redirectUrl: url, reducerStates: states })
 });
 
 class SimpleNumberWidget extends Component {
     componentWillMount() {
         this.props.onLoadStart(this.props.config.id);
-        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(this.props.config.id));
+        let payload = {'widget_id': this.props.config.id}
+        this.props.onLoad(this.props.config.id, agent.Dashboard.getWidgetData(payload));
 
     }
-    
+
     widgetClick = () => {
         this.props.onWidgetClick(this.props.config.link, this.props.config.states)
         this.props.history.push(this.props.config.link)
     }
 
     render() {
-        
+
         if (this.props[this.props.config.id]) {
             if (this.props[this.props.config.id].isLoadingWidget) {
                 let data = this.props[this.props.config.id].data

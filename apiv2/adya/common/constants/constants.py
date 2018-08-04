@@ -101,6 +101,7 @@ class PolicyMatchType(Enum):
     APP_RISKINESS = 'APP_RISKINESS'
     USER_TYPE = 'USER_TYPE'
     USER_ROLE = 'USER_ROLE'
+    IS_APP_WHITELISTED = 'IS_APP_WHITELISTED'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"

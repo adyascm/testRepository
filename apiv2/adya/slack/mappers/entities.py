@@ -271,14 +271,18 @@ class SlackApplication:
         max_score = 0
         trusted_domain_apps = (get_trusted_entity_for_domain(self._db_session, self._domain_id))["trusted_apps"]
 
+        is_app_whitelisted = True
         if 'scope' in self._payload:
             scopes = self._payload["scope"]
             if not app_name in trusted_domain_apps:
                 max_score = slack_utils.get_app_score(scopes)
+                is_app_whitelisted = False
+
 
         self._application.display_text = app_name
         self._application.scopes = scopes
         self._application.score = max_score
+        self._application.is_whitelisted = is_app_whitelisted
 
         inventory_app = self._db_session.query(AppInventory).filter(AppInventory.name == app_name).first()
         inventory_app_id = inventory_app.id if inventory_app else None

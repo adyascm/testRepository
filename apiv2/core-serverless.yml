@@ -156,12 +156,12 @@ functions:
           method: delete
           cors: true
 
-  get-common-widgets:
+  post-common-widgets:
     handler: adya.core.services.reports_handler.get_widget_data
     events:
       - http:
           path: widgets
-          method: get
+          method: post
           cors: true
 
   get-common-users:
@@ -384,4 +384,12 @@ functions:
       - http:
           path: categoryexpenses
           method: get
+          cors: true
+
+  post-common-getallactivities:
+    handler: adya.core.services.activity_handler.get_all_activities
+    events:
+      - http:
+          path: activities
+          method: post
           cors: true

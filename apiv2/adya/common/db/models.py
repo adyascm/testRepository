@@ -306,6 +306,7 @@ class Application(Base):
     inactive_users = Column(Integer)
     image_url = Column(Text) 
     category = Column(String(255))
+    is_whitelisted = Column(Boolean, default=False)
 
 class ApplicationUserAssociation(Base):
     __tablename__ = 'app_user_association'

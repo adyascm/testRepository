@@ -277,7 +277,7 @@ def create_trusted_entities_for_a_domain(auth_token, payload):
                 for apps_name in add_apps:
                     db_session.query(Application).filter(
                         and_(Application.domain_id == domain_id, Application.display_text == apps_name)) \
-                        .update({Application.score: 0})
+                        .update({Application.score: 0, Application.is_whitelisted: True})
 
             trusted_domain_string = ",".join(str(x) for x in new_domains)
             trusted_app_string = ",".join(str(x) for x in new_apps)
@@ -376,6 +376,7 @@ def delete_trusted_entities_for_domain(auth_token, domain_id, domain_datasource_
             app_scopes = apps.scopes.split(',')
             app_score = gutils.get_app_score(app_scopes)
             apps.score = app_score
+            apps.is_whitelisted = False
     db_connection().commit()
 
 

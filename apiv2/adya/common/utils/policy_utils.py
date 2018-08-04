@@ -23,6 +23,8 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
             is_violated = is_violated & check_value_violation(policy_condition, application["display_text"])
         elif policy_condition.match_type == constants.PolicyMatchType.APP_RISKINESS.value:
             is_violated = is_violated & check_value_violation(policy_condition, application["score"])
+        elif policy_condition.match_type == constants.PolicyMatchType.IS_APP_WHITELISTED.vlaue:
+            is_violated = is_violated & check_value_violation(policy_condition, application["is_whitelisted"])
 
     send_email_action = []
     is_reverted = False
@@ -83,10 +85,10 @@ def validate_permission_change_policy(db_session, auth_token, datasource_obj, po
     check_if_revert_action = False
     if is_policy_violated:
         if highest_exposure_type in constants.permission_exposure_to_event_constants:
-            tags = {"resource_id": resource["resource_owner_id"], "resource_name": resource["resource_name"],
+            tags = {"resource_id": resource["resource_id"], "resource_name": resource["resource_name"],
                     "new_permissions": violated_permissions}
             activity_db().add_event(domain_id=datasource_obj.domain_id,
-                                    connector_type=constants.ConnectorTypes.GSUITE.value,
+                                    connector_type=datasource_obj.datasource_type,
                                     event_type=constants.permission_exposure_to_event_constants[highest_exposure_type],
                                     actor=resource["resource_owner_id"], tags=tags)
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))

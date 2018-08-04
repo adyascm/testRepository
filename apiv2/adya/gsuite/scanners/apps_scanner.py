@@ -51,6 +51,7 @@ def process(db_session, auth_token, query_params, scanner_data):
                 scopes = app["scopes"]
                 if app_name in trusted_domain_apps:
                     application.score = 0
+                    application.is_whitelisted = True
                 else:
                     max_score = gutils.get_app_score(scopes)
                     application.score = max_score

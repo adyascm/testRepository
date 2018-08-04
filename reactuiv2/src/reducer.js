@@ -11,6 +11,7 @@ import auditlog from './reducers/auditlog'
 import policy from './reducers/policy'
 import alert from './reducers/alert'
 import apps from './reducers/apps'
+import activity from './reducers/activity'
 
 export default combineReducers({
   auth,
@@ -23,7 +24,8 @@ export default combineReducers({
   auditlog,
   policy,
   alert,
-  apps
+  apps,
+  activity
 });
 
 // const rootReducer = (state,action) => {

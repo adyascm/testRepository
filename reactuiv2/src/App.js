@@ -19,7 +19,8 @@ import SecuredView from './components/SecuredView'
 import DataSourceVerifiedView from './components/Setting/DataSourceVerifiedView'
 import AuditLogTable from './components/AuditLogTable'
 import GlobalMessage from './GlobalMessage';
-import Apps from './components/UserApp/Apps.js'
+import Apps from './components/UserApp/Apps.js';
+import Activity from './components/Activity/Activity.js'
 
 import { Container, Message } from 'semantic-ui-react'
 
@@ -94,6 +95,7 @@ class App extends Component {
               <Route path="/policies" component={SecuredView(DataSourceVerifiedView(Policy))} />
               <Route path="/alerts" component={SecuredView(DataSourceVerifiedView(Alert))} />
               <Route path="/oauthstatus/:status" component={Dashboard} />
+              <Route path="/activities" component={SecuredView(DataSourceVerifiedView(Activity))} />
             </Container>
           </Switch>
         </div>

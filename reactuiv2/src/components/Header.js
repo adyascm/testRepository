@@ -35,6 +35,7 @@ const LoggedInView = props => {
                     <Menu.Item onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
+                    {/* <Menu.Item onClick={() => props.handleClick("/activities")} active={props.currLocation.includes('/activities')} >Activity</Menu.Item> */}
                     {/* <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item> */}
                 </Menu.Menu>
 
@@ -42,7 +43,7 @@ const LoggedInView = props => {
                 <Menu.Item >
                 {props.currentUser.first_name} ({props.currentUser.email})
                 </Menu.Item>
-                
+
                     {/* <Menu.Item>
                         <AppSearch icon='search' placeholder='Search...' />
                     </Menu.Item> */}
