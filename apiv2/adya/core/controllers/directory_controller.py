@@ -223,16 +223,9 @@ def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_orde
     datasource_ids = [r for r, in datasource_ids]
     # if servie account and non-admin user, show permission for logged in user only
     if is_service_account_is_enabled and not is_admin:
-        domain_user_emails = [[login_user_email]]
+        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id, DomainUser.email == ApplicationUserAssociation.user_email, ApplicationUserAssociation.user_email == login_user_email, DomainUser.datasource_id == ApplicationUserAssociation.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)         
     else:
-        domain_user_emails = db_session.query(ApplicationUserAssociation.user_email).filter(
-            and_(ApplicationUserAssociation.application_id == app_id,
-                 ApplicationUserAssociation.datasource_id.in_(datasource_ids)
-                 )).all()
-
-    domain_user_emails = [r for r, in domain_user_emails]
-    apps_query = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email.in_(domain_user_emails), DomainUser.member_type == constants.EntityExposureType.INTERNAL.value
-    ))
+        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id, DomainUser.email == ApplicationUserAssociation.user_email, DomainUser.datasource_id == ApplicationUserAssociation.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)         
     
     if sort_column_name == "last_login": 
         if sort_order == 'desc':
