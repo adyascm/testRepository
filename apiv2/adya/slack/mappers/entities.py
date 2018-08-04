@@ -15,10 +15,11 @@ class SlackUser:
         self._domain_id = domain_id
         self._datasource_id = datasource_id
         self._payload = payload
-        self._user = {}
+        self._user = None
         self.parse()
 
     def parse(self):
+        self._user = DomainUser()
         profile_info = self._payload['profile']
         self._user.datasource_id = self._datasource_id
         if 'email' in profile_info:
@@ -50,82 +51,124 @@ class SlackUser:
 
 
 class SlackFile:
-    def __init__(self, datasource_id, payload, user_info_map):
+    def __init__(self, datasource_id, payload):
         self._datasource_id = datasource_id
         self._payload = payload
-        self._file = {}
-        self._user_info_map = user_info_map
-        self._permissions = []
+        self._file = None
         self.parse()
 
     def parse(self):
-        self._file['datasource_id'] = self._datasource_id
-        self._file['resource_id'] = self._payload['id']
-        self._file['resource_name'] = self._payload['name']
-        self._file['resource_type'] = self._payload['filetype']
-        self._file['resource_size'] = self._payload['size']
-        self._file['resource_owner_id'] = self._payload['resource_owner_email']
-        self._file['creation_time'] = datetime.datetime.fromtimestamp(self._payload['timestamp'])
-        self._file['last_modified_time'] = datetime.datetime.fromtimestamp(self._payload['timestamp'])
-        self._file['web_content_link'] = self._payload[
+        self._file = Resource()
+        self._file.datasource_id = self._datasource_id
+        self._file.resource_id = self._payload['id']
+        self._file.resource_name = self._payload['name']
+        self._file.resource_type = self._payload['filetype']
+        self._file.resource_size = self._payload['size']
+        self._file.resource_owner_id = self._payload['resource_owner_email']
+        self._file.creation_time = datetime.datetime.fromtimestamp(self._payload['timestamp'])
+        self._file.last_modified_time = datetime.datetime.fromtimestamp(self._payload['timestamp'])
+        self._file.web_content_link = self._payload[
             'url_private_download'] if 'url_private_download' in self._payload else None
-        self._file['web_view_link'] = self._payload['url_private'] if 'url_private' in self._payload else None
+        self._file.web_view_link = self._payload['url_private'] if 'url_private' in self._payload else None
 
         file_exposure_type = constants.EntityExposureType.ANYONEWITHLINK.value if self._payload['public_url_shared'] \
             else (constants.EntityExposureType.DOMAIN.value if self._payload['is_public'] else
                   constants.EntityExposureType.PRIVATE.value)
 
+        is_editable = self._payload["editable"]
+
+        db_session = db_connection().get_session()
+        # construct user_info map for checking for removed users from channels
+        existing_users = db_session.query(DomainUser).filter(DomainUser.datasource_id == self._datasource_id).all()
+        user_info_map = {}
+        for user in existing_users:
+            user_info_map[user.user_id] = user
+
+        self._file.permissions = []
+        permission_exposure = constants.EntityExposureType.PRIVATE.value
+        shared_in_channels = self._payload['channels']
+        if shared_in_channels:
+            permission_exposure_type = constants.EntityExposureType.DOMAIN.value
+            for channel_id in shared_in_channels:
+                permission = SlackPermission(self._datasource_id, user_info_map, is_editable, channel_id,
+                                             permission_exposure_type, self._payload)
+                permission_model = permission.get_model()
+                if not permission_model:
+                    continue
+                self._file.permissions.append(permission_model)
+
+                permission_exposure = constants.EntityExposureType.EXTERNAL.value if \
+                    permission.get_permission_exposure_is_external() else permission_exposure_type
+
+        shared_in_private_group = self._payload['groups']
+        if shared_in_private_group:
+            permission_exposure_type = constants.EntityExposureType.INTERNAL.value
+            for group_id in shared_in_private_group:
+                permission = SlackPermission(self._datasource_id, user_info_map, is_editable, group_id,
+                                             permission_exposure_type, self._payload)
+
+                permission_model = permission.get_model()
+                if not permission_model:
+                    continue
+                self._file.permissions.append(permission_model)
+
+                permission_exposure = constants.EntityExposureType.EXTERNAL.value if \
+                    permission.get_permission_exposure_is_external() else permission_exposure_type
+
         if file_exposure_type == constants.EntityExposureType.ANYONEWITHLINK.value:
-            permission_model = (SlackPermission(self._datasource_id, self._user_info_map, file_exposure_type,
-                                         file_exposure_type, self._payload)).parse()
+            permission = SlackPermission(self._datasource_id, user_info_map, is_editable, file_exposure_type,
+                                         file_exposure_type, self._payload)
+
+            permission_model = permission.get_model()
             if permission_model:
-                self._permissions.append(permission_model)
+                self._file.permissions.append(permission_model)
 
-        for channel_id in self._payload['channels']:
-            permission_model = (SlackPermission(self._datasource_id, self._user_info_map, channel_id,
-                                                constants.EntityExposureType.DOMAIN.value, self._payload)).parse()
-            if not permission_model:
-                continue
-            self._permissions.append(permission_model)
-            file_exposure_type = utils.get_highest_exposure_type(permission_model['exposure_type'], file_exposure_type)
+        resource_exposure_type = utils.get_highest_exposure_type(permission_exposure, file_exposure_type)
+        self._file.exposure_type = resource_exposure_type
 
-        for group_id in self._payload['groups']:
-            permission_model = (SlackPermission(self._datasource_id, self._user_info_map, group_id,
-                                                constants.EntityExposureType.INTERNAL.value, self._payload)).parse()
-            if not permission_model:
-                continue
-            self._permissions.append(permission_model)
-            file_exposure_type = utils.get_highest_exposure_type(permission_model['exposure_type'], file_exposure_type)
-
-        self._file['exposure_type'] = file_exposure_type
+    def get_model(self):
         return self._file
-
-    def get_permissions(self):
-        return self._permissions
 
 
 class SlackPermission:
-    def __init__(self, datasource_id, user_info_map, shared_id, permission_exposure_type, payload):
+    def __init__(self, datasource_id, user_info_map, is_editable, shared_id, permission_exposure_type, payload):
         self._datasource_id = datasource_id
         self._resource_id = payload['id']
         self._resource_owner = payload['resource_owner_email']
+        self._payload = payload
         self._user_info_map = user_info_map
-        self._is_editable = payload['editable']
+        self._is_editable = is_editable
         self._shared_id = shared_id
         self._permission_exposure_type = permission_exposure_type
-        self._permission = {}
+        self._external_perms_exposure = None
+        self._permission = None
         self.parse()
 
     def parse(self):
-        self._permission['datasource_id'] = self._datasource_id
-        self._permission['resource_id'] = self._resource_id
+        self._permission = ResourcePermission()
+        self._permission.datasource_id = self._datasource_id
+        self._permission.resource_id = self._resource_id
         user_info = self._user_info_map[self._shared_id] if self._shared_id in self._user_info_map else None
-        self._permission['email'] = user_info.email if user_info else self._shared_id
-        self._permission['permission_id'] = self._shared_id
-        self._permission['permission_type'] = constants.Role.WRITER.value if self._is_editable else constants.Role.READER.value
+        self._permission.email = user_info.email if user_info else self._shared_id
+        self._permission.permission_id = self._shared_id
+        self._permission.permission_type = constants.Role.WRITER.value if self._is_editable else constants.Role.READER.value
         user_member_type = user_info.member_type if user_info else None
         exposure_type = utils.get_highest_exposure_type(self._permission_exposure_type, user_member_type)
-        self._permission['exposure_type'] = exposure_type
+        self._permission.exposure_type = exposure_type
+        self.set_permission_exposure_is_external(exposure_type)
+
+    def set_permission_exposure_is_external(self, exposure_type):
+        is_external = False
+        if not is_external and exposure_type == constants.EntityExposureType.EXTERNAL.value:
+            self._external_perms_exposure = True
+
+        else:
+            self._external_perms_exposure = False
+
+    def get_permission_exposure_is_external(self):
+        return self._external_perms_exposure
+
+    def get_model(self):
         return self._permission
 
 

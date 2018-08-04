@@ -189,15 +189,15 @@ class Actions extends Component {
         {
             if(this.props.selectedUser.ownedResources)
             {
-                userOwnedResources = agent.Resources.getResources({ 'accessibleBy': this.props.selectedUser["key"], 'ownerEmailId': this.props.selectedUser["key"] });
+                userOwnedResources = agent.Resources.getResources({ 'accessibleBy': this.props.selectedUser["key"], 'pageNumber': 0, 'pageSize': 100, 'ownerEmailId': this.props.selectedUser["key"] });
 
             }if(this.props.selectedUser.resources)
             {
-                userAccessibleResources = agent.Resources.getResources({'accessibleBy': this.props.selectedUser["key"], 'exposureType': this.props.filterExposureType});
+                userAccessibleResources = agent.Resources.getResources({'accessibleBy': this.props.selectedUser["key"], 'exposureType': this.props.filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit});
             }
         }
 
-        var resourcesPayload = agent.Resources.getResources({ 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType});
+        var resourcesPayload = agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit });
         var appsPayload = agent.Apps.getInstalledApps(0,"","")
 
         this.props.onCloseAction(usersPayload, userOwnedResources, userAccessibleResources, resourcesPayload, appsPayload);

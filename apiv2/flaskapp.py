@@ -49,7 +49,7 @@ api.add_resource(flask_wrapper_gsuite.process_drive_notifications, urls.PROCESS_
 api.add_resource(flask_wrapper_gsuite.process_activity_notifications, urls.PROCESS_ACTIVITY_NOTIFICATIONS_PATH)
 
 # get file resource data
-api.add_resource(flask_wrapper_core.GetResources, urls.GET_RESOURCES_PATH)
+api.add_resource(flask_wrapper_core.GetResources, urls.GET_RESOURCE_TREE_PATH)
 api.add_resource(flask_wrapper_core.ResourcesExport, urls.RESOURCES_EXPORT)
 
 #create scheduled report

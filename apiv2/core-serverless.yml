@@ -212,19 +212,27 @@ functions:
           method: put
           cors: true   
           
-  post-common-resources:
+  get-common-getresourcetree:
     handler: adya.core.services.resource_handler.get_resources
     events:
       - http:
-          path: resources
+          path: getresourcetree
+          method: get
+          cors: true
+
+  post-common-getresourcetree:
+    handler: adya.core.services.resource_handler.get_resource_tree_data
+    events:
+      - http:
+          path: getresourcetree
           method: post
           cors: true
   
-  post-common-resources-export:
+  post-common-resource-export:
     handler: adya.core.services.resource_handler.export_to_csv
     events:
       - http:
-          path: resources/export
+          path: resource/export
           method: post
           cors: true
   

@@ -46,9 +46,9 @@ class UserOwnedResources extends Component {
     componentWillMount() {
         if (this.props.selectedUserItem) {
             this.props.onLoadStart()
-            this.props.onLoad(agent.Resources.getResources({
-                'ownerEmailId': this.props.selectedUserItem["email"],
-                'datasourceId': this.props.selectedUserItem["datasource_id"]}))
+            this.props.onLoad(agent.Resources.getResources({ 'pageNumber': 0, 'pageSize': 100, 
+            'ownerEmailId': this.props.selectedUserItem["email"],
+                                                  'datasourceId': this.props.selectedUserItem["datasource_id"]}))
         }
     }
 
@@ -56,9 +56,8 @@ class UserOwnedResources extends Component {
         window.scrollTo(0, 0)
         if (nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.onLoadStart()
-            nextProps.onLoad(agent.Resources.getResources({ 
-                'ownerEmailId': this.props.selectedUserItem["email"], 
-                'datasourceId': this.props.selectedUserItem["datasource_id"] }, nextProps.pageNumber))
+            nextProps.onLoad(agent.Resources.getResources({ 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+              'ownerEmailId': this.props.selectedUserItem["email"], 'datasourceId': this.props.selectedUserItem["datasource_id"] }))
         }
     }
 

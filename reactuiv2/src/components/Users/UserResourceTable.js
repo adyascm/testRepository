@@ -57,8 +57,7 @@ class UserResourceTable extends Component {
             let filterExposureType = (this.props.selectedUserItem.member_type === 'EXT' ? '' : this.props.filterExposureType)
             this.props.onLoadStart()
             this.props.onLoad(agent.Resources.getResources({
-                'accessibleBy': this.props.selectedUserItem["email"], 
-                'exposureType': filterExposureType,
+                'accessibleBy': this.props.selectedUserItem["email"], 'exposureType': filterExposureType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
                 'datasourceId': this.props.selectedUserItem.datasource_id
             }))
         }
@@ -71,9 +70,9 @@ class UserResourceTable extends Component {
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResources({
                 'accessibleBy': nextProps.selectedUserItem["email"],
-                'exposureType': nextProps.filterExposureType, 
+                'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
                 'datasourceId': this.props.selectedUserItem.datasource_id
-            }, nextProps.pageNumber))
+            }))
         }
     }
 
