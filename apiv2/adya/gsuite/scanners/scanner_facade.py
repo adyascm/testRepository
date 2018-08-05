@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from adya.common.db.models import DataSource, DomainUser, Resource, ResourcePermission, alchemy_encoder, \
-    Application, DatasourceScanners, AppInventory, AppLicenseInventory
+    Application, DatasourceScanners, AppInventory, AppLicenseInventory, ExternalExposure
 
 from adya.common.db.connection import db_connection
 
@@ -217,6 +217,7 @@ def get_datasource_column(scanner_type, is_total = True):
 def scan_complete_processing(db_session, auth_token, datasource_id):
     Logger().info("Scan completed")
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
+    db_session.query(ExternalExposure).filter(ExternalExposure.domain_id == datasource.domain_id).delete()
     body = {"datasource_id": datasource_id, "is_default": True}
     messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
     messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)
