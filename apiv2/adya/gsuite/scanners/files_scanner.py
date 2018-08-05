@@ -26,7 +26,7 @@ def query(auth_token, query_params, scanner):
     files = []
     iteration = 0
     next_page_available = True
-    while iteration < 5 and next_page_available:
+    while iteration < 10 and next_page_available:
         results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
                         "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
                         "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"

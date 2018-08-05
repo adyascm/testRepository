@@ -1,11 +1,12 @@
 import json
 import datetime
+from datetime import timedelta
 import uuid
 from sqlalchemy import func, or_, and_
 
 from adya.core.controllers import domain_controller, directory_controller, app_controller
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
-    Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, alchemy_encoder
+    Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, ExternalExposure, alchemy_encoder
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils, activity_db
 from adya.common.constants import constants
@@ -25,7 +26,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, 
     login_user_email = user_email
     is_service_account_is_enabled = True
     domain_datasource_ids = []
-
+    user_domain_id = None
     if auth_token:
         existing_user = db_utils.get_user_session(auth_token)
         user_domain_id = existing_user.domain_id
@@ -38,6 +39,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, 
     elif datasource_id:
         datasource = db_session.query(DataSource).filter(
             DataSource.datasource_id == datasource_id).first()
+        user_domain_id = datasource.domain_id
         is_service_account_is_enabled = datasource.is_serviceaccount_enabled
         domain_datasource_ids = [datasource.datasource_id]
 
@@ -145,9 +147,23 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, 
         data["totalCount"] = shared_docs_totalcount_query.count()
     elif widget_id == 'externalUsersList':
         data = {}
+
+        #Read from cache
+        external_users_from_cache = db_session.query(ExternalExposure).filter(ExternalExposure.domain_id == user_domain_id).order_by(
+            ExternalExposure.exposure_count.desc()).all()
+        if len(external_users_from_cache) > 0 and (external_users_from_cache[0].updated_at > (datetime.datetime.utcnow() - timedelta(seconds=600))):
+            rows = []
+            total_count = 0
+            for external_user in external_users_from_cache:
+                rows.append([external_user.email, external_user.exposure_count])
+                total_count += 1
+            data["rows"] = rows
+            data["totalCount"] = total_count
+            return data
+
         external_user_list = db_session.query(ResourcePermission.email, func.count(ResourcePermission.email)).filter(
             and_(ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value,
-                 ResourcePermission.datasource_id.in_(domain_datasource_ids), )).group_by(
+                 ResourcePermission.datasource_id.in_(domain_datasource_ids) )).group_by(
             ResourcePermission.email).order_by(
             func.count(ResourcePermission.email).desc())
 
@@ -194,6 +210,20 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, 
             external_user_perms_count.append(input_list)
 
         sorted_external_user_list = sorted(external_user_perms_count, key=lambda x: x[1], reverse=True)
+
+        cache_for_db = []
+        now = datetime.datetime.utcnow()
+        for ext_user in sorted_external_user_list:
+            cache = {}
+            cache["domain_id"] = user_domain_id
+            cache["email"] = ext_user[0]
+            cache["exposure_count"] = ext_user[1]
+            cache["updated_at"] = now
+            cache_for_db.append(cache)
+        if len(cache_for_db) > 0:
+            db_session.query(ExternalExposure).filter(ExternalExposure.domain_id == user_domain_id).delete()
+            db_session.bulk_insert_mappings(ExternalExposure, cache_for_db)
+            db_connection().commit()
 
         data["rows"] = sorted_external_user_list[:5]
         data["totalCount"] = external_user_list.count()

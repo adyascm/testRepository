@@ -243,6 +243,14 @@ class ResourcePermission(Base):
         ForeignKeyConstraint(['datasource_id', 'resource_id'], ['resource.datasource_id', 'resource.resource_id']),
     )
 
+class ExternalExposure(Base):
+    __tablename__ = 'external_exposure'
+    domain_id = Column(String(255), ForeignKey('domain.domain_id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(320), primary_key=True)
+    exposure_count = Column(Integer)
+    updated_at = Column(DateTime)
+
 
 class Report(Base):
     __tablename__ = 'report'
