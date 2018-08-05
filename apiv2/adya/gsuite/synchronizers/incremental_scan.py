@@ -85,7 +85,7 @@ def _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_d
             }
             watch_response = drive_service.changes().watch(pageToken=subscription.page_token, restrictToMyDrive='true',
                                                         body=body).execute()
-            Logger().info(" watch_response for a user :  {} ".format(watch_response))
+            # Logger().info(" watch_response for a user :  {} ".format(watch_response))
 
             subscription.expire_at = subscription.last_accessed + timedelta(seconds=86100)
             if not subscription.resource_id:
@@ -125,7 +125,7 @@ def _subscribe_for_activity(db_session, subscription, is_local_deployment):
 
             watch_response = reports_service.activities().watch(userKey='all', applicationName=subscription.notification_type, body=body).execute()
 
-            Logger().info(" watch_response for all users :  {} ".format(watch_response))
+            # Logger().info(" watch_response for all users :  {} ".format(watch_response))
             subscription.expire_at = subscription.last_accessed + timedelta(seconds=21300)
             if not subscription.resource_id:
                 subscription.resource_id = watch_response['resourceId']

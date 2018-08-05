@@ -13,18 +13,15 @@ from adya.common.utils.response_messages import Logger
 class db_connection:
     class __db_connection:
         _engine = None
-        _session_factory = None
         _session = None
         def __init__(self):
             self._engine = sqlalchemy.create_engine("mysql+pymysql://" + constants.DB_USERNAME +
                     ":" + constants.DB_PWD + '@' + constants.DB_URL +
                     "/" + constants.DB_NAME + "?charset=utf8", encoding='utf-8', poolclass=QueuePool)
             Base.metadata.create_all(self._engine)
-            self._session_factory = sessionmaker(bind=self._engine)
+            self._session = scoped_session(sessionmaker(bind=self._engine,autoflush=False))
         
         def get_session(self):
-            if not self._session:
-                self._session = self._session_factory()
             return self._session
 
         def commit(self):
@@ -35,9 +32,13 @@ class db_connection:
                 raise
 
         def close_connection(self):
-            if self._session:
-                self._session.close()
-                self._session = None
+            try:
+                if self._session:
+                    self._session.remove()
+                if self._engine:
+                    self._engine.dispose()
+            except:
+                Logger().exception("Exception occurred while closing the db connection")
 
     instance = None
     def __init__(self):

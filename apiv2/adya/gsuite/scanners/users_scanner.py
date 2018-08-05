@@ -23,7 +23,7 @@ def query(auth_token, query_params, scanner):
     directory_service = gutils.get_directory_service(auth_token)
     users = []
     try:
-        results = directory_service.users().list(customer='my_customer', maxResults=10, pageToken=next_page_token,
+        results = directory_service.users().list(customer='my_customer', maxResults=20, pageToken=next_page_token,
                                                 orderBy='email').execute()
     except RefreshError as ex:
         Logger().info("User query : Not able to refresh credentials")
@@ -46,8 +46,10 @@ def process(db_session, auth_token, query_params, scanner_data):
 
     user_db_insert_data_dic = []
     db_session = db_connection().get_session()
-    user_email_list = []
+    scanners_list = []
+    scanner_channel_ids = []
     user_count = 0
+    now = datetime.datetime.utcnow()
     for user_data in scanner_data["entities"]:
         user_count = user_count + 1
         user_email = user_data.get("primaryEmail")
@@ -71,45 +73,40 @@ def process(db_session, auth_token, query_params, scanner_data):
             user["aliases"] = ",".join(aliases)
         user["member_type"] = constants.EntityExposureType.INTERNAL.value
         user_db_insert_data_dic.append(user)
-        user_email_list.append(user_email)
+
+        channel_id = str(uuid.uuid4())
+        file_scanner = {}
+        file_scanner["datasource_id"] = datasource_id
+        file_scanner["scanner_type"] = gsuite_constants.ScannerTypes.FILES.value
+        file_scanner["channel_id"] = channel_id
+        file_scanner["user_email"] = user_email
+        file_scanner["started_at"] = now
+        file_scanner["in_progress"] = 1
+        scanners_list.append(file_scanner)
+
+        app_scanner = {}
+        app_scanner["datasource_id"] = datasource_id
+        app_scanner["scanner_type"] = gsuite_constants.ScannerTypes.APPS.value
+        app_scanner["channel_id"] = channel_id
+        app_scanner["user_email"] = user_email
+        app_scanner["started_at"] = now
+        app_scanner["in_progress"] = 1
+        scanners_list.append(app_scanner)
+        scanner_channel_ids.append(channel_id)
+
+
     try:
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
+        db_session.bulk_insert_mappings(models.DatasourceScanners, scanners_list)
         db_connection().commit()
-        now = datetime.datetime.utcnow()
-        Logger().info("AdyaUserScan - Starting the user iteration")
-        for user_email in user_email_list:
-            Logger().info("AdyaUserScan - Starting for user - {}".format(user_email))
-            file_scanner = DatasourceScanners()
-            file_scanner.datasource_id = datasource_id
-            file_scanner.scanner_type = gsuite_constants.ScannerTypes.FILES.value
-            file_scanner.channel_id = str(uuid.uuid4())
-            file_scanner.user_email = user_email
-            file_scanner.started_at = now
-            file_scanner.in_progress = 1
-            db_session.add(file_scanner)
-            db_connection().commit()
-            Logger().info("AdyaUserScan - Committed the files scanner for user - {}".format(user_email))
-            file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(file_scanner.id), 
-                        'userEmail': user_email, 'ownerEmail': user_email}
+        
+        for scanner in db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.channel_id.in_(scanner_channel_ids))).all():
+            Logger().info("AdyaUserScan - Starting for user - {}".format(scanner.user_email))
+            file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(scanner.id), 
+                        'userEmail': scanner.user_email, 'ownerEmail': scanner.user_email}
             messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, file_query_params, "gsuite")
             Logger().info("AdyaUserScan - Triggerred the files scanner for user - {}".format(user_email))
 
-            app_scanner = DatasourceScanners()
-            app_scanner.datasource_id = datasource_id
-            app_scanner.scanner_type = gsuite_constants.ScannerTypes.APPS.value
-            app_scanner.channel_id = str(uuid.uuid4())
-            app_scanner.user_email = user_email
-            app_scanner.started_at = now
-            app_scanner.in_progress = 1
-            db_session.add(app_scanner)
-            db_connection().commit()
-            Logger().info("AdyaUserScan - Committed the app scanner for user - {}".format(user_email))
-            app_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(app_scanner.id), 
-                        'userEmail': user_email}
-            messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, app_query_params, "gsuite")
-            Logger().info("AdyaUserScan - Triggerred the app scanner for user - {}".format(user_email))
-
-        #Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
         return user_count
 
     except Exception as ex:

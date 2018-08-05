@@ -26,14 +26,14 @@ def process_notifications(notification_type, datasource_id, channel_id):
     db_connection().commit()
 
     if in_progress_count == 0:
-        Logger().warn("Either subscription does not exist or already in progress for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-            datasource_id, channel_id))
+        # Logger().warn("Either subscription does not exist or already in progress for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
+        #     datasource_id, channel_id))
         return
 
     subscription = db_session.query(PushNotificationsSubscription).filter(PushNotificationsSubscription.channel_id == channel_id).first()
     if not subscription or not subscription.page_token:
-        Logger().warn("Subscription does not exist or page token not set for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
-            datasource_id, channel_id))
+        # Logger().warn("Subscription does not exist or page token not set for datasource_id: {} and channel_id: {}, hence ignoring the notification.".format(
+        #     datasource_id, channel_id))
         return
 
     user_email = subscription.user_email
@@ -95,7 +95,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
 
 def remove_file(db_session, datasource_id, file_id):
     try:
-        Logger().info("Removing file from DB with id - {}".format(file_id))
+        #Logger().info("Removing file from DB with id - {}".format(file_id))
         db_session.query(ResourcePermission).filter(and_(ResourcePermission.datasource_id == datasource_id,
                                                                 ResourcePermission.resource_id == file_id)).delete()
         db_session.query(Resource).filter(and_(Resource.datasource_id == datasource_id, Resource.resource_id == file_id)).delete()
@@ -212,6 +212,6 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
     payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
     payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
     policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
-    Logger().info("update_resource : payload : {}".format(payload))
+    #Logger().info("update_resource : payload : {}".format(payload))
     messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "gsuite")
 

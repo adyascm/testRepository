@@ -44,7 +44,10 @@ def process(db_session, auth_token, query_params, scanner_data):
     datasource_id = query_params["dataSourceId"]
     groups_db_insert_data_dic = []
     group_email_list = []
+    scanners_list = []
+    scanner_channel_ids = []
     group_count = 0
+    now = datetime.datetime.utcnow()
     for group_data in scanner_data["entities"]:
         group_count = group_count + 1
         group = {}
@@ -63,23 +66,26 @@ def process(db_session, auth_token, query_params, scanner_data):
         group_email_list.append(groupemail)
         groups_db_insert_data_dic.append(group)   
 
+        channel_id = str(uuid.uuid4())
+        scanner = {}
+        scanner["datasource_id"] = datasource_id
+        scanner["scanner_type"] = gsuite_constants.ScannerTypes.MEMBERS.value
+        scanner["channel_id"] = channel_id
+        scanner["user_email"] = groupemail
+        scanner["started_at"] = now
+        scanner["in_progress"] = 1
+        scanners_list.append(scanner)
+        scanner_channel_ids.append(channel_id)
+
     try:
         db_session.bulk_insert_mappings(models.DomainUser, groups_db_insert_data_dic)
+        db_session.bulk_insert_mappings(models.DatasourceScanners, scanners_list)
         db_connection().commit()
 
-        now = datetime.datetime.utcnow()
-        for group_email in group_email_list:
-            scanner = DatasourceScanners()
-            scanner.datasource_id = datasource_id
-            scanner.scanner_type = gsuite_constants.ScannerTypes.MEMBERS.value
-            scanner.channel_id = str(uuid.uuid4())
-            scanner.user_email = group_email
-            scanner.started_at = now
-            scanner.in_progress = 1
-            db_session.add(scanner)
-            db_connection().commit()
+        
+        for scanner in db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.channel_id.in_(scanner_channel_ids))).all():
             query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(scanner.id), 
-                        'groupEmail': group_email}
+                        'groupEmail': scanner.user_email}
             messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
 
         return group_count
