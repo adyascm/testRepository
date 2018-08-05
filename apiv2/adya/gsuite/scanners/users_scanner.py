@@ -76,7 +76,9 @@ def process(db_session, auth_token, query_params, scanner_data):
         db_session.bulk_insert_mappings(models.DomainUser, user_db_insert_data_dic)
         db_connection().commit()
         now = datetime.datetime.utcnow()
+        Logger().info("AdyaUserScan - Starting the user iteration")
         for user_email in user_email_list:
+            Logger().info("AdyaUserScan - Starting for user - {}".format(user_email))
             file_scanner = DatasourceScanners()
             file_scanner.datasource_id = datasource_id
             file_scanner.scanner_type = gsuite_constants.ScannerTypes.FILES.value
@@ -86,9 +88,11 @@ def process(db_session, auth_token, query_params, scanner_data):
             file_scanner.in_progress = 1
             db_session.add(file_scanner)
             db_connection().commit()
+            Logger().info("AdyaUserScan - Committed the files scanner for user - {}".format(user_email))
             file_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(file_scanner.id), 
                         'userEmail': user_email, 'ownerEmail': user_email}
             messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, file_query_params, "gsuite")
+            Logger().info("AdyaUserScan - Triggerred the files scanner for user - {}".format(user_email))
 
             app_scanner = DatasourceScanners()
             app_scanner.datasource_id = datasource_id
@@ -99,11 +103,13 @@ def process(db_session, auth_token, query_params, scanner_data):
             app_scanner.in_progress = 1
             db_session.add(app_scanner)
             db_connection().commit()
+            Logger().info("AdyaUserScan - Committed the app scanner for user - {}".format(user_email))
             app_query_params = {'domainId': domain_id, 'dataSourceId': datasource_id, 'scannerId': str(app_scanner.id), 
                         'userEmail': user_email}
             messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, app_query_params, "gsuite")
+            Logger().info("AdyaUserScan - Triggerred the app scanner for user - {}".format(user_email))
 
-        Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
+        #Logger().info("Processed {} google directory users for domain_id: {}".format(user_count, domain_id))
         return user_count
 
     except Exception as ex:
