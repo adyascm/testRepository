@@ -51,7 +51,6 @@ def trigger_post_event(endpoint, auth_token, query_params, body, service_name="c
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
 
     else:
-        Logger().info("trigger_post_event : lambda ")
         body = _add_query_params_to_body(body, query_params)
         endpoint = service_name + "-" + \
             constants.DEPLOYMENT_ENV + "-post-" + slugify(endpoint)
@@ -73,7 +72,6 @@ def trigger_post_event_with_headers(endpoint, auth_token, query_params, headers,
             result = ResponseMessage(api_response.status_code, None, json.loads(api_response.content))
 
     else:
-        Logger().info("trigger_post_event : lambda ")
         body = _add_query_params_to_body(body, query_params)
         body = _add_headers_to_body(body, headers)
         endpoint = service_name + "-" + \

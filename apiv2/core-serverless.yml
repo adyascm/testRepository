@@ -118,6 +118,7 @@ custom:
 functions:
   get-common-currentuser:
     handler: adya.core.services.auth_handler.current_user
+    memorySize: 128
     events:
       - http:
           path: user
@@ -126,6 +127,7 @@ functions:
 
   get-common-datasources:
     handler: adya.core.services.domain_handler.get_datasource
+    memorySize: 128
     events:
       - http:
           path: datasources
@@ -293,6 +295,7 @@ functions:
           cors: true
   get-common-getallactions:
     handler: adya.core.services.actions_handler.get_all_actions
+    memorySize: 256
     events:
       - http:
           path: getallactions

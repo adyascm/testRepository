@@ -139,6 +139,7 @@ functions:
   
   post-github-processnotifications:
     handler: adya.github.services.notifications_handler.receive_github_notifications
+    memorySize: 256
     events:
       - http:
           path: processnotifications

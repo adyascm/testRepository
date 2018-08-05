@@ -39,6 +39,8 @@ provider:
         - "ec2:DescribeNetworkInterfaces"
         - "ec2:DeleteNetworkInterface"
         - "lambda:GetPolicy"
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
       Resource:
         "*"
   vpc: 
@@ -94,6 +96,7 @@ custom:
 functions:
   get-google-oauthlogin:
     handler: adya.gsuite.services.oauth_handler.google_oauth_request
+    memorySize: 128
     events:
       - http:
           path: oauthlogin
@@ -101,6 +104,7 @@ functions:
 
   get-google-oauthcallback:
     handler: adya.gsuite.services.oauth_handler.google_oauth_callback
+    memorySize: 256
     events:
       - http:
           path: oauthcallback
@@ -108,6 +112,7 @@ functions:
 
   get-google-scan:
     handler: adya.gsuite.services.scan_handler.start_scan
+    memorySize: 256
     events:
       - http:
           path: scan
@@ -116,6 +121,7 @@ functions:
 
   post-google-scan:
     handler: adya.gsuite.services.scan_handler.update_scan
+    memorySize: 128
     events:
       - http:
           path: scan
@@ -124,22 +130,16 @@ functions:
 
   get-google-scan-entities:
     handler: adya.gsuite.services.scan_handler.request_scanner_data
+    memorySize: 1024
     events:
       - http:
           path: scan/entities
           method: get
           cors: true
 
-  post-google-scan-entities:
-    handler: adya.gsuite.services.scan_handler.process_scanner_data
-    events:
-      - http:
-          path: scan/entities
-          method: post
-          cors: true
-
   get-google-scan-handlechannelexpiration:
     handler: adya.gsuite.services.scan_handler.handle_channel_expiration
+    memorySize: 256
     events:
       - http:
           path: handlechannelexpiration
@@ -148,6 +148,7 @@ functions:
 
   get-google-scan-polldrivechanges:
     handler: adya.gsuite.services.scan_handler.gdrive_periodic_changes_poll
+    memorySize: 256
     events:
       - http:
           path: scan/polldrivechanges
@@ -156,6 +157,7 @@ functions:
 
   post-google-scan-processdrivenotifications:
     handler: adya.gsuite.services.scan_handler.process_drive_change_notifications
+    memorySize: 256
     events:
       - http:
           path: scan/processdrivenotifications
@@ -164,6 +166,7 @@ functions:
 
   post-google-scan-processactivitynotifications:
     handler: adya.gsuite.services.scan_handler.process_activity_notifications
+    memorySize: 256
     events:
       - http:
           path: scan/processactivitynotifications
@@ -172,6 +175,7 @@ functions:
 
   post-google-scan-subscribenotifications:
     handler: adya.gsuite.services.scan_handler.subscribe_gdrive_notifications
+    memorySize: 256
     events:
       - http:
           path: scan/subscribenotifications
@@ -180,6 +184,7 @@ functions:
 
   get-google-getactivitiesforuser:
     handler: adya.gsuite.services.activities_handler.get_activities_for_user
+    memorySize: 128
     events:
       - http:
           path: getactivitiesforuser
@@ -188,6 +193,7 @@ functions:
 
   post-google-policies-validate:
     handler: adya.gsuite.services.policy_validate_handler.validate_policy
+    memorySize: 256
     events:
       - http:
           path: policies/validate
@@ -196,6 +202,7 @@ functions:
 
   post-google-execute-actions:
     handler: adya.gsuite.services.actions_handler.execute_gsuite_actions
+    memorySize: 256
     events:
       - http:
           path: actions

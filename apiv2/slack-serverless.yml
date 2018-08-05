@@ -139,6 +139,7 @@ functions:
 
   post-slack-scan-processnotifications:
     handler: adya.slack.services.notifications_handler.receive_slack_notifications
+    memorySize: 256
     events:
       - http:
           path: scan/processnotifications

@@ -37,7 +37,7 @@ class db_connection:
                     self._session.remove()
                 if self._engine:
                     self._engine.dispose()
-            except Exception as ex:
+            except:
                 Logger().exception("Exception occurred while closing the db connection")
 
     instance = None
