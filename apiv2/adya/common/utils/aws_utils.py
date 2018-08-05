@@ -169,14 +169,17 @@ def send_email_with_attachment(user_list, csv_data, report_desc, report_name):
 def invoke_lambda(function_name, auth_token, body, trigger_type=constants.TriggerType.ASYNC.value):
     if not body:
         body = {}
+    Logger().info("AdyaLambdaInvoke - Starting the invoke")
     body['Authorization'] = auth_token
     client = boto3.client('lambda')
+    Logger().info("AdyaLambdaInvoke - Got the client")
     response = client.invoke(
         FunctionName=function_name,
         InvocationType='Event' if trigger_type == constants.TriggerType.ASYNC.value else 'RequestResponse',
         LogType='None',
         Payload=bytes(json.dumps(body))
     )
+    Logger().info("AdyaLambdaInvoke - Triggered the invoke")
     response_payload = {"statusCode": 200, "body": ""}
     if trigger_type == constants.TriggerType.SYNC.value:
         response_payload = json.loads(response['Payload'].read().decode("utf-8"))
