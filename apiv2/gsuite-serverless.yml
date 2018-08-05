@@ -39,6 +39,8 @@ provider:
         - "ec2:DescribeNetworkInterfaces"
         - "ec2:DeleteNetworkInterface"
         - "lambda:GetPolicy"
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
       Resource:
         "*"
   vpc: 
