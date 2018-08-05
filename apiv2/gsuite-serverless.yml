@@ -130,7 +130,7 @@ functions:
 
   get-google-scan-entities:
     handler: adya.gsuite.services.scan_handler.request_scanner_data
-    memorySize: 256
+    memorySize: 1024
     events:
       - http:
           path: scan/entities

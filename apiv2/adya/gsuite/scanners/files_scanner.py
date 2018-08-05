@@ -24,15 +24,23 @@ def query(auth_token, query_params, scanner):
     quotaUser = owner_email[0:41]
     queryString = "'"+ owner_email +"' in owners and trashed=false"
     files = []
-    results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
-                    "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
-                    "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
-                    "owners,size,createdTime, modifiedTime), "
-                    "nextPageToken", pageSize=100, quotaUser= quotaUser, pageToken=next_page_token).execute()
-    if results and "files" in results:
-        files = results["files"]
+    iteration = 0
+    next_page_available = True
+    while iteration < 5 and next_page_available:
+        results = drive_service.files().list(q=queryString, fields="files(id, name, webContentLink, webViewLink, iconLink, "
+                        "thumbnailLink, description, lastModifyingUser, mimeType, parents, "
+                        "permissions(id, emailAddress, role, displayName, expirationTime, deleted),"
+                        "owners,size,createdTime, modifiedTime), "
+                        "nextPageToken", pageSize=100, quotaUser= quotaUser, pageToken=next_page_token).execute()
+        #print "For user - {} Iteration number - {} and next token - {}".format(owner_email, iteration, next_page_token)
 
-    next_page_token = results.get('nextPageToken')
+        if results and "files" in results:
+            files.extend(results["files"])
+        next_page_token = results.get('nextPageToken')
+        if not next_page_token:
+            next_page_available = False
+        iteration += 1
+    #print "For user - {} files length - {}".format(owner_email, len(files))
     return {"payload": files, "nextPageNumber": next_page_token, "batchSize": 10}
 
 def process(db_session, auth_token, query_params, scanner_data):
@@ -140,10 +148,13 @@ def process(db_session, auth_token, query_params, scanner_data):
             resource["parent_id"] = resourcedata.get('parents')[0] if resourcedata.get('parents') else None
             resourceList.append(resource)
         
+        db_session.bulk_insert_mappings(Resource, resourceList)
+        db_session.bulk_insert_mappings(ResourcePermission, data_for_permission_table)
+
         #Logger().info("File processing - collected the data in - {}".format(datetime.datetime.utcnow() - start_time))
-        db_session.execute(Resource.__table__.insert().prefix_with("IGNORE").values(resourceList))
+        #db_session.execute(Resource.__table__.insert().prefix_with("IGNORE").values(resourceList))
         #Logger().info("File processing - inserted in resource table in - {}".format(datetime.datetime.utcnow() - start_time))
-        db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(data_for_permission_table))
+        #db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(data_for_permission_table))
         #Logger().info("File processing - inserted in permissions table in - {}".format(datetime.datetime.utcnow() - start_time))
         if len(external_user_map)>0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
