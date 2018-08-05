@@ -31,9 +31,11 @@ def start_scan(auth_token, datasource_id, domain_id, user_email):
         query_params = {"dataSourceId": datasource_id, "domainId": domain_id, "scannerId": scanner.id }
         messaging.trigger_get_event(urls.SCAN_GSUITE_ENTITIES, auth_token, query_params, "gsuite")
 
-def update_scan(auth_token, datasource_id, domain_id):
+def update_scan(auth_token, datasource_id, db_session=None):
     #time.sleep(3)
-    db_session = db_connection().get_session()
+    if not db_session:
+        db_session = db_connection().get_session()
+
     scan_complete = db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.in_progress > 0)).count()
     #print "Total scanners in progress - {}".format(scan_complete)
     if scan_complete == 0:
@@ -42,8 +44,7 @@ def update_scan(auth_token, datasource_id, domain_id):
         Logger().info("update_scan: scan_complete - {}".format(scan_complete))
         #print "Scan complete status - {}".format(scan_complete)
         if scan_complete > 0:
-            Logger().info("update_scan : call Scan completed processing method")
-            scan_complete_processing(db_session, auth_token, datasource_id, domain_id)
+            scan_complete_processing(db_session, auth_token, datasource_id)
 
 # def request_scanner_data(auth_token, query_params):
 #     #try:
@@ -140,8 +141,9 @@ def request_scanner_data(auth_token, query_params):
     if in_progress == 0:
         db_session.query(DatasourceScanners).filter(and_(DatasourceScanners.datasource_id == datasource_id, DatasourceScanners.id == scanner_id)). \
             update({DatasourceScanners.in_progress: in_progress})
+        update_scan(auth_token, datasource_id, db_session)
         db_connection().commit()
-        messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
+        #messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
         return
     
     db_connection().commit()
@@ -185,7 +187,8 @@ def process_scanner_data(db_session, scanner, auth_token, query_params, scanner_
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
 
     if in_progress == 0:
-        messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
+        update_scan(auth_token, datasource_id, db_session)
+        #messaging.trigger_post_event(urls.SCAN_GSUITE_UPDATE, auth_token, query_params, {}, "gsuite")
 
 def get_scanner_processor(scanner_type):
     scanner_processor = None
@@ -211,7 +214,7 @@ def get_datasource_column(scanner_type, is_total = True):
         column_name = DataSource.total_file_count if is_total else DataSource.processed_file_count
     return column_name
 
-def scan_complete_processing(db_session, auth_token, datasource_id, domain_id):
+def scan_complete_processing(db_session, auth_token, datasource_id):
     Logger().info("Scan completed")
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
     body = {"datasource_id": datasource_id, "is_default": True}

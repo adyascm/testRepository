@@ -31,8 +31,6 @@ class GSuiteScan(Resource):
 class GSuiteEntities(Resource):
     def get(self):
         return scan_handler.request_scanner_data(request, None)
-    def post(self):
-        return scan_handler.process_scanner_data(request, None)
 
 class subscribe(Resource):
     def post(self):
