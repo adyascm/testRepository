@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Form, Header, Container, Dimmer, Loader } from 'semantic-ui-react'
 import agent from '../../utils/agent';
-import 'react-tagsinput/react-tagsinput.css'
 import UserTagging from '../UserTagging'
 
 
