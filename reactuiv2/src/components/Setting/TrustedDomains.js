@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Form, Header, Container, Dimmer, Loader } from 'semantic-ui-react'
 import agent from '../../utils/agent';
-import TagsInput from 'react-tagsinput';
-import 'react-tagsinput/react-tagsinput.css'
+import UserTagging from '../UserTagging'
 
 
 import {
@@ -21,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
 
 });
 
-class WhitelistItem extends Component {
+class TrustedDomains extends Component {
 
   constructor(props) {
       super(props);
@@ -75,23 +74,15 @@ class WhitelistItem extends Component {
 
   render(){
     return(
-      <Container>
+      <Container style={{textAlign: 'left'}}>
         <Header >Trusted Domains and Apps</Header>
-          <div style={{'marginBottom':'3%'}}>
-                <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}
-                  onChange={(e) => this.handlechange('trusted_domains', e)}
-                  inputProps={{placeholder:"domains..."}} addOnBlur={true}
-                  />
-          </div>
-          <div style={{'marginBottom':'3%'}}>
-                <TagsInput value={this.state.trustedEntitiesMap['trusted_apps'].length !== 0 ?
-                    this.state.trustedEntitiesMap['trusted_apps'] : []}
-                    onChange={(e) => this.handlechange('trusted_apps', e)}
-                   inputProps={{placeholder:"apps..."}} addOnBlur={true}
-                  />
-      </div>
-          <Button basic color='green' type='reset' loading={this.state.isLoading} onClick={this.handleSubmit}>Save
-          </Button>
+        <div style={{'marginBottom':'3%'}}>
+                <UserTagging source={"domain"} itemsList={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []} />
+        </div>
+        <div style={{'marginBottom':'3%'}}>
+                <UserTagging source={"app"} itemsList={this.state.trustedEntitiesMap['trusted_apps'].length !== 0 ? this.state.trustedEntitiesMap['trusted_apps'] : []} />
+        </div>
+        <Button basic color='green' type='reset' loading={this.state.isLoading} onClick={this.handleSubmit}>Save</Button>
       </Container>
 
 
@@ -99,4 +90,4 @@ class WhitelistItem extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(WhitelistItem);
+export default connect(mapStateToProps, mapDispatchToProps)(TrustedDomains);
