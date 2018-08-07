@@ -76,7 +76,7 @@ class TrustedDomains extends Component {
 
   render(){
     return(
-      <Container>
+      <Container style={{textAlign: 'left'}}>
         <Header >Trusted Domains and Apps</Header>
         <div style={{'marginBottom':'3%'}}>
                 {/* <TagsInput value={this.state.trustedEntitiesMap['trusted_domains'].length !== 0 ? this.state.trustedEntitiesMap['trusted_domains'] : []}

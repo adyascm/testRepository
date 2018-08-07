@@ -225,7 +225,8 @@ hr.divider {
     }
     
     .react-tags__search {
-      display: inline-block;
+      /* display: inline-block; */
+      display: -webkit-inline-box;
     
       /* match tag layout */
       padding: 7px 2px;
@@ -239,7 +240,8 @@ hr.divider {
     
       .react-tags__search {
         /* this will become the offsetParent for suggestions */
-        position: relative;
+        /* position: relative; */
+        position: inherit;
       }
     
     }

@@ -24,8 +24,8 @@ class UserTagging extends Component {
             itemsList: this.props.itemsList,
             placeholder: {
                 "policy": "Add new email",
-                "domain": "Add new domain",
-                "app": "Add new app"
+                "domain": "Add new trusted domain",
+                "app": "Add new trusted app"
             }
         }
     }
@@ -106,8 +106,7 @@ class UserTagging extends Component {
     render() {
         
         return (
-            <ReactTags 
-                className="react-tags__search-input input"
+            <ReactTags
                 tags={this.state.tags}
                 suggestions={this.state.suggestions}
                 handleInputChange={(data) => this.handleChange(data)}
