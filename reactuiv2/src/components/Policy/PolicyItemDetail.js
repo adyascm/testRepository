@@ -322,7 +322,7 @@ class PolicyItemDetail extends Component {
 
         let emailFieldInput = (
             <Form.Group widths='equal'>
-                <Form.Field><UserTagging datasource={this.state.datasource_id} /></Form.Field>
+                <Form.Field><UserTagging datasource={this.state.datasource_id} itemsList={this.props.actionEmail} source={"policy"} /></Form.Field>
             </Form.Group>
         )
 

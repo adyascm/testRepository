@@ -6,6 +6,7 @@ import { withRouter } from 'react-router-dom';
 import Whitelist from './Whitelist';
 import ManageDataSources from './ManageDataSources';
 import AuditLogTable from '../AuditLogTable';
+import TrustedDomains from './TrustedDomains';
 
 class Setting extends Component {
 
@@ -25,7 +26,8 @@ class Setting extends Component {
       detailsPage = <ManageDataSources {...this.props} />
     }
     else if (this.state.activeItem === 'whitelist') {
-      detailsPage = <Whitelist />
+      // detailsPage = <Whitelist />
+      detailsPage = <TrustedDomains />
     }
     else if (this.state.activeItem === 'auditlogs') {
       detailsPage = <AuditLogTable />
