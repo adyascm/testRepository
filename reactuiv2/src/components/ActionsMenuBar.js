@@ -31,30 +31,20 @@ class ActionsMenuBar extends Component {
                 payload = {
                     actionType: actionKey,
                     users_email: [],
+                    users_name: [],
                     datasource_id: null
                 }
-                for (let i in this.props.selectedRowFields) {
-                    if (this.props.selectedRowFields[i]) {
-                        let entity_obj = this.props.entityList[i];
-                        let user_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
-                        if (user_ds_type_is_gsuite && entity_obj.type == 'USER')
-                            payload.users_email.push(entity_obj["email"])
-                        if (!payload.datasource_id && user_ds_type_is_gsuite)
-                            payload.datasource_id = entity_obj["datasource_id"]
-                    }
-                }
-                if (actionKey == 'remove_all_access_for_multiple_users') {
-                    // FOR NOW NO ADDITIONAL OPERATIONS
-                }
-                else if (actionKey == 'notify_multiple_users_for_clean_up') {
-                    payload.users_name = []
+                if (actionKey == 'remove_all_access_for_multiple_users' || actionKey == 'notify_multiple_users_for_clean_up') {
                     for (let i in this.props.selectedRowFields) {
                         if (this.props.selectedRowFields[i]) {
                             let entity_obj = this.props.entityList[i];
-                            let entity_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
-                            if (entity_ds_type_is_gsuite && entity_obj.type == 'USER') {
-                                payload.users_name.push(entity_obj["full_name"]);
+                            let user_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
+                            if (user_ds_type_is_gsuite && entity_obj.type == 'USER'){
+                                payload.users_email.push(entity_obj["email"])
+                                payload.users_name.push(entity_obj["full_name"])
                             }
+                            if (!payload.datasource_id && user_ds_type_is_gsuite)
+                                payload.datasource_id = entity_obj["datasource_id"]
                         }
                     }
                 }
