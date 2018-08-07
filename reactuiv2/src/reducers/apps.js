@@ -13,7 +13,8 @@ import {
     SET_REDIRECT_PROPS,
     UPDATE_APPS_DELETE_FLAG,
     DELETE_APP_ACTION_LOAD,
-    LOGOUT
+    LOGOUT,
+    APPS_PAGINATION_DATA
 }   from '../constants/actionTypes';
 
 
@@ -30,7 +31,9 @@ const defaultState = {
     lastPage:undefined,
     appsPayload:undefined,
     sortColumnName:'score',
-    sortOrder: 'desc'
+    sortOrder: 'desc',
+    pageNumber: 0,
+    pageLimit: 10
 };
 
 export default (state = defaultState, action) => {
@@ -122,6 +125,12 @@ export default (state = defaultState, action) => {
                     app_name: action.payload.app_name
                 }
             }
+        case APPS_PAGINATION_DATA:
+            return {
+                ...state,
+                pageNumber: action.pageNumber,
+                pageLimit: action.pageLimit
+            }
         case SET_REDIRECT_PROPS:
             var states = {};
             if (action.reducerStates) {
@@ -135,7 +144,7 @@ export default (state = defaultState, action) => {
               ...state,
               currentUrl: action.redirectUrl,
               ...states
-            }     
+            }
         case LOGOUT:
             return {
                 ...defaultState

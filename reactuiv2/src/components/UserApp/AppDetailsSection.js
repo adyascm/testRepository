@@ -9,7 +9,8 @@ import {
     APP_USERS_LOADED,
     UPDATE_APPS_DELETE_FLAG,
     APPS_ACTION_LOAD,
-    APPS_ACTION_CANCEL
+    APPS_ACTION_CANCEL,
+    APPS_PAGINATION_DATA
 } from '../../constants/actionTypes';
 import { Loader, Dimmer } from 'semantic-ui-react'
 
@@ -20,6 +21,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+    setPaginationData: (pageNumber, pageLimit) => dispatch({ type: APPS_PAGINATION_DATA, pageNumber, pageLimit }),
     closingDetailsSection: (payload) => dispatch({ type: APPS_ITEM_SELECTED, payload }),
     appUsersLoadStart: () => dispatch({ type: APP_USERS_LOAD_START }),
     appUsersLoaded: (appId, payload) => dispatch({ type: APP_USERS_LOADED, appId: appId, payload: payload }),
@@ -60,19 +62,28 @@ class AppDetailsSection extends Component {
         this.props.removeUserFromApp("remove_user_from_app", userEmail, app.id, datasource_id)
     }
 
+    handleNextClick = () => {
+        this.props.setPaginationData(this.props.pageNumber + 1, this.props.pageLimit)
+    }
+
+    handlePreviousClick = () => {
+        this.props.setPaginationData(this.props.pageNumber - 1, this.props.pageLimit)
+    }
+
     componentWillMount() {
         if (this.props.selectedAppItem && this.props.selectedAppItem.id) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id,
+              agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder, this.props.pageNumber, this.props.pageLimit))
         }
     }
 
     componentWillReceiveProps(nextProps) {
         var oldAppId = this.props.selectedAppItem != null ? this.props.selectedAppItem.id : null;
         var newAppId = nextProps.selectedAppItem != null ? nextProps.selectedAppItem.id : null;
-        if (nextProps.appDeleted !== this.props.appDeleted || oldAppId != newAppId) {
+        if (nextProps.appDeleted !== this.props.appDeleted || oldAppId != newAppId || nextProps.pageNumber !== this.props.pageNumber) {
             nextProps.appUsersLoadStart()
-            nextProps.appUsersLoaded(nextProps.selectedAppItem.id, agent.Apps.getappusers(nextProps.selectedAppItem.id, nextProps.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder))
+            nextProps.appUsersLoaded(nextProps.selectedAppItem.id, agent.Apps.getappusers(nextProps.selectedAppItem.id, nextProps.selectedAppItem.domain_id, this.state.sortColumnName, this.state.sortOrder, nextProps.pageNumber, nextProps.pageLimit))
         }
     }
 
@@ -80,7 +91,7 @@ class AppDetailsSection extends Component {
         let payload = null
         if (this.state.sortColumnName !== mappedColumnName) {
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, 'asc'))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, 'asc', this.props.pageNumber, this.props.pageLimit))
             this.setState({
                 sortColumnName: mappedColumnName,
                 sortOrder: 'asc',
@@ -89,7 +100,7 @@ class AppDetailsSection extends Component {
         else {
             let sortOrder = this.state.sortOrder === 'asc' ? 'desc' : 'asc';
             this.props.appUsersLoadStart()
-            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, sortOrder))
+            this.props.appUsersLoaded(this.props.selectedAppItem.id, agent.Apps.getappusers(this.props.selectedAppItem.id, this.props.selectedAppItem.domain_id, mappedColumnName, sortOrder, this.props.pageNumber, this.props.pageLimit))
             this.setState({
                 sortOrder: sortOrder
             })
@@ -119,7 +130,7 @@ class AppDetailsSection extends Component {
                     let is_inactive = null
                     let formattedTime = null
                     if (user.last_login_time){
-                        is_inactive = new Date(user.last_login_time) < ninety_days_ago 
+                        is_inactive = new Date(user.last_login_time) < ninety_days_ago
                         formattedTime = (
                             <IntlProvider locale={'en'} >
                                 <FormattedDate
@@ -130,7 +141,7 @@ class AppDetailsSection extends Component {
                                 />
                             </IntlProvider> )
                     }
-                        
+
                     return (
                         <Table.Row key={index} textAlign="center" verticalAlign="middle">
                         <Table.Cell collapsing textAlign="center">
@@ -172,11 +183,11 @@ class AppDetailsSection extends Component {
 
             let appHeader = this.state.columnHeaders.map(headerName => {
                 let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-                let isSortable = (['Last Login'].indexOf(headerName) >=0)  
+                let isSortable = (['Last Login'].indexOf(headerName) >=0)
                 let headerCellStyle = !isSortable ? {pointerEvents:"none"}:{pointerEvents:'auto'}
                 return (<Table.HeaderCell style={headerCellStyle} textAlign="center" key={headerName} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}> { headerName }</Table.HeaderCell>)
-            })   
-            let tableHeader = 
+            })
+            let tableHeader =
                     (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
                         <Table.Row>{appHeader}</Table.Row>
                     </Table.Header>)
@@ -184,12 +195,18 @@ class AppDetailsSection extends Component {
                 {
                     menuItem: 'Users', render: () => <Tab.Pane attached={false}>
                         {this.props.appUsers && this.props.appUsers.length > 0 ?
+                            <div>
                             <Table sortable selectable striped celled compact='very'>
                                 {tableHeader}
                             <Table.Body>
-                                {appUsers}
+                               {appUsers}
                             </Table.Body>
-                        </Table> : null }
+                        </Table>
+                        <div style={{float: 'right'}}>
+                            {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                            {(!appUsers || appUsers.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                        </div>
+                        </div> : null }
                         </Tab.Pane>
                 },
                 {

@@ -20,7 +20,8 @@ def get_app_stats(event, context):
 
 def get_user_app(event,context):
     req_session = RequestSession(event)
-    req_error = req_session.validate_authorized_request(True,optional_params=["filterType", "appId", "domainId", "userEmail", "datasourceId", "pageNumber","pageSize","sortColumn","sortOrder","appName"])
+    req_error = req_session.validate_authorized_request(True,optional_params=["filterType", "appId", "domainId", "userEmail",
+                                        "datasourceId", "pageNumber","pageSize","sortColumn","sortOrder","appName", "pageLimit"])
     if req_error:
         return req_error
     auth_token = req_session.get_auth_token()
@@ -33,8 +34,10 @@ def get_user_app(event,context):
         datasource_id = req_session.get_req_param('datasourceId')
         sort_column_name = req_session.get_req_param("sortColumn")
         sort_order = req_session.get_req_param("sortOrder")
+        page_num = req_session.get_req_param("pageNumber")
+        page_limit = req_session.get_req_param("pageLimit")
         if app_id:
-            data = directory_controller.get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order)
+            data = directory_controller.get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order, page_num, page_limit)
         elif user_email:
             data = directory_controller.get_apps_for_user(auth_token, datasource_id, user_email)
         else:

@@ -211,9 +211,10 @@ def get_all_apps(auth_token):
     return apps_data
 
 
-def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order):
+def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order, page_number, page_limit):
     db_session = db_connection().get_session()
-
+    page_number = int(page_number) if page_number else 0
+    page_limit = int(page_limit) if page_limit else 10
     # check for non-admin user
     existing_user = db_utils.get_user_session(auth_token)
     is_admin = existing_user.is_admin
@@ -223,16 +224,23 @@ def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_orde
     datasource_ids = [r for r, in datasource_ids]
     # if servie account and non-admin user, show permission for logged in user only
     if is_service_account_is_enabled and not is_admin:
-        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id, DomainUser.email == ApplicationUserAssociation.user_email, ApplicationUserAssociation.user_email == login_user_email, DomainUser.datasource_id == ApplicationUserAssociation.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)         
+        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id,
+                                                         DomainUser.email == ApplicationUserAssociation.user_email,
+                                                         ApplicationUserAssociation.user_email == login_user_email,
+                                                         DomainUser.datasource_id == ApplicationUserAssociation.datasource_id,
+                                                         DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)
     else:
-        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id, DomainUser.email == ApplicationUserAssociation.user_email, DomainUser.datasource_id == ApplicationUserAssociation.datasource_id, DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)         
+        apps_query = db_session.query(DomainUser).filter(ApplicationUserAssociation.application_id == app_id,
+                                                         DomainUser.email == ApplicationUserAssociation.user_email,
+                                                         DomainUser.datasource_id == ApplicationUserAssociation.datasource_id,
+                                                         DomainUser.member_type == constants.EntityExposureType.INTERNAL.value)
     
     if sort_column_name == "last_login": 
         if sort_order == 'desc':
             apps_query = apps_query.order_by(DomainUser.last_login_time.desc())
         else:
             apps_query = apps_query.order_by(DomainUser.last_login_time.asc())  
-    apps_query_data = apps_query.all()
+    apps_query_data = apps_query.offset(page_number * page_limit).limit(page_limit).all()
     
     return apps_query_data
 
