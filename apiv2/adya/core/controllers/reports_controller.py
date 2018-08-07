@@ -476,6 +476,31 @@ def run_report(auth_token, report_id):
                 "email":grp.email
             }          
             response_data.append(data_map)
+    elif report_type == 'External':
+        query_resp = db_session.query(DomainUser,DataSource,func.count(ResourcePermission.resource_id)).filter(DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value, DataSource.datasource_id == DomainUser.datasource_id, ResourcePermission.email == DomainUser.email).group_by(ResourcePermission.email).all()
+        for resp in query_resp:
+            full_name = resp[0].full_name
+            if (not full_name) and resp[0].first_name and resp[0].last_name:
+                full_name = resp[0].first_name + ' '+ resp[0].last_name
+            data_map = {
+                'source':resp[1].datasource_type,
+                'name':full_name,
+                'email':resp[0].email,
+                'exposed_docs_num':resp[2]
+            }
+            response_data.append(data_map)
+    elif report_type == 'Admin':
+        query_resp = db_session.query(DomainUser,DataSource).filter(DomainUser.is_admin == True, DomainUser.type == constants.DirectoryEntityType.USER.value, DataSource.datasource_id == DomainUser.datasource_id, DataSource.datasource_id == DomainUser.datasource_id).all()
+        for resp in query_resp:
+            full_name = resp[0].full_name
+            if (not full_name) and resp[0].first_name and resp[0].last_name:
+                full_name = resp[0].first_name + ' '+ resp[0].last_name
+            data_map = {
+                'source':resp[1].datasource_type,
+                'name':full_name,
+                'email':resp[0].email
+            }
+            response_data.append(data_map)
 
     final_response = {"response_data": response_data, "email_list": email_list, "report_type": report_type,
                       "report_desc": report_desc, "report_name": report_name}

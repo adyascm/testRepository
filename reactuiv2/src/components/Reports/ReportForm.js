@@ -34,6 +34,9 @@ const reportOptions = [
   { text: 'Access Permission Report', value: 'Permission' },
   { text: 'Activity Log Report', value: 'Activity' },
   { text: 'Inactive Users Report', value: 'Inactive'},
+  { text: 'External Users Report', value: 'External'},
+  { text: 'Empty Google Groups Report', value: 'EmptyGSuiteGroup'},
+  { text: 'Empty Slack Channels Report', value: 'EmptySlackChannel'}
 ]
 
 class ReportForm extends Component {
@@ -86,11 +89,11 @@ class ReportForm extends Component {
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if ( copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
+    else if ( copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','External','Admin'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if (copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
+    else if (copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','External','Admin'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
       errorMessage = "Please select the entity "
       valid = false
     }
@@ -110,7 +113,7 @@ class ReportForm extends Component {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
       }
-      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'].indexOf(copyFinalInputObj["report_type"]) >= 0){
+      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','External','Admin'].indexOf(copyFinalInputObj["report_type"]) >= 0){
         copyFinalInputObj.selected_entity = ""
         copyFinalInputObj.selected_entity_type = ""
         copyFinalInputObj.selected_entity_name = ""
@@ -153,7 +156,7 @@ class ReportForm extends Component {
     }
     if(key === 'report_type'){
       copyFinalReportObj['selected_entity'] = ""
-      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'].indexOf(value) < 0){
+      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','External','Admin'].indexOf(value) < 0){
         copyFinalReportObj['selected_entity_type'] = "user"
       } else{
         copyFinalReportObj['selected_entity_type'] = value
@@ -198,7 +201,7 @@ class ReportForm extends Component {
     //const { value } = this.state
     
     var report_type = this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']
-    var formRadio =  ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel'].indexOf(report_type) < 0  ?
+    var formRadio =  ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','External','Admin'].indexOf(report_type) < 0  ?
     (report_type != 'Activity' ? (<Form.Group inline>
     <Form.Radio label='File/Folder' value='resource'
       checked={( this.state.finalReportObj['selected_entity_type'] || this.handleMultipleOptions('selected_entity_type'))
