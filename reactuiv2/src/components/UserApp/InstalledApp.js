@@ -10,7 +10,6 @@ import {
 } from '../../constants/actionTypes';
 import ActionsMenuBar from '../ActionsMenuBar'
 
-
 const mapStateToProps = state => ({
     ...state.common,
     ...state.apps

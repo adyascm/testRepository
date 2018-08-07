@@ -67,23 +67,27 @@ class ActionsMenuBar extends Component {
                     datasource_id: null
                 }
                 for (let i in this.props.selectedRowFields) {
-                    let entity_obj = this.props.entityList[i];
-                    let entity_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
-                    if (entity_ds_type_is_gsuite) {
-                        payload.resources_ids.push(entity_obj['resource_id'])
-                        payload.resources_names.push(entity_obj['resource_name'])
+                    if (this.props.selectedRowFields[i]) {
+                        let entity_obj = this.props.entityList[i];
+                        let entity_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
+                        if (entity_ds_type_is_gsuite) {
+                            payload.resources_ids.push(entity_obj['resource_id'])
+                            payload.resources_names.push(entity_obj['resource_name'])
+                        }
+                        if (!payload.datasource_id && entity_ds_type_is_gsuite)
+                            payload.datasource_id = entity_obj["datasource_id"]
                     }
-                    if (!payload.datasource_id && entity_ds_type_is_gsuite)
-                        payload.datasource_id = entity_obj["datasource_id"]
                 }
                 if (actionKey == 'change_owner_of_multiple_files') {
                     payload.old_owner_emails = []
                     for (let i in this.props.selectedRowFields) {
-                        let entity_obj = this.props.entityList[i];
-                        let entity_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
-                        if (entity_ds_type_is_gsuite) {
-                            payload.old_owner_emails.push(entity_obj['resource_owner_id'])
-                        }
+                        if(this.props.selectedRowFields[i]){
+                            let entity_obj = this.props.entityList[i];
+                            let entity_ds_type_is_gsuite = this.props.datasourcesMap[entity_obj["datasource_id"]].datasource_type == 'GSUITE'
+                            if (entity_ds_type_is_gsuite) {
+                                payload.old_owner_emails.push(entity_obj['resource_owner_id'])
+                            }
+                        }   
                     }
                 }
                 else if (actionKey == 'remove_external_access_to_mutiple_resources' || actionKey == 'make_multiple_resources_private') {
@@ -99,9 +103,11 @@ class ActionsMenuBar extends Component {
                         apps_names: [],
                     }
                     for (let i in this.props.selectedRowFields) {
-                        let entity_obj = this.props.entityList[i];
-                        payload.apps_ids.push(entity_obj['id'])
-                        payload.apps_names.push(entity_obj['display_text'])
+                        if(this.props.selectedRowFields[i]){
+                            let entity_obj = this.props.entityList[i];
+                            payload.apps_ids.push(entity_obj['id'])
+                            payload.apps_names.push(entity_obj['display_text'])
+                        }
                     }
                 }
                 this.props.onMultiDeleteAppAction(payload, true)
