@@ -203,6 +203,32 @@ class ReportsGrid extends Component {
         cellRenderer: "agGroupCellRenderer",
         width: 150
       },
+    ],
+    this.columnDefsForExposedRes = [
+      {
+        headerName: 'Source',
+        field: 'source',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Name',
+        field: 'name',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Type',
+        field: 'type',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Owner',
+        field: 'owner',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
     ]
   }
 
@@ -237,11 +263,14 @@ getColDef = () => {
     case 'EmptySlackChannel':
       colDef = this.columnDefsForEmptySlackChannel
       break    
-    case 'External':
+    case 'ExternalUsers':
       colDef = this.columnDefsForExternalUsers
       break      
     case 'Admin':
       colDef = this.columnDefsForAdminUsers
+      break  
+    case 'ExposedResources':
+      colDef = this.columnDefsForExposedRes
       break      
   }
   return colDef

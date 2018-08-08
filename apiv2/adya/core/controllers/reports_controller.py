@@ -473,7 +473,7 @@ def run_report(auth_token, report_id):
                 "email":grp.email
             }          
             response_data.append(data_map)
-    elif report_type == 'External':
+    elif report_type == 'ExternalUsers':
         domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
         datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
         datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
@@ -507,6 +507,19 @@ def run_report(auth_token, report_id):
                 'email':resp.email
             }
             response_data.append(data_map)
+    elif report_type == 'ExposedResources':
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(Resource).filter(Resource.datasource_id.in_(datasource_obj.keys()),Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value).limit(constants.REPORT_SIZE_LIMIT)
+        for resp in query_resp:
+            data_map = {
+                'source':datasource_obj[resp.datasource_id],
+                'name':resp.resource_name,
+                'type':resp.resource_type,
+                'owner':resp.resource_owner_id
+            }
+            response_data.append(data_map)    
     final_response = {"response_data": response_data, "email_list": email_list, "report_type": report_type,
                       "report_desc": report_desc, "report_name": report_name}
     return final_response
