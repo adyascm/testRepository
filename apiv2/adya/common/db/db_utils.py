@@ -23,6 +23,7 @@ def get_user_session(auth_token, db_session=None):
         domain_users = db_session.query(DomainUser).filter(and_(
             DomainUser.member_type == constants.EntityExposureType.INTERNAL.value, DomainUser.email == user.email)).all()
 
+        domain_info = db_session.query(Domain).filter(Domain.domain_id == user.domain_id).first()
         #TODO : choose admin user in correct way
         check_if_admin_user = False
         if domain_users:
@@ -36,6 +37,8 @@ def get_user_session(auth_token, db_session=None):
                 user.is_admin = False
         else:
             user.is_admin = True
+
+        user.license_type = domain_info.license_type
     return user
 
 

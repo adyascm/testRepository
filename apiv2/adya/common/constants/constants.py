@@ -184,3 +184,10 @@ permission_exposure_to_event_constants = {
     EntityExposureType.ANYONEWITHLINK.value: 'FILE_SHARE_ANYONEWITHLINK',
     EntityExposureType.EXTERNAL.value: 'FILE_SHARE_EXTERNAL'
 }
+
+
+class LicenseTypes(Enum):
+    FREE = 'FREE'
+    LIMITED = 'LIMITED'
+    BLOCKED = 'BLOCKED'
+    PAID = 'PAID'
