@@ -232,7 +232,7 @@ getColDef = () => {
       colDef = this.columnDefsForInactiveUsers
       break
     case 'EmptyGSuiteGroup':
-      colDef = this.columnDefsForEmptyGSuteGroup
+      colDef = this.columnDefsForEmptyGSuiteGroup
       break
     case 'EmptySlackChannel':
       colDef = this.columnDefsForEmptySlackChannel

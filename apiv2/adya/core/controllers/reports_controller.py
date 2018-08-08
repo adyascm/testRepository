@@ -435,7 +435,6 @@ def run_report(auth_token, report_id):
                     "resource": datalist[2],
                     "type": datalist[3],
                     "ip_address": datalist[4]
-
                 }
                 response_data.append(data_map)
     elif report_type == "Inactive":
@@ -457,7 +456,6 @@ def run_report(auth_token, report_id):
             }
             response_data.append(data_map)
     elif report_type == 'EmptyGSuiteGroup':
-        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
         parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
         empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.GROUP.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
         for grp in empty_grps:
@@ -467,7 +465,6 @@ def run_report(auth_token, report_id):
             }          
             response_data.append(data_map)
     elif report_type == 'EmptySlackChannel':
-        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
         parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
         empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.CHANNEL.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
         for grp in empty_grps:
@@ -477,31 +474,39 @@ def run_report(auth_token, report_id):
             }          
             response_data.append(data_map)
     elif report_type == 'External':
-        query_resp = db_session.query(DomainUser,DataSource,func.count(ResourcePermission.resource_id)).filter(DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value, DomainUser.type == constants.DirectoryEntityType.USER.value, DataSource.datasource_id == DomainUser.datasource_id, ResourcePermission.email == DomainUser.email).group_by(ResourcePermission.email).all()
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(DomainUser,func.count(ResourcePermission.email)).filter(ResourcePermission.datasource_id == DomainUser.datasource_id,
+        ResourcePermission.email == DomainUser.email, DomainUser.datasource_id.in_(datasource_obj.keys()), \
+        DomainUser.type == constants.DirectoryEntityType.USER.value, DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value, \
+        ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value).group_by(ResourcePermission.email)
         for resp in query_resp:
             full_name = resp[0].full_name
             if (not full_name) and resp[0].first_name and resp[0].last_name:
                 full_name = resp[0].first_name + ' '+ resp[0].last_name
             data_map = {
-                'source':resp[1].datasource_type,
+                'source':datasource_obj[resp[0].datasource_id],
                 'name':full_name,
                 'email':resp[0].email,
-                'exposed_docs_num':resp[2]
+                'exposed_docs_num':resp[1]
             }
             response_data.append(data_map)
     elif report_type == 'Admin':
-        query_resp = db_session.query(DomainUser,DataSource).filter(DomainUser.is_admin == True, DomainUser.type == constants.DirectoryEntityType.USER.value, DataSource.datasource_id == DomainUser.datasource_id, DataSource.datasource_id == DomainUser.datasource_id).all()
+        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_obj.keys()), DomainUser.is_admin == True)
         for resp in query_resp:
-            full_name = resp[0].full_name
-            if (not full_name) and resp[0].first_name and resp[0].last_name:
-                full_name = resp[0].first_name + ' '+ resp[0].last_name
+            full_name = resp.full_name
+            if (not full_name) and resp.first_name and resp.last_name:
+                full_name = resp.first_name + ' '+ resp.last_name
             data_map = {
-                'source':resp[1].datasource_type,
+                'source':datasource_obj[resp.datasource_id],
                 'name':full_name,
-                'email':resp[0].email
+                'email':resp.email
             }
             response_data.append(data_map)
-
     final_response = {"response_data": response_data, "email_list": email_list, "report_type": report_type,
                       "report_desc": report_desc, "report_name": report_name}
     return final_response
