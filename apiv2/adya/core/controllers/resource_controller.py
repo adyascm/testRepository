@@ -3,7 +3,7 @@ from sqlalchemy.orm import aliased
 
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,Domain, DomainUser
+from adya.common.db.models import Resource, ResourcePermission, LoginUser, DataSource, ResourcePermission, DirectoryStructure
 from adya.common.constants import constants, urls
 from adya.common.utils import utils, aws_utils, messaging
 from adya.common.utils.response_messages import ResponseMessage, Logger
@@ -33,11 +33,11 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
     if source_type:
         resources_query = resources_query.filter(resource_alias.datasource_id == source_type)
     if accessible_by and not owner_email_id:
-        users_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.email == accessible_by)).all()
         parent_ids = []
-        for user in users_info:
-            for group in user.groups:
-                parent_ids.append(group.email)
+        groups = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+                                                                  DirectoryStructure.member_email == accessible_by)).all()
+        for group in groups:
+            parent_ids.append(group.parent_email)
 
         email_list = parent_ids + [accessible_by]
         resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))

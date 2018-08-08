@@ -17,7 +17,8 @@ import {
   DATASOURCE_LOAD_END,
   SET_REDIRECT_PROPS,
   CREATE_TRUSTED_ENTITIES,
-  SET_TRUSTED_ENTITIES
+  SET_TRUSTED_ENTITIES,
+  UPDATE_TRUSTED_ENTITIES
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -175,6 +176,26 @@ export default (state = defaultState, action) => {
         trustedEntities: action.error ? [] : action.payload,
         errorMessage: action.error
       };
+    case UPDATE_TRUSTED_ENTITIES:
+      let trustedEntities = {}
+      if (action.actionType === 'SET') {
+        let entity = []
+        for (let index in action.entityList) {
+          entity.push(action.entityList[index]['name'])
+        }
+        if (action.entityName === 'domain') {
+          trustedEntities['trusted_domains'] = entity,
+          trustedEntities['trusted_apps'] = state.trustedEntities['trusted_apps'] ? [...state.trustedEntities['trusted_apps']] : []
+        }
+        else {
+          trustedEntities['trusted_domains'] = state.trustedEntities['trusted_domains'] ? [...state.trustedEntities['trusted_domains']] : []
+          trustedEntities['trusted_apps'] = entity
+        }
+      }
+      return {
+        ...state,
+        trustedEntities: trustedEntities
+      }
     case USERS_PAGE_LOADED:
       return {
         ...state,

@@ -228,6 +228,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
 
 def send_app_install_policy_violate_email(user_email,policy,application, is_reverted):
     try:
+        datasource_name = (policy.name).split("::")[0] if policy.name else None
         template_name = "app_install_policy_violation"
         template_parameters = {
             "policy_name": policy.name,
@@ -236,7 +237,7 @@ def send_app_install_policy_violate_email(user_email,policy,application, is_reve
             "is_reverted": is_reverted
         } 
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in GSuite account"
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
@@ -244,7 +245,7 @@ def send_app_install_policy_violate_email(user_email,policy,application, is_reve
         return False
        
 
-def send_new_user_policy_violate_email(user_email, policy, new_user):
+def send_new_user_policy_violate_email(user_email, policy, new_user, group_name):
     try:
         datasource_name = (policy.name).split("::")[0] if policy.name else None
         user_type =  "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
@@ -254,10 +255,12 @@ def send_new_user_policy_violate_email(user_email, policy, new_user):
         template_parameters = {
             "policy_name": policy.name,
             "user_email": new_user["email"],
-            "datasource_name": datasource_name
+            "datasource_name": datasource_name,
+            "group_name": group_name,
+            "added_entity_type": "team" if datasource_name == constants.ConnectorTypes.SLACK.value else "group"
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in {} account".format(datasource_name)
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
