@@ -106,6 +106,7 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
         domain_datasource_ids = [datasource_id]
 
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
+    groups = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id.in_(domain_datasource_ids)).all()
 
     shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
@@ -126,7 +127,17 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     users_query = filter_on_get_user_list(users_query, full_name, email, member_type,
                             datasource_id, sort_column, sort_order, is_admin, type, page_number)
     users_list = users_query.all()
-    return users_list + shared_files_with_external_users
+    final_user_list = users_list + shared_files_with_external_users
+    for user in final_user_list:
+        user.groups = []
+        for group in groups:
+            if group.member_email == user.email:
+                user.groups.append(group)
+            elif group.parent_email == user.email:
+                group.full_name = user.full_name
+
+    return final_user_list
+
 
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
