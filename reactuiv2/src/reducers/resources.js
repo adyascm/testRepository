@@ -26,7 +26,7 @@ const defaultState = {
     filterByDate: '',
     filterSourceType: '',
     pageNumber: 0,
-    pageLimit: 100
+    pageLimit: 50
 };
 
 export default (state = defaultState, action) => {
