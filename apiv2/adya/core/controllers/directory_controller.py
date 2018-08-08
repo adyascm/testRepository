@@ -214,7 +214,7 @@ def get_all_apps(auth_token):
 def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order, page_number, page_limit):
     db_session = db_connection().get_session()
     page_number = int(page_number) if page_number else 0
-    page_limit = int(page_limit) if page_limit else 10
+    page_limit = int(page_limit) if page_limit else constants.PAGE_LIMIT
     # check for non-admin user
     existing_user = db_utils.get_user_session(auth_token)
     is_admin = existing_user.is_admin
