@@ -1,4 +1,4 @@
-from sqlalchemy import and_, desc, asc
+from sqlalchemy import and_, desc, asc, func
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
@@ -105,8 +105,13 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     else:
         domain_datasource_ids = [datasource_id]
 
-    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
-    groups = db_session.query(DirectoryStructure).filter(DirectoryStructure.datasource_id.in_(domain_datasource_ids)).all()
+    users_query = db_session.query(DomainUser, func.group_concat(
+                            '{"member_email":"',DirectoryStructure.member_email, '", "member_type":"', DirectoryStructure.member_type,\
+                                '", "parent_email":"', DirectoryStructure.parent_email, '", "member_id":"', DirectoryStructure.member_id, \
+                                '", "member_role":"', DirectoryStructure.member_role , '"}',  '|').label("groups")).join(DirectoryStructure,
+                           and_(DirectoryStructure.datasource_id == DomainUser.datasource_id,
+                           DirectoryStructure.member_email == DomainUser.email), isouter=True).filter(DomainUser.datasource_id.in_(domain_datasource_ids))\
+                            .group_by(DomainUser.email)
 
     shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
@@ -128,15 +133,17 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
                             datasource_id, sort_column, sort_order, is_admin, type, page_number)
     users_list = users_query.all()
     final_user_list = users_list + shared_files_with_external_users
+    user_list = []
     for user in final_user_list:
-        user.groups = []
-        for group in groups:
-            if group.member_email == user.email:
-                user.groups.append(group)
-            elif group.parent_email == user.email:
-                group.full_name = user.full_name
+        group_info = user[1]
+        res = []
+        if group_info:
+            res = parse_groups_info(group_info, domain_datasource_ids, db_session)
+        user[0].groups = res
+        user_list.append(user[0])
 
-    return final_user_list
+
+    return user_list
 
 
 
@@ -414,3 +421,18 @@ def write_to_csv(auth_token, payload):
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
+
+
+def parse_groups_info(group_info_str, datasource_ids, db_session):
+    group_info_str = group_info_str[:-1]
+    group_infos = group_info_str.split('|,')
+    groups = []
+    for group_info in group_infos:
+        if len(group_info) > 0:
+            group = json.loads(group_info)
+            group_email = group['parent_email']
+            group_info_table = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email == group_email)).first()
+            group['full_name'] = group_info_table.full_name
+            groups.append(group)
+
+    return groups
