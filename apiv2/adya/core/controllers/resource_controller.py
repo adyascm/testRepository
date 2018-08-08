@@ -40,8 +40,8 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
             parent_ids.append(group.parent_email)
 
         email_list = parent_ids + [accessible_by]
-        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
-        resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
+        #resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
+        resources_query = resources_query.filter(and_(ResourcePermission.datasource_id == resource_alias.datasource_id, ResourcePermission.resource_id == resource_alias.resource_id, ResourcePermission.email.in_(email_list)))
         resources_query = resources_query.filter(resource_alias.resource_owner_id != accessible_by)
     if selected_date:
         resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)

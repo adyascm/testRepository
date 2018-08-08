@@ -67,10 +67,11 @@ class UserResourceTable extends Component {
         window.scrollTo(0, 0)
         if ((this.props.selectedUserItem["email"] !== nextProps.selectedUserItem["email"]) ||
             nextProps.pageNumber !== this.props.pageNumber || nextProps.filterExposureType !== this.props.filterExposureType) {
+            let filterExposureType = (nextProps.selectedUserItem.member_type === 'EXT' ? '' : nextProps.filterExposureType)
             nextProps.onLoadStart()
             nextProps.onLoad(agent.Resources.getResources({
                 'accessibleBy': nextProps.selectedUserItem["email"],
-                'exposureType': nextProps.filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+                'exposureType': filterExposureType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
                 'datasourceId': this.props.selectedUserItem.datasource_id
             }))
         }
@@ -117,7 +118,7 @@ class UserResourceTable extends Component {
         if (this.props.selectedUserItem.resources)
             tableRowData = this.props.selectedUserItem.resources.map((rowData, index) => {
                 if (ds.datasource_type != "GSUITE") {
-                    return(<Table.Row key={index}>
+                    return (<Table.Row key={index}>
                         <Table.Cell style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell >{rowData["resource_owner_id"]}</Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
@@ -128,7 +129,7 @@ class UserResourceTable extends Component {
                     <Table.Row key={index}>
                         <Table.Cell style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell>{rowData["resource_owner_id"]}</Table.Cell>
-                        <Table.Cell textAlign="center" width='3' style={{'overflow': 'unset'}}>
+                        <Table.Cell textAlign="center" width='3' style={{ 'overflow': 'unset' }}>
                             <Dropdown fluid selection options={this.state.permissionOptions} value={rowData["myPermission"]} onChange={(event, data) => this.onPermissionChange(event, rowData, data.value)} />
                         </Table.Cell>
                         <Table.Cell>{rowData["exposure_type"]}</Table.Cell>
