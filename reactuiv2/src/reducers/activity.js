@@ -1,15 +1,18 @@
 import {
-  ACTIVITIES_PAGE_LOAD_START,
-  ACTIVITIES_PAGE_LOADED,
-  ACTIVITIES_SET_ROW_DATA,
-  ACTIVITIES_PAGINATION_DATA,
-  ACTIVITIES_FILTER_CHANGE,
-  LOGOUT,
-  SET_REDIRECT_PROPS
+    ACTIVITIES_PAGE_LOAD_START,
+    ACTIVITIES_PAGE_LOADED,
+    ACTIVITIES_CHART_LOAD_START,
+    ACTIVITIES_CHART_LOADED,
+    ACTIVITIES_SET_ROW_DATA,
+    ACTIVITIES_PAGINATION_DATA,
+    ACTIVITIES_FILTER_CHANGE,
+    LOGOUT,
+    SET_REDIRECT_PROPS
 } from '../constants/actionTypes';
 
 const defaultState = {
     isLoadingActivities: false,
+    isLoadingActivitiesChart: false,
     rowData: undefined,
     activitiesDataPayload: undefined,
     activitySearchPayload: undefined,
@@ -30,12 +33,24 @@ export default (state = defaultState, action) => {
                 isLoadingActivities: true,
                 rowData: undefined
             }
+        case ACTIVITIES_CHART_LOAD_START:
+            return {
+                ...state,
+                isLoadingActivitiesChart: true,
+                rowData: undefined
+            }
         case ACTIVITIES_PAGE_LOADED:
             return {
                 ...state,
                 isLoadingActivities: false,
                 activitiesDataPayload: !action.error ? action.payload : [],
                 activitySearchPayload: undefined
+            }
+        case ACTIVITIES_CHART_LOADED:
+            return {
+                ...state,
+                isLoadingActivitiesChart: false,
+                activitiesChartDataPayload: !action.error ? action.payload : [],
             }
         case ACTIVITIES_PAGINATION_DATA:
             return {
@@ -66,8 +81,8 @@ export default (state = defaultState, action) => {
                 var reducers = Object.keys(action.reducerStates)
                 for (var index in reducers) {
                     if (reducers[index] == "resources")
-                      states = action.reducerStates[reducers[index]];
-                  }
+                        states = action.reducerStates[reducers[index]];
+                }
             }
             return {
                 ...state,
