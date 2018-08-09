@@ -33,7 +33,7 @@ import {
 const defaultState = {
     pageNumber: 0,
     usersListPageNumber: 0,
-    pageLimit: 100,
+    pageLimit: 50,
     exposureType: 'EXT',
     isLoadingUsers: false,
     isLoadingUserResources: false,
