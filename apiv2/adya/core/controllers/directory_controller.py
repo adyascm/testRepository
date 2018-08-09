@@ -124,7 +124,7 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
                                                users_alias.member_type == constants.EntityExposureType.EXTERNAL.value)))
 
     users_query = filter_on_get_user_list(users_query, full_name, email, member_type,
-                            datasource_id, sort_column, sort_order, is_admin, type, page_number)
+                            datasource_id, sort_column, sort_order, is_admin, type, page_number, users_alias)
     users_list = users_query.all()
     res_map = {}
     for user in users_list:
@@ -140,33 +140,37 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
 
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
-                   sort_order=None, is_admin=None, type=None, page_number=0):
+                   sort_order=None, is_admin=None, type=None, page_number=0, user_alias=None):
+
+    if not user_alias:
+        user_alias = DomainUser
+
     if full_name:
-        entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
+        entity = entity.filter(user_alias.full_name.ilike("%" + full_name + "%"))
     if email:
-        entity = entity.filter(DomainUser.email.ilike("%" + email + "%"))
+        entity = entity.filter(user_alias.email.ilike("%" + email + "%"))
     if is_admin:
-        entity = entity.filter(DomainUser.is_admin == is_admin)
+        entity = entity.filter(user_alias.is_admin == is_admin)
     if member_type:
-        entity = entity.filter(DomainUser.member_type == member_type)
+        entity = entity.filter(user_alias.member_type == member_type)
     if type:
-        entity = entity.filter(DomainUser.type == type)
+        entity = entity.filter(user_alias.type == type)
 
     sort_column_obj = None
     if sort_column == "datasource_id":
-        sort_column_obj = DomainUser.datasource_id
+        sort_column_obj = user_alias.datasource_id
     elif sort_column == "full_name":
-        sort_column_obj = DomainUser.full_name
+        sort_column_obj = user_alias.full_name
     elif sort_column == "email":
-        sort_column_obj = DomainUser.email
+        sort_column_obj = user_alias.email
     elif sort_column == "is_admin":
-        sort_column_obj = DomainUser.is_admin
+        sort_column_obj = user_alias.is_admin
     elif sort_column == "member_type":
-        sort_column_obj = DomainUser.member_type
+        sort_column_obj = user_alias.member_type
     elif sort_column == "type":
-        sort_column_obj = DomainUser.type
+        sort_column_obj = user_alias.type
     elif sort_column == "last_login":
-        sort_column_obj = DomainUser.last_login_time
+        sort_column_obj = user_alias.last_login_time
 
     if sort_column_obj:
         if sort_order == "asc":
