@@ -110,9 +110,10 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
 
     users_alias = aliased(DomainUser)
     groups_alias = aliased(DomainUser)
-    users_query = db_session.query(users_alias, groups_alias).filter(and_(users_alias.email == DirectoryStructure.member_email,
-                        users_alias.datasource_id == DirectoryStructure.datasource_id, groups_alias.email == DirectoryStructure.parent_email,
-                        groups_alias.datasource_id == DirectoryStructure.datasource_id, users_alias.datasource_id.in_(domain_datasource_ids)))
+    users_query = db_session.query(users_alias, groups_alias).outerjoin(DirectoryStructure, and_(users_alias.email == DirectoryStructure.member_email,
+                        users_alias.datasource_id == DirectoryStructure.datasource_id, users_alias.datasource_id.in_(domain_datasource_ids))) \
+                        .outerjoin(groups_alias, and_(groups_alias.email == DirectoryStructure.parent_email,
+                        groups_alias.datasource_id == DirectoryStructure.datasource_id))
 
     if is_service_account_is_enabled and not is_login_user_admin:
         #check the login user or the external user with whom login user shared the files
@@ -130,9 +131,10 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     for user in users_list:
         if user[0].email in res_map:
             user_groups = res_map[user[0].email].groups
-            user_groups.append(user[1])
+            if user[1]:
+                user_groups.append(user[1])
         else:
-            user[0].groups = [user[1]]
+            user[0].groups = [user[1]] if user[1] else []
             res_map[user[0].email] = user[0]
 
     result = res_map.values()
