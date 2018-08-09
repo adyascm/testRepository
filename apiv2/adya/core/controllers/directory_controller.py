@@ -111,9 +111,9 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     users_alias = aliased(DomainUser)
     groups_alias = aliased(DomainUser)
     users_query = db_session.query(users_alias, groups_alias).outerjoin(DirectoryStructure, and_(users_alias.email == DirectoryStructure.member_email,
-                        users_alias.datasource_id == DirectoryStructure.datasource_id, users_alias.datasource_id.in_(domain_datasource_ids))) \
+                        users_alias.datasource_id == DirectoryStructure.datasource_id)) \
                         .outerjoin(groups_alias, and_(groups_alias.email == DirectoryStructure.parent_email,
-                        groups_alias.datasource_id == DirectoryStructure.datasource_id))
+                        groups_alias.datasource_id == DirectoryStructure.datasource_id)).filter(users_alias.datasource_id.in_(domain_datasource_ids))
 
     if is_service_account_is_enabled and not is_login_user_admin:
         #check the login user or the external user with whom login user shared the files
