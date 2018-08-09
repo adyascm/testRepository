@@ -283,7 +283,7 @@ def process_group_related_activities(datasource_id, actor_email, event):
                     external_user.datasource_id = datasource_id
                     external_user.email = user_email
                     external_user.member_type = constants.EntityExposureType.EXTERNAL.value
-                    external_user.type = 'USER'
+                    external_user.type = constants.DirectoryEntityType.USER.value
                     # TODO: find the first name and last name of external user
                     external_user.first_name = ""
                     external_user.last_name = ""
