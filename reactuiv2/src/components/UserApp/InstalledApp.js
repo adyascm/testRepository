@@ -291,13 +291,13 @@ class InstalledApp extends Component {
     handleRowChecked = (event, data, index) => {
         event.stopPropagation()
         let selectedRowFields = this.state.selectedRowFields
-        selectedRowFields[index] = index in this.state.selectedRowFields ? !this.state.selectedRowFields[index] : true
+        selectedRowFields[index] = index in selectedRowFields ? !selectedRowFields[index] : true
         let showActionBar = Object.values(selectedRowFields).some(item => { return item;})
         this.setState({
             selectedRowFields:selectedRowFields,
             showActionBar:showActionBar
         })
-        if (!this.state.selectedRowFields[index]) {
+        if (!selectedRowFields[index]) {
             this.setState({
                 selectAllColumns: false
             })

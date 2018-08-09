@@ -191,13 +191,13 @@ class UserListNew extends Component {
     handleRowChecked = (event, data, index) => {
         event.stopPropagation()
         let selectedRowFields = this.state.selectedRowFields
-        selectedRowFields[index] = index in this.state.selectedRowFields ? !this.state.selectedRowFields[index] : true
+        selectedRowFields[index] = index in selectedRowFields ? !selectedRowFields[index] : true
         let showActionBar = Object.values(selectedRowFields).some(item => { return item;})
         this.setState({
             selectedRowFields:selectedRowFields,
             showActionBar:showActionBar
         })
-        if (!this.state.selectedRowFields[index]) {
+        if (!selectedRowFields[index]) {
             this.setState({
                 selectAllRows: false
             })
@@ -353,7 +353,7 @@ class UserListNew extends Component {
                     </IntlProvider> : null)
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell>
+                        <Table.Cell onClick={(event) => {event.stopPropagation()}}>
                             <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
                         </Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>

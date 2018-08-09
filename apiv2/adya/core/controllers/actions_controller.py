@@ -595,9 +595,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)        
         if len(old_owner_emails)>0:
-            for i,old_owner_email in enumerate(old_owner_emails):
+            for i in range(len(old_owner_emails)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'new_owner_email':new_owner_email, 'old_owner_email': old_owner_email, 'resource_id':resources_ids[i],'resource_name':resources_names[i]}
+                modified_action_payload['parameters'] = {'new_owner_email':new_owner_email, 'old_owner_email': old_owner_emails[i], 'resource_id':resources_ids[i],'resource_name':resources_names[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.CHANGE_OWNER_OF_FILE.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
@@ -608,9 +608,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)  
         if len(resources_ids)>0:
-            for i,resource_id in enumerate(resources_ids):
+            for i in range(len(resources_ids)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'resource_id':resource_id,'resource_name':resources_names[i]}
+                modified_action_payload['parameters'] = {'resource_id':resources_ids[i],'resource_name':resources_names[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.MAKE_RESOURCE_PRIVATE.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
@@ -621,9 +621,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)  
         if len(resources_ids)>0:
-            for i,resource_id in enumerate(resources_ids):
+            for i in range(len(resources_ids)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'resource_id':resource_id,'resource_name':resources_names[i]}
+                modified_action_payload['parameters'] = {'resource_id':resources_ids[i],'resource_name':resources_names[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_EXTERNAL_ACCESS_TO_RESOURCE.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)            
@@ -635,9 +635,9 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)  
         if len(apps_ids)>0:
-            for i,app_id in enumerate(apps_ids):
+            for i in range(len(apps_ids)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'app_id':app_id,'app_name':apps_names[i]}
+                modified_action_payload['parameters'] = {'app_id':apps_ids[i],'app_name':apps_names[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_APP_FOR_DOMAIN.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload) 
