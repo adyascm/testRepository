@@ -186,6 +186,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         template_name = "permission_change_policy_violation"
         is_public = False
         is_link_shared = False
+        permission_link = ''
         permissions_internal = []
         permissions_external = []
         for permission in new_permissions:
@@ -193,8 +194,10 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
             if permission["exposure_type"] == constants.EntityExposureType.PUBLIC.value:
                 is_public = True
+                permission_link = permission_str
             elif permission["exposure_type"] == constants.EntityExposureType.ANYONEWITHLINK.value:
                 is_link_shared = True
+                permission_link = permission_str
             elif permission["exposure_type"] == constants.EntityExposureType.EXTERNAL.value:
                 permissions_external.append(permission_str)
             elif permission["exposure_type"] == constants.EntityExposureType.INTERNAL.value:
@@ -226,6 +229,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "has_permissions_ext": True if len(permissions_external) > 0 else False,
             "is_public": is_public,
             "is_link_shared": is_link_shared,
+            "permission_link": permission_link,
             "revert_back": True if violated_permissions else False,
             "violated_permissions": violated_perm,
             "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
