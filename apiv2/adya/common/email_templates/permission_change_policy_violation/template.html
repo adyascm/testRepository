@@ -239,32 +239,40 @@
                {{/revert_back}}
                {{^revert_back}}
                     <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
-                    {{ #is_public }}
-                        <div style="margin-top:10px;text-align:left">Public</div>
-                    {{ /is_public }}
-                    {{ #is_link_shared }}
-                        <div style="margin-top:10px;text-align:left">Link</div>
-                    {{ /is_link_shared }}
-                    {{ #has_permissions_ext }}
-                        <div style="margin-top:10px;text-align:left">External - </div>
+                    <ul>
+                      {{ #is_public }}
+                          <div style="margin-top:10px;text-align:left">{{permission_link}}</div>
+                      {{ /is_public }}
+                    </ul>
+                    <ul>
+                      {{ #is_link_shared }}
+                          <div style="margin-top:10px;text-align:left">{{permission_link}}</div>
+                      {{ /is_link_shared }}
+                    </ul>
+                    <ul>
+                      {{ #has_permissions_ext }}
+                          <div style="margin-top:10px;text-align:left">External - </div>
+                          <ul>
+                            {{ #permissions_ext }}
+                              <li style="text-align:left">
+                                  {{.}}
+                              </li>
+                            {{ /permissions_ext }}
+                          </ul>
+                      {{ /has_permissions_ext }}
+                    </ul>
+                    <ul>
+                      {{ #has_permissions_internal }}
+                        <div style="margin-top:10px;text-align:left">Internal - </div>
                         <ul>
-                          {{ #permissions_ext }}
-                            <li style="text-align:left">
-                                {{.}}
-                            </li>
-                          {{ /permissions_ext }}
+                          {{ #permissions_internal }}
+                          <li style="text-align:left">
+                              {{.}}
+                          </li>
+                          {{ /permissions_internal }}
                         </ul>
-                    {{ /has_permissions_ext }}
-                    {{ #has_permissions_internal }}
-                      <div style="margin-top:10px;text-align:left">Internal - </div>
-                      <ul>
-                        {{ #permissions_internal }}
-                        <li style="text-align:left">
-                            {{.}}
-                        </li>
-                        {{ /permissions_internal }}
-                      </ul>
-                    {{ /has_permissions_internal }}
+                      {{ /has_permissions_internal }}
+                    </ul>
                {{/revert_back}}
 
 
