@@ -65,8 +65,24 @@ export default (state = defaultState, action) => {
             }
         case ACTIVITIES_FILTER_CHANGE:
             let newFilter = Object.assign({}, state.filterList);
-            newFilter[action.key] = action.value
-            state[action.property] = action.value
+            if(action.clearFilter){
+                if(action.property == 'filterEventType' || action.property == 'filterConnectorType'){
+                    if(!(action.property in newFilter)){
+                        newFilter[action.property] = {}
+                    }
+                }else if(action.property == 'filterByDate'){
+                    newFilter[action.property] = ''
+                }
+            }else{
+                if(action.property == 'filterEventType' || action.property == 'filterConnectorType'){
+                    if(!(action.property in newFilter)){
+                        newFilter[action.property] = {}
+                    }
+                    newFilter[action.property][action.key] = action.value
+                }else if(action.property == 'filterByDate'){
+                    newFilter[action.property] = action.value 
+                }
+            }
             return {
                 ...state,
                 filterList: newFilter

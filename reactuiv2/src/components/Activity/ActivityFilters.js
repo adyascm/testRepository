@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import agent from '../../utils/agent';
 
-
-import { Checkbox, Menu, Input } from 'semantic-ui-react'
+import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
+import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
@@ -11,9 +12,99 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-
+    onLoadActivities: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
+    changeFilter: (property, key, value,clearFilter) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, key, value, clearFilter}),
 });
+
 class ActivityFilters extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            selectAllEventTypes:false,
+            selectedEventTypes:{},
+            selectedConnectors:{},
+            currentDate:""
+        }
+    }
+
+    handleEventTypeSelection = (data) => {
+        let selectedEventTypes = this.state.selectedEventTypes
+        selectedEventTypes[data.label] =  data.label in selectedEventTypes ? !selectedEventTypes[data.label] : true
+        this.setState({
+            selectedEventTypes:selectedEventTypes,
+        })
+        if (!selectedEventTypes[data.label]) {
+            this.setState({
+                selectAllEventTypes: false
+            })
+        }
+    }
+
+    handleConnectorSelection = (event, data) => {
+        let selectedConnectors = this.state.selectedConnectors
+        selectedConnectors[data.label] = data.label in selectedConnectors ? !selectedConnectors[data.label] : true
+        this.setState({
+            selectedConnectors:selectedConnectors
+        })   
+    }
+
+    handleAllEventTypeSelection = () => {
+        let selectAllEventTypes = !this.state.selectAllEventTypes
+        let selectedEventTypes = this.state.selectedEventTypes
+        for(let event of this.props.all_activity_events){
+            selectedEventTypes[event[0]] = selectAllEventTypes
+        }
+        this.setState({
+            selectAllEventTypes: selectAllEventTypes,
+            selectedEventTypes:selectedEventTypes,
+        })
+    }
+
+    handleDateChange = (date) => {
+        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
+        this.setState({
+            currentDate: date ? selectedDate : ''
+        })
+    }
+
+    clearFilterData = (stateKey) => {
+        if (stateKey === 'filterConnectorType'){
+            this.setState({
+                selectedConnectors:{},
+            })
+        }
+            
+        else if (stateKey === 'filterEventType')
+            this.setState({
+                selectedEventTypes:{}
+            })
+        else if (stateKey === 'filterByDate') {
+            this.setState({
+                currentDate: ''
+            })
+        }
+        else if (stateKey === 'filteractor') {
+            this.setState({
+                filteractor: ''
+            })
+        }
+        if(stateKey){
+            this.props.changeFilter(stateKey,'','',true)
+        }
+    }
+
+
+    handleSubmit = () => {
+        for(let k in this.state.selectedEventTypes){
+            if(this.state.selectedEventTypes[k])
+                this.props.changeFilter('filterEventType', this.props.all_activity_events[k],true)
+        }
+        this.props.onLoadActivities(agent.Activity.getAllActivites({
+            'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate, 'actor': this.props.filteractor,
+            'connector_type': this.state.selectedConnectors, 'event_type': this.state.selectedEventTypes , 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
+        }));
+    }
+
     render() {
         // if (!props.userStats || props.isUserSelected)
         //     return null;
@@ -41,35 +132,42 @@ class ActivityFilters extends Component {
         //     </Menu.Item>);
 
         // }
-        let filter_events = this.props.all_activity_events.map(event => {
+        
+        let filter_events = this.props.all_activity_events.map((filter_event, index) => {
             return(
                 <Menu.Item>
-                    <Checkbox label={event[0]} />
+                    <Checkbox label={filter_event[0]} onChange={(event, data) => this.handleEventTypeSelection(data)} checked={this.state.selectedEventTypes[index]} />
                 </Menu.Item>    
             )
         })
         return (
             <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
+                <span>
                 <Menu.Item>
                     <Menu.Header>Date Since</Menu.Header>
                     <Menu.Menu>
                         <Menu.Item>
                         <Input fluid placeholder='Filter by Date...'>
                                             <DatePicker
-                                                dateFormat="LLL"
+                                            onChange={this.handleDateChange}
+                                            dateFormat="LLL"
                                             />
                                         </Input>
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>
+                <Button onClick={(event, data) => {this.handleSubmit()}}>
+                    Submit
+                </Button>
+                </span>
                 <Menu.Item>
                     <Menu.Header>Connector</Menu.Header>
                     <Menu.Menu>
                         <Menu.Item>
-                            <Checkbox label='GSUITE' />
+                            <Checkbox label='GSUITE' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['GSUITE']} />
                         </Menu.Item>
                         <Menu.Item>
-                            <Checkbox label='SLACK' />
+                        <Checkbox label='SLACK' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['SLACK']} />
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>
@@ -77,7 +175,7 @@ class ActivityFilters extends Component {
                     <Menu.Header>Event Types</Menu.Header>
                     <Menu.Menu>
                         <Menu.Item>
-                            <Checkbox label='Select All' />
+                            <Checkbox onChange={this.handleAllEventTypeSelection} checked={this.state.selectAllEventTypes} label='Select All' />
                         </Menu.Item>
                         {filter_events}
                     </Menu.Menu>
