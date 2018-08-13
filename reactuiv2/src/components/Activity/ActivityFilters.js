@@ -41,6 +41,13 @@ class ActivityFilters extends Component {
         //     </Menu.Item>);
 
         // }
+        let filter_events = this.props.all_activity_events.map(event => {
+            return(
+                <Menu.Item>
+                    <Checkbox label={event[0]} />
+                </Menu.Item>    
+            )
+        })
         return (
             <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
                 <Menu.Item>
@@ -72,9 +79,7 @@ class ActivityFilters extends Component {
                         <Menu.Item>
                             <Checkbox label='Select All' />
                         </Menu.Item>
-                        <Menu.Item>
-                            <Checkbox label='OAUTH_GRANT' />
-                        </Menu.Item>
+                        {filter_events}
                     </Menu.Menu>
                 </Menu.Item>
             </Menu>

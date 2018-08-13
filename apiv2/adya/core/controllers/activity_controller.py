@@ -1,6 +1,7 @@
 from adya.common.db import activity_db
 from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource
+from adya.common.constants import event_constants
 
 
 def get_activites_for_domain(filters):
@@ -19,6 +20,12 @@ def get_activites_for_domain(filters):
 
     return activities
 
+def get_activity_events():
+    events = event_constants.GSUITE_EVENT_TYPES.items()
+    for k,v in event_constants.SLACK_EVENT_TYPES.items():
+        if(k not in event_constants.GSUITE_EVENT_TYPES):
+            events.append((k,v))
+    return events        
 
 
 

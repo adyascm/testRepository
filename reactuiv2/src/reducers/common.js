@@ -18,7 +18,8 @@ import {
   SET_REDIRECT_PROPS,
   CREATE_TRUSTED_ENTITIES,
   SET_TRUSTED_ENTITIES,
-  UPDATE_TRUSTED_ENTITIES
+  UPDATE_TRUSTED_ENTITIES,
+  GET_ALL_ACTIVITY_EVENTS
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -224,6 +225,11 @@ export default (state = defaultState, action) => {
         ...state,
         currentUrl: action.redirectUrl,
         ...states
+      }
+    case GET_ALL_ACTIVITY_EVENTS:
+      return {
+        ...state,
+        all_activity_events: action.error ? [] : action.payload  
       }
     default:
       return state;

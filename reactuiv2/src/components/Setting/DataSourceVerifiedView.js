@@ -5,6 +5,7 @@ import {
     SET_DATASOURCES, 
     GET_ALL_ACTIONS,
     FETCH_ALERTS_COUNT,
+    GET_ALL_ACTIVITY_EVENTS
     // USERS_PAGE_LOAD_START,
     // USERS_PAGE_LOADED
 } from '../../constants/actionTypes';
@@ -26,7 +27,9 @@ const mapDispatchToProps = dispatch => ({
     //         dispatch({ type: USERS_PAGE_LOADED, payload });
     //     },
     fetchAlertsCount: (alertsCount) => 
-        dispatch({ type: FETCH_ALERTS_COUNT, alertsCount })    
+        dispatch({ type: FETCH_ALERTS_COUNT, alertsCount }),
+    loadActivityEvents:(payload) => 
+        dispatch({type : GET_ALL_ACTIVITY_EVENTS, payload})
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -47,6 +50,9 @@ const DataSourceVerifiedView = ChildComponent => {
                 agent.Alert.getAlertsCount().then(response => {
                     this.props.fetchAlertsCount(response)
                 })
+            }
+            if(!this.props.common.all_activity_events){
+                this.props.loadActivityEvents(agent.Activity.getAllActivityEvents())
             }
         }
         render() {

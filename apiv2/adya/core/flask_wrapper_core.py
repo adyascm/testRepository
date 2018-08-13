@@ -153,5 +153,8 @@ class DefaultReportPolicy(Resource):
     def post(self):
         return domain_handler.default_report_policy(request, None)       
 
+class get_all_activity_events(Resource):
+    def get(self):
+        return activity_handler.get_all_activity_events(request, None)
 
 
