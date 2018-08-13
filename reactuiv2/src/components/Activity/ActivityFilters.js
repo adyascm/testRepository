@@ -95,13 +95,23 @@ class ActivityFilters extends Component {
 
 
     handleSubmit = () => {
+        let selectedConnectors = []
+        let selectedEventTypes = []
         for(let k in this.state.selectedEventTypes){
-            if(this.state.selectedEventTypes[k])
+            if(this.state.selectedEventTypes[k]){
                 this.props.changeFilter('filterEventType', this.props.all_activity_events[k],true)
+                selectedEventTypes.push(k)
+            }
         }
+        for(let k in this.state.selectedConnectors){
+            if(this.state.selectedConnectors[k]){
+                selectedConnectors.push(k)
+            }
+        }
+        
         this.props.onLoadActivities(agent.Activity.getAllActivites({
             'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate, 'actor': this.props.filteractor,
-            'connector_type': this.state.selectedConnectors, 'event_type': this.state.selectedEventTypes , 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
+            'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
         }));
     }
 
@@ -142,8 +152,11 @@ class ActivityFilters extends Component {
         })
         return (
             <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
-                <span>
+                
                 <Menu.Item>
+                    <Button style={{margin:"5px auto", display:'block'}} onClick={(event, data) => {this.handleSubmit()}}>
+                        Submit
+                    </Button>
                     <Menu.Header>Date Since</Menu.Header>
                     <Menu.Menu>
                         <Menu.Item>
@@ -156,10 +169,6 @@ class ActivityFilters extends Component {
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>
-                <Button onClick={(event, data) => {this.handleSubmit()}}>
-                    Submit
-                </Button>
-                </span>
                 <Menu.Item>
                     <Menu.Header>Connector</Menu.Header>
                     <Menu.Menu>
