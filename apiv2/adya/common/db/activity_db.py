@@ -79,15 +79,15 @@ class activity_db:
         # return json.loads(json_util.dumps(activities))
         return activities
 
-def get_activites_with_filter(self, filters, sort_column, sort_type, page_number, page_limit=1):
-    event_collection = activity_db.instance.get_collection("events")
-    query_filter = generate_filter_query(filters)
-    activities = event_collection.find(filter=query_filter, skip=(
-        page_number * page_limit), limit=page_limit)
-    if sort_column and sort_type:
-        activities = activities.sort(
-            sort_column, pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING)
-    return activities
+    def get_activites_with_filter(self, filters, sort_column, sort_type, page_number, page_limit=1):
+        event_collection = activity_db.instance.get_collection("events")
+        query_filter = generate_filter_query(filters)
+        activities = event_collection.find(filter=query_filter, skip=(
+            page_number * page_limit), limit=page_limit)
+        if sort_column and sort_type:
+            activities = activities.sort(
+                sort_column, pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING)
+        return activities
 
 
 def generate_filter_query(filters):
@@ -97,9 +97,9 @@ def generate_filter_query(filters):
     if filters.get("actor"):
         query_filter["actor"] = {"$regex": "^{}".format(filters.get("actor"))}
     if filters.get("connector_type"):
-        query_filter["connector_type"] = {"$regex": "^{}".format(filters.get("connector_type"))}
+        query_filter["connector_type"] = {"$in": filters.get("connector_type")}
     if filters.get("event_type"):
-        query_filter["event_type"] = filters.get("event_type")
+        query_filter["event_type"] = {"$in": filters.get("event_type")}
     if filters.get("timestamp"):
         query_filter["timestamp"] = {"$gte": datetime.datetime.strptime(filters.get("timestamp"), '%Y-%m-%d %H:%M:%S')}
 

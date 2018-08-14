@@ -143,10 +143,10 @@ class ActivityFilters extends Component {
 
         // }
         
-        let filter_events = this.props.all_activity_events.map((filter_event, index) => {
+        let filter_events = this.props.all_activity_events.map((filter_event) => {
             return(
                 <Menu.Item>
-                    <Checkbox label={filter_event[0]} onChange={(event, data) => this.handleEventTypeSelection(data)} checked={this.state.selectedEventTypes[index]} />
+                    <Checkbox label={filter_event[0]} onChange={(event, data) => this.handleEventTypeSelection(data)} checked={this.state.selectedEventTypes[filter_event[0]]} />
                 </Menu.Item>    
             )
         })
