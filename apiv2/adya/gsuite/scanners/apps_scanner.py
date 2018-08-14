@@ -58,12 +58,13 @@ def process(db_session, auth_token, query_params, scanner_data):
                 application.scopes = ','.join(scopes)
                 application.unit_num = 1
                 db_session.add(application)
+                db_connection().commit()
             else:
                 db_session.query(Application).filter(Application.display_text == app_name,Application.domain_id == domain_id).\
                     update({Application.unit_num: Application.unit_num+1})
                 db_connection().commit()
                 # application.unit_num += 1
-            db_connection().commit()
+
             association_table =  {}
             association_table["client_id"] = app.get("clientId")
             association_table["user_email"] = user_email
