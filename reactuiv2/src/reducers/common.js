@@ -227,9 +227,15 @@ export default (state = defaultState, action) => {
         ...states
       }
     case GET_ALL_ACTIVITY_EVENTS:
+      let all_activity_events_map = {}
+
+      for (let index=0; index<action.payload.length; index++) {
+        all_activity_events_map[action.payload[index][0]] = index
+      }
       return {
         ...state,
-        all_activity_events: action.error ? [] : action.payload  
+        all_activity_events: action.error ? [] : action.payload,
+        all_activity_events_map: all_activity_events_map 
       }
     default:
       return state;

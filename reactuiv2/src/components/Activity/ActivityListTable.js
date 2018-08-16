@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Loader, Dimmer, Button, Table, Input, Icon } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Input, Icon, Label, Modal, Header, Form } from 'semantic-ui-react';
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
 import DatePicker from 'react-datepicker'
 import { LineChart } from 'react-chartkick';
-
+import Mustache from 'mustache'
 
 
 import {
@@ -44,6 +44,7 @@ class ActivityListTable extends Component {
                 "Event Type",
                 "Time Since",
                 "User",
+                "Details"
             ],
             currentDate: '',
             domain_id: this.props.currentUser['domain_id'],
@@ -184,7 +185,6 @@ class ActivityListTable extends Component {
         this.props.setPaginationData(this.props.pageNumber - 1, this.props.pageLimit)
     }
 
-
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
@@ -207,14 +207,25 @@ class ActivityListTable extends Component {
 
         if (activitiesData)
             tableRowData = activitiesData.map(rowData => {
+                let event_type = rowData["event_type"]
+                let activity_index = this.props.all_activity_events_map[event_type]
+                let activity_template = this.props.all_activity_events[activity_index] ? this.props.all_activity_events[activity_index][1]['event_template'] : ''
+                activity_template = Mustache.to_html(activity_template, rowData)
+                
+                let labelStyle = {
+                    'max-width': '200px',
+                    'white-space': 'nowrap',
+                    'overflow': 'hidden',
+                    'text-overflow': 'ellipsis'
+                }
                 return (
                     <Table.Row key={rowData['_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell width='3'>{rowData["connector_type"]}</Table.Cell>
-                        <Table.Cell width='3'>{rowData["event_type"]}</Table.Cell>
-                        <Table.Cell width='3'><IntlProvider locale='en'><FormattedRelative value={rowData["timestamp"]} /></IntlProvider ></Table.Cell>
-
-                        <Table.Cell width='3'>{rowData["actor"]}</Table.Cell>
-
+                        <Table.Cell>{rowData["connector_type"]}</Table.Cell>
+                        <Table.Cell>{event_type}</Table.Cell>
+                        <Table.Cell><IntlProvider locale='en'><FormattedRelative value={rowData["timestamp"]} /></IntlProvider ></Table.Cell>
+                        <Table.Cell>{rowData["actor"]}</Table.Cell>
+                        {/* <Table.Cell width='3'><Label color='blue' style={labelStyle}>{activity_desc}</Label></Table.Cell> */}
+                        <Table.Cell>{activity_template}</Table.Cell>
                     </Table.Row>
                 )
             })
