@@ -4,6 +4,7 @@ import ActivityListTable from './ActivityListTable';
 import { Grid, Container, Card } from 'semantic-ui-react';
 import ChartWidget from '../Widgets/ChartWidget';
 import agent from '../../utils/agent';
+import ActivityFilters from './ActivityFilters';
 
 
 const mapStateToProps = state => ({
@@ -16,13 +17,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class Activity extends Component {
-
-  constructor(props) {
-    super(props);
-    this.activityWidgets = [
-      { id: "activitiesByEventType", header: "", footer: "$ in Total Annual Cost", renderType: "ChartWidget", link: "/apps", states: {apps: {sortColumnName: 'annual_cost', sortOrder: 'desc'}}},
-    ];
-  }
 
   render() {
     let containerStyle = {
@@ -39,21 +33,13 @@ class Activity extends Component {
     filter['domain_id'] = this.props.currentUser['domain_id']
     return(
         <Container fluid style={containerStyle}>
-        { <Card.Group itemsPerRow='1'>
-        {
-            this.activityWidgets.map(config => {
-              if(config.renderType === "ChartWidget")
-              {
-                return (
-                  <ChartWidget key={config["id"]} config={config} filters={filter}/>
-                )
-              }
-            })
-          }
-        </Card.Group> }
+        {/* <LineChart min={0} max={maxLimit} thousands="," label="Events" legend="bottom"  data={this.props[this.props.config.id].data} /> */}
         <Grid divided='vertically' stretched >
           <Grid.Row stretched>
-            <Grid.Column stretched width={gridWidth}>
+          <Grid.Column width={3}>
+                            <ActivityFilters />
+                        </Grid.Column>
+                        <Grid.Column width={13}>
               <ActivityListTable />
             </Grid.Column>
           </Grid.Row>

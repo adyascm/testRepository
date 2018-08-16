@@ -89,7 +89,7 @@ const Users = {
 const Apps = {
     getapps: () => requests.get('/common/getappsdata'),
     getuserapps: (userEmail, datasourceId) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&userEmail=' + userEmail + '&datasourceId=' + datasourceId),
-    getappusers: (appId, domainId, sortCol, sortOrder, pageNumber, pageLimit) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&appId=' + appId +'&domainId='+ domainId + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&pageNumber=' + pageNumber + '&pageLimit=' + pageLimit),
+    getappusers: (appId, domainId, sortCol, sortOrder, pageNumber, pageLimit) => requests.get('/common/getappsdata?filterType='+ 'USER_APPS' +'&appId=' + appId +'&domainId='+ domainId + '&sortColumn=' + sortCol + '&sortOrder=' + sortOrder + '&pageNumber=' + pageNumber + '&pageSize=' + pageLimit),
     updateApps:(plan) => requests.put('/common/getappsdata', plan),
     insertApps: (apps) => requests.post('/common/getappsdata', apps),
     getInstalledApps: (pageNum, sortCol, sortOrder, appName) =>

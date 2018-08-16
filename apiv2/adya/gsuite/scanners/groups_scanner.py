@@ -1,5 +1,7 @@
 from __future__ import division  # necessary
 
+import random
+
 from requests_futures.sessions import FuturesSession
 import uuid,json,time,datetime,sys
 from sqlalchemy import and_
@@ -22,23 +24,36 @@ def query(auth_token, query_params, scanner):
     next_page_token = query_params["nextPageNumber"]
     directory_service = gutils.get_directory_service(auth_token)
     groups = []
-
-    try:
-        results = directory_service.groups().list(customer='my_customer', maxResults=25,
-                                                    pageToken=next_page_token).execute()
-    except RefreshError as ex:
-        Logger().info("Group query : Not able to refresh credentials")
-        results = {}
-    except HttpError as ex:
-        Logger().info("User query : Domain not found error")
-        results = {}
+    retry = 0
+    results = {}
+    while retry < 6:
+        retry += 1
+        try:
+            results = directory_service.groups().list(customer='my_customer', maxResults=25,
+                                                        pageToken=next_page_token).execute()
+            break
+        except HttpError as ex:
+            if ex.resp.status == 403:
+                # API limit reached, so retry after few seconds for 5 times
+                sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
+                Logger().warn(
+                    "API limit reached while fetching the groups in gsuite, will retry after {} secs: {}".format(sleep_secs,
+                                                                                                                     next_page_token))
+                time.sleep(sleep_secs)
+            else:
+                Logger().info("groups query : Domain not found error")
+                break
+        except RefreshError as ex:
+            Logger().info("Group query : Not able to refresh credentials")
+            break
 
     if results and "groups" in results:
         groups = results["groups"]
 
     next_page_token = results.get('nextPageToken')
     return {"payload": groups, "nextPageNumber": next_page_token}
-    
+
+
 def process(db_session, auth_token, query_params, scanner_data):
     domain_id = query_params["domainId"]
     datasource_id = query_params["dataSourceId"]

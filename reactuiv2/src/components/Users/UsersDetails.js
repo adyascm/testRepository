@@ -145,15 +145,19 @@ class UsersDetails extends Component {
             }
 
             var parentGroups = []
-            for (let index = 0; index < this.props.selectedUserItem.groups.length; index++) {
-                let parentKey = this.props.selectedUserItem.groups[index];
-                parentGroups.push((
-                    <Label key={index} as='a' color='blue'>
-                        {parentKey.full_name}
-                        <Icon name='close' onClick={() => this.onUserGroupAction('remove_user_from_group', parentKey.email)} />
-                    </Label>
-                ))
+            if(this.props.selectedUserItem.groups)
+            {
+                for (let index = 0; index < this.props.selectedUserItem.groups.length; index++) {
+                    let parentKey = this.props.selectedUserItem.groups[index];
+                    parentGroups.push((
+                        <Label key={index} as='a' color='blue'>
+                            {parentKey.full_name}
+                            <Icon name='close' onClick={() => this.onUserGroupAction('remove_user_from_group', parentKey.email)} />
+                        </Label>
+                    ))
+                }
             }
+            
             if (parentGroups.length < 1) {
                 parentGroups.push((
                     <Label key="-1" color='orange'>

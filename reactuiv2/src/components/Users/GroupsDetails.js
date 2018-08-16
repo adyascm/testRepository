@@ -161,7 +161,7 @@ class GroupsDetails extends Component {
                 }
             }
             let parentGroups = []
-            if (this.props.selectedUserItem.groups.length) {
+            if (this.props.selectedUserItem.groups && this.props.selectedUserItem.groups.length) {
                 parentGroups = this.props.selectedUserItem.groups.map((group,index) => {
                     return (
                         <Label key={index} as='a' color='blue'>

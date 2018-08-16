@@ -128,6 +128,7 @@ class GsuitePermission:
         self._external_user.email = email
         self._external_user.first_name = ""
         self._external_user.last_name = ""
+        self._external_user.type = constants.DirectoryEntityType.USER.value
         if display_name and display_name != "":
             name_list = display_name.split(' ')
             self._external_user.first_name = name_list[0]

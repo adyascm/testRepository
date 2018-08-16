@@ -33,7 +33,7 @@ const defaultState = {
     sortColumnName:'score',
     sortOrder: 'desc',
     pageNumber: 0,
-    pageLimit: 10
+    pageLimit: 50
 };
 
 export default (state = defaultState, action) => {
