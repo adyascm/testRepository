@@ -82,11 +82,13 @@ class activity_db:
     def get_activites_with_filter(self, filters, sort_column, sort_type, page_number, page_limit=1):
         event_collection = activity_db.instance.get_collection("events")
         query_filter = generate_filter_query(filters)
-        activities = event_collection.find(filter=query_filter, skip=(
-            page_number * page_limit), limit=page_limit)
-        if sort_column and sort_type:
-            activities = activities.sort(
-                sort_column, pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING)
+        activities = []
+        if query_filter.get('connector_type') and query_filter.get('event_type'):
+            activities = event_collection.find(filter=query_filter, skip=(
+                page_number * page_limit), limit=page_limit)
+            if sort_column and sort_type:
+                activities = activities.sort(
+                    sort_column, pymongo.ASCENDING if sort_type == "asc" else pymongo.DESCENDING)
         return activities
 
 

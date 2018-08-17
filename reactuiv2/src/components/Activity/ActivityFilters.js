@@ -35,6 +35,7 @@ class ActivityFilters extends Component {
         for (let event of this.props.all_activity_events) {
             selectedEventTypes[event[0]] = true
         }
+        this.fetchActivityList()
         this.setState({
             selectedEventTypes: selectedEventTypes
         })
@@ -107,7 +108,7 @@ class ActivityFilters extends Component {
     }
 
 
-    handleSubmit = () => {
+    fetchActivityList = () => {
         let selectedConnectors = []
         let selectedEventTypes = []
         for(let k in this.state.selectedEventTypes){
@@ -200,7 +201,7 @@ class ActivityFilters extends Component {
                         </Menu.Menu>
                     </Menu.Item>
                 </Menu>
-                <Button size="mini" style={{ width: '80px', float: 'right' }} onClick={(event, data) => {this.handleSubmit()}}>
+                <Button size="mini" style={{ width: '80px', float: 'right' }} onClick={(event, data) => {this.fetchActivityList()}}>
                     Submit
                 </Button>
             </div>
