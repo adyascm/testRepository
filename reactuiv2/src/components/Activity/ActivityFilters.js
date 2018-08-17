@@ -20,11 +20,24 @@ class ActivityFilters extends Component {
     constructor(props){
         super(props);
         this.state = {
-            selectAllEventTypes:false,
+            selectAllEventTypes:true,
             selectedEventTypes:{},
-            selectedConnectors:{},
+            selectedConnectors:{
+                "GSUITE": true,
+                "SLACK": true
+            },
             currentDate:""
         }
+    }
+
+    componentWillMount() {
+        let selectedEventTypes = this.state.selectedEventTypes
+        for (let event of this.props.all_activity_events) {
+            selectedEventTypes[event[0]] = true
+        }
+        this.setState({
+            selectedEventTypes: selectedEventTypes
+        })
     }
 
     handleEventTypeSelection = (data) => {
@@ -151,45 +164,46 @@ class ActivityFilters extends Component {
             )
         })
         return (
-            <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
-                
-                <Menu.Item>
-                    <Button style={{margin:"5px auto", display:'block'}} onClick={(event, data) => {this.handleSubmit()}}>
-                        Submit
-                    </Button>
-                    <Menu.Header>Date Since</Menu.Header>
-                    <Menu.Menu>
-                        <Menu.Item>
-                        <Input fluid placeholder='Filter by Date...'>
-                                            <DatePicker
-                                            onChange={this.handleDateChange}
-                                            dateFormat="LLL"
-                                            />
-                                        </Input>
-                        </Menu.Item>
-                    </Menu.Menu>
-                </Menu.Item>
-                <Menu.Item>
-                    <Menu.Header>Connector</Menu.Header>
-                    <Menu.Menu>
-                        <Menu.Item>
-                            <Checkbox label='GSUITE' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['GSUITE']} />
-                        </Menu.Item>
-                        <Menu.Item>
-                        <Checkbox label='SLACK' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['SLACK']} />
-                        </Menu.Item>
-                    </Menu.Menu>
-                </Menu.Item>
-                <Menu.Item>
-                    <Menu.Header>Event Types</Menu.Header>
-                    <Menu.Menu>
-                        <Menu.Item>
-                            <Checkbox onChange={this.handleAllEventTypeSelection} checked={this.state.selectAllEventTypes} label='Select All' />
-                        </Menu.Item>
-                        {filter_events}
-                    </Menu.Menu>
-                </Menu.Item>
-            </Menu>
+            <div>
+                <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
+                    <Menu.Item>
+                        <Menu.Header>Date Since</Menu.Header>
+                        <Menu.Menu>
+                            <Menu.Item>
+                            <Input fluid placeholder='Filter by Date...'>
+                                                <DatePicker
+                                                onChange={this.handleDateChange}
+                                                dateFormat="LLL"
+                                                />
+                                            </Input>
+                            </Menu.Item>
+                        </Menu.Menu>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Menu.Header>Connector</Menu.Header>
+                        <Menu.Menu>
+                            <Menu.Item>
+                                <Checkbox label='GSUITE' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['GSUITE']} />
+                            </Menu.Item>
+                            <Menu.Item>
+                            <Checkbox label='SLACK' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['SLACK']} />
+                            </Menu.Item>
+                        </Menu.Menu>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Menu.Header>Event Types</Menu.Header>
+                        <Menu.Menu>
+                            <Menu.Item>
+                                <Checkbox onChange={this.handleAllEventTypeSelection} checked={this.state.selectAllEventTypes} label='Select All' />
+                            </Menu.Item>
+                            {filter_events}
+                        </Menu.Menu>
+                    </Menu.Item>
+                </Menu>
+                <Button size="mini" style={{ width: '80px', float: 'right' }} onClick={(event, data) => {this.handleSubmit()}}>
+                    Submit
+                </Button>
+            </div>
         )
     }
 }
