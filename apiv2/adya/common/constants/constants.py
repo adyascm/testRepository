@@ -185,3 +185,15 @@ permission_exposure_to_event_constants = {
     EntityExposureType.ANYONEWITHLINK.value: 'FILE_SHARE_ANYONEWITHLINK',
     EntityExposureType.EXTERNAL.value: 'FILE_SHARE_EXTERNAL'
 }
+
+
+class ReportType(Enum):
+    PERMISSION= "Permission"
+    ACTIVITY = "Activity"
+    INACTIVE = "Inactive"
+    EMPTYGSUITEGROUP = "EmptyGSuiteGroup"
+    EMPTYSLACKCHANNEL = "EmptySlackChannel"
+    WEEKLYSUMMARY = 'WeeklySummary'
+    EXTERNALUSERS = 'ExternalUsers'
+    ADMIN = 'Admin'
+    EXPOSEDRESOURCES = 'ExposedResources'
