@@ -1,6 +1,8 @@
 import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from adya.common.utils.response_messages import Logger, ResponseMessage
 from boto3.s3.transfer import S3Transfer
 
@@ -214,3 +216,29 @@ def upload_file_in_s3_bucket(bucket_name, key, temp_csv):
         ExpiresIn=3600)
         
     return temp_url
+
+
+def send_email_with_html_and_attachement(user_list, csv_data, report_desc, report_name, rendered_html):
+    try:
+        filename = str(report_name) + ".csv"
+        msg = MIMEMultipart('mixed')
+        msg['Subject'] = report_desc
+        msg['From'] = "service@adya.io"
+        att = MIMEApplication(csv_data)
+        att.add_header('Content-Disposition', 'attachment', filename=filename)
+        msg.attach(att)
+        msg.attach(MIMEText(rendered_html, 'html'))
+
+        session = boto3.Session()
+        ses_client = session.client('ses')
+        ses_client.send_raw_email(
+            Source='service@adya.io',
+            Destinations=user_list,
+            RawMessage={
+                'Data':''
+            },
+        )
+
+        Logger().info("Email sent to - {}".format(str(user_list)))
+    except Exception as e:
+        Logger().exception("Exception occurred sending  email to: " + str(user_list))
