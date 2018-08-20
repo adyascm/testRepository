@@ -61,7 +61,7 @@ def execute_action(auth_token, payload):
                         current_log.total_count = current_log.success_count
                         
                     current_log.status = action_constants.ActionStatus.SUCCESS.value
-                    percentage_successful_till_now = ((current_log.success_count*100)/max(current_log.total_count, current_log.success_count))
+                    percentage_successful_till_now = ((current_log.success_count*100)/max(current_log.total_count, current_log.success_count, 1))
                     current_log.message = "Action status - {} pct completed".format(percentage_successful_till_now)
                                     
             db_connection().commit()
