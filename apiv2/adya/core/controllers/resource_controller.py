@@ -70,7 +70,7 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
         resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
 
     resources_query = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids))
-    if not sort_column_name:
+    if not sort_column_name and not accessible_by:
         sort_column_name = "last_modified_time"
 
     sort_column_obj = None
