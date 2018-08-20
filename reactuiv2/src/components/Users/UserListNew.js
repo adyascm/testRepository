@@ -217,8 +217,10 @@ class UserListNew extends Component {
                     if(this.state.selectedFieldColumns[i]){
                         let user_obj = this.props.usersList[i];
                         let user_ds_type_is_gsuite = this.props.datasourcesMap[user_obj["datasource_id"]].datasource_type == 'GSUITE'
-                        if(user_ds_type_is_gsuite && user_obj.type == 'USER')
+                        if(user_ds_type_is_gsuite && user_obj.type == 'USER'){
                             users_email.push(user_obj["email"])
+                            users_name.push(user_obj["full_name"])
+                        }
                         if(!datasource_id && user_ds_type_is_gsuite)
                             datasource_id = user_obj["datasource_id"]
                     }
@@ -226,7 +228,8 @@ class UserListNew extends Component {
                 payload = {
                     actionType:action,
                     users_email:users_email,
-                    datasource_id:datasource_id
+                    users_name:users_name,
+                    datasource_id:datasource_id,
                 }
             }
             else if(action == 'notify_multiple_users_for_clean_up'){
