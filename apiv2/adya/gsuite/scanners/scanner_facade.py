@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from adya.common.db.models import DataSource, DomainUser, Resource, ResourcePermission, alchemy_encoder, \
-    Application, DatasourceScanners, AppInventory, AppLicenseInventory, ExternalExposure
+    Application, DatasourceScanners, AppInventory, AppLicenseInventory, ExternalExposure, DirectoryStructure
 
 from adya.common.db.connection import db_connection
 
@@ -235,6 +235,8 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
     Logger().info("Send email after scan complete")
     adya_emails.send_gdrive_scan_completed_email(auth_token, datasource)
     update_resource_exposure_type(db_session, datasource.domain_id, datasource_id)
+    #if any file is not shared with the external user but exist in group.
+    add_external_user(db_session, datasource_id)
 
 def update_resource_exposure_type(db_session, domain_id, datasource_id):
     try:
@@ -252,4 +254,32 @@ def update_resource_exposure_type(db_session, domain_id, datasource_id):
     except Exception as ex:
         Logger().exception("Exception occurred while updating resource exposure type - {}".format(ex))
         db_session.rollback()
+
+
+def add_external_user(db_session, datasource_id):
+    try:
+        members = db_session.query(DirectoryStructure).outerjoin(DomainUser, and_(
+                                                         DirectoryStructure.datasource_id == DomainUser.datasource_id,
+                                                         DirectoryStructure.member_email == DomainUser.email)).filter(
+                                                         DirectoryStructure.datasource_id == datasource_id,
+                                                         DomainUser.email == None).all()
+        external_user_map = {}
+        for member in members:
+            externaluser = {}
+            externaluser["datasource_id"] = datasource_id
+            externaluser["email"] = member.member_email
+            externaluser["full_name"] = member.member_email
+            externaluser["member_type"] = constants.EntityExposureType.EXTERNAL.value
+            externaluser["type"] = member.member_type
+            externaluser["user_id"] = member.member_id
+            external_user_map[member.member_email] = externaluser
+
+        if len(external_user_map) > 0:
+            db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
+        db_connection().commit()
+    except Exception as ex:
+        Logger().exception("Exception occurred while updating domain user table - {}".format(ex))
+        db_session.rollback()
+
+
 
