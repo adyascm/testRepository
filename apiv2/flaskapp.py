@@ -108,5 +108,9 @@ api.add_resource(flask_wrapper_github.ProcessGithubNotifications, urls.PROCESS_G
 
 #github_actions
 api.add_resource(flask_wrapper_github.ExecuteGithubActions, urls.EXECUTE_GITHUB_ACTION)
+
+#generate_default_reports/policies
+api.add_resource(flask_wrapper_core.DefaultReportPolicy, urls.DEFULT_REPORTS_POLICIES)
+
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

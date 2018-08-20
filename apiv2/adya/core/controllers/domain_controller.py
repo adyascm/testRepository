@@ -13,9 +13,7 @@ from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStruct
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
     Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
     Alert, DatasourceCredentials, DatasourceScanners
-
 from adya.gsuite import gutils, gsuite_constants
-
 
 def get_datasource(auth_token, datasource_id=None, db_session=None):
     if not db_session:
@@ -421,3 +419,11 @@ def update_data_for_trusted_domains(auth_token, db_session, datasource_ids, new_
 
     return more_to_execute, new_trusted_domain
 
+def create_default_reports_policies(auth_token):
+    db_session = db_connection().get_session()
+    all_ds = db_session.query(DataSource)
+    for ds in all_ds:
+        body = {"datasource_id": ds.datasource_id, "is_default": True}
+        messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
+        messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)
+    return 

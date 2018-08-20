@@ -149,5 +149,9 @@ class Activities(Resource):
     def post(self):
         return activity_handler.get_all_activities(request, None)
 
+class DefaultReportPolicy(Resource):
+    def post(self):
+        return domain_handler.default_report_policy(request, None)       
+
 
 

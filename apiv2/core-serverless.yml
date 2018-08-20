@@ -396,3 +396,11 @@ functions:
           path: activities
           method: post
           cors: true
+  
+  post-common-defaultreportpolicy:
+    handler: adya.core.services.domain_handler.default_report_policy
+    events:
+      - http:
+          path: defaultreportpolicy
+          method: post
+          cors: true
