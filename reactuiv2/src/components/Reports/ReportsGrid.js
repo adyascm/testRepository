@@ -124,7 +124,7 @@ class ReportsGrid extends Component {
           field: 'num_days',
           cellRenderer: "agGroupCellRenderer",
           width: 200
-      }, 
+      },
     ],
 
     this.columnDefsForEmptyGSuiteGroup = [
@@ -229,6 +229,20 @@ class ReportsGrid extends Component {
         cellRenderer: "agGroupCellRenderer",
         width: 150
       },
+    ],
+    this.columnDefsForWeeklySummary = [
+      {
+        headerName: 'Events',
+        field: 'event_type',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Number of Activities',
+        field: 'count',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
     ]
   }
 
@@ -262,25 +276,28 @@ getColDef = () => {
       break
     case 'EmptySlackChannel':
       colDef = this.columnDefsForEmptySlackChannel
-      break    
+      break
     case 'ExternalUsers':
       colDef = this.columnDefsForExternalUsers
-      break      
+      break
     case 'Admin':
       colDef = this.columnDefsForAdminUsers
-      break  
+      break
     case 'ExposedResources':
       colDef = this.columnDefsForExposedRes
-      break      
+      break
+    case 'WeeklySummary':
+      colDef = this.columnDefsForWeeklySummary
+      break;
   }
   return colDef
-} 
+}
 
   render() {
     return(
       <div className="ag-theme-fresh" style={{height: '500px'}}>
         <AgGridReact onGridReady={this.onGridReady}
-                   columnDefs={this.getColDef()} 
+                   columnDefs={this.getColDef()}
                    rowData={this.props.reportsData}
                    />
                  <div>
