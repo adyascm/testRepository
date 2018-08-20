@@ -527,23 +527,24 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         if len(users_email)>0:
-            for i,user_email in enumerate(users_email):
+            for i in range(len(users_email)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'user_email':user_email, 'full_name': users_name[i]}
+                modified_action_payload['parameters'] = {'user_email':users_email[i], 'full_name': users_name[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
         response_msg = ResponseMessage(200, status_message)        
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
         users_email = action_parameters['users_email']
+        users_name = action_parameters['users_name']
         initiated_by = action_payload['initiated_by']
         status_message = 'Action submitted successfully'
         log_entry.status = action_constants.ActionStatus.SUCCESS.value
         response_msg = ResponseMessage(200, status_message)        
         if len(users_email)>0:
-            for user_email in users_email:
+            for i in range(len(users_email)):
                 modified_action_payload = dict(action_payload)
-                modified_action_payload['parameters'] = {'user_email':user_email}
+                modified_action_payload['parameters'] = {'user_email':users_email[i], 'full_name':users_name[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
