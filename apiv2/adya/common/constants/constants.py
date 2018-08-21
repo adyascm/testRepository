@@ -1,7 +1,6 @@
 import os
 from enum import Enum
 
-from adya.common.constants import default_policies
 from adya.common.constants import default_reports
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
@@ -102,7 +101,7 @@ class PolicyMatchType(Enum):
     APP_RISKINESS = 'APP_RISKINESS'
     USER_TYPE = 'USER_TYPE'
     USER_ROLE = 'USER_ROLE'
-    IS_APP_WHITELISTED = 'IS_APP_WHITELISTED'
+    TRUSTED = 'TRUSTED'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
@@ -147,11 +146,6 @@ class ConnectorTypes(Enum):
     GSUITE = "GSUITE"
     SLACK = "SLACK"
     GITHUB = "GITHUB"
-
-datasource_to_default_policy_map = {
-    ConnectorTypes.SLACK.value: default_policies.default_policies_slack,
-    ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
-}
 
 datasource_to_default_report_map = {
     ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
