@@ -40,3 +40,5 @@ ADD category varchar(255);
 ALTER TABLE application
 ADD is_whitelisted Boolean
 
+ALTER TABLE report
+ADD is_non_editable Boolean

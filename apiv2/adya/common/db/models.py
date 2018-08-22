@@ -265,6 +265,7 @@ class Report(Base):
     creation_time = Column(DateTime)
     last_trigger_time = Column(DateTime)
     is_active = Column(Boolean, default=False)
+    is_non_editable = Column(Boolean, default=False)
 
 
 class Action(Base):
