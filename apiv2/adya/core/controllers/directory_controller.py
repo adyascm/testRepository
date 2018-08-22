@@ -108,71 +108,70 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
         domain_datasource_ids = [datasource_id]
 
 
-    users_alias = aliased(DomainUser)
-    groups_alias = aliased(DomainUser)
-    users_query = db_session.query(users_alias, groups_alias).outerjoin(DirectoryStructure, and_(users_alias.email == DirectoryStructure.member_email,
-                        users_alias.datasource_id == DirectoryStructure.datasource_id)) \
-                        .outerjoin(groups_alias, and_(groups_alias.email == DirectoryStructure.parent_email,
-                        groups_alias.datasource_id == DirectoryStructure.datasource_id)).filter(users_alias.datasource_id.in_(domain_datasource_ids))
+    # users_alias = aliased(DomainUser)
+    # groups_alias = aliased(DomainUser)
+    # users_query = db_session.query(users_alias, groups_alias).outerjoin(DirectoryStructure, and_(users_alias.email == DirectoryStructure.member_email,
+    #                     users_alias.datasource_id == DirectoryStructure.datasource_id)) \
+    #                     .outerjoin(groups_alias, and_(groups_alias.email == DirectoryStructure.parent_email,
+    #                     groups_alias.datasource_id == DirectoryStructure.datasource_id)).filter(users_alias.datasource_id.in_(domain_datasource_ids))
+
+    users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
 
     if is_service_account_is_enabled and not is_login_user_admin:
         #check the login user or the external user with whom login user shared the files
-        users_query = users_query.filter(or_(users_alias.email == login_user_email, and_(Resource.datasource_id == ResourcePermission.datasource_id,
+        users_query = users_query.filter(or_(DomainUser.email == login_user_email, and_(Resource.datasource_id == ResourcePermission.datasource_id,
                                                Resource.resource_owner_id == login_user_email,
                                                Resource.resource_id == ResourcePermission.resource_id,
-                                               ResourcePermission.datasource_id == users_alias.datasource_id,
-                                               ResourcePermission.email == users_alias.email,
-                                               users_alias.member_type == constants.EntityExposureType.EXTERNAL.value)))
+                                               ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                               ResourcePermission.email == DomainUser.email,
+                                               DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)))
 
     users_query = filter_on_get_user_list(users_query, full_name, email, member_type,
-                            datasource_id, sort_column, sort_order, is_admin, type, page_number, users_alias)
+                            datasource_id, sort_column, sort_order, is_admin, type, page_number)
     users_list = users_query.all()
-    res_map = {}
-    for user in users_list:
-        if user[0].email in res_map:
-            user_groups = res_map[user[0].email].groups
-            if user[1]:
-                user_groups.append(user[1])
-        else:
-            user[0].groups = [user[1]] if user[1] else []
-            res_map[user[0].email] = user[0]
+    # res_map = {}
+    # for user in users_list:
+    #     if user[0].email in res_map:
+    #         user_groups = res_map[user[0].email].groups
+    #         if user[1]:
+    #             user_groups.append(user[1])
+    #     else:
+    #         user[0].groups = [user[1]] if user[1] else []
+    #         res_map[user[0].email] = user[0]
 
-    result = res_map.values()
-    return result
+    # result = res_map.values()
+    return users_list
 
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
-                   sort_order=None, is_admin=None, type=None, page_number=0, user_alias=None):
-
-    if not user_alias:
-        user_alias = DomainUser
+                   sort_order=None, is_admin=None, type=None, page_number=0):
 
     if full_name:
-        entity = entity.filter(user_alias.full_name.ilike("%" + full_name + "%"))
+        entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
     if email:
-        entity = entity.filter(user_alias.email.ilike("%" + email + "%"))
+        entity = entity.filter(DomainUser.email.ilike("%" + email + "%"))
     if is_admin:
-        entity = entity.filter(user_alias.is_admin == is_admin)
+        entity = entity.filter(DomainUser.is_admin == is_admin)
     if member_type:
-        entity = entity.filter(user_alias.member_type == member_type)
+        entity = entity.filter(DomainUser.member_type == member_type)
     if type:
-        entity = entity.filter(user_alias.type == type)
+        entity = entity.filter(DomainUser.type == type)
 
     sort_column_obj = None
     if sort_column == "datasource_id":
-        sort_column_obj = user_alias.datasource_id
+        sort_column_obj = DomainUser.datasource_id
     elif sort_column == "full_name":
-        sort_column_obj = user_alias.full_name
+        sort_column_obj = DomainUser.full_name
     elif sort_column == "email":
-        sort_column_obj = user_alias.email
+        sort_column_obj = DomainUser.email
     elif sort_column == "is_admin":
-        sort_column_obj = user_alias.is_admin
+        sort_column_obj = DomainUser.is_admin
     elif sort_column == "member_type":
-        sort_column_obj = user_alias.member_type
+        sort_column_obj = DomainUser.member_type
     elif sort_column == "type":
-        sort_column_obj = user_alias.type
+        sort_column_obj = DomainUser.type
     elif sort_column == "last_login":
-        sort_column_obj = user_alias.last_login_time
+        sort_column_obj = DomainUser.last_login_time
 
     if sort_column_obj:
         if sort_order == "asc":

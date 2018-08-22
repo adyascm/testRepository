@@ -1,7 +1,6 @@
 import os
 from enum import Enum
 
-from adya.common.constants import default_policies
 from adya.common.constants import default_reports
 
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
@@ -32,6 +31,7 @@ def get_url_from_path(path):
 
 SUCCESS_STATUS_CODE = 200
 ACCEPTED_STATUS_CODE = 202
+REPORT_SIZE_LIMIT = 50000
 
 REAL_TIME_URL = 'http://ortc-developers2-euwest1-s0001.realtime.co/send'
 
@@ -101,7 +101,7 @@ class PolicyMatchType(Enum):
     APP_RISKINESS = 'APP_RISKINESS'
     USER_TYPE = 'USER_TYPE'
     USER_ROLE = 'USER_ROLE'
-    IS_APP_WHITELISTED = 'IS_APP_WHITELISTED'
+    TRUSTED = 'TRUSTED'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
@@ -147,11 +147,6 @@ class ConnectorTypes(Enum):
     SLACK = "SLACK"
     GITHUB = "GITHUB"
 
-datasource_to_default_policy_map = {
-    ConnectorTypes.SLACK.value: default_policies.default_policies_slack,
-    ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
-}
-
 datasource_to_default_report_map = {
     ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
     ConnectorTypes.GSUITE.value: default_reports.default_reports_gsuite
@@ -184,3 +179,15 @@ permission_exposure_to_event_constants = {
     EntityExposureType.ANYONEWITHLINK.value: 'FILE_SHARE_ANYONEWITHLINK',
     EntityExposureType.EXTERNAL.value: 'FILE_SHARE_EXTERNAL'
 }
+
+
+class ReportType(Enum):
+    PERMISSION= "Permission"
+    ACTIVITY = "Activity"
+    INACTIVE = "Inactive"
+    EMPTYGSUITEGROUP = "EmptyGSuiteGroup"
+    EMPTYSLACKCHANNEL = "EmptySlackChannel"
+    WEEKLYSUMMARY = 'WeeklySummary'
+    EXTERNALUSERS = 'ExternalUsers'
+    ADMIN = 'Admin'
+    EXPOSEDRESOURCES = 'ExposedResources'

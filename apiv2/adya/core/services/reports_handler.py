@@ -1,7 +1,8 @@
 import json
 
-from adya.common.constants import urls
-from adya.core.controllers import reports_controller, directory_controller, resource_controller, domain_controller
+from adya.common.constants import urls, constants
+from adya.common.email_templates import adya_emails
+from adya.core.controllers import reports_controller, directory_controller
 from adya.common.utils import aws_utils
 from adya.common.utils.request_session import RequestSession
 from adya.common.utils.response_messages import Logger
@@ -128,8 +129,10 @@ def execute_cron_report(event, context):
     Logger().info("call generate_csv_report function ")
     Logger().info("report id " + str(req_session.get_req_param('report_id')))
     response = reports_controller.generate_csv_report(req_session.get_req_param('report_id'))
-
-    if len(response['csv_records']) > 0:
+    if response and len(response['response_data'])>0:
+      if response.get('report_type') == constants.ReportType.WEEKLYSUMMARY.value:
+        adya_emails.send_weekly_summary_email(response['email_list'], response, response['domain_id'])
+      else:
         Logger().info("call send_email_with_attachment function ")
         report_desc = '[Adya] ' + response['report_desc']
         aws_utils.send_email_with_attachment(response['email_list'], response['csv_records'], report_desc, response['report_name'])

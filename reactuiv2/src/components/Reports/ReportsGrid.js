@@ -99,6 +99,7 @@ class ReportsGrid extends Component {
       },
 
     ],
+
     this.columnDefsForInactiveUsers = [
       {
         headerName: 'Name',
@@ -123,9 +124,10 @@ class ReportsGrid extends Component {
           field: 'num_days',
           cellRenderer: "agGroupCellRenderer",
           width: 200
-      }, 
+      },
     ],
-    this.columnDefsForEmptyGSuteGroup = [
+
+    this.columnDefsForEmptyGSuiteGroup = [
       {
         headerName: 'Name',
         field: 'name',
@@ -139,6 +141,7 @@ class ReportsGrid extends Component {
         width: 150
       },
     ],
+
     this.columnDefsForEmptySlackChannel = [
       {
         headerName: 'Name',
@@ -152,14 +155,100 @@ class ReportsGrid extends Component {
         cellRenderer: "agGroupCellRenderer",
         width: 150
       },
+    ],
+
+    this.columnDefsForExternalUsers = [
+      {
+        headerName: 'Source',
+        field: 'source',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Name',
+        field: 'name',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Email',
+        field: 'email',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Resources Shared',
+        field: 'exposed_docs_num',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      }
+    ],
+
+    this.columnDefsForAdminUsers = [
+      {
+        headerName: 'Source',
+        field: 'source',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Name',
+        field: 'name',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Email',
+        field: 'email',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+    ],
+    this.columnDefsForExposedRes = [
+      {
+        headerName: 'Source',
+        field: 'source',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Name',
+        field: 'name',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Type',
+        field: 'type',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Owner',
+        field: 'owner',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+    ],
+    this.columnDefsForWeeklySummary = [
+      {
+        headerName: 'Events',
+        field: 'event_type',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Number of Activities',
+        field: 'count',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
     ]
   }
 
   onGridReady(params) {
     this.api = params.api;
     this.api.sizeColumnsToFit();
-
-
   }
 
   onBtExport = () => {
@@ -170,13 +259,45 @@ class ReportsGrid extends Component {
 
   };
 
-  render() {
+getColDef = () => {
+  let colDef = null
+  switch(this.props.reportType){
+    case 'Permission':
+      colDef = this.columnDefsForPerms
+      break
+    case 'Activity':
+      colDef = this.columnDefsForActivity
+      break
+    case 'Inactive':
+      colDef = this.columnDefsForInactiveUsers
+      break
+    case 'EmptyGSuiteGroup':
+      colDef = this.columnDefsForEmptyGSuiteGroup
+      break
+    case 'EmptySlackChannel':
+      colDef = this.columnDefsForEmptySlackChannel
+      break
+    case 'ExternalUsers':
+      colDef = this.columnDefsForExternalUsers
+      break
+    case 'Admin':
+      colDef = this.columnDefsForAdminUsers
+      break
+    case 'ExposedResources':
+      colDef = this.columnDefsForExposedRes
+      break
+    case 'WeeklySummary':
+      colDef = this.columnDefsForWeeklySummary
+      break;
+  }
+  return colDef
+}
 
+  render() {
     return(
       <div className="ag-theme-fresh" style={{height: '500px'}}>
         <AgGridReact onGridReady={this.onGridReady}
-                   columnDefs={this.props.reportType === 'Permission'?
-                     this.columnDefsForPerms : this.props.reportType === 'Activity' ? this.columnDefsForActivity : this.props.reportType === 'Inactive' ? this.columnDefsForInactiveUsers : this.props.reportType === 'EmptyGSuiteGroup' ? this.columnDefsForEmptyGSuteGroup: this.columnDefsForEmptySlackChannel }
+                   columnDefs={this.getColDef()}
                    rowData={this.props.reportsData}
                    />
                  <div>

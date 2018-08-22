@@ -1,5 +1,7 @@
 from __future__ import division  # necessary
 
+import random
+
 from requests_futures.sessions import FuturesSession
 import uuid,json,time,datetime,sys
 from sqlalchemy import and_
@@ -10,25 +12,39 @@ from adya.common.utils.response_messages import Logger
 from adya.common.constants import constants, urls
 from adya.common.db.connection import db_connection
 from adya.common.db import models
-from adya.common.db.models import DataSource,ResourcePermission,Resource,LoginUser,DomainUser,Application,ApplicationUserAssociation,alchemy_encoder
-from adya.common.utils import utils, messaging
-from adya.common.email_templates import adya_emails
+from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
+from googleapiclient.errors import HttpError
+
 
 def query(auth_token, query_params, scanner):
     next_page_token = query_params["nextPageNumber"]
     group_key = query_params["groupEmail"]
     directory_service = gutils.get_directory_service(auth_token)
     members = []
-    results = directory_service.members().list(groupKey=group_key, maxResults=50,
-                                                    pageToken=next_page_token, quotaUser = group_key[0:41]).execute()
-
-    if results and "members" in results:
-        members = results["members"]
-
-    next_page_token = results.get('nextPageToken')
+    retry = 0
+    while retry < 6:
+        retry +=1
+        try:
+            results = directory_service.members().list(groupKey=group_key, maxResults=50,
+                                                            pageToken=next_page_token, quotaUser = group_key[0:41]).execute()
+            if results and "members" in results:
+                members = results["members"]
+                next_page_token = results.get('nextPageToken')
+            break
+        except HttpError as ex:
+            if ex.resp.status == 403:
+                # API limit reached, so retry after few seconds for 5 times
+                sleep_secs = min(64, (2 ** retry)) + (random.randint(0, 1000) / 1000.0)
+                Logger().warn(
+                    "API limit reached while fetching the members of group in gsuite, will retry after {} secs: {}".format(sleep_secs,
+                                                                                                                     next_page_token))
+                time.sleep(sleep_secs)
+            else:
+                break
     return {"payload": members, "nextPageNumber": next_page_token}
-    
+
+
 def process(db_session, auth_token, query_params, scanner_data):
     domain_id = query_params["domainId"]
     datasource_id = query_params["dataSourceId"]

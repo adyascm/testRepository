@@ -133,7 +133,7 @@ class UsersDetails extends Component {
             let userName = this.props.selectedUserItem['first_name']
             let ds = this.props.datasourcesMap[this.props.selectedUserItem.datasource_id];
             let panes = [];
-            if ((this.props.selectedUserItem["member_type"] === 'EXT'))
+            if ((this.props.selectedUserItem["member_type"] === 'EXT' || this.props.selectedUserItem["member_type"] === 'TRUST'))
                 panes.push({ menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> });
             else {
                 panes.push({ menuItem: userName + '\'s documents', render: () => <Tab.Pane attached={false}>{<UserOwnedResources />  }</Tab.Pane> });

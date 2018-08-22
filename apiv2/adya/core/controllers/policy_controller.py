@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import and_, or_
 
 from adya.common.constants import constants, urls, default_policies
-from adya.common.constants.constants import datasource_to_default_policy_map
+from adya.common.constants.default_policies import datasource_to_default_policy_map
 from adya.common.db.db_utils import get_datasource
 from adya.common.utils.response_messages import ResponseMessage
 from adya.common.db.connection import db_connection

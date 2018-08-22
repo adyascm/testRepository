@@ -60,3 +60,13 @@ def get_trusted_entities(event, context):
 
     trusted_entities = domain_controller.get_all_trusted_entities(req_session.get_req_param("domainId"))
     return req_session.generate_sqlalchemy_response(200, trusted_entities)
+
+
+def default_report_policy(event, context):
+    req_session = RequestSession(event)
+    req_error = req_session.validate_authorized_request()
+    if req_error:
+        return req_error
+
+    default_response = domain_controller.create_default_reports_policies(req_session.get_auth_token())    
+    return req_session.generate_sqlalchemy_response(200,default_response)

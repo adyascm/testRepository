@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldnt be necessary -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Raleway" />
-  
-  <title>Adya</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
+
+  <title>Adya Weekly Report</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
   <style type="text/css">
-    
+
     html,
     body {
       margin: 0;
@@ -16,25 +16,25 @@
       height: 100% !important;
       width: 100% !important;
     }
-    
+
     /* What it does: Stops email clients resizing small text. */
     * {
       -ms-text-size-adjust: 100%;
       -webkit-text-size-adjust: 100%;
     }
-    
+
     /* What it does: Forces Outlook.com to display emails full width. */
     .ExternalClass {
       width: 100%;
-    }  
-    
+    }
+
     /* What it does: Stops Outlook from adding extra spacing to tables. */
     table,
     td {
       mso-table-lspace: 0pt;
       mso-table-rspace: 0pt;
     }
-    
+
     /* What it does: Fixes webkit padding issue. */
     table {
       border-spacing:0 !important;
@@ -44,29 +44,29 @@
     .ExternalClass * {
       line-height: 100%;
     }
-    
+
     /* What it does: Fix for Yahoo mail table alignment bug. */
     table {
       border-collapse: collapse;
       margin: 0 auto;
     }
-    
+
     /* What it does: Uses a better rendering method when resizing images in IE. */
     img {
       -ms-interpolation-mode:bicubic;
     }
-    
+
     /* What it does: Overrides styles added when Yahoos auto-senses a link. */
     .yshortcuts a {
       border-bottom: none !important;
     }
-    
+
     /* What it does: Overrides blue, underlined link auto-detected by iOS Mail. */
     /* Create a class for every link style needed; this template needs only one for the link in the footer. */
     .mobile-link--footer a {
       color: #666666 !important;
     }
-    
+
     /* What it does: Overrides styles added images. */
     img {
       border:0 !important;
@@ -75,7 +75,7 @@
     }
     /* Media Queries */
     @media screen and (max-device-width: 600px), screen and (max-width: 600px) {
-      .text-xs-center{text-align: center !important;}
+
       /* What it does: Overrides email-containers desktop width and forces it into a 100% fluid width. */
       .email-container {
         width: 100% !important;
@@ -103,7 +103,7 @@
       td[class="stack-column-center"] {
         text-align: center !important;
       }
- 
+
       /* Data Table Styles */
       /* What it does: Hides table headers */
       td[class="data-table-th"] {
@@ -138,7 +138,7 @@
       }
       /* END Data Table Styles */
     }
-              
+
   </style>
 </head>
 <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="#222222" style="margin:0; padding:0; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
@@ -159,30 +159,30 @@
         <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#153449">
            <tr>
             <td valign="middle" width="80" style="padding:8px 0; text-align:center; line-height: 0;" class="stack-column-center">
-            
+
                 <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Logo.png" alt="Adya" border="0" style="margin: auto; width:250px;">
-         
+
             </td>
           </tr>
         </table>
         <!-- Logo + Links : END -->
          <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#9fb8c4">
            <tr>
-             <td valign="middle" width="15%" style="padding:20px 0 20px 10px; text-align:center; line-height: 0;">
-            
-                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Alert.png" alt="Adya" border="0" style="margin: auto;">
-         
-            </td>
-            <td class="text-xs-center" valign="middle" width="95%" style="padding-right: 20px; font-size: 19px;
-    font-family: Raleway, sans-serif; color: #fff;">
-            
-                Alert! - Policy violation on document "{{ document_name }}"
+            <td valign="middle" width="70%" style="padding-left: 30px; text-align: center; font-size: 22px;
+    font-family: Raleway, sans-serif;">
+
+                Adya Weekly Report <br>
+                    ( {{from_date}} - {{to_date}} )
 
             </td>
-           
+            <td valign="middle" width="30%" style="padding:20px 0; text-align:center; line-height: 0;">
+
+                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Report.png" alt="Adya" border="0" style="margin: auto; width:70%;">
+
+            </td>
           </tr>
         </table>
-  
+
         <!-- Main Email Body : BEGIN -->
         <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#eaeff2">
             <!-- Full Width, Fluid Column : BEGIN -->
@@ -194,139 +194,66 @@
         <td bgcolor="#fff">
         <table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" align="center" style=" line-height:21px;">
           <tr>
-          </tr>
-          <tr>
-           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; color:#000000;font-weight: 500; ">
-            <div style="text-align:left;">Permission changes on {{ owner_name }}'s document - "{{ document_name }}" has violated policy - "{{ policy_name }}"</div>
-               {{#revert_back}}
-                  {{#len_violated_permissions}}
-                        <div style="text-align:left;">As configured, Adya reverted back the following permissions - </div>
-                        <ul>
-                            {{ #violated_permissions }}
-                            <li style="text-align:left">
-                                 {{.}}
-                            </li>
-                            {{ /violated_permissions}}
-                        </ul>
-
-                        <div style="margin-top:10px;text-align:left">{{new_permissions_str}}</div>
-                        <ul>
-                            {{ #new_permissions_left }}
-                            <li style="text-align:left">
-                                 {{.}}
-                            </li>
-                            {{ /new_permissions_left }}
-                        </ul>
-                  {{/len_violated_permissions}}
-                  {{^len_violated_permissions}}
-                        <div style="text-align:left;">As configured, Adya failed to revert back the following permissions - </div>
-                        <ul>
-                            {{ #permissions }}
-                            <li style="text-align:left">
-                                 {{.}}
-                            </li>
-                            {{ /permissions}}
-                        </ul>
-                        <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
-                        <ul>
-                          {{ #permissions }}
-                          <li style="text-align:left">
-                              {{.}}
-                          </li>
-                          {{ /permissions }}
-                        </ul>
-                  {{/len_violated_permissions}}
-               {{/revert_back}}
-               {{^revert_back}}
-                    <div style="margin-top:10px;text-align:left">New permissions for this document are - </div>
-                    <ul>
-                      {{ #is_public }}
-                          <div style="margin-top:10px;text-align:left">{{permission_link}}</div>
-                      {{ /is_public }}
-                    </ul>
-                    <ul>
-                      {{ #is_link_shared }}
-                          <div style="margin-top:10px;text-align:left">{{permission_link}}</div>
-                      {{ /is_link_shared }}
-                    </ul>
-                    <ul>
-                      {{ #has_permissions_ext }}
-                          <div style="margin-top:10px;text-align:left">External - </div>
-                          <ul>
-                            {{ #permissions_ext }}
-                              <li style="text-align:left">
-                                  {{.}}
-                              </li>
-                            {{ /permissions_ext }}
-                          </ul>
-                      {{ /has_permissions_ext }}
-                    </ul>
-                    <ul>
-                      {{ #has_permissions_internal }}
-                        <div style="margin-top:10px;text-align:left">Internal - </div>
-                        <ul>
-                          {{ #permissions_internal }}
-                          <li style="text-align:left">
-                              {{.}}
-                          </li>
-                          {{ /permissions_internal }}
-                        </ul>
-                      {{ /has_permissions_internal }}
-                    </ul>
-               {{/revert_back}}
-
-
-              <!-- <div style="text-align:left;margin-top:5px;">* Abhra "Can Write"</div>
-              <div style="text-align:left;">* Rashmi "Owner"</div> -->
-
+           <td bgcolor="#fff" border="0" style="font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 31px;">
+            Hi,
             </td>
           </tr>
           <tr>
-           <td bgcolor="#fff" border="0" style="padding-top:20px; font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; ">
-            <a href="https://app.adya.io/login"><button style=" cursor: pointer; border: 2px solid #f78851;
-    background: 0;
-    padding: 10px 30px;
-    background-color: #f4651e;
-    border-radius: 5px;
-    color: #fff;-webkit-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
--moz-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);">LOG IN</button></a>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: left; border:0px solid; color:#153449; ">
+            Here is a summary of the activity detected by Adya in the past week.
+            </td>
+          </tr>
+            <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+            Domain Info :
             </td>
           </tr>
           <tr>
-         
-          
-           
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
+            <ul style="padding-left: 20px; margin:0;">
+                <li>Users : {{total_users}} </li>
+                <li>Files : {{total_files}} </li>
+            </ul>
+            </td>
+          </tr>
+        <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+              Summary Activity ({{from_date}} - {{to_date}}) :
+            </td>
+          </tr>
+          <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
+            <ul style="padding-left: 20px; margin:0;">
+                <li>New apps installed: {{apps_installed}} </li>
+                <li>Number of files exposed publicly: {{publically_exposed_files}} </li>
+                <li>Number of files exposed externally : {{extenally_exposed_files}} </li>
+            </ul>
+            </td>
+          </tr>
+         <tr>
+        <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+            Find all the details from the last week ({{from_date}} - {{to_date}}) in the attachment:
+            </td>
+          </tr>
          </table>
          </td>
           </tr>
          </table>
 
-        
+
         </td>
          </tr>
           <!-- Full Width, Fluid Column : END -->
-        
+
         </table>
         <!-- Main Email Body : END -->
-          <!-- START FOOTER -->
-            <div class="footer"  style="clear: both; width: 100%;">
-              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
-             <tr>
-              <td  bgcolor="#153449" style="font-family:Raleway, sans-serif; font-size: 13px;  vertical-align: top; padding: 20px; color: #fff; font-style: italic;">
-                   Login to <a href="https://app.adya.io/login" style="color:#f4651e; text-decoration: none;">app.adya.io</a> to get the complete report.
-                </td>
-                </tr>
 
-              </table>
-            </div>
-            <!-- END FOOTER -->
-        
       </td>
     </tr>
-    
-   
-        
+
+
+
   </table>
   <!-- Email wrapper : END -->
 

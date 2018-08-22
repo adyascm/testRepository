@@ -184,11 +184,24 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
         template_name = "permission_change_policy_violation"
-        permissions = []
+        is_public = False
+        is_link_shared = False
+        permission_link = ''
+        permissions_internal = []
+        permissions_external = []
         for permission in new_permissions:
             user_name = permission["email"]
             permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
-            permissions.append(permission_str)
+            if permission["exposure_type"] == constants.EntityExposureType.PUBLIC.value:
+                is_public = True
+                permission_link = permission_str
+            elif permission["exposure_type"] == constants.EntityExposureType.ANYONEWITHLINK.value:
+                is_link_shared = True
+                permission_link = permission_str
+            elif permission["exposure_type"] == constants.EntityExposureType.EXTERNAL.value:
+                permissions_external.append(permission_str)
+            elif permission["exposure_type"] == constants.EntityExposureType.INTERNAL.value:
+                permissions_internal.append(permission_str)
 
         violated_perm = []
         if violated_permissions:
@@ -210,7 +223,13 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "document_name": resource["resource_name"],
             "modifying_user": resource["last_modifying_user_email"],
             "owner_name": resource_owner.first_name,
-            "permissions": permissions,
+            "permissions_internal": permissions_internal,
+            "has_permissions_internal": True if len(permissions_internal) > 0 else False,
+            "permissions_ext": permissions_external,
+            "has_permissions_ext": True if len(permissions_external) > 0 else False,
+            "is_public": is_public,
+            "is_link_shared": is_link_shared,
+            "permission_link": permission_link,
             "revert_back": True if violated_permissions else False,
             "violated_permissions": violated_perm,
             "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
@@ -266,3 +285,26 @@ def send_new_user_policy_violate_email(user_email, policy, new_user, group_name)
     except Exception as e:
         Logger().exception("Exception occured while sending new user policy violation email")
         return False
+
+
+def send_weekly_summary_email(email_list, response, domain_id):
+    try:
+        template_parameters = {
+            "total_files": response.get('TOTAL_FILES'),
+            "apps_installed": response.get('OAUTH_GRANT'),
+            "publically_exposed_files": response.get('FILE_SHARE_PUBLIC'),
+            "extenally_exposed_files": response.get('FILE_SHARE_EXTERNAL'),
+            "users_created": response.get('CREATE_USER'),
+            "total_users": response.get('TOTAL_USERS'),
+            "from_date": response.get('from_date').strftime('%m/%d/%Y'),
+            "to_date": response.get('to_date').strftime('%m/%d/%Y')
+        }
+        template_name = "weekly_summary"
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "Weekly Summary for your {} account".format(domain_id)
+        aws_utils.send_email_with_html_and_attachement(email_list, response.get('csv_records'), email_subject, response['report_name'], rendered_html)
+    except Exception as ex:
+        Logger().exception("Exception occured while sending weekly summary for account {}".format(domain_id))
+        return False
+
+

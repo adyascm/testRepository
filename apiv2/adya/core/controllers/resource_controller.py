@@ -35,14 +35,14 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
         resources_query = resources_query.filter(resource_alias.datasource_id == source_type)
     if accessible_by and not owner_email_id:
         parent_ids = []
-        groups = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id.in_(domain_datasource_ids),
-                                                                  DirectoryStructure.member_email == accessible_by)).all()
+        # groups = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+        #                                                           DirectoryStructure.member_email == accessible_by)).all()
 
         accessible_user_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
                                                                            DomainUser.email == accessible_by)).first()
 
-        for group in groups:
-            parent_ids.append(group.parent_email)
+        for group in accessible_user_info.groups:
+            parent_ids.append(group.email)
 
         email_list = parent_ids + [accessible_by]
         #resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
@@ -70,7 +70,7 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
         resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
 
     resources_query = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids))
-    if not sort_column_name:
+    if not sort_column_name and not accessible_by:
         sort_column_name = "last_modified_time"
 
     sort_column_obj = None
