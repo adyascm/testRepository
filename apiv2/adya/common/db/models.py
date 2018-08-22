@@ -164,6 +164,10 @@ class DomainUser(Base):
     member_type = Column(String(50))
     config = Column(Text)
     last_login_time = Column(DateTime)
+    
+    groups = relationship("DomainUser", secondary="domain_directory_structure",
+        primaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DomainUser.email==DirectoryStructure.member_email)",
+        secondaryjoin="and_(DirectoryStructure.datasource_id==DomainUser.datasource_id, DirectoryStructure.parent_email==DomainUser.email)")
 
 
 class DirectoryStructure(Base):
