@@ -62,7 +62,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                 policy_exists = False
                 Logger().info("policy - {} for lambda function - {}".format(policy, function_name))
                 for stmt in policy['Statement']:
-                    if stmt['Action'] == 'lambda:InvokeFunction':
+                    if stmt['Action'] == 'lambda:InvokeFunction' and stmt['Sid'] == cloudwatch_event_name:
                         policy_exists = True
 
                 Logger().info("check policy exist - {} for lambda - {}".format(policy_exists, function_name))
@@ -72,7 +72,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                         FunctionName=function_name,
                         Principal='events.amazonaws.com',
                         SourceArn=response['RuleArn'],
-                        StatementId=str(uuid.uuid4()),
+                        StatementId=cloudwatch_event_name,
                     )
                     Logger().info("Added permission for lambda - " + str(response))
 

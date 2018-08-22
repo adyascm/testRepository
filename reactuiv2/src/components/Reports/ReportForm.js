@@ -34,10 +34,12 @@ const reportOptions = [
   { text: 'Access Permission Report', value: 'Permission' },
   { text: 'Activity Log Report', value: 'Activity' },
   { text: 'Inactive Users Report', value: 'Inactive'},
-  { text: 'External Users Report', value: 'ExternalUsers'},
   { text: 'Empty Google Groups Report', value: 'EmptyGSuiteGroup'},
   { text: 'Empty Slack Channels Report', value: 'EmptySlackChannel'},
-  { text: 'Exposed Resources Report', value: 'ExposedResources'}
+  { text: 'Exposed Resources Report', value: 'ExposedResources'},
+  {text: 'Weekly Summary report', value: 'WeeklySummary'},
+  {text: 'Admin user report', value: 'Admin'},
+  {text: 'External user report' , value: 'External'}
 ]
 
 class ReportForm extends Component {
@@ -59,7 +61,7 @@ class ReportForm extends Component {
 
     }
   }
-  
+
 
   submit = () => {
 
@@ -148,7 +150,7 @@ class ReportForm extends Component {
   }
 
   onChangeReportInput = (key, value) => {
-    
+
     var copyFinalReportObj = {};
     Object.assign(copyFinalReportObj, this.state.finalReportObj)
 
@@ -161,7 +163,7 @@ class ReportForm extends Component {
         copyFinalReportObj['selected_entity_type'] = "user"
       } else{
         copyFinalReportObj['selected_entity_type'] = value
-      } 
+      }
     }
 
     if (typeof (key) !== "string") {
@@ -200,7 +202,7 @@ class ReportForm extends Component {
 
     //let user = this.props.rowData
     //const { value } = this.state
-    
+
     var report_type = this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']
     var formRadio =  ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin','ExposedResources'].indexOf(report_type) < 0  ?
     (report_type != 'Activity' ? (<Form.Group inline>
@@ -210,11 +212,11 @@ class ReportForm extends Component {
       onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
     />
     <Form.Radio label='Group/User' value='user'
-        checked={((this.state.finalReportObj['selected_entity_type'] ||  
+        checked={((this.state.finalReportObj['selected_entity_type'] ||
         this.handleMultipleOptions('selected_entity_type')) == 'user')}
         onChange={(e, data) => this.onChangeReportInput('selected_entity_type', data.value)}
       />
-    </Form.Group>):<span>Group/User</span> ) : null 
+    </Form.Group>):<span>Group/User</span> ) : null
 
   var reportTypeForm = ['EmptyGSuiteGroup','EmptySlackChannel'].indexOf(this.handleMultipleOptions('report_type')) >= 0 ?
       <Form.Input label='Report Type' readOnly value={this.handleMultipleOptions('report_type')} />:
@@ -254,11 +256,11 @@ class ReportForm extends Component {
                 <ReactCron ref='reactCron' stateSetHandler={this.onChangeReportInput}
                   formType={this.props.formType} defaultCronVal={this.props.reportsMap['frequency']} />
               </Form.Field>{ formRadio }
-              {(this.state.finalReportObj['selected_entity_type'] || 
+              {(this.state.finalReportObj['selected_entity_type'] ||
                   this.handleMultipleOptions('selected_entity_type')) === 'user' ?
                 (<Form.Field><GroupSearch emailToBox={false} onChangeReportInput={this.onChangeReportInput}
                   defaultValue={this.state.reportDataForReportId['selected_entity']} />
-                </Form.Field>) : (this.state.finalReportObj['selected_entity_type'] || 
+                </Form.Field>) : (this.state.finalReportObj['selected_entity_type'] ||
                 this.handleMultipleOptions('selected_entity_type') ) === 'resource' ?
                 (<Form.Field ><ResourceSearch onChangeReportInput={this.onChangeReportInput}
                   defaultValue={this.state.reportDataForReportId['selected_entity']} /></Form.Field>) : null}

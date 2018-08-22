@@ -53,6 +53,9 @@ def process_notifications(notification_type, datasource_id, channel_id):
         response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
                                                 spaces='drive', quotaUser=quotaUser, pageSize=10).execute()
         drive_changes = response.get('changes') if (response and 'changes' in response) else []
+        Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(
+            user_email, page_token, response))
+
         if 'nextPageToken' in response:
             # More changes available, so continue fetching changes with the updated page token
             more_changes_to_process = True
@@ -75,9 +78,6 @@ def process_notifications(notification_type, datasource_id, channel_id):
     except Exception as ex:
         Logger().exception("Exception occurred while trying to get changes for user: {}, datasource_id: {} channel_id: {} - {}".format(
                     user_email, datasource_id, channel_id, ex))
-
-    Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(user_email, page_token, response))
-    
     # Process changes
     for change in drive_changes: 
         fileId = change.get('fileId')
