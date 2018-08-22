@@ -165,6 +165,7 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
         ResourcePermission.resource_id == db_resource.resource_id)).all()
 
     existing_permissions_dump = json.dumps(existing_permissions, cls=alchemy_encoder())
+    existing_permissions_count = len(existing_permissions)
     for existing_permission in existing_permissions:
         if existing_permission.permission_id in new_permissions_map:
             #Update the permission
@@ -206,12 +207,16 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
     messaging.send_push_notification("adya-"+datasource_id, 
             json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": updated_resource}))
 
-    #Trigger the policy validation now
-    payload = {}
-    payload["old_permissions"] = existing_permissions_dump
-    payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
-    payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
-    policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
-    #Logger().info("update_resource : payload : {}".format(payload))
-    messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "gsuite")
+    new_permissions_count = len(db_resource.permissions)
+    
+    #If there are permissions to compare, then trigger policy validate
+    if existing_permissions_count > 0 and new_permissions_count > 0:
+        #Trigger the policy validation now
+        payload = {}
+        payload["old_permissions"] = existing_permissions_dump
+        payload["resource"] = json.dumps(db_resource, cls=alchemy_encoder())
+        payload["new_permissions"] = json.dumps(db_resource.permissions, cls=alchemy_encoder())
+        policy_params = {'dataSourceId': datasource_id, 'policy_trigger': constants.PolicyTriggerType.PERMISSION_CHANGE.value}
+        #Logger().info("update_resource : payload : {}".format(payload))
+        messaging.trigger_post_event(urls.GSUITE_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, payload, "gsuite")
 
