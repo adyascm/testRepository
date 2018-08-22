@@ -548,6 +548,47 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
                 modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
+    elif action_key == action_constants.ActionNames.OFFBOARD_INTERNAL_USER.value:
+        users_info = action_parameters['users_info']
+        datasource_obj = get_datasource(datasource_id)
+        datasource_type = datasource_obj.datasource_type
+        status_message = 'Action submitted successfully'
+        response_msg = ResponseMessage(200, status_message)
+        for key, value in users_info.iteritems():
+            user_email = key
+            action_payload['parameters']['user_email'] = user_email
+            action_payload['parameters']['full_name'] = value
+            if datasource_type == constants.ConnectorTypes.GSUITE.value:
+                # remove all access for a user from gsuite
+                remove_all_access_action_payload = dict(action_payload)
+                remove_all_access_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
+                remove_all_access_action_payload['log_id'] = log_entry.log_id
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
+                                             remove_all_access_action_payload)
+
+                # transfer the ownership
+                transfer_ownership_action_payload = dict(action_payload)
+                transfer_ownership_action_payload['key'] = action_constants.ActionNames.TRANSFER_OWNERSHIP.value
+                transfer_ownership_action_payload['log_id'] = log_entry.log_id
+                transfer_ownership_action_payload['parameters']['old_owner_email'] = user_email
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
+                                             transfer_ownership_action_payload)
+
+            # remove user from all groups or channel
+            db_session = db_connection().get_session()
+            all_groups = db_session.query(DirectoryStructure).filter(
+                and_(DirectoryStructure.datasource_id == datasource_id,
+                     DirectoryStructure.member_email == user_email)).all()
+            groups_email_list = [group.parent_email for group in all_groups]
+            remove_from_group_action_payload = dict(action_payload)
+            remove_from_group_action_payload['key'] = action_constants.ActionNames.REMOVE_USER_FROM_GROUP
+            remove_from_group_action_payload['log_id'] = log_entry.log_id
+            for group_email in groups_email_list:
+                remove_from_group_action_payload['parameters']['group_email'] = group_email
+                messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
+                                             remove_from_group_action_payload)
+
+
     return response_msg
 
 

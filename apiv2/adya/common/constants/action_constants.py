@@ -25,6 +25,7 @@ class ActionNames(Enum):
     REMOVE_MEMBER_FROM_ORGANIZATION = "remove_member_from_organization"
     REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS = "remove_all_access_for_multiple_users"
     NOTIFY_MULTIPLE_USERS_FOR_CLEANUP = "notify_multiple_users_for_clean_up"
+    OFFBOARD_INTERNAL_USER = "offboard_internal_user"
 
 
 class ActionStatus(Enum):
