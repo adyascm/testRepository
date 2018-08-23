@@ -1,3 +1,4 @@
+import csv
 import json
 import datetime
 from datetime import timedelta
@@ -549,11 +550,12 @@ def run_report(auth_token, report_id):
         response_data.append(user_map)
 
         all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
+        csv_data = ""
         for activity in all_activities:
             del activity['_id']
-        csv_data = ""
-        if len(response_data)>0:
-            csv_data = utils.convert_data_to_csv(all_activities, None)
+            for key, value in activity.iteritems():
+                csv_data += str(key) + ":" + str(value) + ','
+            csv_data += "\n"
         final_response["csv_records"] = csv_data
         final_response["from_date"] = seven_days_ago
         final_response["to_date"] = curr_date
