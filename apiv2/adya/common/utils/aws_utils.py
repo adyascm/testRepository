@@ -237,7 +237,7 @@ def send_email_with_html_and_attachement(user_list, csv_data, report_desc, repor
             Source='service@adya.io',
             Destinations=user_list,
             RawMessage={
-                'Data':''
+                'Data': msg.as_string()
             },
         )
 
