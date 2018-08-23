@@ -623,6 +623,7 @@ def generate_csv_report(report_id):
                 csv_display_header = ['Name','Email']
                 report_data_header = ["name",'email']
             elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
+               Logger().info("csv_ record " + str(response['csv_records']))
                return response
 
             Logger().info("making csv")

@@ -224,9 +224,11 @@ def send_email_with_html_and_attachement(user_list, csv_data, report_desc, repor
         msg = MIMEMultipart('mixed')
         msg['Subject'] = report_desc
         msg['From'] = "service@adya.io"
+        Logger().info("attach csv data {}".format(csv_data))
         att = MIMEApplication(csv_data)
         att.add_header('Content-Disposition', 'attachment', filename=filename)
         msg.attach(att)
+        Logger().info("attach html template")
         msg.attach(MIMEText(rendered_html, 'html'))
 
         session = boto3.Session()
