@@ -32,6 +32,7 @@ class ActionStatus(Enum):
     STARTED = 'STARTED'
     SUCCESS = 'SUCCESS'
     FAILED = 'FAILED'
+    SUBMITTED = 'SUBMITTED'
 
 connector_servicename_map = {
     ConnectorTypes.GSUITE.value: 'gsuite',

@@ -525,13 +525,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         users_name = action_parameters['users_name']
         initiated_by = action_payload['initiated_by']
         status_message = 'Action submitted successfully'
-        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        log_entry.status = action_constants.ActionStatus.SUBMITTED.value
         if len(users_email)>0:
             for i in range(len(users_email)):
                 modified_action_payload = dict(action_payload)
                 modified_action_payload['parameters'] = {'user_email':users_email[i], 'full_name': users_name[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.NOTIFY_USER_FOR_CLEANUP.value
-                modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
         response_msg = ResponseMessage(200, status_message)        
     elif action_key == action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS.value:
@@ -539,20 +538,20 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
         users_name = action_parameters['users_name']
         initiated_by = action_payload['initiated_by']
         status_message = 'Action submitted successfully'
-        log_entry.status = action_constants.ActionStatus.SUCCESS.value
+        log_entry.status = action_constants.ActionStatus.SUBMITTED.value
         response_msg = ResponseMessage(200, status_message)        
         if len(users_email)>0:
             for i in range(len(users_email)):
                 modified_action_payload = dict(action_payload)
                 modified_action_payload['parameters'] = {'user_email':users_email[i], 'full_name':users_name[i]}
                 modified_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
-                modified_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None, modified_action_payload)
     elif action_key == action_constants.ActionNames.OFFBOARD_INTERNAL_USER.value:
         users_info = action_parameters['users_info']
         datasource_obj = get_datasource(datasource_id)
         datasource_type = datasource_obj.datasource_type
         status_message = 'Action submitted successfully'
+        log_entry.status = action_constants.ActionStatus.SUBMITTED.value
         response_msg = ResponseMessage(200, status_message)
         for key, value in users_info.iteritems():
             user_email = key
@@ -562,14 +561,12 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                 # remove all access for a user from gsuite
                 remove_all_access_action_payload = dict(action_payload)
                 remove_all_access_action_payload['key'] = action_constants.ActionNames.REMOVE_ALL_ACCESS_FOR_USER.value
-                remove_all_access_action_payload['log_id'] = log_entry.log_id
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
                                              remove_all_access_action_payload)
 
                 # transfer the ownership
                 transfer_ownership_action_payload = dict(action_payload)
                 transfer_ownership_action_payload['key'] = action_constants.ActionNames.TRANSFER_OWNERSHIP.value
-                transfer_ownership_action_payload['log_id'] = log_entry.log_id
                 transfer_ownership_action_payload['parameters']['old_owner_email'] = user_email
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
                                              transfer_ownership_action_payload)
@@ -581,8 +578,7 @@ def execute_action(auth_token, domain_id, datasource_id, action_config, action_p
                      DirectoryStructure.member_email == user_email)).all()
             groups_email_list = [group.parent_email for group in all_groups]
             remove_from_group_action_payload = dict(action_payload)
-            remove_from_group_action_payload['key'] = action_constants.ActionNames.REMOVE_USER_FROM_GROUP
-            remove_from_group_action_payload['log_id'] = log_entry.log_id
+            remove_from_group_action_payload['key'] = action_constants.ActionNames.REMOVE_USER_FROM_GROUP.value
             for group_email in groups_email_list:
                 remove_from_group_action_payload['parameters']['group_email'] = group_email
                 messaging.trigger_post_event(urls.INITIATE_ACTION_PATH, auth_token, None,
