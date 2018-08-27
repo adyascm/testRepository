@@ -1,3 +1,4 @@
+import csv
 import json
 import datetime
 from datetime import timedelta
@@ -531,32 +532,38 @@ def run_report(auth_token, report_id):
         activities = event_collection.aggregate(pipeline)
         total_files = 0
         total_users = 0
-        exposure_files = ["FILE_SHARE_PUBLIC", "FILE_SHARE_ANYONEWITHLINK", "FILE_SHARE_EXTERNAL"]
         for activity in activities:
             event_type = activity['_id']['event_type']
-            if event_type in exposure_files:
-                total_files += activity['count']
-            elif event_type == 'CREATE_USER':
+            if event_type == 'CREATE_USER':
                 total_users += activity['count']
+            elif event_type == 'OAUTH_GRANT':
+                final_response["OAUTH_GRANT"] = activity['count']
+            elif event_type == 'FILE_SHARE_PUBLIC':
+                total_files += activity['count']
+                final_response["FILE_SHARE_PUBLIC"] = activity['count']
+            elif event_type == 'FILE_SHARE_EXTERNAL':
+                total_files += activity['count']
+                final_response["FILE_SHARE_EXTERNAL"] = activity['count']
+            elif event_type == 'FILE_SHARE_ANYONEWITHLINK':
+                total_files += activity['count']
+
             data_map = {
                 'event_type': event_type,
                 'count': activity['count']
             }
             response_data.append(data_map)
-        file_map = {"event_type": "TOTAL_FILES", "count": total_files}
-        user_map = {"event_type": "TOTAL_USERS", "count": total_users}
-        response_data.append(file_map)
-        response_data.append(user_map)
-
         all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
+        csv_data = ""
         for activity in all_activities:
             del activity['_id']
-        csv_data = ""
-        if len(response_data)>0:
-            csv_data = utils.convert_data_to_csv(all_activities, None)
+            for key, value in activity.iteritems():
+                csv_data += str(key) + ":" + str(value) + ','
+            csv_data += "\n"
         final_response["csv_records"] = csv_data
         final_response["from_date"] = seven_days_ago
         final_response["to_date"] = curr_date
+        final_response["TOTAL_FILES"] = total_files
+        final_response["TOTAL_USERS"] = total_users
 
     final_response["response_data"] = response_data
     return final_response
@@ -623,6 +630,7 @@ def generate_csv_report(report_id):
                 csv_display_header = ['Name','Email']
                 report_data_header = ["name",'email']
             elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
+               Logger().info("csv_ record " + str(response['csv_records']))
                return response
 
             Logger().info("making csv")
