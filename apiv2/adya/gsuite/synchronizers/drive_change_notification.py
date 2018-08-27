@@ -210,7 +210,7 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
     new_permissions_count = len(db_resource.permissions)
     
     #If there are permissions to compare, then trigger policy validate
-    if existing_permissions_count > 0 and new_permissions_count > 0:
+    if (is_new_resource == 1 or existing_permissions_count > 0) and new_permissions_count > 0:
         #Trigger the policy validation now
         payload = {}
         payload["old_permissions"] = existing_permissions_dump
