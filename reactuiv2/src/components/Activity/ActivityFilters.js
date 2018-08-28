@@ -4,7 +4,7 @@ import agent from '../../utils/agent';
 
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
-import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE} from '../../constants/actionTypes';
+import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
@@ -13,7 +13,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadActivities: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
-    changeFilter: (property, key, value, clearFilter) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, key, value, clearFilter}),
+    changeFilter: (property, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, value}),
+    setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
 });
 
 class ActivityFilters extends Component {
@@ -26,7 +27,8 @@ class ActivityFilters extends Component {
                 "GSUITE": true,
                 "SLACK": true
             },
-            currentDate:""
+            currentDate:"",
+            filteractor:""
         }
     }
 
@@ -75,46 +77,54 @@ class ActivityFilters extends Component {
     }
 
     handleDateChange = (date) => {
-        // let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
+        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
             currentDate: date ? date : ''
         })
-        // this.props.changeFilter("filterByDate", selectedDate, "", false)
+        this.props.changeFilter("filterByDate", selectedDate)
     }
 
     clearFilterData = (stateKey) => {
+        let stateValue = undefined
         if (stateKey === 'filterConnectorType'){
+            stateValue = {}
             this.setState({
                 selectedConnectors:{},
             })
         }
-            
-        else if (stateKey === 'filterEventType')
+        else if (stateKey === 'filterEventType'){
+            stateValue = {}
             this.setState({
                 selectedEventTypes:{}
             })
+        }
         else if (stateKey === 'filterByDate') {
+            stateValue = ''
             this.setState({
                 currentDate: ''
             })
         }
         else if (stateKey === 'filteractor') {
+            stateValue = ''
             this.setState({
                 filteractor: ''
             })
         }
         if(stateKey){
-            this.props.changeFilter(stateKey,'','',true)
+            this.props.changeFilter(stateKey,stateValue)
         }
     }
 
 
     fetchActivityList = () => {
+        this.props.setPaginationData(0, this.props.pageLimit)
+        this.props.changeFilter('filterEventType', this.state.selectedEventTypes)
+        this.props.changeFilter('filterConnectorType', this.state.selectedConnectors)
+
         let selectedConnectors = []
         let selectedEventTypes = []
         for(let k in this.state.selectedEventTypes){
             if(this.state.selectedEventTypes[k]){
-                this.props.changeFilter('filterEventType', this.props.all_activity_events[k],true)
                 selectedEventTypes.push(k)
             }
         }
@@ -131,32 +141,6 @@ class ActivityFilters extends Component {
     }
 
     render() {
-        // if (!props.userStats || props.isUserSelected)
-        //     return null;
-        // var stats = []
-        // var statTypes = Object.keys(props.userStats)
-        // for (let index = 0; index < props.userStats.length; index++) {
-        //     let stat = props.userStats[index];
-        //     var statSubTypesKeys = Object.keys(stat.stats)
-        //     var subTypeMenu = []
-        //     for (let stIndex = 0; stIndex < statSubTypesKeys.length; stIndex++) {
-        //         let statSubType = statSubTypesKeys[stIndex];
-        //         let statNumber = stat.stats[statSubType]["count"];
-        //         subTypeMenu.push((
-        //             <Menu.Item as='a' style={props.statSubType === stat.stats[statSubType]["value"] ? { 'backgroundColor': 'lightgray' } : null} onClick={(event) => props.handleStatsClick(event, stat.field_name, statSubType, stat.stats[statSubType]["value"])}>
-        //                 <Label key={index} color='blue'>{statNumber}</Label>
-        //                 <div style={props.statSubType === stat.stats[statSubType]["value"] ? { 'color': 'blue' } : null} >{statSubType}</div>
-        //             </Menu.Item>
-        //         ))
-        //     }
-        //     stats.push(<Menu.Item>
-        //         <Menu.Header>{stat.display_name}</Menu.Header>
-        //         <Menu.Menu>
-        //             {subTypeMenu}
-        //         </Menu.Menu>
-        //     </Menu.Item>);
-
-        // }
         
         let filter_events = this.props.all_activity_events.map((filter_event) => {
             return(

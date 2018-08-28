@@ -30,7 +30,6 @@ const mapDispatchToProps = dispatch => ({
     onChartLoadStart: () => dispatch({ type: ACTIVITIES_CHART_LOAD_START }),
     onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
     setRowData: (payload) => dispatch({ type: ACTIVITIES_SET_ROW_DATA, payload }),
-    changeFilter: (property, key, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, key, value }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
 });
 
@@ -63,10 +62,6 @@ class ActivityListTable extends Component {
     componentWillMount() {
         this.props.onLoadStart();
         this.props.onChartLoadStart();
-        this.props.onLoad(agent.Activity.getAllActivites({
-            'domain_id': this.state.domain_id, 'timestamp': this.props.filterByDate, 'actor': this.props.filteractor,
-            'connector_type': this.props.filterConnectorType, 'event_type': this.props.filterEventType, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
-        }));
         this.props.onChartLoad(agent.Dashboard.getWidgetData({ 'widget_id': 'activitiesByEventType', 'event_filters': {} }))
     }
 
@@ -79,11 +74,30 @@ class ActivityListTable extends Component {
             if (nextProps.filterConnectorType !== this.props.filterConnectorType || nextProps.filterEventType !== this.props.filterEventType ||
                 nextProps.pageNumber !== this.props.pageNumber || nextProps.filteractor !== this.props.filteractor || nextProps.filterByDate !== this.props.filterByDate) {
                 nextProps.onLoadStart()
-                nextProps.onLoad(agent.Activity.getAllActivites({
-                    'domain_id': this.state.domain_id, 'timestamp': nextProps.filterByDate, 'actor': nextProps.filteractor,
-                    'connector_type': nextProps.filterConnectorType, 'event_type': nextProps.filterEventType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit
-                }))
 
+                let selectedConnectors = []
+                let selectedEventTypes = []
+                let timeStamp = 'filterByDate' in nextProps ? nextProps['filterByDate'] : ''
+                let filteractor = 'filteractor' in nextProps ? nextProps['filteractor'] : ''
+                if('filterEventType' in nextProps){
+                    for(let k in nextProps.filterEventType){
+                        if(nextProps.filterEventType[k]){
+                            selectedEventTypes.push(k)
+                        }
+                    }
+                }
+                if('filterConnectorType' in nextProps){
+                    for(let k in nextProps.filterConnectorType){
+                        if(nextProps.filterConnectorType[k]){
+                            selectedConnectors.push(k)
+                        }
+                    }
+                }
+                
+                nextProps.onLoad(agent.Activity.getAllActivites({
+                    'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
+                    'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit
+                }))
             }
         }
     }
@@ -93,55 +107,6 @@ class ActivityListTable extends Component {
         this.props.setRowData(rowData)
     }
 
-    handleDateChange = (date) => {
-        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
-        this.setState({
-            currentDate: date ? date : ''
-        })
-        this.props.changeFilter("filterByDate", selectedDate)
-    }
-
-    clearFilterData = (stateKey) => {
-        if (stateKey === 'filterConnectorType')
-            this.setState({
-                filterConnectorType: ''
-            })
-        else if (stateKey === 'filterEventType')
-            this.setState({
-                filterEventType: ''
-            })
-        else if (stateKey === 'filterByDate') {
-            this.setState({
-                filterByDate: ''
-            })
-        }
-        else if (stateKey === 'filteractor') {
-            this.setState({
-                filteractor: ''
-            })
-
-        }
-        if (this.props[stateKey] !== '')
-            this.props.changeFilter(stateKey, '')
-    }
-
-    handleEventTypeChange = (event) => {
-        this.setState({
-            filterEventType: event.target.value
-        })
-    }
-
-    handleConnectorTypeChange = (event) => {
-        this.setState({
-            filterConnectorType: event.target.value
-        })
-    }
-
-    handleActorChange = (event) => {
-        this.setState({
-            filteractor: event.target.value
-        })
-    }
 
     handleColumnSort = (mappedColumnName) => {
         if (this.state.columnNameClicked !== mappedColumnName) {
@@ -168,12 +133,6 @@ class ActivityListTable extends Component {
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
             })
-        }
-    }
-
-    handleKeyPress = (event, filterType, filterkey, filterValue) => {
-        if (event.key === 'Enter') {
-            this.props.changeFilter(filterType, filterkey, filterValue);
         }
     }
 
@@ -252,29 +211,6 @@ class ActivityListTable extends Component {
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
-                                {/* <Table.Row>
-                                    <Table.Cell width='2'>
-                                        <Input fluid placeholder='Filter by source...' icon={this.state.filterConnectorType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterConnectorType')} /> : false} value={this.state.filterConnectorType} onChange={this.handleConnectorTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "filterConnectorType", "connector_type", this.state.filterConnectorType)} />
-                                    </Table.Cell>
-                                    <Table.Cell width='3'>
-                                        <Input fluid placeholder='Filter by type...' icon={this.state.filterEventType.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filterEventType')} /> : false} value={this.state.filterEventType} onChange={this.handleEventTypeChange} onKeyPress={(event) => this.handleKeyPress(event, "filterEventType", "event_type", this.state.filterEventType)} />
-                                    </Table.Cell>
-                                    <Table.Cell width='3'>
-                                        <Input fluid placeholder='Filter by Date...'>
-                                            <DatePicker
-                                                selected={this.state.currentDate}
-                                                onChange={this.handleDateChange}
-                                                dateFormat="LLL"
-                                            />
-                                        </Input>
-                                    </Table.Cell>
-
-                                    <Table.Cell width='2'>
-                                        <Input fluid placeholder='Filter by user...' icon={this.state.filteractor.length > 0 ? <Icon name='close' link onClick={() => this.clearFilterData('filteractor')} /> : false} value={this.state.filteractor} onChange={this.handleActorChange} onKeyPress={(event) => this.handleKeyPress(event, "filteractor", "actor", this.state.filteractor)} />
-                                    </Table.Cell>
-
-                                </Table.Row> */}
-
                                 {tableRowData}
                             </Table.Body>
                         </Table>

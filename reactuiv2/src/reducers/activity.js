@@ -16,13 +16,12 @@ const defaultState = {
     rowData: undefined,
     activitiesDataPayload: undefined,
     activitySearchPayload: undefined,
-    filterConnectorType: '',
-    filterEventType: '',
-    filteractor: '',
-    filterByDate: '',
     pageNumber: 0,
     pageLimit: 100,
-    filterList: {}
+    filterConnectorType:{},
+    filterEventType:{},
+    filteractor:'',
+    filterByDate:'',
 };
 
 export default (state = defaultState, action) => {
@@ -64,28 +63,9 @@ export default (state = defaultState, action) => {
                 rowData: action.payload
             }
         case ACTIVITIES_FILTER_CHANGE:
-            let newFilter = Object.assign({}, state.filterList);
-            if(action.clearFilter){
-                if(action.property == 'filterEventType' || action.property == 'filterConnectorType'){
-                    if(!(action.property in newFilter)){
-                        newFilter[action.property] = {}
-                    }
-                }else if(action.property == 'filterByDate'){
-                    newFilter[action.property] = ''
-                }
-            }else{
-                if(action.property == 'filterEventType' || action.property == 'filterConnectorType'){
-                    if(!(action.property in newFilter)){
-                        newFilter[action.property] = {}
-                    }
-                    newFilter[action.property][action.key] = action.value
-                }else if(action.property == 'filterByDate'){
-                    newFilter[action.property] = action.value 
-                }
-            }
             return {
                 ...state,
-                filterList: newFilter
+                [action.property]: action.value
             }
         case LOGOUT:
             return {
