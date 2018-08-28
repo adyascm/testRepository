@@ -47,11 +47,15 @@ def process_activity(payload):
 
 def process_channel_archive(db_session, datasource_id, payload):
     channel_id = payload['channel']
-    db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
-                                             DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: True})
+    channel_query = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                        DomainUser.user_id == channel_id))
+    channel_query.update({DomainUser.is_suspended: True})
+    channel = channel_query.first()
+    # db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+    #                                          DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: True})
     datasource_obj = get_datasource(datasource_id)
     if datasource_obj:
-        tags = {"channel_id": channel_id}
+        tags = {"channel_id": channel_id, "channel_name": channel.full_name}
         activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
                                 event_type='CHANNEL_ARCHIVE', actor=None,
                                 tags=tags)
@@ -59,11 +63,15 @@ def process_channel_archive(db_session, datasource_id, payload):
 
 def process_channel_unarchive(db_session, datasource_id, payload):
     channel_id = payload['channel']
-    db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
-                                             DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: False})
+    channel_query = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                        DomainUser.user_id == channel_id))
+    channel_query.update({DomainUser.is_suspended: False})
+    # db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+    #                                          DomainUser.user_id == channel_id)).update({DomainUser.is_suspended: False})
+    channel = channel_query.first()
     datasource_obj = get_datasource(datasource_id)
     if datasource_obj:
-        tags = {"channel_id": channel_id}
+        tags = {"channel_id": channel_id, "channel_name": channel.full_name}
         activity_db().add_event(domain_id=datasource_obj.domain_id, connector_type=constants.ConnectorTypes.SLACK.value,
                                 event_type='CHANNEL_UNARCHIVE', actor=None,
                                 tags=tags)
@@ -102,6 +110,7 @@ def new_channel_created(db_session, datasource_id, payload):
         {DataSource.processed_user_count: DataSource.processed_group_count + 1})
     datasource_obj = get_datasource(datasource_id)
     if datasource_obj:
+        tags = {"channel_email": channel_obj_model.email, "channel_name": channel_obj_model.full_name}
         activity_db().add_event(domain_id=datasource_obj.domain_id,
                                 connector_type=constants.ConnectorTypes.SLACK.value,
                                 event_type='CHANNEL_CREATED', actor=None,
@@ -128,7 +137,7 @@ def process_member_joined_channel(db_session, datasource_id, payload):
                                     connector_type=constants.ConnectorTypes.SLACK.value,
                                     event_type='MEMBER_JOINED_CHANNEL', actor=None,
                                     tags={"channel_id": channel_id, "channel_email": channel_info.email,
-                                          "user_email": user_info.email})
+                                          "user_email": user_info.email, "user_name": user_info.full_name, "channel_name": channel_info.full_name})
 
 
 def process_member_left_channel(db_session, datasource_id, payload):
@@ -147,7 +156,7 @@ def process_member_left_channel(db_session, datasource_id, payload):
         activity_db().add_event(domain_id=datasource_obj.domain_id,
                                 connector_type=constants.ConnectorTypes.SLACK.value,
                                 event_type='MEMBER_LEFT_CHANNEL', actor=None,
-                                tags={"channel_id": channel_id, "user_email": user_info.email, "channel_email": channel_info.email})
+                                tags={"channel_id": channel_id, "user_email": user_info.email, "user_name": user_info.full_name, "channel_email": channel_info.email, "channel_name": channel_info.full_name})
 
 
 def get_user_and_channel_info_based_on_ids(db_session, datasource_id, user_id, channel_id):
