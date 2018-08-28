@@ -77,7 +77,7 @@ class ActivityFilters extends Component {
     }
 
     handleDateChange = (date) => {
-        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
+        // let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
             currentDate: date ? date : ''
         })
