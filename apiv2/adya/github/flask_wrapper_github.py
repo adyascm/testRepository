@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from adya.github.services import oauth_handler, scan_handler, notifications_handler, actions_handler
+from adya.github.services import oauth_handler, scan_handler, notifications_handler, actions_handler, policy_validate_handler
 
 class github_oauth_request(Resource):
     def get(self):
@@ -44,3 +44,7 @@ class ProcessGithubNotifications(Resource):
 class ExecuteGithubActions(Resource):
     def post(self):
         actions_handler.execute_github_actions(request, None)
+
+class PolicyValidator(Resource):
+    def post(self):
+        policy_validate_handler.validate_policy(request, None)

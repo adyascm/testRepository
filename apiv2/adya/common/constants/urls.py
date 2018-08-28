@@ -97,3 +97,4 @@ GITHUB_NOTIFICATIONS_URL = constants.API_HOST + PROCESS_GITHUB_NOTIFICATIONS_PAT
 
 #get_default reports/policies
 DEFULT_REPORTS_POLICIES = '/common/defaultreportpolicy'
+GITHUB_POLICIES_VALIDATE_PATH = '/github/policies/validate'
