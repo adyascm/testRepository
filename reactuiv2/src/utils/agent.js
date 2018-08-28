@@ -66,8 +66,8 @@ const Activity = {
         requests.get('/google/getactivitiesforuser?user_email=' + user_email),
     getAllActivites: (filters) =>
        requests.post('/common/activities', filters),
-    getAllActivityEvents: () =>
-        requests.get('/common/getallactivityevents')   
+    getAllActivityEventTypes: () =>
+        requests.get('/common/getallactivityeventtypes')   
 }
 
 const Dashboard = {

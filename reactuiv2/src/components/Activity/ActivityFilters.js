@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadActivities: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
-    changeFilter: (property, key, value,clearFilter) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, key, value, clearFilter}),
+    changeFilter: (property, key, value, clearFilter) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, key, value, clearFilter}),
 });
 
 class ActivityFilters extends Component {
@@ -75,10 +75,11 @@ class ActivityFilters extends Component {
     }
 
     handleDateChange = (date) => {
-        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
+        // let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
-            currentDate: date ? selectedDate : ''
+            currentDate: date ? date : ''
         })
+        // this.props.changeFilter("filterByDate", selectedDate, "", false)
     }
 
     clearFilterData = (stateKey) => {
@@ -124,7 +125,7 @@ class ActivityFilters extends Component {
         }
         
         this.props.onLoadActivities(agent.Activity.getAllActivites({
-            'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate, 'actor': this.props.filteractor,
+            'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate ? this.state.currentDate.format('YYYY-MM-DD HH:MM:SS'): '', 'actor': this.props.filteractor,
             'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
         }));
     }
@@ -175,6 +176,7 @@ class ActivityFilters extends Component {
                                                 <DatePicker
                                                 onChange={this.handleDateChange}
                                                 dateFormat="LLL"
+                                                selected={this.state.currentDate}
                                                 />
                                             </Input>
                             </Menu.Item>

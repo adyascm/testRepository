@@ -52,7 +52,7 @@ const DataSourceVerifiedView = ChildComponent => {
                 })
             }
             if(!this.props.common.all_activity_events){
-                this.props.loadActivityEvents(agent.Activity.getAllActivityEvents())
+                this.props.loadActivityEvents(agent.Activity.getAllActivityEventTypes())
             }
         }
         render() {
