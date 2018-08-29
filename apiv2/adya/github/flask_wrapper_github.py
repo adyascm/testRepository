@@ -45,6 +45,6 @@ class ExecuteGithubActions(Resource):
     def post(self):
         actions_handler.execute_github_actions(request, None)
 
-class PolicyValidator(Resource):
+class GithubPolicyValidator(Resource):
     def post(self):
         policy_validate_handler.validate_policy(request, None)

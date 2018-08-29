@@ -81,14 +81,19 @@ def process_activity(auth_token, payload, event_type):
             existing_user = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.user_id == member_id).first()
             if existing_user:
                 if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
-                    policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.NEW_USER.value}
-                    new_user_payload = {}
-                    new_user_payload["user"] = json.dumps(existing_user, cls=alchemy_encoder())
-                    new_user_payload["group"] = None
-                    messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, new_user_payload, "github")
+                    trigger_external_user_policy_validate(auth_token, datasource_id, existing_user, None)
             else:
-                #Member is not an existing user
-                #Add the member to db and check if the user is external; if so trigger policy violate
-                pass
+                user = entities.GithubUser(datasource_id, domain_id, member)
+                user_model = user.get_model()
+                db_session.add(user_model)
+                db_connection().commit()
 
-    
+                if user_model.member_type == constants.EntityExposureType.EXTERNAL.value:
+                    trigger_external_user_policy_validate(auth_token, datasource_id, user_model, None)
+
+def trigger_external_user_policy_validate(auth_token, datasource_id, user, group):
+    policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.NEW_USER.value}
+    new_user_payload = {}
+    new_user_payload["user"] = json.dumps(user, cls=alchemy_encoder())
+    new_user_payload["group"] = group
+    messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, new_user_payload, "github")
