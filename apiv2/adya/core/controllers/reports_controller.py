@@ -5,6 +5,7 @@ from datetime import timedelta
 import uuid
 from sqlalchemy import func, or_, and_
 
+from adya.common.constants.default_reports import datasource_to_default_report_map
 from adya.core.controllers import domain_controller, directory_controller, app_controller
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, ExternalExposure, alchemy_encoder
@@ -14,7 +15,6 @@ from adya.common.constants import constants
 from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
-from adya.common.constants.constants import datasource_to_default_report_map
 from adya.gsuite.activities.activities import get_activities_for_user
 
 
@@ -531,22 +531,14 @@ def run_report(auth_token, report_id):
         ]
         event_collection = activity_db.activity_db().get_collection("events")
         activities = event_collection.aggregate(pipeline)
-        total_files = 0
-        total_users = 0
         for activity in activities:
             event_type = activity['_id']['event_type']
-            if event_type == 'CREATE_USER':
-                total_users += activity['count']
-            elif event_type == 'OAUTH_GRANT':
+            if event_type == 'OAUTH_GRANT':
                 final_response["OAUTH_GRANT"] = activity['count']
             elif event_type == 'FILE_SHARE_PUBLIC':
-                total_files += activity['count']
                 final_response["FILE_SHARE_PUBLIC"] = activity['count']
             elif event_type == 'FILE_SHARE_EXTERNAL':
-                total_files += activity['count']
                 final_response["FILE_SHARE_EXTERNAL"] = activity['count']
-            elif event_type == 'FILE_SHARE_ANYONEWITHLINK':
-                total_files += activity['count']
 
         all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
         for activity in all_activities:
@@ -556,15 +548,14 @@ def run_report(auth_token, report_id):
             permissions = activity.get('new_permissions')
             activity['timestamp'] = activity['timestamp'].strftime('%m/%d/%Y %H-%M-%S')
             if permissions:
-                perms = ""
+                perms = "["
                 for permission in permissions:
-                    perms += "{" + "email:{}, permission_type: {}".format(permission.get('email'), permission.get('permission_type')) + "};"
+                    perms += "{" + "email:{} & permission_type: {}".format(permission.get('email'), permission.get('permission_type')) + "};"
+                perms += "]"
                 activity['permissions'] = perms
             response_data.append(activity)
         final_response["from_date"] = seven_days_ago.strftime('%m/%d/%Y')
         final_response["to_date"] = curr_date.strftime('%m/%d/%Y')
-        final_response["TOTAL_FILES"] = total_files
-        final_response["TOTAL_USERS"] = total_users
 
     final_response["response_data"] = response_data
     return final_response

@@ -1,8 +1,6 @@
 import os
 from enum import Enum
 
-from adya.common.constants import default_reports
-
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
@@ -147,11 +145,6 @@ class ConnectorTypes(Enum):
     SLACK = "SLACK"
     GITHUB = "GITHUB"
 
-datasource_to_default_report_map = {
-    ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
-    ConnectorTypes.GSUITE.value: default_reports.default_reports_gsuite
-}
-
 class BillingCycle(Enum):
     MONTHLY = "MONTHLY"
     YEARLY = "YEARLY"
@@ -191,3 +184,10 @@ class ReportType(Enum):
     EXTERNALUSERS = 'ExternalUsers'
     ADMIN = 'Admin'
     EXPOSEDRESOURCES = 'ExposedResources'
+
+
+class CronExp(Enum):
+    MONTHLY = "cron(0 10 1 * ? *)"
+    WEEKLY = "cron(0 10 ? * 2 *)"
+
+
