@@ -30,9 +30,9 @@ def validate_permission_change(auth_token, datasource_id, payload):
                 has_permission_changed = True
             del old_permissions_map[new_permission_email]
 
-    if not has_permission_changed and old_permissions_map:
-        Logger().info("Old permissions were more than new permissions")
-        has_permission_changed = True
+    # if not has_permission_changed and old_permissions_map:
+    #     Logger().info("Old permissions were more than new permissions")
+    #     has_permission_changed = True
             
     if has_permission_changed:
         Logger().info("Permissions changed for this document, validate policy conditions now...")
