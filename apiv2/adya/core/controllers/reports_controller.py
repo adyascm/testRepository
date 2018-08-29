@@ -15,6 +15,8 @@ from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
 from adya.common.constants.constants import datasource_to_default_report_map
+from adya.gsuite.activities.activities import get_activities_for_user
+
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, event_filters = None):
     if not (auth_token or datasource_id):
@@ -425,10 +427,9 @@ def run_report(auth_token, report_id):
             }
 
             response_data.append(data_map)
-
     elif report_type == constants.ReportType.ACTIVITY.value:
         if selected_entity_type == "user":
-            get_activity_report = activities.get_activities_for_user(auth_token,
+            get_activity_report = get_activities_for_user(auth_token,
                                                                      selected_entity,
                                                                      last_run_time)
             for datalist in get_activity_report:
@@ -547,21 +548,25 @@ def run_report(auth_token, report_id):
             elif event_type == 'FILE_SHARE_ANYONEWITHLINK':
                 total_files += activity['count']
 
-            data_map = {
-                'event_type': event_type,
-                'count': activity['count']
-            }
-            response_data.append(data_map)
+
         all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
-        csv_data = ""
         for activity in all_activities:
             del activity['_id']
-            for key, value in activity.iteritems():
-                csv_data += str(key) + ":" + str(value) + ','
-            csv_data += "\n"
-        final_response["csv_records"] = csv_data
-        final_response["from_date"] = seven_days_ago
-        final_response["to_date"] = curr_date
+            if 'resource_id' in activity:
+                del activity['resource_id']
+            del activity['domain_id']
+            if 'display_text' in activity:
+                activity['resource_name'] = activity.get('display_text')
+            permissions = activity.get('new_permissions')
+            activity['timestamp'] = activity['timestamp'].strftime('%m/%d/%Y %H-%M-%S')
+            if permissions:
+                perms = ""
+                for permission in permissions:
+                    perms += "{" + "email:{}, permission_type: {}".format(permission.get('email'), permission.get('permission_type')) + "};"
+                activity['permissions'] = perms
+            response_data.append(activity)
+        final_response["from_date"] = seven_days_ago.strftime('%m/%d/%Y')
+        final_response["to_date"] = curr_date.strftime('%m/%d/%Y')
         final_response["TOTAL_FILES"] = total_files
         final_response["TOTAL_USERS"] = total_users
 
@@ -630,8 +635,9 @@ def generate_csv_report(report_id):
                 csv_display_header = ['Name','Email']
                 report_data_header = ["name",'email']
             elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
-               Logger().info("csv_ record " + str(response['csv_records']))
-               return response
+               csv_display_header = ['Resource', 'Event type', 'Actor', 'Timestamp', 'Datasource', 'Permissions']
+               report_data_header = ['resource_name' or 'display_text', 'event_type', 'actor', 'timestamp',
+                                              'connector_type', 'permissions']
 
             Logger().info("making csv")
 
@@ -639,9 +645,9 @@ def generate_csv_report(report_id):
             for data in report_data:
                 for i in range(len(report_data_header)):
                     if i == len(report_data_header) - 1:
-                        csv_records += (str(data[report_data_header[i]]))
+                        csv_records += (str(data.get(report_data_header[i])))
                     else:
-                        csv_records += (str(data[report_data_header[i]])) + ','
+                        csv_records += (str(data.get(report_data_header[i]))) + ','
                 csv_records += "\n"
 
             Logger().info("csv_ record " + str(csv_records))
