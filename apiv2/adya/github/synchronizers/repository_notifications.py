@@ -5,7 +5,7 @@ from adya.github.mappers import entities
 from adya.common.db.models import DataSource, Resource, ResourcePermission, DomainUser, alchemy_encoder
 from adya.common.constants import constants, urls
 from adya.common.db.activity_db import activity_db
-from adya.common.utils import messaging
+from adya.common.utils import messaging, utils
 import json
 
 def process_activity(auth_token, payload, event_type):
@@ -79,6 +79,7 @@ def process_activity(auth_token, payload, event_type):
         if action == "added":
             member_id = member["id"]
             existing_user = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.user_id == member_id).first()
+            repo = db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repository["id"]).first()
             if existing_user:
                 if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
                     trigger_external_user_policy_validate(auth_token, datasource_id, existing_user, None)
@@ -86,6 +87,17 @@ def process_activity(auth_token, payload, event_type):
                 user = entities.GithubUser(datasource_id, domain_id, member)
                 user_model = user.get_model()
                 db_session.add(user_model)
+                db_connection().commit()
+                #Also need to make an entry to the ResourcePermission table
+                repo_permission = ResourcePermission()
+                repo_permission["datasource_id"] = datasource_id
+                repo_permission["resource_id"] = repository["id"]
+                repo_permission["email"] = user_model["email"]
+                repo_permission["permission_id"] = member["id"]
+                repo_permission["permission_type"] = member["permission_type"]
+                repo_permission["exposure_type"] = utils.get_highest_exposure_type(user_model["member_type"], repo["exposure_type"])
+                
+                db_session.add(repo_permission)
                 db_connection().commit()
 
                 if user_model.member_type == constants.EntityExposureType.EXTERNAL.value:
