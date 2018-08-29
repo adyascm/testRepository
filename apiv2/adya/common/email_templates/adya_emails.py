@@ -296,8 +296,8 @@ def send_weekly_summary_email(email_list, response, domain_id):
             "extenally_exposed_files": response.get('FILE_SHARE_EXTERNAL'),
             "users_created": response.get('CREATE_USER'),
             "total_users": response.get('TOTAL_USERS'),
-            "from_date": response.get('from_date').strftime('%m/%d/%Y'),
-            "to_date": response.get('to_date').strftime('%m/%d/%Y')
+            "from_date": response.get('from_date'),
+            "to_date": response.get('to_date')
         }
         template_name = "weekly_summary"
         rendered_html = get_rendered_html(template_name, template_parameters)

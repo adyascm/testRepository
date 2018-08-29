@@ -548,13 +548,9 @@ def run_report(auth_token, report_id):
             elif event_type == 'FILE_SHARE_ANYONEWITHLINK':
                 total_files += activity['count']
 
-
         all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
         for activity in all_activities:
             del activity['_id']
-            if 'resource_id' in activity:
-                del activity['resource_id']
-            del activity['domain_id']
             if 'display_text' in activity:
                 activity['resource_name'] = activity.get('display_text')
             permissions = activity.get('new_permissions')
@@ -636,7 +632,7 @@ def generate_csv_report(report_id):
                 report_data_header = ["name",'email']
             elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
                csv_display_header = ['Resource', 'Event type', 'Actor', 'Timestamp', 'Datasource', 'Permissions']
-               report_data_header = ['resource_name' or 'display_text', 'event_type', 'actor', 'timestamp',
+               report_data_header = ['resource_name', 'event_type', 'actor', 'timestamp',
                                               'connector_type', 'permissions']
 
             Logger().info("making csv")
