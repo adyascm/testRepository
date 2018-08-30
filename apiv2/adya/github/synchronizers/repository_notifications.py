@@ -80,32 +80,26 @@ def process_activity(auth_token, payload, event_type):
             member_id = member["id"]
             existing_user = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.user_id == member_id).first()
             repo = db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repository["id"]).first()
-            if existing_user:
-                if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
-                    trigger_external_user_policy_validate(auth_token, datasource_id, existing_user, None)
-            else:
+            if not existing_user:
                 user = entities.GithubUser(datasource_id, domain_id, member)
-                user_model = user.get_model()
-                db_session.add(user_model)
+                existing_user = user.get_model()
+                db_session.add(existing_user)
                 db_connection().commit()
                 #Also need to make an entry to the ResourcePermission table
                 repo_permission = ResourcePermission()
                 repo_permission["datasource_id"] = datasource_id
                 repo_permission["resource_id"] = repository["id"]
-                repo_permission["email"] = user_model["email"]
+                repo_permission["email"] = existing_user["email"]
                 repo_permission["permission_id"] = member["id"]
                 repo_permission["permission_type"] = member["permission_type"]
-                repo_permission["exposure_type"] = utils.get_highest_exposure_type(user_model["member_type"], repo["exposure_type"])
+                repo_permission["exposure_type"] = utils.get_highest_exposure_type(existing_user["member_type"], repo["exposure_type"])
                 
                 db_session.add(repo_permission)
                 db_connection().commit()
 
-                if user_model.member_type == constants.EntityExposureType.EXTERNAL.value:
-                    trigger_external_user_policy_validate(auth_token, datasource_id, user_model, None)
-
-def trigger_external_user_policy_validate(auth_token, datasource_id, user, group):
-    policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.NEW_USER.value}
-    new_user_payload = {}
-    new_user_payload["user"] = json.dumps(user, cls=alchemy_encoder())
-    new_user_payload["group"] = group
-    messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, new_user_payload, "github")
+            if existing_user.member_type == constants.EntityExposureType.EXTERNAL.value:
+                policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.NEW_USER.value}
+                new_user_payload = {}
+                new_user_payload["user"] = json.dumps(existing_user, cls=alchemy_encoder())
+                new_user_payload["group"] = None
+                messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, new_user_payload, "github")
