@@ -29,6 +29,7 @@ def process(db_session, auth_token, query_params, scanner_data):
     application_associations = []
     now = datetime.datetime.utcnow()
     apps_count = 0
+    app_ids = []
     if scanner_data and "entities" in scanner_data:
         trusted_domain_apps = (get_trusted_entity_for_domain(db_session, domain_id))["trusted_apps"]
         for app in scanner_data["entities"]:
@@ -60,9 +61,10 @@ def process(db_session, auth_token, query_params, scanner_data):
                 db_session.add(application)
                 db_connection().commit()
             else:
-                db_session.query(Application).filter(Application.display_text == app_name,Application.domain_id == domain_id).\
-                    update({Application.unit_num: Application.unit_num+1})
-                db_connection().commit()
+                app_ids.append(application.id)
+                # db_session.query(Application).filter(Application.display_text == app_name,Application.domain_id == domain_id).\
+                #     update({Application.unit_num: Application.unit_num+1})
+                # db_connection().commit()
                 # application.unit_num += 1
 
             association_table =  {}
@@ -73,6 +75,11 @@ def process(db_session, auth_token, query_params, scanner_data):
             application_associations.append(association_table)
             
     if len(application_associations) > 0:
-        db_session.bulk_insert_mappings(ApplicationUserAssociation, application_associations)
-        db_connection().commit()
+        try:
+            db_session.bulk_insert_mappings(ApplicationUserAssociation, application_associations)
+            db_session.query(Application).filter(Application.id.in_(app_ids)).update({Application.unit_num: Application.unit_num+1},
+                                                                                     synchronize_session='fetch')
+            db_connection().commit()
+        except Exception as ex:
+            db_session.rollback()
     return apps_count
