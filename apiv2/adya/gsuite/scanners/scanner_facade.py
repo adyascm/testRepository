@@ -262,6 +262,7 @@ def add_external_user(db_session, datasource_id):
                                                          DirectoryStructure.datasource_id == DomainUser.datasource_id,
                                                          DirectoryStructure.member_email == DomainUser.email)).filter(
                                                          DirectoryStructure.datasource_id == datasource_id,
+                                                         DirectoryStructure.member_role == 'MEMBER',
                                                          DomainUser.email == None).all()
         external_user_map = {}
         for member in members:
@@ -276,7 +277,7 @@ def add_external_user(db_session, datasource_id):
 
         if len(external_user_map) > 0:
             db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").values(external_user_map.values()))
-        db_connection().commit()
+            db_connection().commit()
     except Exception as ex:
         Logger().exception("Exception occurred while updating domain user table - {}".format(ex))
         db_session.rollback()
