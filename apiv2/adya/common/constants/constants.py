@@ -1,9 +1,6 @@
 import os
 from enum import Enum
 
-from adya.common.constants import default_policies
-from adya.common.constants import default_reports
-
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = '1'
 DEPLOYMENT_ENV = os.environ.get('DEPLOYMENT_ENV', 'local')
 
@@ -102,7 +99,7 @@ class PolicyMatchType(Enum):
     APP_RISKINESS = 'APP_RISKINESS'
     USER_TYPE = 'USER_TYPE'
     USER_ROLE = 'USER_ROLE'
-    IS_APP_WHITELISTED = 'IS_APP_WHITELISTED'
+    TRUSTED = 'TRUSTED'
 
 class PolicyActionType(Enum):
     SEND_EMAIL = "SEND_EMAIL"
@@ -148,16 +145,6 @@ class ConnectorTypes(Enum):
     SLACK = "SLACK"
     GITHUB = "GITHUB"
 
-datasource_to_default_policy_map = {
-    ConnectorTypes.SLACK.value: default_policies.default_policies_slack,
-    ConnectorTypes.GSUITE.value: default_policies.default_policies_gsuite
-}
-
-datasource_to_default_report_map = {
-    ConnectorTypes.SLACK.value: default_reports.default_reports_slack,
-    ConnectorTypes.GSUITE.value: default_reports.default_reports_gsuite
-}
-
 class BillingCycle(Enum):
     MONTHLY = "MONTHLY"
     YEARLY = "YEARLY"
@@ -192,3 +179,21 @@ class LicenseTypes(Enum):
     LIMITED = 'LIMITED'
     BLOCKED = 'BLOCKED'
     PAID = 'PAID'
+
+class ReportType(Enum):
+    PERMISSION= "Permission"
+    ACTIVITY = "Activity"
+    INACTIVE = "Inactive"
+    EMPTYGSUITEGROUP = "EmptyGSuiteGroup"
+    EMPTYSLACKCHANNEL = "EmptySlackChannel"
+    WEEKLYSUMMARY = 'WeeklySummary'
+    EXTERNALUSERS = 'ExternalUsers'
+    ADMIN = 'Admin'
+    EXPOSEDRESOURCES = 'ExposedResources'
+
+
+class CronExp(Enum):
+    MONTHLY = "cron(0 10 1 * ? *)"
+    WEEKLY = "cron(0 10 ? * 2 *)"
+
+

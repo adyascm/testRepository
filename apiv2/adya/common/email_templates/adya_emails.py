@@ -285,3 +285,36 @@ def send_new_user_policy_violate_email(user_email, policy, new_user, group_name)
     except Exception as e:
         Logger().exception("Exception occured while sending new user policy violation email")
         return False
+
+
+def send_weekly_summary_email(email_list, response, domain_id):
+    try:
+        db_session = db_connection().get_session()
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        total_users = 0
+        total_files = 0
+        total_groups = 0
+        for datasource in datasources:
+            total_files += datasource.processed_file_count
+            total_users += datasource.processed_user_count
+            total_groups += datasource.processed_group_count
+
+        template_parameters = {
+            "total_files": total_files,
+            "total_groups": total_groups,
+            "apps_installed": response.get('OAUTH_GRANT'),
+            "publically_exposed_files": response.get('FILE_SHARE_PUBLIC'),
+            "extenally_exposed_files": response.get('FILE_SHARE_EXTERNAL'),
+            "total_users": total_users,
+            "from_date": response.get('from_date'),
+            "to_date": response.get('to_date')
+        }
+        template_name = "weekly_summary"
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "Weekly Summary for your {} account".format(domain_id)
+        aws_utils.send_email_with_html_and_attachement(email_list, response.get('csv_records'), email_subject, response['report_name'], rendered_html)
+    except Exception as ex:
+        Logger().exception("Exception occured while sending weekly summary for account {}".format(domain_id))
+        return False
+
+
