@@ -22,8 +22,15 @@ default_policies_slack = [
 
 ]
 
+default_policies_github = [
+{"datasource_id":"","severity":"HIGH","name":"Github::Repository made public","description":"This policy will generate an alert if any repository is made public","created_by":"","trigger_type":constants.PolicyTriggerType.PERMISSION_CHANGE.value,"conditions":[{"match_type":constants.PolicyMatchType.DOCUMENT_EXPOSURE.value,"match_condition":constants.PolicyConditionMatch.EQUAL.value,"match_value":constants.EntityExposureType.PUBLIC.value}],"actions":[{"action_type":constants.PolicyActionType.SEND_EMAIL.value,"config":{"to":""}}],"is_active":True},
+{"datasource_id":"","severity":"HIGH","name":"Github::External collaborator added","description":"This policy will generate an alert if any external collaborator is added","created_by":"","trigger_type":constants.PolicyTriggerType.NEW_USER.value,"conditions":[{"match_type":constants.PolicyMatchType.USER_TYPE.value,"match_condition":constants.PolicyConditionMatch.EQUAL.value,"match_value":constants.EntityExposureType.EXTERNAL.value}],"actions":[{"action_type":constants.PolicyActionType.SEND_EMAIL.value,"config":{"to":""}}],"is_active":True}
+]
+
+
 datasource_to_default_policy_map = {
     constants.ConnectorTypes.SLACK.value: default_policies_slack,
-    constants.ConnectorTypes.GSUITE.value: default_policies_gsuite
+    constants.ConnectorTypes.GSUITE.value: default_policies_gsuite,
+    constants.ConnectorTypes.GITHUB.value: default_policies_github
 }
 
