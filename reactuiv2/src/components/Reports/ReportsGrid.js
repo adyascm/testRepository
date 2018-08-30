@@ -238,8 +238,20 @@ class ReportsGrid extends Component {
         width: 150
       },
       {
-        headerName: 'Number of Activities',
-        field: 'count',
+        headerName: 'Timestamp',
+        field: 'timestamp',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Actor',
+        field: 'actor',
+        cellRenderer: "agGroupCellRenderer",
+        width: 150
+      },
+      {
+        headerName: 'Datasource',
+        field: 'connector_type',
         cellRenderer: "agGroupCellRenderer",
         width: 150
       },

@@ -144,11 +144,6 @@
 <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="#222222" style="margin:0; padding:0; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
 <table cellpadding="0" cellspacing="0" border="0" height="100%" width="100%" bgcolor="#fff" style="border-collapse:collapse;"><tr><td>
 
-  <!-- Visually Hidden Preheader Text : BEGIN -->
-  <div style="display:none;font-size:1px;color:#222222;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hide: all;">
-    Welcome to Adya!
-  </div>
-  <!-- Visually Hidden Preheader Text : END -->
 
   <!-- Email wrapper : BEGIN -->
   <table border="0" width="600" cellpadding="0" cellspacing="0" align="center" style="width:600px; margin: auto;" class="email-container" bgcolor="#eaeff2">
@@ -200,7 +195,7 @@
           </tr>
           <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: left; border:0px solid; color:#153449; ">
-            Here is a summary of the activity detected by Adya in the past week.
+            This is a summary of activity detected by Adya in the past week.
             </td>
           </tr>
             <tr>
@@ -211,8 +206,9 @@
           <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
             <ul style="padding-left: 20px; margin:0;">
-                <li>Users : {{total_users}} </li>
-                <li>Files : {{total_files}} </li>
+                <li>Total Users : {{total_users}} </li>
+                <li>Total Groups : {{total_groups}} </li>
+                <li>Total Files : {{total_files}} </li>
             </ul>
             </td>
           </tr>
@@ -224,7 +220,7 @@
           <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
             <ul style="padding-left: 20px; margin:0;">
-                <li>New apps installed: {{apps_installed}} </li>
+                <li>New applications installed: {{apps_installed}} </li>
                 <li>Number of files exposed publicly: {{publically_exposed_files}} </li>
                 <li>Number of files exposed externally : {{extenally_exposed_files}} </li>
             </ul>
@@ -233,7 +229,7 @@
          <tr>
         <tr>
            <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
-            Find all the details from the last week ({{from_date}} - {{to_date}}) in the attachment:
+            All the details from the past week ({{from_date}} - {{to_date}}) are in the attachment.
             </td>
           </tr>
          </table>

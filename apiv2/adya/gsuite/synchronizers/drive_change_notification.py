@@ -50,7 +50,7 @@ def process_notifications(notification_type, datasource_id, channel_id):
     drive_changes = []
     try:
         quotaUser = user_email[0:41]
-        response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive='true',
+        response = drive_service.changes().list(pageToken=page_token, restrictToMyDrive=True,
                                                 spaces='drive', quotaUser=quotaUser, pageSize=10).execute()
         drive_changes = response.get('changes') if (response and 'changes' in response) else []
         Logger().info("Processing following change notification for user: {} with page token: {} = changes - {}".format(

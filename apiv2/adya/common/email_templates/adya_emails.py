@@ -289,15 +289,25 @@ def send_new_user_policy_violate_email(user_email, policy, new_user, group_name)
 
 def send_weekly_summary_email(email_list, response, domain_id):
     try:
+        db_session = db_connection().get_session()
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        total_users = 0
+        total_files = 0
+        total_groups = 0
+        for datasource in datasources:
+            total_files += datasource.processed_file_count
+            total_users += datasource.processed_user_count
+            total_groups += datasource.processed_group_count
+
         template_parameters = {
-            "total_files": response.get('TOTAL_FILES'),
+            "total_files": total_files,
+            "total_groups": total_groups,
             "apps_installed": response.get('OAUTH_GRANT'),
             "publically_exposed_files": response.get('FILE_SHARE_PUBLIC'),
             "extenally_exposed_files": response.get('FILE_SHARE_EXTERNAL'),
-            "users_created": response.get('CREATE_USER'),
-            "total_users": response.get('TOTAL_USERS'),
-            "from_date": response.get('from_date').strftime('%m/%d/%Y'),
-            "to_date": response.get('to_date').strftime('%m/%d/%Y')
+            "total_users": total_users,
+            "from_date": response.get('from_date'),
+            "to_date": response.get('to_date')
         }
         template_name = "weekly_summary"
         rendered_html = get_rendered_html(template_name, template_parameters)
