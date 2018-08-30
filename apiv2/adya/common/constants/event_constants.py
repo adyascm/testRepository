@@ -1,35 +1,35 @@
 from adya.common.constants import constants
 
 GSUITE_EVENT_TYPES = {
-    "FILE_SHARE_PUBLIC": {"datasource_type": "GSUITE", "display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "", "tags": constants.COMMON_TAGS, "enabled": True},
-    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "GSUITE", "display_name": "File shared with anyone with link", "desc": "A file is anyone with a link", "event_template": ""},
-    "FILE_SHARE_EXTERNAL": {"datasource_type": "GSUITE", "display_name": "File shared externally", "desc": "A file is shared outside of organisation", "event_template": ""},
-    "OAUTH_GRANT": {"datasource_type": "GSUITE", "display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"score": "", "display_text": ""}])},
-     "OAUTH_REVOKE": {"datasource_type": "GSUITE", "display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"display_text": ""}])},
-    "SUSPICIOUS_LOGIN": {"datasource_type": "GSUITE", "display_name": "Suspicious login", "desc": "A suspicious login event is encountered", "event_template": ""},
-    "CREATE_USER": {"datasource_type": "GSUITE", "display_name": "New user added", "desc": "A new user is added", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"is_admin": ''}])},
-    "DELETE_USER": {"datasource_type": "GSUITE", "display_name": "User removed", "desc": "A user is removed", "event_template": "", "tags": constants.COMMON_TAGS},
-    "SUSPEND_USER": {"datasource_type": "GSUITE", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "", "tags": constants.COMMON_TAGS.extend({"user_email":''})},
-    "GROUP_MEMBERSHIP_CHANGED": {"datasource_type": "GSUITE", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": ""},
-    "GRANT_ADMIN_PRIVILEGE": {"datasource_type": "GSUITE", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "", "tags": constants.COMMON_TAGS},
-    "ADD_GROUP_MEMBER": {"datasource_type": "GSUITE", "display_name": "Member added to group", "desc": "Member is added to group", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"group_email": ""}])},
-    "DOWNLOAD": {"datasource_type": "GSUITE", "display_name": "File downloaded", "desc": "File is downloaded", "event_template": "", "tags": constants.COMMON_TAGS}
+    "FILE_SHARE_PUBLIC": {"datasource_type": "GSUITE", "display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "File \"{{resource_name}}\"  is discoverable by anyone on internet", "tags": constants.COMMON_TAGS[:], "enabled": True},
+    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "GSUITE", "display_name": "File shared with anyone with link", "desc": "A file is anyone with a link", "event_template": "File \"{{resource_name}}\" is shared to anyone with a link"},
+    "FILE_SHARE_EXTERNAL": {"datasource_type": "GSUITE", "display_name": "File shared externally", "desc": "A file is shared outside of organisation", "event_template": "File \"{{resource_name}}\" is shared outside of organisation"},
+    "OAUTH_GRANT": {"datasource_type": "GSUITE", "display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "A new third party app \"{{display_text}}\" is granted access", "tags": constants.COMMON_TAGS[:] + [{"key": "score", "default": ""},{"key": "display_text", "default": ""}]},
+     "OAUTH_REVOKE": {"datasource_type": "GSUITE", "display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "Third party app \"{{display_text}}\" access is removed", "tags": constants.COMMON_TAGS[:] + [{"key": "display_text", "default": ""}]},
+    "SUSPICIOUS_LOGIN": {"datasource_type": "GSUITE", "display_name": "Suspicious login", "desc": "A suspicious login event is encountered", "event_template": "A suspicious login event is encountered"},
+    "CREATE_USER": {"datasource_type": "GSUITE", "display_name": "New user added", "desc": "A new user is added", "event_template": "A new user is added", "tags": constants.COMMON_TAGS[:] + [{"key": "is_admin", "default": ""}]},
+    "DELETE_USER": {"datasource_type": "GSUITE", "display_name": "User removed", "desc": "A user is removed", "event_template": "A user is removed", "tags": constants.COMMON_TAGS[:]},
+    "SUSPEND_USER": {"datasource_type": "GSUITE", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "A user is suspended", "tags": constants.COMMON_TAGS[:] + [{"key": "user_email", "default": ""}]},
+    "GROUP_MEMBERSHIP_CHANGED": {"datasource_type": "GSUITE", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": "Members in group has changed"},
+    "GRANT_ADMIN_PRIVILEGE": {"datasource_type": "GSUITE", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "Role for user is changed", "tags": constants.COMMON_TAGS[:]},
+    "ADD_GROUP_MEMBER": {"datasource_type": "GSUITE", "display_name": "Member added to group", "desc": "Member is added to group", "event_template": "Member is added to group", "tags": constants.COMMON_TAGS[:] + [{"key": "group_email", "default": ""}]},
+    "DOWNLOAD": {"datasource_type": "GSUITE", "display_name": "File downloaded", "desc": "File is downloaded", "event_template": "File \"{{resource_name}}\" is downloaded", "tags": constants.COMMON_TAGS[:]}
 }
 
 SLACK_EVENT_TYPES = {
-    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "SLACK", "display_name": "Public link created", "desc": "A public link for file is created", "event_template": ""},
-    "OAUTH_GRANT": {"datasource_type": "SLACK" , "display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "score", "desc": "App score", "default": ""}, {"key": "display_text", "desc": "App name", "default": ""}])},
-    "OAUTH_REVOKE": {"datasource_type": "SLACK", "display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "display_text", "desc": "App name", "default": ""}])},
-    "USER_ADDED": {"datasource_type": "SLACK", "display_name": "New user added", "desc": "A new user is added", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "member_type", "desc": "User member type", "default": "EXT"}])},
-    "USER_SUSPENDED": {"datasource_type": "SLACK", "display_name": "User suspended", "desc": "A user is suspended", "event_template": ""},
-    "CHANNEL_MEMBERSHIP_CHANGED": {"datasource_type": "SLACK", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": ""},
-    "ROLE_CHANGED": {"datasource_type": "SLACK", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"key": "user_role", "desc": "User role as admin or not", "default": ""}])},
-    "CHANNEL_ARCHIVE": {"datasource_type": "SLACK" , "display_name": "Channel archieved", "desc": "Channel archieved", "event_template": "", "tags":constants.COMMON_TAGS},
-    "CHANNEL_UNARCHIVE": {"datasource_type": "SLACK", "display_name": "Channel unarchieved", "desc": "Channel is unarchieved", "event_template": "", "tags":constants.COMMON_TAGS},
-    "FILE_CHANGED": {"datasource_type": "SLACK" , "display_name": "File changed", "desc": "File is changed", "event_template": "", "tags":constants.COMMON_TAGS},
-    "MEMBER_LEFT_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member left the channel", "desc": "Member left the channel", "event_template": "", "tags":constants.COMMON_TAGS.extend([{"channel_id": ""}])},
-    "MEMBER_JOINED_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member joined the channel", "desc": "Member joined the channel", "event_template": "", "tags": constants.COMMON_TAGS.extend([{"channel_id": ""}])},
-    "CHANNEL_CREATED": {"datasource_type": "SLACK", "display_name": "Channel created", "desc": "Channel created", "event_template": "", "tags": constants.COMMON_TAGS}
+    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "SLACK", "display_name": "Public link created", "desc": "A public link for file is created", "event_template": "File \"{{resource_name}}\" is shared to anyone with a link"},
+    "OAUTH_GRANT": {"datasource_type": "SLACK" , "display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "A new third party app \"{{display_text}}\" is granted access", "tags":constants.COMMON_TAGS[:] + [{"key": "score", "desc": "App score", "default": ""}, {"key": "display_text", "desc": "App name", "default": ""}]},
+    "OAUTH_REVOKE": {"datasource_type": "SLACK", "display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "Third party app \"{{display_text}}\" access is removed", "tags":constants.COMMON_TAGS[:] + [{"key": "display_text", "desc": "App name", "default": ""}]},
+    "USER_ADDED": {"datasource_type": "SLACK", "display_name": "New user added", "desc": "A new user is added", "event_template": "A new user is added", "tags":constants.COMMON_TAGS[:] + [{"key": "member_type", "desc": "User member type", "default": "EXT"}]},
+    "SUSPEND_USER": {"datasource_type": "SLACK", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "A user is suspended"},
+    "CHANNEL_MEMBERSHIP_CHANGED": {"datasource_type": "SLACK", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": "Members in group has changed"},
+    "ROLE_CHANGED": {"datasource_type": "SLACK", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "Role for user is changed", "tags":constants.COMMON_TAGS[:] + [{"key": "user_role", "desc": "User role as admin or not", "default": ""}]},
+    "CHANNEL_ARCHIVE": {"datasource_type": "SLACK" , "display_name": "Channel archieved", "desc": "Channel archieved", "event_template": "Channel \"{{channel_name}}\" archieved", "tags":constants.COMMON_TAGS[:]},
+    "CHANNEL_UNARCHIVE": {"datasource_type": "SLACK", "display_name": "Channel unarchieved", "desc": "Channel is unarchieved", "event_template": "Channel \"{{channel_name}}\" is unarchieved", "tags":constants.COMMON_TAGS[:]},
+    "FILE_CHANGED": {"datasource_type": "SLACK" , "display_name": "File changed", "desc": "File is changed", "event_template": "File is changed", "tags":constants.COMMON_TAGS[:]},
+    "MEMBER_LEFT_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member left the channel", "desc": "Member left the channel", "event_template": "Member \"{{user_name}}\" left the channel \"{{channel_name}}\"", "tags":constants.COMMON_TAGS[:] + [{"key": "channel_id", "default": ""}]},
+    "MEMBER_JOINED_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member joined the channel", "desc": "Member joined the channel", "event_template": "Member \"{{user_name}}\" joined the channel \"{{channel_name}}\"", "tags": constants.COMMON_TAGS[:] + [{"key": "channel_id", "default": ""}]},
+    "CHANNEL_CREATED": {"datasource_type": "SLACK", "display_name": "Channel created", "desc": "Channel created", "event_template": "Channel \"{{channel_name}}\" created", "tags": constants.COMMON_TAGS[:]}
 
 }
 
