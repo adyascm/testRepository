@@ -13,20 +13,20 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onLoadActivities: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
-    changeFilter: (property, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, value}),
+    changeFilter: (property, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, value }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
     onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
 });
 
 class ActivityFilters extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
-            selectAllEventTypes:true,
-            selectedEventTypes:{},
-            selectedConnectors:{},
-            currentDate:"",
-            filteractor:"",
+            selectAllEventTypes: true,
+            selectedEventTypes: {},
+            selectedConnectors: {},
+            currentDate: "",
+            filteractor: "",
         }
     }
 
@@ -36,8 +36,8 @@ class ActivityFilters extends Component {
         this.props.datasources.map((ds) => {
             selectedConnectors[ds.datasource_type] = true
         })
-        for (let event of this.props.all_activity_events) {
-            selectedEventTypes[event[0]] = true
+        for (let event of this.props.unique_activity_events) {
+            selectedEventTypes[event] = true
         }
         this.setState({
             selectedEventTypes,
@@ -48,9 +48,9 @@ class ActivityFilters extends Component {
 
     handleEventTypeSelection = (data) => {
         let selectedEventTypes = this.state.selectedEventTypes
-        selectedEventTypes[data.label] =  data.label in selectedEventTypes ? !selectedEventTypes[data.label] : true
+        selectedEventTypes[data.label] = data.label in selectedEventTypes ? !selectedEventTypes[data.label] : true
         this.setState({
-            selectedEventTypes:selectedEventTypes,
+            selectedEventTypes: selectedEventTypes,
         })
         if (!selectedEventTypes[data.label]) {
             this.setState({
@@ -63,19 +63,19 @@ class ActivityFilters extends Component {
         let selectedConnectors = this.state.selectedConnectors
         selectedConnectors[data.label] = data.label in selectedConnectors ? !selectedConnectors[data.label] : true
         this.setState({
-            selectedConnectors:selectedConnectors
-        })   
+            selectedConnectors: selectedConnectors
+        })
     }
 
     handleAllEventTypeSelection = () => {
         let selectAllEventTypes = !this.state.selectAllEventTypes
         let selectedEventTypes = this.state.selectedEventTypes
-        for(let event of this.props.all_activity_events){
-            selectedEventTypes[event[0]] = selectAllEventTypes
+        for (let event of this.props.unique_activity_events) {
+            selectedEventTypes[event] = selectAllEventTypes
         }
         this.setState({
             selectAllEventTypes: selectAllEventTypes,
-            selectedEventTypes:selectedEventTypes,
+            selectedEventTypes: selectedEventTypes,
         })
     }
 
@@ -87,16 +87,16 @@ class ActivityFilters extends Component {
 
     clearFilterData = (stateKey) => {
         let stateValue = undefined
-        if (stateKey === 'filterConnectorType'){
+        if (stateKey === 'filterConnectorType') {
             stateValue = {}
             this.setState({
-                selectedConnectors:{},
+                selectedConnectors: {},
             })
         }
-        else if (stateKey === 'filterEventType'){
+        else if (stateKey === 'filterEventType') {
             stateValue = {}
             this.setState({
-                selectedEventTypes:{}
+                selectedEventTypes: {}
             })
         }
         else if (stateKey === 'filterByDate') {
@@ -111,8 +111,8 @@ class ActivityFilters extends Component {
                 filteractor: ''
             })
         }
-        if(stateKey){
-            this.props.changeFilter(stateKey,stateValue)
+        if (stateKey) {
+            this.props.changeFilter(stateKey, stateValue)
         }
     }
 
@@ -126,13 +126,13 @@ class ActivityFilters extends Component {
 
         let selectedConnectors = []
         let selectedEventTypes = []
-        for(let k in this.state.selectedEventTypes){
-            if(this.state.selectedEventTypes[k]){
+        for (let k in this.state.selectedEventTypes) {
+            if (this.state.selectedEventTypes[k]) {
                 selectedEventTypes.push(k)
             }
         }
-        for(let k in this.state.selectedConnectors){
-            if(this.state.selectedConnectors[k]){
+        for (let k in this.state.selectedConnectors) {
+            if (this.state.selectedConnectors[k]) {
                 selectedConnectors.push(k)
             }
         }
@@ -147,15 +147,15 @@ class ActivityFilters extends Component {
         let filter_events = this.props.all_activity_events.map((filter_event) => {
             return(
                 <Menu.Item>
-                    <Checkbox label={filter_event[0]} onChange={(event, data) => this.handleEventTypeSelection(data)} checked={this.state.selectedEventTypes[filter_event[0]]} />
-                </Menu.Item>    
+                    <Checkbox label={filter_event} onChange={(event, data) => this.handleEventTypeSelection(data)} checked={this.state.selectedEventTypes[filter_event]} />
+                </Menu.Item>
             )
         })
         let connectors = this.props.datasources.map((ds) => {
             return (
                 <Menu.Item>
                     <Checkbox label={ds.datasource_type} onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors[ds.datasource_type]} />
-                </Menu.Item>    
+                </Menu.Item>
             )
         })
 
@@ -166,13 +166,13 @@ class ActivityFilters extends Component {
                         <Menu.Header>Date Since</Menu.Header>
                         <Menu.Menu>
                             <Menu.Item>
-                            <Input fluid placeholder='Filter by Date...'>
-                                                <DatePicker
-                                                onChange={this.handleDateChange}
-                                                dateFormat="LLL"
-                                                selected={this.state.currentDate}
-                                                />
-                                            </Input>
+                                <Input fluid placeholder='Filter by Date...'>
+                                    <DatePicker
+                                        onChange={this.handleDateChange}
+                                        dateFormat="YYYY/MM/DD"
+                                        selected={this.state.currentDate}
+                                    />
+                                </Input>
                             </Menu.Item>
                         </Menu.Menu>
                     </Menu.Item>
@@ -184,7 +184,7 @@ class ActivityFilters extends Component {
                     </Menu.Item>
                     <Menu.Item>
                         <Menu.Header>Event Types</Menu.Header>
-                        <Menu.Menu>
+                        <Menu.Menu> 
                             <Menu.Item>
                                 <Checkbox onChange={this.handleAllEventTypeSelection} checked={this.state.selectAllEventTypes} label='Select All' />
                             </Menu.Item>
@@ -192,7 +192,7 @@ class ActivityFilters extends Component {
                         </Menu.Menu>
                     </Menu.Item>
                 </Menu>
-                <Button size="mini" style={{ width: '80px', float: 'right' }} onClick={(event, data) => {this.fetchActivityList()}}>
+                <Button size="mini" style={{ width: '80px', float: 'right' }} onClick={(event, data) => { this.fetchActivityList() }}>
                     Submit
                 </Button>
             </div>

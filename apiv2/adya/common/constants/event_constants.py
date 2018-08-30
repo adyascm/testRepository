@@ -1,4 +1,5 @@
 from adya.common.constants import constants
+from adya.common.constants.constants import ConnectorTypes
 
 GSUITE_EVENT_TYPES = {
     "FILE_SHARE_PUBLIC": {"datasource_type": "GSUITE", "display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "File \"{{resource_name}}\"  is discoverable by anyone on internet", "tags": constants.COMMON_TAGS[:], "enabled": True},
@@ -57,4 +58,10 @@ GITHUB_EVENT_TYPES = {
     "USER_BLOCKED": {"datasource_type": "GITHUB", "display_name": "User blocked", "desc": "A user is blocked from organisation", "event_template": ""},
     "USER_UNBLOCKED": {"datasource_type": "GITHUB", "display_name": "User unblocked", "desc": "A user is unblocked from organisation", "event_template": ""},
     "REP_PUSH": {"datasource_type": "GITHUB", "display_name": "Code pushed", "desc": "Code is pushed to repository", "event_template": ""},
+}
+
+datasource_event_types_map = {
+    ConnectorTypes.GSUITE.value: GSUITE_EVENT_TYPES,
+    ConnectorTypes.SLACK.value: SLACK_EVENT_TYPES,
+    ConnectorTypes.GITHUB.value: GITHUB_EVENT_TYPES
 }

@@ -21,10 +21,13 @@ def get_activites_for_domain(filters):
     return activities
 
 def get_activity_event_types():
-    events = event_constants.GSUITE_EVENT_TYPES.items()
-    for k,v in event_constants.SLACK_EVENT_TYPES.items():
-        if(k not in event_constants.GSUITE_EVENT_TYPES):
-            events.append((k,v))
+    events = {}
+    event_types = event_constants.datasource_event_types_map
+    for event_datasource,event_type in event_types.items():
+        if event_datasource not in events:
+            events[event_datasource] = {}
+        for k,v in event_type.items():
+            events[event_datasource][k] = v
     return events        
 
 
