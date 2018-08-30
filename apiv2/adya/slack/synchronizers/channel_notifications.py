@@ -98,13 +98,14 @@ def new_channel_created(db_session, datasource_id, payload):
     channel_obj = entities.SlackChannel(datasource_id, channel_info)
     channel_obj_model = channel_obj.get_model()
     db_session.add(channel_obj_model)
+    db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update(
+        {DataSource.processed_user_count: DataSource.processed_group_count + 1})
     datasource_obj = get_datasource(datasource_id)
     if datasource_obj:
-        tags = {"channel_email": channel_obj_model.email}
         activity_db().add_event(domain_id=datasource_obj.domain_id,
                                 connector_type=constants.ConnectorTypes.SLACK.value,
                                 event_type='CHANNEL_CREATED', actor=None,
-                                tags={})
+                                tags={"channel_email": channel_obj_model.email})
 
 
 def process_member_joined_channel(db_session, datasource_id, payload):

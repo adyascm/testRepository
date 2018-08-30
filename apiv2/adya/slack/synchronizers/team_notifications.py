@@ -38,6 +38,8 @@ def process_user(db_session, datasource, payload):
         user_model_obj = userObj.get_model()
         db_session.execute(
             DomainUser.__table__.insert().prefix_with("IGNORE").values(db_utils.get_model_values(DomainUser, user_model_obj)))
+        db_session.query(DataSource).filter(DataSource.datasource_id == datasource.datasource_id).update(
+            {DataSource.processed_user_count: DataSource.processed_user_count + 1})
         db_session.commit()
 
         #check if new external member is added to a team
