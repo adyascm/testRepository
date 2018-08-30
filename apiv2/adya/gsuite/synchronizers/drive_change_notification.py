@@ -202,7 +202,7 @@ def update_resource(db_session, datasource_id, user_email, updated_resource):
 
     if is_new_resource == 1:
         db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id). \
-            update({DataSource.processed_file_count: DataSource.processed_file_count + 1, DataSource.total_file_count: DataSource.total_file_count + 1})
+            update({DataSource.processed_file_count: DataSource.processed_file_count + 1})
 
     messaging.send_push_notification("adya-"+datasource_id, 
             json.dumps({"type": "incremental_change", "datasource_id": datasource_id, "email": user_email, "resource": updated_resource}))
