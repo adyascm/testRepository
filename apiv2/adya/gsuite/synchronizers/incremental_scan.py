@@ -83,7 +83,7 @@ def _subscribe_for_drive_change(db_session, auth_token, subscription, is_local_d
                 "payload": "true",
                 "params": {"ttl": 86100}
             }
-            watch_response = drive_service.changes().watch(pageToken=subscription.page_token, restrictToMyDrive='true',
+            watch_response = drive_service.changes().watch(pageToken=subscription.page_token, restrictToMyDrive=True,
                                                         body=body).execute()
             # Logger().info(" watch_response for a user :  {} ".format(watch_response))
 
