@@ -17,11 +17,11 @@ GSUITE_EVENT_TYPES = {
 }
 
 SLACK_EVENT_TYPES = {
-    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "SLACK", "display_name": "Public link created", "desc": "A public link for file is created", "event_template": "A public link for file \"{{resource_name}}\" is created"},
+    "FILE_SHARE_ANYONEWITHLINK": {"datasource_type": "SLACK", "display_name": "Public link created", "desc": "A public link for file is created", "event_template": "File \"{{resource_name}}\" is shared to anyone with a link"},
     "OAUTH_GRANT": {"datasource_type": "SLACK" , "display_name": "Third party app added", "desc": "A new third party app is granted access", "event_template": "A new third party app \"{{display_text}}\" is granted access", "tags":constants.COMMON_TAGS[:] + [{"key": "score", "desc": "App score", "default": ""}, {"key": "display_text", "desc": "App name", "default": ""}]},
     "OAUTH_REVOKE": {"datasource_type": "SLACK", "display_name": "Third party app removed", "desc": "Third party app access is removed", "event_template": "Third party app \"{{display_text}}\" access is removed", "tags":constants.COMMON_TAGS[:] + [{"key": "display_text", "desc": "App name", "default": ""}]},
     "USER_ADDED": {"datasource_type": "SLACK", "display_name": "New user added", "desc": "A new user is added", "event_template": "A new user is added", "tags":constants.COMMON_TAGS[:] + [{"key": "member_type", "desc": "User member type", "default": "EXT"}]},
-    "USER_SUSPENDED": {"datasource_type": "SLACK", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "A user is suspended"},
+    "SUSPEND_USER": {"datasource_type": "SLACK", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "A user is suspended"},
     "CHANNEL_MEMBERSHIP_CHANGED": {"datasource_type": "SLACK", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": "Members in group has changed"},
     "ROLE_CHANGED": {"datasource_type": "SLACK", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "Role for user is changed", "tags":constants.COMMON_TAGS[:] + [{"key": "user_role", "desc": "User role as admin or not", "default": ""}]},
     "CHANNEL_ARCHIVE": {"datasource_type": "SLACK" , "display_name": "Channel archieved", "desc": "Channel archieved", "event_template": "Channel \"{{channel_name}}\" archieved", "tags":constants.COMMON_TAGS[:]},
