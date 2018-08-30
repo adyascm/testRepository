@@ -262,7 +262,7 @@ def add_external_user(db_session, datasource_id):
                                                          DirectoryStructure.datasource_id == DomainUser.datasource_id,
                                                          DirectoryStructure.member_email == DomainUser.email)).filter(
                                                          DirectoryStructure.datasource_id == datasource_id,
-                                                         DirectoryStructure.member_role == 'MEMBER',
+                                                         DirectoryStructure.member_type == constants.DirectoryEntityType.USER.value,
                                                          DomainUser.email == None).all()
         external_user_map = {}
         for member in members:
