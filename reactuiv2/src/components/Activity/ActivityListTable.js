@@ -12,7 +12,6 @@ import {
     ACTIVITIES_PAGE_LOAD_START,
     ACTIVITIES_PAGE_LOADED,
     ACTIVITIES_CHART_LOAD_START,
-    ACTIVITIES_CHART_LOADED,
     ACTIVITIES_SET_ROW_DATA,
     ACTIVITIES_PAGINATION_DATA,
     ACTIVITIES_FILTER_CHANGE,
@@ -29,7 +28,6 @@ const mapDispatchToProps = dispatch => ({
     onLoadStart: () => dispatch({ type: ACTIVITIES_PAGE_LOAD_START }),
     onLoad: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
     onChartLoadStart: () => dispatch({ type: ACTIVITIES_CHART_LOAD_START }),
-    onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
     setRowData: (payload) => dispatch({ type: ACTIVITIES_SET_ROW_DATA, payload }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
     setSortColumnField: (sortColumnName, sortOrder) =>
@@ -66,7 +64,6 @@ class ActivityListTable extends Component {
     componentWillMount() {
         this.props.onLoadStart();
         this.props.onChartLoadStart();
-        this.props.onChartLoad(agent.Dashboard.getWidgetData({ 'widget_id': 'activitiesByEventType', 'event_filters': {} }))
     }
 
     componentWillUnmount() {
@@ -222,10 +219,6 @@ class ActivityListTable extends Component {
         )
 
         if (this.props.isLoadingActivities || activitiesData) {
-            let filterMetadata = {
-                'timestamp': this.props.filterByDate, 'actor': this.props.filteractor,
-                'connector_type': this.props.filterConnectorType, 'event_type': this.props.filterEventType
-            }
             return (
                 <div>
                     <LineChart thousands="," label="Events" legend="bottom" data={this.props.activitiesChartDataPayload} />

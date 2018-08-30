@@ -4,7 +4,7 @@ import agent from '../../utils/agent';
 
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
-import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA} from '../../constants/actionTypes';
+import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
@@ -15,6 +15,7 @@ const mapDispatchToProps = dispatch => ({
     onLoadActivities: (payload) => dispatch({ type: ACTIVITIES_PAGE_LOADED, payload }),
     changeFilter: (property, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, value}),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
+    onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
 });
 
 class ActivityFilters extends Component {
