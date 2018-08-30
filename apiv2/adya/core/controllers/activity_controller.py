@@ -9,7 +9,7 @@ def get_activites_for_domain(filters):
     sort_column = filters.get('sortColumn') if filters.get('sortColumn') else "timestamp"
     filters = filters if filters else {}
     page_limit = filters.get('pageSize') if filters.get('pageSize') else 20
-    sort_type = filters.get('sortType') if filters.get('sortType') else None
+    sort_type = filters.get('sortOrder') if filters.get('sortOrder') else None
         
     cursor = activity_db.activity_db().get_activites_with_filter(filters, sort_column, sort_type, page_number, page_limit)
     activities = []

@@ -7,7 +7,8 @@ import {
     ACTIVITIES_PAGINATION_DATA,
     ACTIVITIES_FILTER_CHANGE,
     LOGOUT,
-    SET_REDIRECT_PROPS
+    SET_REDIRECT_PROPS,
+    ACTIVITY_COLUMN_SORT
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -22,6 +23,8 @@ const defaultState = {
     filterEventType:{},
     filteractor:'',
     filterByDate:'',
+    sortColumnName:'',
+    sortOrder:'desc'
 };
 
 export default (state = defaultState, action) => {
@@ -30,7 +33,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoadingActivities: true,
-                rowData: undefined
+                rowData: undefined,
             }
         case ACTIVITIES_CHART_LOAD_START:
             return {
@@ -43,7 +46,8 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoadingActivities: false,
                 activitiesDataPayload: !action.error ? action.payload : [],
-                activitySearchPayload: undefined
+                activitySearchPayload: undefined,
+
             }
         case ACTIVITIES_CHART_LOADED:
             return {
@@ -67,6 +71,12 @@ export default (state = defaultState, action) => {
                 ...state,
                 [action.property]: action.value
             }
+        case ACTIVITY_COLUMN_SORT:
+            return {
+                ...state,
+                sortColumnName: action.sortColumnName,
+                sortOrder: action.sortOrder
+            }    
         case LOGOUT:
             return {
                 ...defaultState

@@ -23,24 +23,26 @@ class ActivityFilters extends Component {
         this.state = {
             selectAllEventTypes:true,
             selectedEventTypes:{},
-            selectedConnectors:{
-                "GSUITE": true,
-                "SLACK": true
-            },
+            selectedConnectors:{},
             currentDate:"",
-            filteractor:""
+            filteractor:"",
         }
     }
 
     componentWillMount() {
         let selectedEventTypes = this.state.selectedEventTypes
+        let selectedConnectors = this.state.selectedConnectors
+        this.props.datasources.map((ds) => {
+            selectedConnectors[ds.datasource_type] = true
+        })
         for (let event of this.props.all_activity_events) {
             selectedEventTypes[event[0]] = true
         }
-        this.fetchActivityList()
         this.setState({
-            selectedEventTypes: selectedEventTypes
+            selectedEventTypes,
+            selectedConnectors
         })
+        this.fetchActivityList()
     }
 
     handleEventTypeSelection = (data) => {
@@ -77,11 +79,9 @@ class ActivityFilters extends Component {
     }
 
     handleDateChange = (date) => {
-        let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
             currentDate: date ? date : ''
         })
-        this.props.changeFilter("filterByDate", selectedDate)
     }
 
     clearFilterData = (stateKey) => {
@@ -120,6 +120,8 @@ class ActivityFilters extends Component {
         this.props.setPaginationData(0, this.props.pageLimit)
         this.props.changeFilter('filterEventType', this.state.selectedEventTypes)
         this.props.changeFilter('filterConnectorType', this.state.selectedConnectors)
+        let selectedDate = this.state.currentDate ? this.state.currentDate.format('YYYY-MM-DD HH:MM:SS') : ''
+        this.props.changeFilter("filterByDate", selectedDate)
 
         let selectedConnectors = []
         let selectedEventTypes = []
@@ -133,15 +135,14 @@ class ActivityFilters extends Component {
                 selectedConnectors.push(k)
             }
         }
-        
         this.props.onLoadActivities(agent.Activity.getAllActivites({
             'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate ? this.state.currentDate.format('YYYY-MM-DD HH:MM:SS'): '', 'actor': this.props.filteractor,
-            'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit
+            'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
+            'sortColumn': '', 'sortOrder': 'desc'
         }));
     }
 
     render() {
-        
         let filter_events = this.props.all_activity_events.map((filter_event) => {
             return(
                 <Menu.Item>
@@ -149,6 +150,14 @@ class ActivityFilters extends Component {
                 </Menu.Item>    
             )
         })
+        let connectors = this.props.datasources.map((ds) => {
+            return (
+                <Menu.Item>
+                    <Checkbox label={ds.datasource_type} onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors[ds.datasource_type]} />
+                </Menu.Item>    
+            )
+        })
+
         return (
             <div>
                 <Menu vertical style={{ "textAlign": "left", 'overflow': 'auto', 'maxHeight': document.body.clientHeight / 1.25 }} fluid>
@@ -169,12 +178,7 @@ class ActivityFilters extends Component {
                     <Menu.Item>
                         <Menu.Header>Connector</Menu.Header>
                         <Menu.Menu>
-                            <Menu.Item>
-                                <Checkbox label='GSUITE' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['GSUITE']} />
-                            </Menu.Item>
-                            <Menu.Item>
-                            <Checkbox label='SLACK' onChange={(event, data) => this.handleConnectorSelection(event, data)} checked={this.state.selectedConnectors['SLACK']} />
-                            </Menu.Item>
+                            {connectors}
                         </Menu.Menu>
                     </Menu.Item>
                     <Menu.Item>

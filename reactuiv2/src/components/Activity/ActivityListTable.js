@@ -15,7 +15,8 @@ import {
     ACTIVITIES_CHART_LOADED,
     ACTIVITIES_SET_ROW_DATA,
     ACTIVITIES_PAGINATION_DATA,
-    ACTIVITIES_FILTER_CHANGE
+    ACTIVITIES_FILTER_CHANGE,
+    ACTIVITY_COLUMN_SORT
 } from '../../constants/actionTypes';
 
 
@@ -31,6 +32,8 @@ const mapDispatchToProps = dispatch => ({
     onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
     setRowData: (payload) => dispatch({ type: ACTIVITIES_SET_ROW_DATA, payload }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
+    setSortColumnField: (sortColumnName, sortOrder) =>
+        dispatch({ type: ACTIVITY_COLUMN_SORT, sortColumnName, sortOrder }),
 });
 
 class ActivityListTable extends Component {
@@ -51,11 +54,12 @@ class ActivityListTable extends Component {
             filterEventType: "",
             filteractor: "",
             columnHeaderDataNameMap: {
-                "Timestamp": "timestamp",
-                "Connector": "connector_type",
-                "Actor": "actor",
-                "Event Type": "event_type"
-            }
+                "Event Type": "event_type",
+                "Time Since": "timestamp",
+                // "Actor": "actor",
+            },
+            columnNameClicked:'',
+            sortOrder:'descending'
         }
     }
 
@@ -96,7 +100,8 @@ class ActivityListTable extends Component {
                 
                 nextProps.onLoad(agent.Activity.getAllActivites({
                     'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
-                    'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit
+                    'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
+                    'sortColumn':this.state.columnNameClicked,'sortOrder':this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
                 }))
             }
         }
@@ -109,13 +114,32 @@ class ActivityListTable extends Component {
 
 
     handleColumnSort = (mappedColumnName) => {
+        let selectedConnectors = []
+        let selectedEventTypes = []
+        let timeStamp = 'filterByDate' in this.props ? this.props['filterByDate'] : ''
+        let filteractor = 'filteractor' in this.props ? this.props['filteractor'] : ''
+        if ('filterEventType' in this.props) {
+            for (let k in this.props.filterEventType) {
+                if (this.props.filterEventType[k]) {
+                    selectedEventTypes.push(k)
+                }
+            }
+        }
+        if ('filterConnectorType' in this.props) {
+            for (let k in this.props.filterConnectorType) {
+                if (this.props.filterConnectorType[k]) {
+                    selectedConnectors.push(k)
+                }
+            }
+        }
+
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
-
+            this.props.setSortColumnField(mappedColumnName, 'asc')
             this.props.onLoad(agent.Activity.getAllActivites({
-                'domain_id': this.state.domain_id, 'timestamp': this.props.filterByDate, 'actor': this.props.filteractor,
-                'connector_type': this.props.filterConnectorType, 'event_type': this.props.filterEventType,
-                'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit, 'sortColumn': mappedColumnName, 'sortType': 'asc'
+                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
+                'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
+                'sortColumn':mappedColumnName,'sortOrder':'asc'
             }))
             this.setState({
                 columnNameClicked: mappedColumnName,
@@ -124,11 +148,11 @@ class ActivityListTable extends Component {
         }
         else {
             this.props.onLoadStart()
-
+            this.props.setSortColumnField(mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc')
             this.props.onLoad(agent.Activity.getAllActivites({
-                'domain_id': this.state.domain_id, 'timestamp': this.props.filterByDate, 'actor': this.props.filteractor,
-                'connector_type': this.props.filterConnectorType, 'event_type': this.props.filterEventType, 'pageNumber': this.props.pageNumber,
-                'pageSize': this.props.pageLimit, 'sortColumn': mappedColumnName, 'sortType': this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
+                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
+                'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
+                'sortColumn':mappedColumnName,'sortOrder':this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
             }))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
@@ -147,10 +171,12 @@ class ActivityListTable extends Component {
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
+            let isSortingDisabled = (['Source','User', 'Details'].indexOf(headerName) >=0)  
             return (
                 <Table.HeaderCell key={headerName}
                     sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
-                    onClick={() => this.handleColumnSort(mappedColumnName)} >
+                    onClick={ isSortingDisabled ? null : () => this.handleColumnSort(mappedColumnName)}
+                    >
                     {headerName}
                 </Table.HeaderCell>
             )
