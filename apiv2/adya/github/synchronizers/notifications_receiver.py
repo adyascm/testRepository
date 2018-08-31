@@ -2,12 +2,14 @@
 from adya.github import github_constants
 from adya.github.synchronizers import organization_notifications, repository_notifications, team_notifications
 from adya.common.utils.response_messages import Logger, ResponseMessage
+import json
 
 def receive_notification(auth_token, payload):
     event_type = fetch_event_type(payload)
     if event_type:
         handler = get_handler(event_type)
-        handler.process_activity(auth_token, payload["body"], event_type)
+        body = json.loads(payload["body"])
+        handler.process_activity(auth_token, body, event_type)
         return ResponseMessage(202, "Notification handled successfully")
     else:
         return ResponseMessage(400, "Unable to fetch event type from event payload")
