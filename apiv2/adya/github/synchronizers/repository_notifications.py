@@ -9,7 +9,7 @@ from adya.common.utils import messaging, utils
 from adya.common.utils.response_messages import Logger
 import json
 
-def process_activity(auth_token, payload, event_type):
+def process_activity(payload, event_type):
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_type == constants.ConnectorTypes.GITHUB.value).first()
     domain_id = datasource.domain_id
@@ -54,7 +54,7 @@ def process_activity(auth_token, payload, event_type):
             permission_change_payload["new_permissions"] = json.dumps(repo_permission_model, cls=alchemy_encoder())
             permission_change_payload["old_permissions"] = existing_permission
             permission_change_payload["action"] = action
-            messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, permission_change_payload, "github")
+            messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, permission_change_payload, "github")
         
         elif action == "privatized":
             pass
@@ -107,4 +107,4 @@ def process_activity(auth_token, payload, event_type):
                 new_user_payload = {}
                 new_user_payload["user"] = json.dumps(existing_user, cls=alchemy_encoder())
                 new_user_payload["group"] = None
-                messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, auth_token, policy_params, new_user_payload, "github")
+                messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, new_user_payload, "github")
