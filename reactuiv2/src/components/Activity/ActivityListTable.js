@@ -56,8 +56,8 @@ class ActivityListTable extends Component {
                 "Time Since": "timestamp",
                 // "Actor": "actor",
             },
-            columnNameClicked:'',
-            sortOrder:'descending'
+            columnNameClicked: '',
+            sortOrder: 'descending'
         }
     }
 
@@ -136,7 +136,7 @@ class ActivityListTable extends Component {
             this.props.onLoad(agent.Activity.getAllActivites({
                 'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
                 'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
-                'sortColumn':mappedColumnName,'sortOrder':'asc'
+                'sortColumn': mappedColumnName, 'sortOrder': 'asc'
             }))
             this.setState({
                 columnNameClicked: mappedColumnName,
@@ -149,7 +149,7 @@ class ActivityListTable extends Component {
             this.props.onLoad(agent.Activity.getAllActivites({
                 'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
                 'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
-                'sortColumn':mappedColumnName,'sortOrder':this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
+                'sortColumn': mappedColumnName, 'sortOrder': this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
             }))
             this.setState({
                 sortOrder: this.state.sortOrder === 'ascending' ? 'descending' : 'ascending'
@@ -168,12 +168,12 @@ class ActivityListTable extends Component {
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            let isSortingDisabled = (['Source','User', 'Details'].indexOf(headerName) >=0)  
+            let isSortingDisabled = (['Source', 'User', 'Details'].indexOf(headerName) >= 0)
             return (
                 <Table.HeaderCell key={headerName}
                     sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
-                    onClick={ isSortingDisabled ? null : () => this.handleColumnSort(mappedColumnName)}
-                    >
+                    onClick={isSortingDisabled ? null : () => this.handleColumnSort(mappedColumnName)}
+                >
                     {headerName}
                 </Table.HeaderCell>
             )
@@ -193,7 +193,7 @@ class ActivityListTable extends Component {
                 let connector_type = rowData["connector_type"]
                 let activity_template = this.props.all_activity_events_map[connector_type] ? this.props.all_activity_events_map[connector_type][event_type]['event_template'] : ''
                 activity_template = Mustache.to_html(activity_template, rowData)
-                
+
                 let labelStyle = {
                     'max-width': '200px',
                     'white-space': 'nowrap',

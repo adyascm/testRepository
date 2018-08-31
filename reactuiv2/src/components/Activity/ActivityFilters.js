@@ -4,6 +4,7 @@ import agent from '../../utils/agent';
 
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
+import moment from 'moment'
 import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -25,7 +26,7 @@ class ActivityFilters extends Component {
             selectAllEventTypes: true,
             selectedEventTypes: {},
             selectedConnectors: {},
-            currentDate: "",
+            currentDate: moment(),
             filteractor: "",
         }
     }
@@ -39,11 +40,13 @@ class ActivityFilters extends Component {
         for (let event of this.props.unique_activity_events) {
             selectedEventTypes[event] = true
         }
+        let currentDate = moment().subtract(30, "days")
         this.setState({
             selectedEventTypes,
-            selectedConnectors
+            selectedConnectors,
+            currentDate:currentDate,
         })
-        this.fetchActivityList()
+        this.fetchActivityList({selectedEventTypes,selectedConnectors, currentDate})
     }
 
     handleEventTypeSelection = (data) => {
@@ -85,45 +88,23 @@ class ActivityFilters extends Component {
         })
     }
 
-    clearFilterData = (stateKey) => {
-        let stateValue = undefined
-        if (stateKey === 'filterConnectorType') {
-            stateValue = {}
-            this.setState({
-                selectedConnectors: {},
-            })
+    fetchActivityList = (payload) => {
+        let currentSelectedConnectors, currentSelectAllEventTypes, currentDateObj 
+        currentSelectAllEventTypes = currentSelectAllEventTypes = currentDateObj = undefined
+        if(payload){
+            currentSelectAllEventTypes = payload.selectAllEventTypes
+            currentSelectedConnectors = payload.selectedConnectors
+            currentDateObj = payload.currentDate
+        }else{
+            currentSelectAllEventTypes = this.state.selectedEventTypes
+            currentSelectedConnectors = this.state.selectedConnectors
+            currentDateObj = this.state.currentDate
         }
-        else if (stateKey === 'filterEventType') {
-            stateValue = {}
-            this.setState({
-                selectedEventTypes: {}
-            })
-        }
-        else if (stateKey === 'filterByDate') {
-            stateValue = ''
-            this.setState({
-                currentDate: ''
-            })
-        }
-        else if (stateKey === 'filteractor') {
-            stateValue = ''
-            this.setState({
-                filteractor: ''
-            })
-        }
-        if (stateKey) {
-            this.props.changeFilter(stateKey, stateValue)
-        }
-    }
-
-
-    fetchActivityList = () => {
         this.props.setPaginationData(0, this.props.pageLimit)
-        this.props.changeFilter('filterEventType', this.state.selectedEventTypes)
-        this.props.changeFilter('filterConnectorType', this.state.selectedConnectors)
-        let selectedDate = this.state.currentDate ? this.state.currentDate.format('YYYY-MM-DD HH:MM:SS') : ''
-        this.props.changeFilter("filterByDate", selectedDate)
-
+        this.props.changeFilter('filterEventType', currentSelectAllEventTypes)
+        this.props.changeFilter('filterConnectorType', currentSelectedConnectors)
+        let selectedDate = currentDateObj ? currentDateObj.format('YYYY-MM-DD HH:mm:ss') : ''
+        this.props.changeFilter('filterByDate', selectedDate)
         let selectedConnectors = []
         let selectedEventTypes = []
         for (let k in this.state.selectedEventTypes) {
@@ -169,7 +150,7 @@ class ActivityFilters extends Component {
                                 <Input fluid placeholder='Filter by Date...'>
                                     <DatePicker
                                         onChange={this.handleDateChange}
-                                        dateFormat="YYYY/MM/DD"
+                                        dateFormat="YYYY-MM-DD"
                                         selected={this.state.currentDate}
                                     />
                                 </Input>
