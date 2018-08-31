@@ -55,7 +55,7 @@ class Domain(Base):
     domain_name = Column(String(255))
     creation_time = Column(DateTime)
     login_users = relationship("LoginUser", backref="domain")
-    license_type = Column(String(20))
+    license_type = Column(String(20), default="FREE")
     install_date = Column(DateTime)
 
 class LoginUser(Base):
