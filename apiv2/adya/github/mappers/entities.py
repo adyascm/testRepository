@@ -46,7 +46,7 @@ class GithubRepositoryPermission:
         self._repo_permission.permission_id = self._payload["owner"]["id"]
         self._repo_permission.exposure_type = constants.EntityExposureType.PRIVATE.value if self._payload["private"] else constants.EntityExposureType.PUBLIC.value
 
-        if self._payload["permissions"]:
+        if "permissions" in self._payload:
             permissions = self._payload["permissions"]
             if permissions["admin"]:
                 self._repo_permission.permission_type = constants.Role.ADMIN.value
@@ -54,6 +54,8 @@ class GithubRepositoryPermission:
                 self._repo_permission.permission_type = constants.Role.WRITER.value
             else:
                 self._repo_permission.permission_type = constants.Role.READER.value
+        else:
+            self._repo_permission.permission_type = constants.Role.READER.value
 
     def get_model(self):
         return self._repo_permission
