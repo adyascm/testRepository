@@ -5,7 +5,7 @@ from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource
 from adya.common.constants import constants
 
-def process_activity(auth_token, payload, event_type):
+def process_activity(payload, event_type):
     db_session = db_connection().get_session()
     datasource = db_session.query(DataSource).filter(DataSource.datasource_type == constants.ConnectorTypes.GITHUB.value).first()
     domain_id = datasource.domain_id
