@@ -8,6 +8,7 @@ from adya.common.utils.policy_utils import validate_permission_change_policy
 import json
 
 def validate_permission_change(auth_token, datasource_id, payload):
+    Logger().info("Validating policy for file permission change")
     action = payload["action"]
     resource = json.loads(payload["resource"])
     new_permissions = json.loads(payload["new_permissions"])
