@@ -5,6 +5,7 @@ from adya.common.utils.response_messages import Logger, ResponseMessage
 import json
 
 def receive_notification(auth_token, payload):
+    Logger().info("Notification received with event object : {}".format(payload))
     event_type = fetch_event_type(payload)
     if event_type:
         handler = get_handler(event_type)

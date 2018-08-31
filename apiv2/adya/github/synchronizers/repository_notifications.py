@@ -6,6 +6,7 @@ from adya.common.db.models import DataSource, Resource, ResourcePermission, Doma
 from adya.common.constants import constants, urls
 from adya.common.db.activity_db import activity_db
 from adya.common.utils import messaging, utils
+from adya.common.utils.response_messages import Logger
 import json
 
 def process_activity(auth_token, payload, event_type):
@@ -13,8 +14,9 @@ def process_activity(auth_token, payload, event_type):
     datasource = db_session.query(DataSource).filter(DataSource.datasource_type == constants.ConnectorTypes.GITHUB.value).first()
     domain_id = datasource.domain_id
     datasource_id = datasource.datasource_id
-
+    
     if event_type == github_constants.GithubNativeEventTypes.REPOSITORY.value:
+        Logger().info("Repository notification received with body: {}".format(payload))
         action = payload["action"]
         repository = payload["repository"]
         owner_id = repository["owner"]["id"]
@@ -58,6 +60,7 @@ def process_activity(auth_token, payload, event_type):
             pass
 
     elif event_type == github_constants.GithubNativeEventTypes.REPOSITORY_VULNERABILITY_ALERT.value:
+        Logger().info("Repository vulnerability notification received with body: {}".format(payload))
         action = payload["action"]
         if action == "create":
             pass
@@ -67,12 +70,14 @@ def process_activity(auth_token, payload, event_type):
             pass
 
     elif event_type == github_constants.GithubNativeEventTypes.FORK.value:
+        Logger().info("Repository fork notification received with body: {}".format(payload))
         forkee = payload["forkee"]
         repository = payload["repository"]
         owner_id = forkee["owner"]["id"]
         activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'REP_FORKED', owner_id, {})
     
     elif event_type == github_constants.GithubNativeEventTypes.MEMBER.value:
+        Logger().info("Member notification received with body: {}".format(payload))
         action = payload["action"]
         repository = payload["repository"]
         member = payload["member"]
