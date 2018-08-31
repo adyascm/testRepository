@@ -145,3 +145,11 @@ functions:
           path: processnotifications
           method: post
           cors: true
+
+  post-github-policies-validate:
+    handler: adya.github.services.policy_validate_handler.validate_policy
+    events:
+      - http:
+          path: policies/validate
+          method: post
+          cors: true
