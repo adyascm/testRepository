@@ -7,6 +7,7 @@ from adya.common.utils.policy_utils import validate_new_user_policy
 import json
 
 def validate_new_user(auth_token, datasource_id, payload):
+    Logger().info("Validating policy for adding external user")
     user = json.loads(payload["user"])
     group = payload["group"]
 
