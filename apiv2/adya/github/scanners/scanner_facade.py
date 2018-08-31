@@ -146,6 +146,8 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
         update({ResourcePermission.email: DomainUser.email}, synchronize_session = 'fetch')
     db_connection().commit()
     datasource = db_session.query(DataSource).filter(and_(DataSource.datasource_id == datasource_id, DataSource.is_async_delete == False)).first()
+    body = {"datasource_id": datasource_id, "is_default": True}
+    messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
     utils.add_license_for_scanned_app(db_session, datasource)
 

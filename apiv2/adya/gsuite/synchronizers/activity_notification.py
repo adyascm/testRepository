@@ -98,7 +98,9 @@ def process_token_activity(datasource_id, incoming_activity):
         application = db_session.query(Application).filter(Application.display_text == app_name,
                                                            Application.domain_id == domain_id).first()
         tags = {"display_text": app_name}
+        capturable_event = False
         if event_name == "authorize":
+            capturable_event = True
             event_name = "OAUTH_GRANT"
             # Ignore Adya install
             if "Adya" in app_name:
@@ -159,6 +161,7 @@ def process_token_activity(datasource_id, incoming_activity):
             tags["score"] = max_score
 
         elif event_name == "revoke":
+            capturable_event = True
             event_name = "OAUTH_REVOKE"
             if application:
                 try:
@@ -173,7 +176,8 @@ def process_token_activity(datasource_id, incoming_activity):
 
                 tags["score"] = application.score
 
-        activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
+        if capturable_event:
+            activity_db().add_event(domain_id=domain_id, connector_type=constants.ConnectorTypes.GSUITE.value,
                                 event_type=event_name, actor=actor_email, tags=tags)
 
 
@@ -186,7 +190,6 @@ def process_drive_activity(datasource_id, incoming_activity):
     last_modifying_user_email = actor_email
     last_modified_time = incoming_activity['id']['time'][:-1]
     for event in incoming_activity['events']:
-
         event_name = event['name']
         event_type = event['type']
         activity_events_parameters = event['parameters']
@@ -233,7 +236,6 @@ def process_drive_activity(datasource_id, incoming_activity):
 def process_admin_activities(datasource_id, incoming_activity):
     Logger().info("Processing admin activity - {}".format(incoming_activity))
     actor_email = incoming_activity['actor']['email']
-    db_session = db_connection().get_session()
     for event in incoming_activity['events']:
         event_type = event['type']
         if event_type == 'GROUP_SETTINGS':
@@ -242,8 +244,6 @@ def process_admin_activities(datasource_id, incoming_activity):
             process_user_related_activities(datasource_id, actor_email, event)
         elif event_type == 'DELEGATED_ADMIN_SETTINGS':
             delegate_admin_settings(datasource_id, actor_email, event)
-
-
 
 def process_group_related_activities(datasource_id, actor_email, event):
     event_name = event['name']
@@ -322,8 +322,10 @@ def process_user_related_activities(datasource_id, actor_email, event):
 
     datasource_obj = get_datasource(datasource_id)
     tags = {"user_email": user_email}
+    capturable_event = False
     if event_name == 'CREATE_USER':
         if user_email:
+            capturable_event = True
             directory_service = gutils.get_directory_service(None, actor_email)
             results = None
             try:
@@ -338,13 +340,13 @@ def process_user_related_activities(datasource_id, actor_email, event):
                 user_obj = gsuite_user.get_model()
                 db_session.execute(DomainUser.__table__.insert().prefix_with("IGNORE").
                                    values(db_utils.get_model_values(DomainUser, user_obj)))
+                db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update({DataSource.processed_user_count: DataSource.processed_user_count+1})
 
                 call_validate_policies_for_admin_user(user_obj, datasource_id)
-
-            additional_payload = {"user_email": user_email, "is_admin": user_obj.is_admin}
             tags["is_admin"] = user_obj.is_admin
 
     elif event_name == 'GRANT_ADMIN_PRIVILEGE':
+        capturable_event = True
         user_obj = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).first()
         if user_obj:
@@ -354,15 +356,20 @@ def process_user_related_activities(datasource_id, actor_email, event):
         tags["is_admin"] = user_obj.is_admin
 
     elif event_name == "SUSPEND_USER":
-       db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+        capturable_event = True
+        db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
                                                             DomainUser.email == user_email)).update({DomainUser.is_suspended: True})
 
     elif event_name == "DELETE_USER":
+        capturable_event = True
         delete_user_info(db_session, user_email, datasource_id)
+        db_session.query(DataSource).filter(DataSource.datasource_id == datasource_id).update(
+            {DataSource.processed_user_count: DataSource.processed_user_count - 1})
 
-    activity_db().add_event(domain_id=datasource_obj.domain_id,
-                            connector_type=constants.ConnectorTypes.GSUITE.value,
-                            event_type=event_name, actor=actor_email, tags=tags)
+    if capturable_event:
+        activity_db().add_event(domain_id=datasource_obj.domain_id,
+                                connector_type=constants.ConnectorTypes.GSUITE.value,
+                                event_type=event_name, actor=actor_email, tags=tags)
     db_connection().commit()
 
 

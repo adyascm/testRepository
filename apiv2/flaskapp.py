@@ -73,6 +73,7 @@ api.add_resource(flask_wrapper_core.get_audit_log, urls.GET_AUDITLOG_PATH)
 api.add_resource(flask_wrapper_core.Policy, urls.POLICIES_PATH)
 api.add_resource(flask_wrapper_gsuite.PolicyValidator, urls.GSUITE_POLICIES_VALIDATE_PATH)
 api.add_resource(flask_wrapper_slack.SlackPolicyValidator, urls.SLACK_POLICIES_VALIDATE_PATH)
+api.add_resource(flask_wrapper_github.GithubPolicyValidator, urls.GITHUB_POLICIES_VALIDATE_PATH)
 
 #alerts
 api.add_resource(flask_wrapper_core.Alert, urls.ALERTS_PATH)
