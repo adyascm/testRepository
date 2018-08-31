@@ -24,7 +24,7 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
         elif policy_condition.match_type == constants.PolicyMatchType.APP_RISKINESS.value:
             is_violated = is_violated & check_value_violation(policy_condition, application["score"])
         elif policy_condition.match_type == constants.PolicyMatchType.TRUSTED.value:
-            is_violated = is_violated & check_value_violation(policy_condition, application["is_whitelisted"])
+            is_violated = is_violated & check_value_violation(policy_condition, str(application["is_whitelisted"]))
 
     send_email_action = []
     is_reverted = False
@@ -38,7 +38,7 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
                 is_reverted = True
 
         if len(send_email_action) > 0:
-            to_address = json.loads(send_email_action[0].config)["to"]
+            to_address = json.loads(send_email_action[0].actions[0].config)["to"]
             adya_emails.send_app_install_policy_violate_email(to_address, policy, application, is_reverted)
 
         payload = {}
