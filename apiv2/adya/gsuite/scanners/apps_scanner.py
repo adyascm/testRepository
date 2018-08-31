@@ -76,10 +76,12 @@ def process(db_session, auth_token, query_params, scanner_data):
             
     if len(application_associations) > 0:
         try:
+            if len(app_ids) > 0:
+                db_session.query(Application).filter(Application.id.in_(app_ids)).update({Application.unit_num: Application.unit_num+1},
+                                                                                        synchronize_session=False)
             db_session.bulk_insert_mappings(ApplicationUserAssociation, application_associations)
-            db_session.query(Application).filter(Application.id.in_(app_ids)).update({Application.unit_num: Application.unit_num+1},
-                                                                                     synchronize_session='fetch')
             db_connection().commit()
         except Exception as ex:
+            Logger().exception("Exception occurred while updating the app user association - {}", ex)
             db_session.rollback()
     return apps_count
