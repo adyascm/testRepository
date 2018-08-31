@@ -1,6 +1,8 @@
 import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from adya.common.utils.response_messages import Logger, ResponseMessage
 from boto3.s3.transfer import S3Transfer
 
@@ -60,7 +62,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                 policy_exists = False
                 Logger().info("policy - {} for lambda function - {}".format(policy, function_name))
                 for stmt in policy['Statement']:
-                    if stmt['Action'] == 'lambda:InvokeFunction':
+                    if stmt['Action'] == 'lambda:InvokeFunction' and stmt['Sid'] == cloudwatch_event_name:
                         policy_exists = True
 
                 Logger().info("check policy exist - {} for lambda - {}".format(policy_exists, function_name))
@@ -70,7 +72,7 @@ def create_cloudwatch_event(cloudwatch_event_name, cron_expression, function_nam
                         FunctionName=function_name,
                         Principal='events.amazonaws.com',
                         SourceArn=response['RuleArn'],
-                        StatementId=str(uuid.uuid4()),
+                        StatementId=cloudwatch_event_name,
                     )
                     Logger().info("Added permission for lambda - " + str(response))
 
@@ -214,3 +216,31 @@ def upload_file_in_s3_bucket(bucket_name, key, temp_csv):
         ExpiresIn=3600)
         
     return temp_url
+
+
+def send_email_with_html_and_attachement(user_list, csv_data, report_desc, report_name, rendered_html):
+    try:
+        filename = str(report_name) + ".csv"
+        msg = MIMEMultipart('mixed')
+        msg['Subject'] = report_desc
+        msg['From'] = "service@adya.io"
+        Logger().info("attach csv data {}".format(csv_data))
+        att = MIMEApplication(csv_data)
+        att.add_header('Content-Disposition', 'attachment', filename=filename)
+        msg.attach(att)
+        Logger().info("attach html template")
+        msg.attach(MIMEText(rendered_html, 'html'))
+
+        session = boto3.Session()
+        ses_client = session.client('ses')
+        ses_client.send_raw_email(
+            Source='service@adya.io',
+            Destinations=user_list,
+            RawMessage={
+                'Data': msg.as_string()
+            },
+        )
+
+        Logger().info("Email sent to - {}".format(str(user_list)))
+    except Exception as e:
+        Logger().exception("Exception occurred sending  email to: " + str(user_list))

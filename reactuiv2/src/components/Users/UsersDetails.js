@@ -133,7 +133,7 @@ class UsersDetails extends Component {
             let userName = this.props.selectedUserItem['first_name']
             let ds = this.props.datasourcesMap[this.props.selectedUserItem.datasource_id];
             let panes = [];
-            if ((this.props.selectedUserItem["member_type"] === 'EXT'))
+            if ((this.props.selectedUserItem["member_type"] === 'EXT' || this.props.selectedUserItem["member_type"] === 'TRUST'))
                 panes.push({ menuItem: 'Accessible documents', render: () => <Tab.Pane attached={false}>{resourceLayout}</Tab.Pane> });
             else {
                 panes.push({ menuItem: userName + '\'s documents', render: () => <Tab.Pane attached={false}>{<UserOwnedResources />  }</Tab.Pane> });
@@ -145,15 +145,19 @@ class UsersDetails extends Component {
             }
 
             var parentGroups = []
-            for (let index = 0; index < this.props.selectedUserItem.groups.length; index++) {
-                let parentKey = this.props.selectedUserItem.groups[index];
-                parentGroups.push((
-                    <Label key={index} as='a' color='blue'>
-                        {parentKey.full_name}
-                        <Icon name='close' onClick={() => this.onUserGroupAction('remove_user_from_group', parentKey.email)} />
-                    </Label>
-                ))
+            if(this.props.selectedUserItem.groups)
+            {
+                for (let index = 0; index < this.props.selectedUserItem.groups.length; index++) {
+                    let parentKey = this.props.selectedUserItem.groups[index];
+                    parentGroups.push((
+                        <Label key={index} as='a' color='blue'>
+                            {parentKey.full_name}
+                            <Icon name='close' onClick={() => this.onUserGroupAction('remove_user_from_group', parentKey.email)} />
+                        </Label>
+                    ))
+                }
             }
+            
             if (parentGroups.length < 1) {
                 parentGroups.push((
                     <Label key="-1" color='orange'>

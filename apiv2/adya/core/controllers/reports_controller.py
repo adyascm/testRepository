@@ -1,20 +1,22 @@
+import csv
 import json
 import datetime
 from datetime import timedelta
 import uuid
 from sqlalchemy import func, or_, and_
 
+from adya.common.constants.default_reports import datasource_to_default_report_map
 from adya.core.controllers import domain_controller, directory_controller, app_controller
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, ExternalExposure, alchemy_encoder
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils, activity_db
 from adya.common.constants import constants
-from adya.common.utils import utils, request_session
-from adya.gsuite.activities import activities
+from adya.common.utils import utils
 from adya.common.utils.response_messages import Logger
 from adya.common.constants import default_reports
-from adya.common.constants.constants import datasource_to_default_report_map
+from adya.gsuite.activities.activities import get_activities_for_user
+
 
 def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, event_filters = None):
     if not (auth_token or datasource_id):
@@ -389,6 +391,7 @@ def run_report(auth_token, report_id):
     last_run_time = get_report_info.last_trigger_time
     report_desc = get_report_info.description
     report_name = get_report_info.name
+    domain_id = get_report_info.domain_id
 
     report_type = config_data.get('report_type')
     selected_entity = config_data.get('selected_entity')
@@ -396,7 +399,9 @@ def run_report(auth_token, report_id):
 
     datasource_id = config_data.get('datasource_id')
     response_data = []
-    if report_type == "Permission":
+    final_response = {"email_list": email_list, "report_type": report_type,
+                      "report_desc": report_desc, "report_name": report_name, "domain_id": domain_id}
+    if report_type == constants.ReportType.PERMISSION.value:
         if selected_entity_type == "user":
             query_string = ResourcePermission.email == selected_entity
         elif selected_entity_type == "resource":
@@ -422,10 +427,9 @@ def run_report(auth_token, report_id):
             }
 
             response_data.append(data_map)
-
-    elif report_type == "Activity":
+    elif report_type == constants.ReportType.ACTIVITY.value:
         if selected_entity_type == "user":
-            get_activity_report = activities.get_activities_for_user(auth_token,
+            get_activity_report = get_activities_for_user(auth_token,
                                                                      selected_entity,
                                                                      last_run_time)
             for datalist in get_activity_report:
@@ -435,11 +439,9 @@ def run_report(auth_token, report_id):
                     "resource": datalist[2],
                     "type": datalist[3],
                     "ip_address": datalist[4]
-
                 }
                 response_data.append(data_map)
-    elif report_type == "Inactive":
-        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+    elif report_type == constants.ReportType.INACTIVE.value:
         ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
         datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
         datasource_ids = [r.datasource_id for r in datasources]
@@ -456,8 +458,7 @@ def run_report(auth_token, report_id):
                 "num_days": user_num_days
             }
             response_data.append(data_map)
-    elif report_type == 'EmptyGSuiteGroup':
-        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+    elif report_type == constants.ReportType.EMPTYGSUITEGROUP.value:
         parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
         empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.GROUP.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
         for grp in empty_grps:
@@ -466,8 +467,7 @@ def run_report(auth_token, report_id):
                 "email":grp.email
             }          
             response_data.append(data_map)
-    elif report_type == 'EmptySlackChannel':
-        domain_id = db_session.query(Report).filter(Report.report_id == report_id).first().domain_id
+    elif report_type == constants.ReportType.EMPTYSLACKCHANNEL.value:
         parent_emails = [r.parent_email for r in db_session.query(DirectoryStructure).filter(datasource_id == datasource_id).all()]
         empty_grps = db_session.query(DomainUser).filter(DomainUser.type == constants.DirectoryEntityType.CHANNEL.value, DomainUser.datasource_id == datasource_id, ~DomainUser.email.in_(parent_emails))
         for grp in empty_grps:
@@ -476,9 +476,88 @@ def run_report(auth_token, report_id):
                 "email":grp.email
             }          
             response_data.append(data_map)
+    elif report_type == constants.ReportType.EXTERNALUSERS.value:
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(DomainUser,func.count(ResourcePermission.email)).filter(ResourcePermission.datasource_id == DomainUser.datasource_id,
+        ResourcePermission.email == DomainUser.email, DomainUser.datasource_id.in_(datasource_obj.keys()), \
+        DomainUser.type == constants.DirectoryEntityType.USER.value, DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value, \
+        ResourcePermission.exposure_type == constants.EntityExposureType.EXTERNAL.value).group_by(ResourcePermission.email)
+        for resp in query_resp:
+            full_name = resp[0].full_name
+            if (not full_name) and resp[0].first_name and resp[0].last_name:
+                full_name = resp[0].first_name + ' '+ resp[0].last_name
+            data_map = {
+                'source':datasource_obj[resp[0].datasource_id],
+                'name':full_name,
+                'email':resp[0].email,
+                'exposed_docs_num':resp[1]
+            }
+            response_data.append(data_map)
+    elif report_type == constants.ReportType.ADMIN.value:
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(datasource_obj.keys()), DomainUser.is_admin == True)
+        for resp in query_resp:
+            full_name = resp.full_name
+            if (not full_name) and resp.first_name and resp.last_name:
+                full_name = resp.first_name + ' '+ resp.last_name
+            data_map = {
+                'source':datasource_obj[resp.datasource_id],
+                'name':full_name,
+                'email':resp.email
+            }
+            response_data.append(data_map)
+    elif report_type == constants.ReportType.EXPOSEDRESOURCES.value:
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id)
+        datasource_obj = {r.datasource_id:r.datasource_type for r in datasources}
+        query_resp = db_session.query(Resource).filter(Resource.datasource_id.in_(datasource_obj.keys()),Resource.exposure_type == constants.EntityExposureType.EXTERNAL.value).limit(constants.REPORT_SIZE_LIMIT)
+        for resp in query_resp:
+            data_map = {
+                'source':datasource_obj[resp.datasource_id],
+                'name':resp.resource_name,
+                'type':resp.resource_type,
+                'owner':resp.resource_owner_id
+            }
+            response_data.append(data_map)    
 
-    final_response = {"response_data": response_data, "email_list": email_list, "report_type": report_type,
-                      "report_desc": report_desc, "report_name": report_name}
+    elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
+        curr_date = datetime.datetime.utcnow()
+        seven_days_ago = curr_date - datetime.timedelta(days=7)
+
+        pipeline = [
+            {'$match': {"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}},
+            {'$group': {"_id": {"event_type": "$event_type"}, "count": {"$sum": 1}}}
+        ]
+        event_collection = activity_db.activity_db().get_collection("events")
+        activities = event_collection.aggregate(pipeline)
+        for activity in activities:
+            event_type = activity['_id']['event_type']
+            if event_type == 'OAUTH_GRANT':
+                final_response["OAUTH_GRANT"] = activity['count']
+            elif event_type == 'FILE_SHARE_PUBLIC':
+                final_response["FILE_SHARE_PUBLIC"] = activity['count']
+            elif event_type == 'FILE_SHARE_EXTERNAL':
+                final_response["FILE_SHARE_EXTERNAL"] = activity['count']
+
+        all_activities = event_collection.find(filter={"domain_id": domain_id, "timestamp": {"$gte": seven_days_ago, "$lte": curr_date}}, limit=1000)
+        for activity in all_activities:
+            del activity['_id']
+            if 'display_text' in activity:
+                activity['resource_name'] = activity.get('display_text')
+            permissions = activity.get('new_permissions')
+            activity['timestamp'] = activity['timestamp'].strftime('%m/%d/%Y %H-%M-%S')
+            if permissions:
+                perms = "["
+                for permission in permissions:
+                    perms += "{" + "email:{} & permission_type: {}".format(permission.get('email'), permission.get('permission_type')) + "};"
+                perms += "]"
+                activity['permissions'] = perms
+            response_data.append(activity)
+        final_response["from_date"] = seven_days_ago.strftime('%m/%d/%Y')
+        final_response["to_date"] = curr_date.strftime('%m/%d/%Y')
+
+    final_response["response_data"] = response_data
     return final_response
 
 
@@ -542,6 +621,10 @@ def generate_csv_report(report_id):
             elif report_type == 'EmptyGSuiteGroup' or report_type == 'EmptySlackChannel':
                 csv_display_header = ['Name','Email']
                 report_data_header = ["name",'email']
+            elif report_type == constants.ReportType.WEEKLYSUMMARY.value:
+               csv_display_header = ['Resource', 'Event type', 'Actor', 'Timestamp', 'Datasource', 'Permissions']
+               report_data_header = ['resource_name', 'event_type', 'actor', 'timestamp',
+                                              'connector_type', 'permissions']
 
             Logger().info("making csv")
 
@@ -549,9 +632,9 @@ def generate_csv_report(report_id):
             for data in report_data:
                 for i in range(len(report_data_header)):
                     if i == len(report_data_header) - 1:
-                        csv_records += (str(data[report_data_header[i]]))
+                        csv_records += (str(data.get(report_data_header[i])))
                     else:
-                        csv_records += (str(data[report_data_header[i]])) + ','
+                        csv_records += (str(data.get(report_data_header[i]))) + ','
                 csv_records += "\n"
 
             Logger().info("csv_ record " + str(csv_records))
@@ -594,5 +677,4 @@ def insert_entry_into_report_table(db_session, auth_token, payload):
         return report
     else:
         return None
-
 

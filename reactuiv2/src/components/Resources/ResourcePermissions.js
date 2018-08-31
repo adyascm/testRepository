@@ -28,9 +28,20 @@ const ResourcePermissions = props => {
 
     let permissions = props.rowData.permissions
     let permissionUsers = []
-    let permMap = {'PUBLIC': {'color':'red','content':'Publicly discoverable'},'ANYONEWITHLINK':{'color':'orange','content':'Shared public link'},'EXT':{'color':'yellow','content':'Shared with users outside company'},'TRUST':{'color':'grey','content':'Shared with trusted domain'}}
+    let permMap = {
+        'PUBLIC': {'risk':'10','color':'red','content':'Publicly discoverable'},
+        'ANYONEWITHLINK':{'risk':'9','color':'orange','content':'Shared public link'},
+        'EXT':{'risk':'8','color':'yellow','content':'Shared with users outside company'},
+        'DOMAIN':{'risk':'7','color':null,'content':'Shared with everyone in the company'},
+        'INT':{'risk':'6','color':null,'content':'Shared with users inside company'},
+        'PVT':{'risk':'5','color':null,'content':'Shared with only owner'},
+        'TRUST':{'risk':'4','color':'grey','content':'Shared with trusted domain'}
+    }
 
     if (permissions && permissions.length > 0) {
+        permissions.sort(function(a,b){
+            return permMap[b['exposure_type']]['risk'] - permMap[a['exposure_type']]['risk']
+        });
         permissionUsers = permissions.map((permission, index) => {
             let permColorValue = permission['exposure_type'] in permMap ? permMap[permission['exposure_type']]['color'] : null
             if (permission["permission_id"] !== undefined)

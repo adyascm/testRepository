@@ -3,7 +3,8 @@ from sqlalchemy.orm import aliased
 
 from adya.common.db.connection import db_connection
 from adya.common.db import db_utils
-from adya.common.db.models import Resource,ResourcePermission,LoginUser,DataSource,ResourcePermission,Domain, DomainUser
+from adya.common.db.models import Resource, ResourcePermission, LoginUser, DataSource, ResourcePermission, \
+    DirectoryStructure, Domain, DomainUser
 from adya.common.constants import constants, urls
 from adya.common.utils import utils, aws_utils, messaging
 from adya.common.utils.response_messages import ResponseMessage, Logger
@@ -33,15 +34,24 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
     if source_type:
         resources_query = resources_query.filter(resource_alias.datasource_id == source_type)
     if accessible_by and not owner_email_id:
-        users_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids), DomainUser.email == accessible_by)).all()
         parent_ids = []
-        for user in users_info:
-            for group in user.groups:
-                parent_ids.append(group.email)
+        # groups = db_session.query(DirectoryStructure).filter(and_(DirectoryStructure.datasource_id.in_(domain_datasource_ids),
+        #                                                           DirectoryStructure.member_email == accessible_by)).all()
+
+        accessible_user_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(domain_datasource_ids),
+                                                                           DomainUser.email == accessible_by)).first()
+
+        for group in accessible_user_info.groups:
+            parent_ids.append(group.email)
 
         email_list = parent_ids + [accessible_by]
-        resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
-        resources_query = resources_query.filter(resource_alias.resource_id.in_(resource_ids))
+        #resource_ids = db_session.query(ResourcePermission.resource_id).filter(and_(ResourcePermission.datasource_id.in_(domain_datasource_ids), ResourcePermission.email.in_(email_list)))
+        resources_query = resources_query.filter(and_(ResourcePermission.datasource_id == resource_alias.datasource_id,
+                                                      ResourcePermission.resource_id == resource_alias.resource_id,
+                                                      ResourcePermission.email.in_(email_list)))
+        if accessible_user_info:
+            resources_query = resources_query.filter(ResourcePermission.exposure_type == accessible_user_info.member_type)
+
         resources_query = resources_query.filter(resource_alias.resource_owner_id != accessible_by)
     if selected_date:
         resources_query = resources_query.filter(resource_alias.last_modified_time <= selected_date)
@@ -60,7 +70,7 @@ def fetch_filtered_resources(db_session, auth_token, accessible_by=None, exposur
         resources_query = resources_query.filter(resource_alias.resource_owner_id == loggged_in_user_email)
 
     resources_query = resources_query.filter(resource_alias.datasource_id.in_(domain_datasource_ids))
-    if not sort_column_name:
+    if not sort_column_name and not accessible_by:
         sort_column_name = "last_modified_time"
 
     sort_column_obj = None

@@ -44,6 +44,7 @@ def process_user(db_session, datasource, payload):
         if user_model_obj.member_type == constants.EntityExposureType.EXTERNAL.value:
             payload = {}
             payload["user"] = json.dumps(user_model_obj, cls=alchemy_encoder())
+            payload["group_name"] = domain_id
             policy_params = {'dataSourceId': datasource.datasource_id,
                              'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
             Logger().info("new_user : payload : {}".format(payload))

@@ -52,19 +52,21 @@ class Actions:
 # remove user from private/public channels
 def delete_user_from_channel(datasource_id, channel_email, user_email):
     db_session = db_connection().get_session()
-    existing_user = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
-                                                             DomainUser.email == user_email)).first()
-    user_id = existing_user.user_id
-    group = existing_user.groups
+    email_list = [channel_email, user_email]
+    existing_user_channel = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                                     DomainUser.email.in_(email_list))).all()
+
+    user_id = None
     channel_id = None
     channel_type = None
-    for data in group:
-        if data.email == channel_email:
-            channel_id = data.user_id
-            channel_type = json.loads(data.config)['channel_type']
 
+    for user in existing_user_channel:
+        if user.email == channel_email:
+            channel_id = user.user_id
+            channel_type = (json.loads(user.config))['channel_type']
+        elif user.email == user_email:
+            user_id = user.user_id
 
-    response = None
     slack_client = slack_utils.get_slack_client(datasource_id)
     if channel_type == slack_constants.ChannelTypes.PUBLIC.value:
         response = delete_user_from_public_channel(slack_client, channel_id, user_id)

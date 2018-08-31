@@ -283,7 +283,7 @@ def process_group_related_activities(datasource_id, actor_email, event):
                     external_user.datasource_id = datasource_id
                     external_user.email = user_email
                     external_user.member_type = constants.EntityExposureType.EXTERNAL.value
-                    external_user.type = 'USER'
+                    external_user.type = constants.DirectoryEntityType.USER.value
                     # TODO: find the first name and last name of external user
                     external_user.first_name = ""
                     external_user.last_name = ""
@@ -292,6 +292,10 @@ def process_group_related_activities(datasource_id, actor_email, event):
                 user_obj = existing_user if existing_user else external_user
                 payload = {}
                 payload["user"] = json.dumps(user_obj, cls=alchemy_encoder())
+                existing_group_info = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id == datasource_id,
+                                                                         DomainUser.email == group_email)).first()
+                if existing_group_info:
+                    payload["group_name"] = existing_group_info.full_name if existing_group_info.full_name else existing_group_info.email
                 policy_params = {'dataSourceId': datasource_id,
                                  'policy_trigger': constants.PolicyTriggerType.NEW_USER.value}
                 Logger().info("new_user : payload : {}".format(payload))

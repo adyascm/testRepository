@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Raleway" />
 
-  <title>Adya</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
+  <title>Adya Weekly Report</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
   <style type="text/css">
 
     html,
@@ -75,7 +75,7 @@
     }
     /* Media Queries */
     @media screen and (max-device-width: 600px), screen and (max-width: 600px) {
-      .text-xs-center{text-align: center !important;}
+
       /* What it does: Overrides email-containers desktop width and forces it into a 100% fluid width. */
       .email-container {
         width: 100% !important;
@@ -163,18 +163,18 @@
         <!-- Logo + Links : END -->
          <table border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#9fb8c4">
            <tr>
-             <td valign="middle" width="15%" style="padding:20px 0 20px 10px; text-align:center; line-height: 0;">
+            <td valign="middle" width="70%" style="padding-left: 30px; text-align: center; font-size: 22px;
+    font-family: Raleway, sans-serif;">
 
-                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Alert.png" alt="Adya" border="0" style="margin: auto;">
-
-            </td>
-            <td class="text-xs-center" valign="middle" width="95%" style="padding-right: 20px; font-size: 19px;
-    font-family: Raleway, sans-serif; color: #fff;">
-
-                Alert! -  Policy violation on adding external users on a {{datasource_name}} {{added_entity_type}}
+                Adya Weekly Report <br>
+                    ( {{from_date}} - {{to_date}} )
 
             </td>
+            <td valign="middle" width="30%" style="padding:20px 0; text-align:center; line-height: 0;">
 
+                <img src="https://www.adya.io/wp-content/themes/adya/images/EmailTemplate/Report.png" alt="Adya" border="0" style="margin: auto; width:70%;">
+
+            </td>
           </tr>
         </table>
 
@@ -189,30 +189,49 @@
         <td bgcolor="#fff">
         <table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" align="center" style=" line-height:21px;">
           <tr>
-          </tr>
-          <tr>
-           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; color:#000000;font-weight: 500; ">
-            <div style="text-align:left;">
-                Adya has detected an external user - {{user_email}} - who has been added to a {{added_entity_type}} named {{group_name}}
-            </div>
+           <td bgcolor="#fff" border="0" style="font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 31px;">
+            Hi,
             </td>
           </tr>
           <tr>
-           <td bgcolor="#fff" border="0" style="padding-top:20px; font-family:Raleway, sans-serif; font-size: 16px; text-align: center; border:0px solid; ">
-            <a href="https://app.adya.io/login"><button style=" cursor: pointer; border: 2px solid #f78851;
-    background: 0;
-    padding: 10px 30px;
-    background-color: #f4651e;
-    border-radius: 5px;
-    color: #fff;-webkit-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
--moz-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);
-box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);">LOG IN</button></a>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: left; border:0px solid; color:#153449; ">
+            This is a summary of activity detected by Adya in the past week.
+            </td>
+          </tr>
+            <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+            Domain Info :
             </td>
           </tr>
           <tr>
-
-
-
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
+            <ul style="padding-left: 20px; margin:0;">
+                <li>Total Users : {{total_users}} </li>
+                <li>Total Groups : {{total_groups}} </li>
+                <li>Total Files : {{total_files}} </li>
+            </ul>
+            </td>
+          </tr>
+        <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+              Summary Activity ({{from_date}} - {{to_date}}) :
+            </td>
+          </tr>
+          <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; text-align: left; border:0px solid; color:#000000; line-height: 22px;">
+            <ul style="padding-left: 20px; margin:0;">
+                <li>New applications installed: {{apps_installed}} </li>
+                <li>Number of files exposed publicly: {{publically_exposed_files}} </li>
+                <li>Number of files exposed externally : {{extenally_exposed_files}} </li>
+            </ul>
+            </td>
+          </tr>
+         <tr>
+        <tr>
+           <td bgcolor="#fff" border="0" style="padding-top:10px;font-family:Raleway, sans-serif; font-size: 16px; font-weight:600; text-align: center; border:0px solid; color:#153449; ">
+            All the details from the past week ({{from_date}} - {{to_date}}) are in the attachment.
+            </td>
+          </tr>
          </table>
          </td>
           </tr>
@@ -225,18 +244,6 @@ box-shadow: -2px 0px 5px 0px rgba(0,0,0,0.75);">LOG IN</button></a>
 
         </table>
         <!-- Main Email Body : END -->
-          <!-- START FOOTER -->
-            <div class="footer"  style="clear: both; width: 100%;">
-              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
-             <tr>
-              <td  bgcolor="#153449" style="font-family:Raleway, sans-serif; font-size: 13px;  vertical-align: top; padding: 20px; color: #fff; font-style: italic;">
-                   Login to <a href="https://app.adya.io/login" style="color:#f4651e; text-decoration: none;">app.adya.io</a> to get the complete report.
-                </td>
-                </tr>
-
-              </table>
-            </div>
-            <!-- END FOOTER -->
 
       </td>
     </tr>

@@ -33,7 +33,7 @@ import {
 const defaultState = {
     pageNumber: 0,
     usersListPageNumber: 0,
-    pageLimit: 100,
+    pageLimit: 50,
     exposureType: 'EXT',
     isLoadingUsers: false,
     isLoadingUserResources: false,
@@ -157,10 +157,13 @@ export default (state = defaultState, action) => {
             var rows = [];
             if (!action.error) {
                 if (action.payload) {
-                  let group_emails_for_selected_user = {}
-                  for(let index in state.selectedUserItem.groups){
-                    group_emails_for_selected_user[state.selectedUserItem.groups[index]['email']] = state.selectedUserItem.groups[index]
-                  }
+                    let group_emails_for_selected_user = {}
+                    if (state.selectedUserItem.groups) {
+                        for (let index in state.selectedUserItem.groups) {
+                            group_emails_for_selected_user[state.selectedUserItem.groups[index]['email']] = state.selectedUserItem.groups[index]
+                        }
+                    }
+
                     var keys = Object.keys(action.payload)
                     for (let index = 0; index < keys.length; index++) {
                         let row = action.payload[keys[index]]
@@ -169,10 +172,10 @@ export default (state = defaultState, action) => {
                                 row.myPermission = row.permissions[pIndex].permission_type
                                 break;
                             }
-                            else if ((row.permissions[pIndex].email in  group_emails_for_selected_user) &&
-                            ((Object.keys(row).indexOf('myPermission') !== -1 && row.myPermission !== 'writer')||
-                            (Object.keys(row).indexOf('myPermission') === -1))) {
-                                    row.myPermission = row.permissions[pIndex].permission_type
+                            else if ((row.permissions[pIndex].email in group_emails_for_selected_user) &&
+                                ((Object.keys(row).indexOf('myPermission') !== -1 && row.myPermission !== 'writer') ||
+                                    (Object.keys(row).indexOf('myPermission') === -1))) {
+                                row.myPermission = row.permissions[pIndex].permission_type
                             }
                         }
                         row.isExpanded = row.isExpanded || false;
@@ -195,7 +198,7 @@ export default (state = defaultState, action) => {
                 isLoadingUserResources: false,
             }
         case USERS_RESOURCE_ACTION_LOAD:
-            if(action.multiSelectAction){
+            if (action.multiSelectAction) {
                 return {
                     ...state,
                     action: {
@@ -205,7 +208,7 @@ export default (state = defaultState, action) => {
                         datasource_id: action.payload.datasource_id,
                     }
                 }
-            }else{
+            } else {
                 return {
                     ...state,
                     action: {

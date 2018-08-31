@@ -1,4 +1,6 @@
-from sqlalchemy import and_, desc, asc
+from sqlalchemy import and_, desc, asc, func, or_
+from sqlalchemy.orm import aliased
+
 from adya.common.db.models import DirectoryStructure, LoginUser, DataSource, DomainUser, Application, \
     ApplicationUserAssociation, Resource, ResourcePermission, AppInventory
 from adya.common.db.connection import db_connection
@@ -105,32 +107,45 @@ def get_users_list(auth_token, full_name=None, email=None, member_type=None, dat
     else:
         domain_datasource_ids = [datasource_id]
 
+
+    # users_alias = aliased(DomainUser)
+    # groups_alias = aliased(DomainUser)
+    # users_query = db_session.query(users_alias, groups_alias).outerjoin(DirectoryStructure, and_(users_alias.email == DirectoryStructure.member_email,
+    #                     users_alias.datasource_id == DirectoryStructure.datasource_id)) \
+    #                     .outerjoin(groups_alias, and_(groups_alias.email == DirectoryStructure.parent_email,
+    #                     groups_alias.datasource_id == DirectoryStructure.datasource_id)).filter(users_alias.datasource_id.in_(domain_datasource_ids))
+
     users_query = db_session.query(DomainUser).filter(DomainUser.datasource_id.in_(domain_datasource_ids))
 
-    shared_files_with_external_users = []
     if is_service_account_is_enabled and not is_login_user_admin:
-        shared_files_with_external_users = users_query.filter(and_(Resource.datasource_id == ResourcePermission.datasource_id,
-                                                                   Resource.resource_owner_id == login_user_email,
-                                                                   Resource.resource_id == ResourcePermission.resource_id,
-                                                                   ResourcePermission.datasource_id == DomainUser.datasource_id,
-                                                                   ResourcePermission.email == DomainUser.email,
-                                                                   DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value))
-
-        shared_files_with_external_users = filter_on_get_user_list(shared_files_with_external_users, full_name, email,
-                                            member_type, datasource_id, sort_column, sort_order, is_admin, type, page_number)
-
-        shared_files_with_external_users = shared_files_with_external_users.all()
-
-        users_query = users_query.filter(DomainUser.email == login_user_email)
+        #check the login user or the external user with whom login user shared the files
+        users_query = users_query.filter(or_(DomainUser.email == login_user_email, and_(Resource.datasource_id == ResourcePermission.datasource_id,
+                                               Resource.resource_owner_id == login_user_email,
+                                               Resource.resource_id == ResourcePermission.resource_id,
+                                               ResourcePermission.datasource_id == DomainUser.datasource_id,
+                                               ResourcePermission.email == DomainUser.email,
+                                               DomainUser.member_type == constants.EntityExposureType.EXTERNAL.value)))
 
     users_query = filter_on_get_user_list(users_query, full_name, email, member_type,
                             datasource_id, sort_column, sort_order, is_admin, type, page_number)
     users_list = users_query.all()
-    return users_list + shared_files_with_external_users
+    # res_map = {}
+    # for user in users_list:
+    #     if user[0].email in res_map:
+    #         user_groups = res_map[user[0].email].groups
+    #         if user[1]:
+    #             user_groups.append(user[1])
+    #     else:
+    #         user[0].groups = [user[1]] if user[1] else []
+    #         res_map[user[0].email] = user[0]
+
+    # result = res_map.values()
+    return users_list
 
 
 def filter_on_get_user_list(entity, full_name=None, email=None, member_type=None, datasource_id=None, sort_column=None,
                    sort_order=None, is_admin=None, type=None, page_number=0):
+
     if full_name:
         entity = entity.filter(DomainUser.full_name.ilike("%" + full_name + "%"))
     if email:
@@ -214,7 +229,7 @@ def get_all_apps(auth_token):
 def get_users_for_app(auth_token, domain_id, app_id, sort_column_name, sort_order, page_number, page_limit):
     db_session = db_connection().get_session()
     page_number = int(page_number) if page_number else 0
-    page_limit = int(page_limit) if page_limit else 10
+    page_limit = int(page_limit) if page_limit else constants.PAGE_LIMIT
     # check for non-admin user
     existing_user = db_utils.get_user_session(auth_token)
     is_admin = existing_user.is_admin
@@ -403,3 +418,18 @@ def write_to_csv(auth_token, payload):
         aws_utils.send_email([logged_in_user], email_subject, rendered_html)
     else:
         Logger().exception("Failed to generate url. Please contact administrator")
+
+
+def parse_groups_info(group_info_str, datasource_ids, db_session):
+    group_info_str = group_info_str[:-1]
+    group_infos = group_info_str.split('|,')
+    groups = []
+    for group_info in group_infos:
+        if len(group_info) > 0:
+            group = json.loads(group_info)
+            group_email = group['parent_email']
+            group_info_table = db_session.query(DomainUser).filter(and_(DomainUser.datasource_id.in_(datasource_ids), DomainUser.email == group_email)).first()
+            group['full_name'] = group_info_table.full_name
+            groups.append(group)
+
+    return groups

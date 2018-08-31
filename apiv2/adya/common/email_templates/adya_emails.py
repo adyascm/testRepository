@@ -184,11 +184,24 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
         template_name = "permission_change_policy_violation"
-        permissions = []
+        is_public = False
+        is_link_shared = False
+        permission_link = ''
+        permissions_internal = []
+        permissions_external = []
         for permission in new_permissions:
             user_name = permission["email"]
             permission_str = user_name + " (" + constants.permission_friendly_name_map[permission["permission_type"]] + ")"
-            permissions.append(permission_str)
+            if permission["exposure_type"] == constants.EntityExposureType.PUBLIC.value:
+                is_public = True
+                permission_link = permission_str
+            elif permission["exposure_type"] == constants.EntityExposureType.ANYONEWITHLINK.value:
+                is_link_shared = True
+                permission_link = permission_str
+            elif permission["exposure_type"] == constants.EntityExposureType.EXTERNAL.value:
+                permissions_external.append(permission_str)
+            elif permission["exposure_type"] == constants.EntityExposureType.INTERNAL.value:
+                permissions_internal.append(permission_str)
 
         violated_perm = []
         if violated_permissions:
@@ -210,7 +223,13 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "document_name": resource["resource_name"],
             "modifying_user": resource["last_modifying_user_email"],
             "owner_name": resource_owner.first_name,
-            "permissions": permissions,
+            "permissions_internal": permissions_internal,
+            "has_permissions_internal": True if len(permissions_internal) > 0 else False,
+            "permissions_ext": permissions_external,
+            "has_permissions_ext": True if len(permissions_external) > 0 else False,
+            "is_public": is_public,
+            "is_link_shared": is_link_shared,
+            "permission_link": permission_link,
             "revert_back": True if violated_permissions else False,
             "violated_permissions": violated_perm,
             "len_violated_permissions": True if (violated_permissions and len(violated_permissions)> 0) else False,
@@ -228,6 +247,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
 
 def send_app_install_policy_violate_email(user_email,policy,application, is_reverted):
     try:
+        datasource_name = (policy.name).split("::")[0] if policy.name else None
         template_name = "app_install_policy_violation"
         template_parameters = {
             "policy_name": policy.name,
@@ -236,7 +256,7 @@ def send_app_install_policy_violate_email(user_email,policy,application, is_reve
             "is_reverted": is_reverted
         } 
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in GSuite account"
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
@@ -244,7 +264,7 @@ def send_app_install_policy_violate_email(user_email,policy,application, is_reve
         return False
        
 
-def send_new_user_policy_violate_email(user_email, policy, new_user):
+def send_new_user_policy_violate_email(user_email, policy, new_user, group_name):
     try:
         datasource_name = (policy.name).split("::")[0] if policy.name else None
         user_type =  "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
@@ -254,12 +274,47 @@ def send_new_user_policy_violate_email(user_email, policy, new_user):
         template_parameters = {
             "policy_name": policy.name,
             "user_email": new_user["email"],
-            "datasource_name": datasource_name
+            "datasource_name": datasource_name,
+            "group_name": group_name,
+            "added_entity_type": "team" if datasource_name == constants.ConnectorTypes.SLACK.value else "group"
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in {} account".format(datasource_name)
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_name)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
         Logger().exception("Exception occured while sending new user policy violation email")
         return False
+
+
+def send_weekly_summary_email(email_list, response, domain_id):
+    try:
+        db_session = db_connection().get_session()
+        datasources = db_session.query(DataSource).filter(DataSource.domain_id == domain_id).all()
+        total_users = 0
+        total_files = 0
+        total_groups = 0
+        for datasource in datasources:
+            total_files += datasource.processed_file_count
+            total_users += datasource.processed_user_count
+            total_groups += datasource.processed_group_count
+
+        template_parameters = {
+            "total_files": total_files,
+            "total_groups": total_groups,
+            "apps_installed": response.get('OAUTH_GRANT'),
+            "publically_exposed_files": response.get('FILE_SHARE_PUBLIC'),
+            "extenally_exposed_files": response.get('FILE_SHARE_EXTERNAL'),
+            "total_users": total_users,
+            "from_date": response.get('from_date'),
+            "to_date": response.get('to_date')
+        }
+        template_name = "weekly_summary"
+        rendered_html = get_rendered_html(template_name, template_parameters)
+        email_subject = "Weekly Summary for your {} account".format(domain_id)
+        aws_utils.send_email_with_html_and_attachement(email_list, response.get('csv_records'), email_subject, response['report_name'], rendered_html)
+    except Exception as ex:
+        Logger().exception("Exception occured while sending weekly summary for account {}".format(domain_id))
+        return False
+
+

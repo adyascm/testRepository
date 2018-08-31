@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
     setSortColumnField: (columnName, sortType) =>
         dispatch({ type: USERS_COLUMN_SORT, columnName, sortType }),
     onMultiUsersAction: (payload, multiSelectAction) =>
-        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, multiSelectAction}),    
+        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, multiSelectAction}),
 });
 
 
@@ -176,13 +176,13 @@ class UserListNew extends Component {
     handleClick = (event) => {
         event.stopPropagation()
     }
-    
+
     handleAllRowsSelection = (event, data) => {
         let selectAllColumns = !this.state.selectAllColumns
         let selectedFieldColumns = this.state.selectedFieldColumns
         for(var i in this.props.usersList){
             selectedFieldColumns[i] = selectAllColumns
-        }    
+        }
         this.setState({
             selectAllColumns: selectAllColumns,
             selectedFieldColumns:selectedFieldColumns,
@@ -217,16 +217,19 @@ class UserListNew extends Component {
                     if(this.state.selectedFieldColumns[i]){
                         let user_obj = this.props.usersList[i];
                         let user_ds_type_is_gsuite = this.props.datasourcesMap[user_obj["datasource_id"]].datasource_type == 'GSUITE'
-                        if(user_ds_type_is_gsuite && user_obj.type == 'USER')
+                        if(user_ds_type_is_gsuite && user_obj.type == 'USER'){
                             users_email.push(user_obj["email"])
+                            users_name.push(user_obj["full_name"])
+                        }
                         if(!datasource_id && user_ds_type_is_gsuite)
                             datasource_id = user_obj["datasource_id"]
                     }
-                } 
+                }
                 payload = {
                     actionType:action,
                     users_email:users_email,
-                    datasource_id:datasource_id
+                    users_name:users_name,
+                    datasource_id:datasource_id,
                 }
             }
             else if(action == 'notify_multiple_users_for_clean_up'){
@@ -248,12 +251,12 @@ class UserListNew extends Component {
                     users_email:users_email,
                     datasource_id:datasource_id
                 }
-            }    
+            }
             this.props.onMultiUsersAction(payload,true)
             this.disableAllRowsSelection()
         }
-            
-    }    
+
+    }
 
     render() {
         let datasourceFilterOptions = [{ text: "All", value: 'ALL' }];
@@ -279,7 +282,7 @@ class UserListNew extends Component {
                     </Table.HeaderCell>
                 )
             }
-            
+
         })
         let filterSelections = [];
         if (this.state.numberAppliedFilter) {
@@ -313,7 +316,7 @@ class UserListNew extends Component {
                 let last_login_time = null
                 if(rowData.last_login_time){
                     last_login_time = rowData.last_login_time
-                    is_inactive = new Date(last_login_time) < ninety_days_ago 
+                    is_inactive = new Date(last_login_time) < ninety_days_ago
                 }
                 let formattedTime = (last_login_time ?
                     <IntlProvider locale={'en'} >
@@ -323,7 +326,7 @@ class UserListNew extends Component {
                             month='long'
                             day='2-digit'
                         />
-                    </IntlProvider> : null)   
+                    </IntlProvider> : null)
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
                         <Table.Cell>
@@ -336,7 +339,7 @@ class UserListNew extends Component {
                         <Table.Cell textAlign="center" >{avatarImage}</Table.Cell>
                         <Table.Cell textAlign="center">
                             {formattedTime}
-                            {is_inactive ? <span><b> (Inactive) </b></span> : null } 
+                            {is_inactive ? <span><b> (Inactive) </b></span> : null }
                         </Table.Cell>
                         <Table.Cell textAlign="center">{rowData["is_admin"] ? <Icon name="checkmark" /> : null}</Table.Cell>
                         <Table.Cell textAlign="center">{rowData["member_type"]}</Table.Cell>
@@ -392,7 +395,7 @@ class UserListNew extends Component {
                                                         </Dropdown.Item>
                                                         <Dropdown.Item disabled={!this.state.showActionBar}>
                                                             <span size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify users to audit</span>
-                                                        </Dropdown.Item> 
+                                                        </Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Dropdown.Item>
@@ -415,7 +418,7 @@ class UserListNew extends Component {
                             <div style={{ marginTop: '10px' }} >
                                 <div style={{float: 'right'}}>
                                     {!this.props.isLoadingUsers && this.props.usersListPageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
-                                    {this.props.isLoadingUsers || (usersData && usersData.length < 10) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                                    {this.props.isLoadingUsers || (usersData && usersData.length < 50) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                                 </div>
                             </div>
                         </Grid.Column >

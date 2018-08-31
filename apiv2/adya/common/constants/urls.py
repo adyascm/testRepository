@@ -94,3 +94,6 @@ GITHUB_SCAN_UPDATE = '/github/scan'
 #github_event_notifications
 PROCESS_GITHUB_NOTIFICATIONS_PATH = '/github/processnotifications'
 GITHUB_NOTIFICATIONS_URL = constants.API_HOST + PROCESS_GITHUB_NOTIFICATIONS_PATH
+
+#get_default reports/policies
+DEFULT_REPORTS_POLICIES = '/common/defaultreportpolicy'
