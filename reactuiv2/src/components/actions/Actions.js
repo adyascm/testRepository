@@ -253,7 +253,7 @@ class Actions extends Component {
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
         let submitButton = (<Button disabled={this.props.logged_in_user['license_type'] == 'FREE'} positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
         if (this.props.logged_in_user['license_type'] == 'FREE') {
-          let msgStr = "Your license type does not support actions. Please contact us to upgrade."
+          let msgStr = "Actions are not allowed on a trial account. Please contact your sales representative to upgrade."
           message = (<Message
               error
           >{msgStr}</Message>)

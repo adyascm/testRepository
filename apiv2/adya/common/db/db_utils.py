@@ -85,13 +85,16 @@ def get_datasource(datasource_id, db_session=None):
 
 def create_domain(db_session, domain_id, domain_name):
     creation_time = datetime.datetime.utcnow()
+    exempted_account = ["adya.io", "serendipity-technologies.com"]
+    license_type = constants.LicenseTypes.PAID.value if domain_id in exempted_account else constants.LicenseTypes.FREE.value
     domain = {}
     domain["domain_id"] = domain_id
     domain["domain_name"] = domain_name
     domain["creation_time"] = creation_time
+    domain["license_type"] = license_type
     try:
         db_session.execute(Domain.__table__.insert().prefix_with(
-            "IGNORE").values([domain_id, domain_name, creation_time]))
+            "IGNORE").values([domain_id, domain_name, creation_time, license_type]))
         db_connection().commit()
     except:
         db_session.rollback()
