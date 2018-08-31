@@ -59,7 +59,8 @@ def create_datasource(auth_token, payload):
 
         #If service account is enabled, non admin cannot create a data source
         if(datasource.is_serviceaccount_enabled and admin_response):
-            raise Exception(admin_response)
+            raise Exception(
+                 admin_response + " Action not allowed.")
         if not admin_response:
             is_admin_user = True
 

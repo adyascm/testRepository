@@ -21,8 +21,6 @@ def post_datasource(event, context):
     try:
         datasource = domain_controller.create_datasource(req_session.get_auth_token(), req_session.get_body())
     except Exception as ex:
-        if ex.message == "Domain cannot use apis.":
-            raise Exception(ex.message + " Action not allowed.")
         return req_session.generate_error_response(400, ex.message)
     return req_session.generate_sqlalchemy_response(200, datasource)
 
