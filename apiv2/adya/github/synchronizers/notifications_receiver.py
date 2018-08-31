@@ -4,13 +4,13 @@ from adya.github.synchronizers import organization_notifications, repository_not
 from adya.common.utils.response_messages import Logger, ResponseMessage
 import json
 
-def receive_notification(auth_token, payload):
+def receive_notification(event_type, payload):
     Logger().info("Notification received with event object : {}".format(payload))
-    event_type = fetch_event_type(payload)
+    # event_type = fetch_event_type(payload)
     if event_type:
         handler = get_handler(event_type)
-        body = json.loads(payload["body"])
-        handler.process_activity(auth_token, body, event_type)
+        # body = json.loads(payload["body"])
+        handler.process_activity(payload, event_type)
         return ResponseMessage(202, "Notification handled successfully")
     else:
         return ResponseMessage(400, "Unable to fetch event type from event payload")
