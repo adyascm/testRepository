@@ -43,8 +43,8 @@ def process_activity(payload, event_type):
         
         elif action == "publicized":
             # Update the Repository as public in the Resource table
-            db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == payload["id"]). \
-                update({ Resource.exposure_type == constants.EntityExposureType.PUBLIC.value })
+            db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repository["id"]). \
+                update({ Resource.exposure_type: constants.EntityExposureType.PUBLIC.value })
             db_connection().commit()
             activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'REP_PUBLIC', owner_id, {})
             # Trigger default policy validate
