@@ -1,3 +1,4 @@
+from adya.common.utils.response_messages import Logger
 from adya.core.controllers import domain_controller
 from adya.common.utils.request_session import RequestSession
 
@@ -21,7 +22,9 @@ def post_datasource(event, context):
     try:
         datasource = domain_controller.create_datasource(req_session.get_auth_token(), req_session.get_body())
     except Exception as ex:
+        Logger().info("raise exception with 400: {}".format(ex.message))
         return req_session.generate_error_response(400, ex.message)
+    Logger().info("response : {}".format(datasource))
     return req_session.generate_sqlalchemy_response(200, datasource)
 
 def delete_datasource(event, context):
