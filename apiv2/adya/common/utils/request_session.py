@@ -102,7 +102,7 @@ class RequestSession():
         else:
             return {
                 "statusCode": http_code,
-                "body": payload,
+                "body": json.dumps(payload),
                 "headers": {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Credentials": True
