@@ -327,6 +327,7 @@ def create_report(auth_token, payload):
             if not existing_report:
                 report["receivers"] = login_user
                 report["datasource_id"] = datasource_id
+                report['is_system_defined'] = True
                 result.append(insert_entry_into_report_table(db_session, auth_token, report))    
         return result
     else:
