@@ -3,8 +3,11 @@ from adya.common.db.connection import db_connection
 from adya.common.db.models import DataSource
 from adya.common.constants import event_constants
 from adya.common.db.models import LoginUser, DataSource
+from adya.common.utils.response_messages import Logger
+
 
 def get_activites_for_domain(filters):
+    Logger().info("filter payload {}".format(filters))
     page_number = int(filters.get('pageNumber')) if filters.get('pageNumber') else 0
     sort_column = filters.get('sortColumn') if filters.get('sortColumn') else "timestamp"
     filters = filters if filters else {}
