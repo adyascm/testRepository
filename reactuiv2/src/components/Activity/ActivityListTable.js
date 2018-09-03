@@ -46,15 +46,11 @@ class ActivityListTable extends Component {
                 "User",
                 "Details"
             ],
-            currentDate: '',
             domain_id: this.props.currentUser['domain_id'],
-            filterConnectorType: "",
-            filterEventType: "",
-            filteractor: "",
             columnHeaderDataNameMap: {
                 "Event Type": "event_type",
                 "Time Since": "timestamp",
-                // "Actor": "actor",
+                "User": "actor",
             },
             columnNameClicked: '',
             sortOrder: 'descending'
@@ -73,7 +69,7 @@ class ActivityListTable extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
             if (nextProps.filterConnectorType !== this.props.filterConnectorType || nextProps.filterEventType !== this.props.filterEventType ||
-                nextProps.pageNumber !== this.props.pageNumber || nextProps.filteractor !== this.props.filteractor || nextProps.filterByDate !== this.props.filterByDate) {
+                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterActor !== this.props.filterActor || nextProps.filterByDate !== this.props.filterByDate) {
                 nextProps.onLoadStart()
 
                 let selectedConnectors = []
@@ -114,7 +110,7 @@ class ActivityListTable extends Component {
         let selectedConnectors = []
         let selectedEventTypes = []
         let timeStamp = 'filterByDate' in this.props ? this.props['filterByDate'] : ''
-        let filteractor = 'filteractor' in this.props ? this.props['filteractor'] : ''
+        let filterActor = 'filterActor' in this.props ? this.props['filterActor'] : ''
         if ('filterEventType' in this.props) {
             for (let k in this.props.filterEventType) {
                 if (this.props.filterEventType[k]) {
@@ -134,7 +130,7 @@ class ActivityListTable extends Component {
             this.props.onLoadStart()
             this.props.setSortColumnField(mappedColumnName, 'asc')
             this.props.onLoad(agent.Activity.getAllActivites({
-                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
+                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filterActor,
                 'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
                 'sortColumn': mappedColumnName, 'sortOrder': 'asc'
             }))
@@ -147,7 +143,7 @@ class ActivityListTable extends Component {
             this.props.onLoadStart()
             this.props.setSortColumnField(mappedColumnName, this.state.sortOrder === 'ascending' ? 'desc' : 'asc')
             this.props.onLoad(agent.Activity.getAllActivites({
-                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
+                'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filterActor,
                 'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
                 'sortColumn': mappedColumnName, 'sortOrder': this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
             }))
@@ -168,7 +164,7 @@ class ActivityListTable extends Component {
     render() {
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            let isSortingDisabled = (['Source', 'User', 'Details'].indexOf(headerName) >= 0)
+            let isSortingDisabled = (['Source', 'Details'].indexOf(headerName) >= 0)
             return (
                 <Table.HeaderCell key={headerName}
                     sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}

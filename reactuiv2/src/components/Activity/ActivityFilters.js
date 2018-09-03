@@ -5,7 +5,7 @@ import agent from '../../utils/agent';
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
 import moment from 'moment'
-import {ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
+import {ACTIVITIES_PAGE_LOAD_START, ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
@@ -17,6 +17,7 @@ const mapDispatchToProps = dispatch => ({
     changeFilter: (property, value) => dispatch({ type: ACTIVITIES_FILTER_CHANGE, property, value }),
     setPaginationData: (pageNumber, pageLimit) => dispatch({ type: ACTIVITIES_PAGINATION_DATA, pageNumber, pageLimit }),
     onChartLoad: (payload) => dispatch({ type: ACTIVITIES_CHART_LOADED, payload }),
+    onLoadStart: () => dispatch({ type: ACTIVITIES_PAGE_LOAD_START }),
 });
 
 class ActivityFilters extends Component {
@@ -27,13 +28,15 @@ class ActivityFilters extends Component {
             selectedEventTypes: {},
             selectedConnectors: {},
             currentDate: moment(),
-            filteractor: "",
+            filterActor: "",
         }
     }
 
     componentWillMount() {
+        this.props.onLoadStart();
         let selectedEventTypes = this.state.selectedEventTypes
         let selectedConnectors = this.state.selectedConnectors
+        let currentFilterActor = ''
         this.props.datasources.map((ds) => {
             selectedConnectors[ds.datasource_type] = true
         })
@@ -46,7 +49,7 @@ class ActivityFilters extends Component {
             selectedConnectors,
             currentDate:currentDate,
         })
-        this.fetchActivityList({selectedEventTypes,selectedConnectors, currentDate})
+        this.fetchActivityList({selectedEventTypes,selectedConnectors, currentDate, currentFilterActor})
     }
 
     handleEventTypeSelection = (data) => {
@@ -88,21 +91,30 @@ class ActivityFilters extends Component {
         })
     }
 
+    handleFilterActorChange = (event, data) => {
+        this.setState({
+            filterActor:data.value
+        })
+    }
+
     fetchActivityList = (payload) => {
-        let currentSelectedConnectors, currentSelectAllEventTypes, currentDateObj 
-        currentSelectAllEventTypes = currentSelectAllEventTypes = currentDateObj = undefined
+        let currentSelectedConnectors, currentSelectAllEventTypes, currentDateObj, currentFilterActor 
+        currentSelectAllEventTypes = currentSelectAllEventTypes = currentDateObj = currentFilterActor = undefined
         if(payload){
-            currentSelectAllEventTypes = payload.selectAllEventTypes
+            currentSelectAllEventTypes = payload.selectedEventTypes
             currentSelectedConnectors = payload.selectedConnectors
             currentDateObj = payload.currentDate
+            currentFilterActor = payload.currentFilterActor
         }else{
             currentSelectAllEventTypes = this.state.selectedEventTypes
             currentSelectedConnectors = this.state.selectedConnectors
             currentDateObj = this.state.currentDate
+            currentFilterActor = this.state.filterActor.trim()
         }
         this.props.setPaginationData(0, this.props.pageLimit)
         this.props.changeFilter('filterEventType', currentSelectAllEventTypes)
         this.props.changeFilter('filterConnectorType', currentSelectedConnectors)
+        this.props.changeFilter('filterActor',currentFilterActor)
         let selectedDate = currentDateObj ? currentDateObj.format('YYYY-MM-DD HH:mm:ss') : ''
         this.props.changeFilter('filterByDate', selectedDate)
         let selectedConnectors = []
@@ -157,6 +169,18 @@ class ActivityFilters extends Component {
                             </Menu.Item>
                         </Menu.Menu>
                     </Menu.Item>
+                    <Menu.Item>
+                        <Menu.Header>Email</Menu.Header>
+                        <Menu.Menu>
+                            <Menu.Item>
+                                <Input fluid placeholder='Filter by Email...'
+                                onChange={(event, data) => this.handleFilterActorChange(event, data)}
+                                value={this.state.filterActor}  
+                                />
+                            </Menu.Item>    
+                        </Menu.Menu>
+                    </Menu.Item>
+
                     <Menu.Item>
                         <Menu.Header>Connector</Menu.Header>
                         <Menu.Menu>

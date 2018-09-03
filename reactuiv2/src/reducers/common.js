@@ -235,8 +235,8 @@ export default (state = defaultState, action) => {
         all_activity_events.push(...Object.keys(payload[k]))
       } 
 
-      let unique_activity_events = payload ? Array.from(new Set(all_activity_events.map( event_type => event_type))) : [] 
-
+      let unique_activity_events = (payload ? Array.from(new Set(all_activity_events.map( event_type => event_type))) : []).sort()
+      
       return {
         ...state,
         all_activity_events: action.error ? [] : all_activity_events,

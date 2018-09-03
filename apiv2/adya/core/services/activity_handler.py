@@ -7,7 +7,7 @@ def get_all_activities(event, context):
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error
-
+    
     activities = get_activites_for_domain(req_session.get_body())
     return req_session.generate_sqlalchemy_response(200, activities)
 
@@ -16,5 +16,5 @@ def get_all_activity_event_types(event,context):
     req_error = req_session.validate_authorized_request()
     if req_error:
         return req_error
-    events = get_activity_event_types()
+    events = get_activity_event_types(req_session.get_auth_token())
     return req_session.generate_sqlalchemy_response(200, events)
