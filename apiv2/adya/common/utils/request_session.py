@@ -73,10 +73,10 @@ class RequestSession():
                 return self.req
 
     def generate_error_response(self, http_code, message):
-        return self.generate_response(http_code, {'message': message})
+        return self.generate_sqlalchemy_response(http_code, {'message': message})
 
     def generate_success_response(self, http_code, message):
-        return self.generate_response(http_code, {'message': message})
+        return self.generate_sqlalchemy_response(http_code, {'message': message})
 
     def generate_redirect_response(self, location):
         if self.isLocal:
