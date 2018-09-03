@@ -1,5 +1,5 @@
 
-from adya.common.db.models import DataSource, DatasourceScanners, alchemy_encoder, DomainUser, ResourcePermission 
+from adya.common.db.models import DataSource, DatasourceScanners, alchemy_encoder, DomainUser, ResourcePermission, Resource
 from adya.common.db.connection import db_connection
 from adya.github import github_constants
 from adya.github.scanners import repository_scanner, organisation_scanner, rep_collaborators_scanner, org_members_scanner
