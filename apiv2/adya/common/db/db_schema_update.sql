@@ -41,8 +41,8 @@ ALTER TABLE application
 ADD is_whitelisted Boolean
 
 ALTER TABLE domain
-ADD license_type varchar(20)
+ADD license_type varchar(20) DEFAULT "FREE"
 ADD install_date DateTime;
 
 ALTER TABLE report
-ADD is_system_defined Boolean
+ADD is_system_defined Boolean DEFAULT FALSE
