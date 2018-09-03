@@ -129,11 +129,15 @@ class ActivityFilters extends Component {
                 selectedConnectors.push(k)
             }
         }
-        this.props.onLoadActivities(agent.Activity.getAllActivites({
-            'domain_id': this.props.currentUser['domain_id'], 'timestamp': this.state.currentDate ? this.state.currentDate.format('YYYY-MM-DD HH:MM:SS'): '', 'actor': this.props.filteractor,
+        
+        let putFilters = {
+            'domain_id': this.props.currentUser['domain_id'], 'timestamp': selectedDate, 'actor': currentFilterActor,
             'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': this.props.pageNumber, 'pageSize': this.props.pageLimit,
             'sortColumn': '', 'sortOrder': 'desc'
-        }));
+        }  
+
+        this.props.onLoadActivities(agent.Activity.getAllActivites(putFilters));
+        this.props.onChartLoad(agent.Dashboard.getWidgetData({'widget_id': 'activitiesByEventType', 'event_filters': putFilters}));
     }
 
     render() {
