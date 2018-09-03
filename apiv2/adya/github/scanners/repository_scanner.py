@@ -51,7 +51,7 @@ def process(db_session, auth_token, query_params, scanner_data):
         repo_dict["description"] = repo["description"]
         #TODO: If parent is available, then store parent also
         repo_dict["parent_id"] = repo["parent"]["id"] if repo["fork"] else None
-        repo_dict["resource_owner_id"] = owner_email
+        repo_dict["resource_owner_id"] = repo_owner_obj["id"]
         repo_dict["exposure_type"] = constants.EntityExposureType.DOMAIN.value if repo["private"] else constants.EntityExposureType.PUBLIC.value
         repo_dict["resource_type"] = "repository"
         repo_list.append(repo_dict)

@@ -150,6 +150,12 @@ def scan_complete_processing(db_session, auth_token, datasource_id):
     messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
     messaging.send_push_notification("adya-scan-update", json.dumps(datasource, cls=alchemy_encoder()))
     utils.add_license_for_scanned_app(db_session, datasource)
+    update_resource_owner_email(db_session, datasource_id)
+
+def update_resource_owner_email(db_session, datasource_id):
+    db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_owner_id == DomainUser.user_id, DomainUser.datasource_id == Resource.datasource_id). \
+        update({ Resource.resource_owner_id: DomainUser.email }, synchronize_session='fetch')
+    db_connection().commit()
 
 def get_datasource_column(scanner_type, is_total = True):
     column_name = None
