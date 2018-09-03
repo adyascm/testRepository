@@ -18,14 +18,14 @@ def validate_permission_change(auth_token, datasource_id, payload):
         has_permission_changed = True
 
     if has_permission_changed:
-        Logger.info("Permissions changed for the repository, validate policy conditions now...")
+        Logger().info("Permissions changed for the repository, validate policy conditions now...")
         db_session = db_connection().get_session()
         policies = db_session.query(Policy).filter(Policy.datasource_id == datasource_id,
                                                     Policy.trigger_type == constants.PolicyTriggerType.PERMISSION_CHANGE.value,
                                                     Policy.is_active == True).all()
         
         if not policies or len(policies) < 1:
-            Logger.info("No policies found for permission change trigger, ignoring...")
+            Logger().info("No policies found for permission change trigger, ignoring...")
             return
         datasource_obj = get_datasource(datasource_id)
         for policy in policies:
