@@ -7,7 +7,8 @@ import {
     LOGIN_ERROR,
     LOGIN_SUCCESS,
     LOGIN_PAGE_UNLOADED,
-    LOGIN_START
+    LOGIN_START,
+    FLAG_ERROR_MESSAGE
 } from '../constants/actionTypes';
 
 const mapStateToProps = state => ({
@@ -26,7 +27,9 @@ const mapDispatchToProps = dispatch => ({
     onLoginStart: () =>
         dispatch({ type: LOGIN_START }),
     onUnload: () =>
-        dispatch({ type: LOGIN_PAGE_UNLOADED })
+        dispatch({ type: LOGIN_PAGE_UNLOADED }),
+    onBlockedUser: (errorMessage) =>
+        dispatch({ type: FLAG_ERROR_MESSAGE, error: errorMessage })
 });
 
 class NewLogin extends Component {
@@ -43,7 +46,7 @@ class NewLogin extends Component {
             oauth.authenticateGsuite("login_scope").then(data => {
                 this.props.onSignInComplete(data)
             }).catch(({ errors }) => {
-                console.log("login error : ", errors['Failed'])
+                {errors['Failed'] === 'BLOCKED' ? this.props.onBlockedUser("This is a blocked account. please contact your administrator") : null}
                 this.props.onSignInError(errors)
             });
         };
@@ -83,7 +86,7 @@ class NewLogin extends Component {
                             <div>
                             <input type="checkbox" style={{"marginRight":"10px", "fontSize":"2em"}} defaultChecked={this.state.chkbox} onChange={this.enableGoogleSignIn()} />
                             <p style={{"color":"gray","fontSize":"12pt","display":"inline"}}>I agree to <a href="https://www.adya.io/terms-of-service-agreement/" target="_blank">Terms Of Service </a>and <a href="https://www.adya.io/privacy-policy/" target="_blank">Privacy Policy</a></p>
-                            </div>    
+                            </div>
                             <div className="text-center scan-button p-b-30" style={divStyle}>
                                 <a className="btn-wrap btn-wrap-header orange-color font-white" style={anchorStyle} onClick={this.signInGoogle()} target="_blank"><img src="/images/Google.png" /></a>
                                 {this.props.inProgress?

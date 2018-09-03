@@ -74,6 +74,9 @@ def oauth_callback(oauth_code, scopes,state, error):
     if is_serviceaccount_enabled:
         domain_id = login_email.split('@')[1]
 
+    domain_info = db_session.query(Domain).filter(Domain.domain_id == domain_id).first()
+    if domain_info and domain_info.license_type == constants.LicenseTypes.BLOCKED.value:
+        return urls.OAUTH_STATUS_URL + "/error?error={}".format(constants.LicenseTypes.BLOCKED.value)
 
     if login_user:
         if not login_user.is_serviceaccount_enabled == is_serviceaccount_enabled:

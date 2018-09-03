@@ -174,6 +174,11 @@ permission_exposure_to_event_constants = {
 }
 
 
+class LicenseTypes(Enum):
+    FREE = 'FREE'
+    BLOCKED = 'BLOCKED'
+    PAID = 'PAID'
+
 class ReportType(Enum):
     PERMISSION= "Permission"
     ACTIVITY = "Activity"

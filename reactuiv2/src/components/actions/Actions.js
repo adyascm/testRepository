@@ -251,8 +251,14 @@ class Actions extends Component {
         let logmsg = (<div></div>)
         let submitAction = this.takeAction;
         let cancelButton = (<Button negative onClick={this.props.onCancelAction} content='Cancel' />);
-        let submitButton = (<Button positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
-        if (this.state.successMessage) {
+        let submitButton = (<Button disabled={this.props.logged_in_user['license_type'] == 'FREE'} positive loading={this.state.inProgress} labelPosition='right' icon='checkmark' content='Submit' />);
+        if (this.props.logged_in_user['license_type'] == 'FREE') {
+          let msgStr = "Actions are not allowed on a trial account. Please contact your sales representative to upgrade."
+          message = (<Message
+              error
+          >{msgStr}</Message>)
+        }
+        else if (this.state.successMessage) {
             if(this.state.logId){
                 logmsg = (<a target="_blank" href="/auditlog">(Log:{this.state.logId})</a>)
             }
