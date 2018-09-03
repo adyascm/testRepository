@@ -40,3 +40,6 @@ ADD category varchar(255);
 ALTER TABLE application
 ADD is_whitelisted Boolean
 
+ALTER TABLE domain
+ADD license_type varchar(20)
+ADD install_dateDateTime;
