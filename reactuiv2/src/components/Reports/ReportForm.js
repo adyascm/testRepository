@@ -37,9 +37,9 @@ const reportOptions = [
   { text: 'Empty Google Groups Report', value: 'EmptyGSuiteGroup'},
   { text: 'Empty Slack Channels Report', value: 'EmptySlackChannel'},
   { text: 'Exposed Resources Report', value: 'ExposedResources'},
-  {text: 'Weekly Summary report', value: 'WeeklySummary'},
-  {text: 'Admin user report', value: 'Admin'},
-  {text: 'External user report' , value: 'External'}
+  { text: 'Weekly Summary report', value: 'WeeklySummary'},
+  { text: 'Admin user report', value: 'Admin'},
+  { text: 'External user report' , value: 'ExternalUsers'}
 ]
 
 class ReportForm extends Component {
@@ -92,11 +92,11 @@ class ReportForm extends Component {
       errorMessage = " Please select the report type."
       valid = false
     }
-    else if ( copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin','ExposedResources'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
+    else if ( copyFinalInputObj.report_type && !this.is_default_type(copyFinalInputObj.report_type) && !copyFinalInputObj.selected_entity_type && !populatedDataForParticularReport.selected_entity_type) {
       errorMessage = "Please select User/Group or File/Folder."
       valid = false
     }
-    else if (copyFinalInputObj.report_type && (['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin','ExposedResources'].indexOf(copyFinalInputObj.report_type) < 0) && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
+    else if (copyFinalInputObj.report_type && !this.is_default_type(copyFinalInputObj.report_type) && !copyFinalInputObj.selected_entity && !populatedDataForParticularReport.selected_entity) {
       errorMessage = "Please select the entity "
       valid = false
     }
@@ -115,11 +115,15 @@ class ReportForm extends Component {
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
+        copyFinalInputObj.is_non_editable = false
       }
-      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin', 'ExposedResources'].indexOf(copyFinalInputObj["report_type"]) >= 0){
+      if(this.is_default_type(copyFinalInputObj.report_type)){
         copyFinalInputObj.selected_entity = ""
         copyFinalInputObj.selected_entity_type = ""
         copyFinalInputObj.selected_entity_name = ""
+      }
+      if(copyFinalInputObj['is_active'] === undefined){
+        copyFinalInputObj['is_active'] = false
       }
       success = true
       this.props.addScheduledReport(copyFinalInputObj)
@@ -149,17 +153,20 @@ class ReportForm extends Component {
     return value
   }
 
+  is_default_type = (report_type) => {
+    return ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin', 'ExposedResources', 'WeeklySummary'].indexOf(report_type) >= 0 
+  }
+
   onChangeReportInput = (key, value) => {
 
     var copyFinalReportObj = {};
     Object.assign(copyFinalReportObj, this.state.finalReportObj)
-
     if (key === 'frequency') {
       value = "cron(" + value + ")"
     }
     if(key === 'report_type'){
       copyFinalReportObj['selected_entity'] = ""
-      if(['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin', 'ExposedResources'].indexOf(value) < 0){
+      if(!this.is_default_type(value)){
         copyFinalReportObj['selected_entity_type'] = "user"
       } else{
         copyFinalReportObj['selected_entity_type'] = value
@@ -204,7 +211,8 @@ class ReportForm extends Component {
     //const { value } = this.state
 
     var report_type = this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']
-    var formRadio =  ['Inactive','EmptyGSuiteGroup', 'EmptySlackChannel','ExternalUsers','Admin','ExposedResources'].indexOf(report_type) < 0  ?
+    var is_non_editable = this.state.finalReportObj['is_non_editable'] || this.props.reportsMap['is_non_editable']
+    var formRadio =  !this.is_default_type(report_type) ?
     (report_type != 'Activity' ? (<Form.Group inline>
     <Form.Radio label='File/Folder' value='resource'
       checked={( this.state.finalReportObj['selected_entity_type'] || this.handleMultipleOptions('selected_entity_type'))
@@ -218,7 +226,7 @@ class ReportForm extends Component {
       />
     </Form.Group>):<span>Group/User</span> ) : null
 
-  var reportTypeForm = ['EmptyGSuiteGroup','EmptySlackChannel'].indexOf(this.handleMultipleOptions('report_type')) >= 0 ?
+  var reportTypeForm = is_non_editable ?
       <Form.Input label='Report Type' readOnly value={this.handleMultipleOptions('report_type')} />:
       <Form.Select id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
       label='Report Type' options={reportOptions} placeholder='Report Type'
@@ -234,10 +242,10 @@ class ReportForm extends Component {
 
               <div className="ui form">
                 <Form.Input onChange={(e) => this.onChangeReportInput('name', e.target.value)}
-                  label='Name' placeholder='Name' defaultValue={this.props.reportsMap['name']} />
+                  label='Name' placeholder='Name' readOnly={is_non_editable} defaultValue={this.props.reportsMap['name']} />
 
                 <Form.Input onChange={(e) => this.onChangeReportInput('description', e.target.value)} label='Description' placeholder='Description'
-                  defaultValue={this.props.reportsMap['description']} />
+                readOnly={is_non_editable}  defaultValue={this.props.reportsMap['description']} />
 
                 {reportTypeForm}
                 {/* <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}

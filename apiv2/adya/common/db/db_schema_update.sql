@@ -42,4 +42,7 @@ ADD is_whitelisted Boolean
 
 ALTER TABLE domain
 ADD license_type varchar(20)
-ADD install_dateDateTime;
+ADD install_date DateTime;
+
+ALTER TABLE report
+ADD is_system_defined Boolean
