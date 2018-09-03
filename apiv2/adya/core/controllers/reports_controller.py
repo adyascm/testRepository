@@ -359,7 +359,8 @@ def get_reports(auth_token):
             "report_type": config_data['report_type'],
             "selected_entity": config_data['selected_entity'],
             "selected_entity_type": config_data['selected_entity_type'],
-            "selected_entity_name": config_data['selected_entity_name']
+            "selected_entity_name": config_data['selected_entity_name'],
+            "is_system_defined":report.is_system_defined
         }
     return response
 
@@ -665,6 +666,7 @@ def insert_entry_into_report_table(db_session, auth_token, payload):
 
             report.config = json.dumps(config_input)
             report.is_active = payload["is_active"]
+            report.is_system_defined = payload["is_system_defined"]
 
         report.creation_time = creation_time
 
