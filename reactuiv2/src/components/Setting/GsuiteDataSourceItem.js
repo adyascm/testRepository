@@ -51,32 +51,15 @@ class GsuiteDataSourceItem extends Component {
 
         this.addNewDatasource = (datasourceName, datasorceType) => ev => {
             ev.preventDefault();
-            this.props.onDataSourceLoad()
-            this.setState({
-                datasourceLoading: true
-            })
             if (this.props.is_serviceaccount_enabled) {
+                this.props.onDataSourceLoad()
+                this.setState({
+                    datasourceLoading: true
+                })
                 this.props.addDataSource("GSuite", "GSUITE")
             } else {
-                oauth.authenticateGsuite("drive_scan_scope").then(data => {
-                    this.props.addDataSource("GSuite", "GSUITE")
-                    //this.props.setDataSources(agent.Setting.getDataSources())
-                    this.setState({
-                        datasourceLoading: false
-                    })
-                }).catch(({ errors }) => {
-                    this.props.displayErrorMessage(errors)
-                    this.setState({
-                        datasourceLoading: false
-                    })
-                });
+              window.open("https://gsuite.google.com/marketplace/app/adya/109437140823", '_blank')
             }
-        };
-
-        this.addDummyDatasource = () => ev => {
-            ev.preventDefault();
-            this.props.onDataSourceLoad()
-            this.props.addDataSource("Sample dataset", true);
         };
 
         this.deleteDataSource = (datasource) => ev => {
@@ -168,12 +151,11 @@ class GsuiteDataSourceItem extends Component {
         else {
             //var header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
             var detail = (<Container>
-                We recommend you <a target='_blank' href='https://gsuite.google.com/marketplace/app/adya/109437140823'>install Adya from GSuite marketplace</a> to get visiblity into all documents.<br />
-                Before connecting your GSuite account, you can use a
-        <Button basic compact onClick={this.addDummyDatasource()} loading={this.props.inProgress ? true : false} disabled={this.props.inProgress || this.props.errorMessage ? true : false}>sample dataset</Button>
-                to get familiar with the features. <br /> Learn more about Adya <a target='_blank' href='https://www.adya.io/resources/'>here.</a>
+              Adya has to be installed by the domain administrator from the G Suite marketplace. 
+              Please log back in after the install and scan your datasource.  
+              Click below to be redirected to the G Suite marketplace.
             </Container>)
-            var buttonText = "Connect your GSuite";
+            var buttonText = 'Go to G Suite Marketplace';
             if (this.props.is_serviceaccount_enabled) {
                 //header = (<Header>Welcome {this.props.currentUser.first_name}! </Header>);
                 detail = (<Container>
