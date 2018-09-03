@@ -404,6 +404,7 @@ functions:
           path: defaultreportpolicy
           method: post
           cors: true
+          
   get-common-getallactivityeventtypes:
     handler: adya.core.services.activity_handler.get_all_activity_event_types
     events:
