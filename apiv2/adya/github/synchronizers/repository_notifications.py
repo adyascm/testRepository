@@ -22,8 +22,9 @@ def process_activity(payload, event_type):
         owner_id = repository["owner"]["id"]
         repo = entities.GithubRepository(datasource_id, repository)
         repo_model = repo.get_model()
-        repo_permission = entities.GithubRepositoryPermission(datasource_id, repository)
-        repo_permission_model = repo_permission.get_model()
+        # repo_permission = entities.GithubRepositoryPermission(datasource_id, repository)
+        # repo_permission_model = repo_permission.get_model()
+        repo_permission_model = repo_model.permissions
         existing_permission = db_session.query(ResourcePermission).filter(ResourcePermission.datasource_id == datasource_id, 
             ResourcePermission.resource_id == repository["id"]).all()
         existing_permission = json.dumps(existing_permission, cls=alchemy_encoder())
@@ -31,7 +32,8 @@ def process_activity(payload, event_type):
         if action == "created":
             # Update the Resource table with the new repository
             db_session.add(repo_model)
-            db_session.add(repo_permission_model)
+            # db_session.add(repo_permission_model)
+            db_session.execute(ResourcePermission.__table__.insert().prefix_with("IGNORE").values(repo_permission_model))
             db_connection().commit()
             activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'REP_ADDED', owner_id, {})
 
