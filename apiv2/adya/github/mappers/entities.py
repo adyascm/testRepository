@@ -25,6 +25,11 @@ class GithubRepository:
         owner_email = "{0}+{1}@users.noreply.github.com".format(self._payload["owner"]["id"], self._payload["owner"]["login"])
         self._repo.resource_owner_id = owner_email
         self._repo.exposure_type = constants.EntityExposureType.PRIVATE.value if self._payload["private"] else constants.EntityExposureType.PUBLIC.value
+        self._repo.permissions = []
+        permission = GithubRepositoryPermission(self._datasource_id, self._payload)
+        permission_model = permission.get_model()
+        if permission_model:
+            self._repo.permissions.append(permission_model)
 
     def get_model(self):
         return self._repo
