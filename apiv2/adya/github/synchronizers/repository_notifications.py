@@ -20,7 +20,8 @@ def process_activity(payload, event_type):
         action = payload["action"]
         repository = payload["repository"]
         owner_id = repository["owner"]["id"]
-        repo = entities.GithubRepository(datasource_id, repository)
+        owner = db_session.query(DomainUser).filter(DomainUser.datasource_id == datasource_id, DomainUser.user_id == owner_id).first()
+        repo = entities.GithubRepository(datasource_id, repository, owner.email)
         repo_model = repo.get_model()
         # repo_permission = entities.GithubRepositoryPermission(datasource_id, repository)
         # repo_permission_model = repo_permission.get_model()
