@@ -13,6 +13,7 @@ from adya.common.db.models import DataSource, LoginUser, Domain, DirectoryStruct
     DomainUser, ResourcePermission, Resource, get_table, Policy, PolicyAction, PolicyCondition, \
     Application, Report, Action, AuditLog, PushNotificationsSubscription, ApplicationUserAssociation, TrustedEntities, \
     Alert, DatasourceCredentials, DatasourceScanners
+from adya.core.controllers import actions_controller, activity_controller
 from adya.gsuite import gutils, gsuite_constants
 
 def get_datasource(auth_token, datasource_id=None, db_session=None):
@@ -426,3 +427,13 @@ def create_default_reports_policies(auth_token):
         messaging.trigger_post_event(urls.POLICIES_PATH, auth_token, {}, body)
         messaging.trigger_post_event(urls.GET_SCHEDULED_REPORT_PATH, auth_token, {}, body)
     return 
+
+
+def get_constants_events(auth_token):
+    action_events = actions_controller.get_actions()
+    activity_events = activity_controller.get_activity_event_types(auth_token)
+    total_events = {
+        "action_events": action_events,
+        "activity_events": activity_events
+    }
+    return total_events

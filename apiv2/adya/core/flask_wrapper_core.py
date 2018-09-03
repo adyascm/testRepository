@@ -4,11 +4,6 @@ from adya.core.services import actions_handler, alert_handler, auditlog_handler,
     policy_handler, reports_handler, directory_handler, resource_handler, app_handler, activity_handler
 
 
-class get_all_actions(Resource):
-    def get(self):
-        return actions_handler.get_all_actions(request, None)
-
-
 class initiate_action(Resource):
     def post(self):
         return actions_handler.initiate_action(request, None)
@@ -153,8 +148,8 @@ class DefaultReportPolicy(Resource):
     def post(self):
         return domain_handler.default_report_policy(request, None)       
 
-class ActivityEventTypes(Resource):
+class ConstantEvents(Resource):
     def get(self):
-        return activity_handler.get_all_activity_event_types(request, None)
+        return domain_handler.get_all_constant_events(request, None)
 
 

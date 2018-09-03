@@ -293,14 +293,7 @@ functions:
           path: scheduledreport
           method: put
           cors: true
-  get-common-getallactions:
-    handler: adya.core.services.actions_handler.get_all_actions
-    memorySize: 256
-    events:
-      - http:
-          path: getallactions
-          method: get
-          cors: true
+
   post-common-initiateaction:
     handler: adya.core.services.actions_handler.initiate_action
     events:
@@ -405,10 +398,12 @@ functions:
           method: post
           cors: true
           
-  get-common-getallactivityeventtypes:
-    handler: adya.core.services.activity_handler.get_all_activity_event_types
+  get-common-events:
+    handler: adya.core.services.domain_handler.get_all_constant_events
     events:
       - http:
-          path: getallactivityeventtypes
+          path: events
           method: get
-          cors: true        
+          cors: true
+
+

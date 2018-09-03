@@ -5,7 +5,6 @@ import {
   DASHBOARD_PAGE_UNLOADED,
   LOGIN_PAGE_UNLOADED,
   LOGIN_SUCCESS,
-  GET_ALL_ACTIONS,
   SET_DATASOURCES,
   CREATE_DATASOURCE,
   DELETE_DATASOURCE_START,
@@ -19,7 +18,7 @@ import {
   CREATE_TRUSTED_ENTITIES,
   SET_TRUSTED_ENTITIES,
   UPDATE_TRUSTED_ENTITIES,
-  GET_ALL_ACTIVITY_EVENTS
+  GET_ALL_CONSTANT_EVENTS
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -62,11 +61,24 @@ export default (state = defaultState, action) => {
         token: action.error ? null : action.token,
         currentUser: action.error ? null : action.payload,
       };
-    case GET_ALL_ACTIONS:
+    case GET_ALL_CONSTANT_EVENTS:
+      let all_activity_events_map = {}
+      let all_activity_events = []
+      let payload = 'payload' in action ? action.payload["activity_events"] : {}
+      for(let k in payload){
+        all_activity_events.push(...Object.keys(payload[k]))
+      }
+
+      let unique_activity_events = (payload ? Array.from(new Set(all_activity_events.map( event_type => event_type))) : []).sort()
+
       return {
         ...state,
-        all_actions_list: action.error ? [] : action.payload
-      }
+        all_activity_events: action.error ? [] : all_activity_events,
+        unique_activity_events: unique_activity_events,
+        all_activity_events_map: action.error ? {} : payload,
+        all_actions_list: action.error ? [] : action.payload["action_events"]
+      };
+
     case DASHBOARD_PAGE_UNLOADED:
     case LOGIN_PAGE_UNLOADED:
       return { ...state, viewChangeCounter: state.viewChangeCounter + 1 };
@@ -106,7 +118,7 @@ export default (state = defaultState, action) => {
         var oldDS = state.datasources[currDatasourceIndex]
         if (oldDS && newDS.datasource_id === oldDS.datasource_id) {
           if (newDS.processed_file_count > oldDS.processed_file_count
-            || newDS.processed_group_count > oldDS.processed_group_count 
+            || newDS.processed_group_count > oldDS.processed_group_count
             || newDS.processed_user_count > oldDS.processed_user_count
             || newDS.is_push_notifications_enabled > oldDS.is_push_notifications_enabled) {
             //state.datasources[0] = newDS;
@@ -227,22 +239,7 @@ export default (state = defaultState, action) => {
         currentUrl: action.redirectUrl,
         ...states
       }
-    case GET_ALL_ACTIVITY_EVENTS:
-      let all_activity_events_map = {}
-      let all_activity_events = []
-      let payload = 'payload' in action ? action.payload : {}
-      for(let k in payload){
-        all_activity_events.push(...Object.keys(payload[k]))
-      } 
 
-      let unique_activity_events = (payload ? Array.from(new Set(all_activity_events.map( event_type => event_type))) : []).sort()
-      
-      return {
-        ...state,
-        all_activity_events: action.error ? [] : all_activity_events,
-        unique_activity_events: unique_activity_events,
-        all_activity_events_map: action.error ? {} : payload
-      }
     default:
       return state;
   }

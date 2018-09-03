@@ -54,8 +54,6 @@ const Setting = {
 };
 
 const Actions = {
-  getAllActions: () =>
-    requests.get('/common/getallactions'),
   initiateAction: (action_payload) =>
     requests.post('/common/initiateaction', action_payload)
 
@@ -65,9 +63,7 @@ const Activity = {
     getActivitiesForGsuiteUser: (user_email) =>
         requests.get('/google/getactivitiesforuser?user_email=' + user_email),
     getAllActivites: (filters) =>
-       requests.post('/common/activities', filters),
-    getAllActivityEventTypes: () =>
-        requests.get('/common/getallactivityeventtypes')   
+       requests.post('/common/activities', filters)
 }
 
 const Dashboard = {
@@ -151,4 +147,9 @@ const AppsPrice = {
         requests.get('/common/categoryexpenses')
 }
 
-export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, AppsPrice, setToken: _token => { token = _token; } };
+const ConstantEvents = {
+  getAllEvents: () =>
+    requests.get('/common/events')
+}
+
+export default { Auth, Setting, Dashboard, AuditLog, Users, Resources, Scheduled_Report, Activity, Actions, Apps, Policy, Alert, AppsPrice, ConstantEvents, setToken: _token => { token = _token; } };

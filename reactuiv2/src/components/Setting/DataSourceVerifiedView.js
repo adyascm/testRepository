@@ -3,9 +3,8 @@ import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { 
     SET_DATASOURCES, 
-    GET_ALL_ACTIONS,
     FETCH_ALERTS_COUNT,
-    GET_ALL_ACTIVITY_EVENTS
+    GET_ALL_CONSTANT_EVENTS
     // USERS_PAGE_LOAD_START,
     // USERS_PAGE_LOADED
 } from '../../constants/actionTypes';
@@ -19,8 +18,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     setDataSources: (datasources) =>
         dispatch({ type: SET_DATASOURCES, payload: datasources }),
-    loadActions: (payload) =>
-        dispatch({ type: GET_ALL_ACTIONS, payload }),
     // loadUsersTreeData: (payload) =>
     //     {
     //         dispatch({ type: USERS_PAGE_LOAD_START });
@@ -28,8 +25,8 @@ const mapDispatchToProps = dispatch => ({
     //     },
     fetchAlertsCount: (alertsCount) => 
         dispatch({ type: FETCH_ALERTS_COUNT, alertsCount }),
-    loadActivityEvents:(payload) => 
-        dispatch({type : GET_ALL_ACTIVITY_EVENTS, payload})
+    loadEvents: (payload) =>
+        dispatch({ type: GET_ALL_CONSTANT_EVENTS, payload })
 });
 
 const DataSourceVerifiedView = ChildComponent => {
@@ -37,8 +34,8 @@ const DataSourceVerifiedView = ChildComponent => {
         componentWillMount() {
             if (!this.props.common.datasources)
                 this.props.setDataSources(agent.Setting.getDataSources());
-            if (!this.props.common.all_actions_list) {
-                this.props.loadActions(agent.Actions.getAllActions())
+            if (!this.props.common.all_actions_list && !this.props.common.all_activity_events) {
+                this.props.loadEvents(agent.ConstantEvents.getAllEvents())
             }
             // if ((this.props.common.datasources && this.props.common.datasources.length > 0) && 
             // (!this.props.users.isLoadingUsers && !this.props.users.usersTreePayload))
@@ -51,9 +48,7 @@ const DataSourceVerifiedView = ChildComponent => {
                     this.props.fetchAlertsCount(response)
                 })
             }
-            if(!this.props.common.all_activity_events){
-                this.props.loadActivityEvents(agent.Activity.getAllActivityEventTypes())
-            }
+            
         }
         render() {
             if (!this.props.common.datasources) {

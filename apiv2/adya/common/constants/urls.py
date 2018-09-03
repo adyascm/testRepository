@@ -34,7 +34,6 @@ GET_SCHEDULED_REPORT_PATH = '/common/scheduledreport'
 RUN_SCHEDULED_REPORT = '/common/scheduledreport/runreport'
 EXECUTE_SCHEDULED_REPORT = '/common/executescheduledreport'
 
-GET_ALL_ACTIONS_PATH = '/common/getallactions'
 INITIATE_ACTION_PATH = '/common/initiateaction'
 
 GET_AUDITLOG_PATH = '/common/getauditlog'
@@ -46,7 +45,6 @@ ALERTS_COUNT_PATH = '/common/alerts/count'
 
 TRUSTED_ENTITIES = '/common/trustedentities'
 GET_ALL_ACTIVITIES = '/common/activities'
-GET_ALL_ACTIVITY_EVENT_TYPES = '/common/getallactivityeventtypes'
 
 # slack
 SLACK_OAUTH_LOGIN = '/slack/oauthlogin'
@@ -99,3 +97,5 @@ GITHUB_NOTIFICATIONS_URL = constants.API_HOST + PROCESS_GITHUB_NOTIFICATIONS_PAT
 #get_default reports/policies
 DEFULT_REPORTS_POLICIES = '/common/defaultreportpolicy'
 GITHUB_POLICIES_VALIDATE_PATH = '/github/policies/validate'
+
+GET_ALL_EVENTS = '/common/events'

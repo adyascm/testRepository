@@ -6,7 +6,7 @@ import uuid
 from sqlalchemy import func, or_, and_
 
 from adya.common.constants.default_reports import datasource_to_default_report_map
-from adya.core.controllers import domain_controller, directory_controller, app_controller
+from adya.core.controllers import app_controller
 from adya.common.db.models import LoginUser, DomainUser, Resource, Report, ResourcePermission, DataSource, \
     Application, DirectoryStructure, ApplicationUserAssociation, AppInventory, ExternalExposure, alchemy_encoder
 from adya.common.db.connection import db_connection
