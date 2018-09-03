@@ -81,7 +81,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_obj, po
         else:
             new_permissions_left.append(permission)
 
-    send_email_action = []
+    send_email_action = None
     check_if_revert_action = False
     if is_policy_violated:
         if highest_exposure_type in constants.permission_exposure_to_event_constants:
@@ -94,7 +94,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_obj, po
         Logger().info("Policy \"{}\" is violated, so triggering corresponding actions".format(policy.name))
         for action in policy.actions:
             if action.action_type == constants.PolicyActionType.SEND_EMAIL.value:
-                send_email_action.append(action)
+                send_email_action = action
             elif action.action_type == constants.PolicyActionType.REVERT.value and len(violated_permissions)>0:
                 Logger().info("violated permissions : {}".format(violated_permissions))
                 check_if_revert_action = True
@@ -110,8 +110,8 @@ def validate_permission_change_policy(db_session, auth_token, datasource_obj, po
                 if response and not response.response_code == constants.SUCCESS_STATUS_CODE:
                     violated_permissions = []
 
-        if len(send_email_action) > 0:
-            to_address = json.loads(send_email_action[0].config)["to"]
+        if send_email_action:
+            to_address = json.loads(send_email_action.config)["to"]
             Logger().info("validate_policy : send email")
             if not check_if_revert_action:
                 violated_permissions = None
