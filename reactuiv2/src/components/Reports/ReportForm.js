@@ -115,7 +115,7 @@ class ReportForm extends Component {
     else if (valid && this.props.formType === 'create_report') {
       if(copyFinalInputObj['frequency'] === undefined){
         copyFinalInputObj.frequency = "cron(0 10 1 * ? *)"
-        copyFinalInputObj.is_non_editable = false
+        copyFinalInputObj.is_system_defined = false
       }
       if(this.is_default_type(copyFinalInputObj.report_type)){
         copyFinalInputObj.selected_entity = ""
@@ -211,7 +211,7 @@ class ReportForm extends Component {
     //const { value } = this.state
 
     var report_type = this.state.finalReportObj['report_type'] || this.props.reportsMap['report_type']
-    var is_non_editable = this.state.finalReportObj['is_non_editable'] || this.props.reportsMap['is_non_editable']
+    var is_system_defined = this.state.finalReportObj['is_system_defined'] || this.props.reportsMap['is_system_defined']
     var formRadio =  !this.is_default_type(report_type) ?
     (report_type != 'Activity' ? (<Form.Group inline>
     <Form.Radio label='File/Folder' value='resource'
@@ -226,7 +226,7 @@ class ReportForm extends Component {
       />
     </Form.Group>):<span>Group/User</span> ) : null
 
-  var reportTypeForm = is_non_editable ?
+  var reportTypeForm = is_system_defined ?
       <Form.Input label='Report Type' readOnly value={this.handleMultipleOptions('report_type')} />:
       <Form.Select id='reportType' onChange={(e, data) => this.onChangeReportInput('report_type', data.value)}
       label='Report Type' options={reportOptions} placeholder='Report Type'
@@ -242,10 +242,10 @@ class ReportForm extends Component {
 
               <div className="ui form">
                 <Form.Input onChange={(e) => this.onChangeReportInput('name', e.target.value)}
-                  label='Name' placeholder='Name' readOnly={is_non_editable} defaultValue={this.props.reportsMap['name']} />
+                  label='Name' placeholder='Name' readOnly={is_system_defined} defaultValue={this.props.reportsMap['name']} />
 
                 <Form.Input onChange={(e) => this.onChangeReportInput('description', e.target.value)} label='Description' placeholder='Description'
-                readOnly={is_non_editable}  defaultValue={this.props.reportsMap['description']} />
+                readOnly={is_system_defined}  defaultValue={this.props.reportsMap['description']} />
 
                 {reportTypeForm}
                 {/* <Form.Input onChange={(e) => this.onChangeReportInput('receivers', e.target.value)}
