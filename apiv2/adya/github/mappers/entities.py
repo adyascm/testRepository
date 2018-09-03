@@ -5,9 +5,10 @@ from adya.github import github_utils
 from datetime import datetime
 
 class GithubRepository:
-    def __init__(self, datasource_id, payload):
+    def __init__(self, datasource_id, payload, owner_email):
         self._datasource_id = datasource_id
         self._payload = payload
+        self._owner_email = owner_email
         self._repo = None
         self.parse()
 
@@ -23,10 +24,10 @@ class GithubRepository:
         self._repo.description = self._payload["description"]
         self._repo.parent_id = self._payload["parent"]["id"] if self._payload["fork"] else None
         owner_email = "{0}+{1}@users.noreply.github.com".format(self._payload["owner"]["id"], self._payload["owner"]["login"])
-        self._repo.resource_owner_id = owner_email
+        self._repo.resource_owner_id = self._owner_email
         self._repo.exposure_type = constants.EntityExposureType.PRIVATE.value if self._payload["private"] else constants.EntityExposureType.PUBLIC.value
         self._repo.permissions = []
-        permission = GithubRepositoryPermission(self._datasource_id, self._payload)
+        permission = GithubRepositoryPermission(self._datasource_id, self._payload, self._owner_email)
         permission_model = permission.get_model()
         if permission_model:
             self._repo.permissions.append(permission_model)
@@ -35,9 +36,10 @@ class GithubRepository:
         return self._repo
 
 class GithubRepositoryPermission:
-    def __init__(self, datasource_id, payload):
+    def __init__(self, datasource_id, payload, owner_email):
         self._datasource_id = datasource_id
         self._payload = payload
+        self._owner_email = owner_email
         self._repo_permission = None
         self.parse()
 
@@ -47,7 +49,7 @@ class GithubRepositoryPermission:
         self._repo_permission.datasource_id = self._datasource_id
         self._repo_permission.resource_id = self._payload["id"]
         owner_email = "{0}+{1}@users.noreply.github.com".format(self._payload["owner"]["id"], self._payload["owner"]["login"])
-        self._repo_permission.email = owner_email
+        self._repo_permission.email = self._owner_email
         self._repo_permission.permission_id = self._payload["owner"]["id"]
         self._repo_permission.exposure_type = constants.EntityExposureType.PRIVATE.value if self._payload["private"] else constants.EntityExposureType.PUBLIC.value
 

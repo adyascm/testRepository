@@ -5,7 +5,7 @@ import agent from '../../utils/agent';
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
 import moment from 'moment'
-import {ACTIVITIES_PAGE_LOAD_START, ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
+import {DEFAULT_FILTER_BY_DATE_FOR_ACTIVITY_EVENTS, ACTIVITIES_PAGE_LOAD_START, ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
@@ -43,7 +43,7 @@ class ActivityFilters extends Component {
         for (let event of this.props.unique_activity_events) {
             selectedEventTypes[event] = true
         }
-        let currentDate = moment().subtract(30, "days")
+        let currentDate = moment().subtract(DEFAULT_FILTER_BY_DATE_FOR_ACTIVITY_EVENTS, "days")
         this.setState({
             selectedEventTypes,
             selectedConnectors,
