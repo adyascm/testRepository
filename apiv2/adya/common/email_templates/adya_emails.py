@@ -179,7 +179,7 @@ def send_clean_files_email(datasource_id,user_email,full_name,initiated_by):
         return False
 
 
-def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions, violated_permissions, new_permissions_left):
+def send_permission_change_policy_violate_email(user_email,policy,resource,new_permissions, violated_permissions, new_permissions_left, datasource_type):
     try:
         db_session = db_connection().get_session()
         resource_owner = db_session.query(DomainUser).filter(resource["datasource_id"] == DomainUser.datasource_id, DomainUser.email == resource["resource_owner_id"]).first()
@@ -237,7 +237,7 @@ def send_permission_change_policy_violate_email(user_email,policy,resource,new_p
             "new_permissions_str": "New permissions for this document are - " if len(new_perm_left) > 0 else ""
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in your GSuite account"
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_type)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:

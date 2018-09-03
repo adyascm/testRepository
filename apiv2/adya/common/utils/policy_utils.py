@@ -54,6 +54,7 @@ def validate_apps_installed_policy(db_session, auth_token, datasource_id, policy
 # check file permission change policy violation
 def validate_permission_change_policy(db_session, auth_token, datasource_obj, policy, resource, new_permissions):
     datasource_id = datasource_obj.datasource_id
+    datasource_type = datasource_obj.datasource_type
     Logger().info("validating_policy : resource : {} , new permission : {} ".format(resource, new_permissions))
     is_policy_violated = False
     violated_permissions = []
@@ -116,7 +117,7 @@ def validate_permission_change_policy(db_session, auth_token, datasource_obj, po
             if not check_if_revert_action:
                 violated_permissions = None
             adya_emails.send_permission_change_policy_violate_email(to_address, policy, resource, new_permissions,
-                                                                    violated_permissions, new_permissions_left)
+                                                                    violated_permissions, new_permissions_left, datasource_type)
 
         payload = {}
         payload["datasource_id"] = datasource_id
