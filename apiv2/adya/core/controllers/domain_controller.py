@@ -53,14 +53,17 @@ def create_datasource(auth_token, payload):
         else:
             datasource.is_serviceaccount_enabled = existing_user.is_serviceaccount_enabled
 
-        admin_response = gutils.check_if_user_isadmin(
+        admin_response, http_code = gutils.check_if_user_isadmin(
             auth_token, existing_user.email, db_session)
         is_admin_user = False
 
         #If service account is enabled, non admin cannot create a data source
         if(datasource.is_serviceaccount_enabled and admin_response):
-            raise Exception(
-                 admin_response + " Action not allowed.")
+            if http_code and http_code == 403:
+                exception = "API access is disabled. Please enable it on the GSuite admin console."
+            else:
+                exception = admin_response + " Action not allowed."
+            raise Exception(exception)
         if not admin_response:
             is_admin_user = True
 

@@ -138,9 +138,10 @@ def check_if_user_isadmin(auth_token, user_email=None, db_session = None):
         directory_service.users().get(userKey=user_email).execute()
         return ""
     except HttpError as ex:
-        ex_msg = json.loads(ex.content)["error"]["message"]
+        error_content = json.loads(ex.content)["error"]
+        ex_msg = error_content["message"]
         Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex_msg))
-        return ex_msg
+        return ex_msg, error_content["code"]
     except Exception as ex:
         Logger().info("Could not check if user is admin user, so mark user as non admin - {}".format(ex.message))
         return ex.message
