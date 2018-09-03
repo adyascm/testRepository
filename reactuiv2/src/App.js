@@ -76,9 +76,11 @@ class App extends Component {
   }
   render() {
     if (this.props.appLoaded && !this.props.redirectTo) {
+      let enableActivityFeature = this.props.currentUser && this.props.currentUser.authorize_scope_name == 'TEST_ACTIVITY_FEATURE'
+
       return (
         <div className="App">
-          <Header appName={this.props.appName} currentUser={this.props.currentUser}/>
+          <Header enableActivityFeature={enableActivityFeature}  appName={this.props.appName} currentUser={this.props.currentUser}/>
           <Switch>
             <Container fluid style={{padding: '1em', marginTop: '5em', height: '100%' }}>
             <GlobalMessage />
@@ -95,7 +97,7 @@ class App extends Component {
               <Route path="/policies" component={SecuredView(DataSourceVerifiedView(Policy))} />
               <Route path="/alerts" component={SecuredView(DataSourceVerifiedView(Alert))} />
               <Route path="/oauthstatus/:status" component={Dashboard} />
-              <Route path="/activities" component={SecuredView(DataSourceVerifiedView(Activity))} />
+              { enableActivityFeature ? <Route path="/activities" component={SecuredView(DataSourceVerifiedView(Activity))} /> : null}
             </Container>
           </Switch>
         </div>
