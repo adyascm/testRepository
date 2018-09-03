@@ -163,9 +163,9 @@ class TrustedTypes(Enum):
     DOMAINS = 'DOMAINS'
     APPS = 'APPS'
 
-COMMON_TAGS = [{"key": "domain_id", "desc": "Customer's domain", "default": ""},
-               {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE"},
-               {"key": "actor", "desc": "Entity triggering this event", "default": ""}]
+COMMON_TAGS = [{"key": "domain_id", "desc": "Customer's domain", "default": "", "hidden": 1},
+               {"key": "connector_type", "desc": "SaaS application name", "default": "GSUITE", "hidden": 1},
+               {"key": "actor", "desc": "Entity triggering this event", "default": "", "hidden": 1}]
 
 permission_exposure_to_event_constants = {
     EntityExposureType.PUBLIC.value: 'FILE_SHARE_PUBLIC',

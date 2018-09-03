@@ -1,4 +1,5 @@
 from adya.common.constants import constants
+from adya.common.constants.constants import ConnectorTypes
 
 GSUITE_EVENT_TYPES = {
     "FILE_SHARE_PUBLIC": {"datasource_type": "GSUITE", "display_name": "File shared publicly", "desc": "A file is discoverable by anyone on internet", "event_template": "File \"{{resource_name}}\"  is discoverable by anyone on internet", "tags": constants.COMMON_TAGS[:], "enabled": True},
@@ -24,8 +25,8 @@ SLACK_EVENT_TYPES = {
     "SUSPEND_USER": {"datasource_type": "SLACK", "display_name": "User suspended", "desc": "A user is suspended", "event_template": "A user is suspended"},
     "CHANNEL_MEMBERSHIP_CHANGED": {"datasource_type": "SLACK", "display_name": "Group members changed", "desc": "Members in group has changed", "event_template": "Members in group has changed"},
     "ROLE_CHANGED": {"datasource_type": "SLACK", "display_name": "User role changed", "desc": "Role for user is changed", "event_template": "Role for user is changed", "tags":constants.COMMON_TAGS[:] + [{"key": "user_role", "desc": "User role as admin or not", "default": ""}]},
-    "CHANNEL_ARCHIVE": {"datasource_type": "SLACK" , "display_name": "Channel archieved", "desc": "Channel archieved", "event_template": "Channel \"{{channel_name}}\" archieved", "tags":constants.COMMON_TAGS[:]},
-    "CHANNEL_UNARCHIVE": {"datasource_type": "SLACK", "display_name": "Channel unarchieved", "desc": "Channel is unarchieved", "event_template": "Channel \"{{channel_name}}\" is unarchieved", "tags":constants.COMMON_TAGS[:]},
+    "CHANNEL_ARCHIVE": {"datasource_type": "SLACK" , "display_name": "Channel archived", "desc": "Channel archived", "event_template": "Channel \"{{channel_name}}\" archived", "tags":constants.COMMON_TAGS[:]},
+    "CHANNEL_UNARCHIVE": {"datasource_type": "SLACK", "display_name": "Channel unarchived", "desc": "Channel is unarchived", "event_template": "Channel \"{{channel_name}}\" is unarchived", "tags":constants.COMMON_TAGS[:]},
     "FILE_CHANGED": {"datasource_type": "SLACK" , "display_name": "File changed", "desc": "File is changed", "event_template": "File is changed", "tags":constants.COMMON_TAGS[:]},
     "MEMBER_LEFT_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member left the channel", "desc": "Member left the channel", "event_template": "Member \"{{user_name}}\" left the channel \"{{channel_name}}\"", "tags":constants.COMMON_TAGS[:] + [{"key": "channel_id", "default": ""}]},
     "MEMBER_JOINED_CHANNEL": {"datasource_type": "SLACK", "display_name": "Member joined the channel", "desc": "Member joined the channel", "event_template": "Member \"{{user_name}}\" joined the channel \"{{channel_name}}\"", "tags": constants.COMMON_TAGS[:] + [{"key": "channel_id", "default": ""}]},
@@ -57,4 +58,10 @@ GITHUB_EVENT_TYPES = {
     "USER_BLOCKED": {"datasource_type": "GITHUB", "display_name": "User blocked", "desc": "A user is blocked from organisation", "event_template": ""},
     "USER_UNBLOCKED": {"datasource_type": "GITHUB", "display_name": "User unblocked", "desc": "A user is unblocked from organisation", "event_template": ""},
     "REP_PUSH": {"datasource_type": "GITHUB", "display_name": "Code pushed", "desc": "Code is pushed to repository", "event_template": ""},
+}
+
+datasource_event_types_map = {
+    ConnectorTypes.GSUITE.value: GSUITE_EVENT_TYPES,
+    ConnectorTypes.SLACK.value: SLACK_EVENT_TYPES,
+    ConnectorTypes.GITHUB.value: GITHUB_EVENT_TYPES
 }

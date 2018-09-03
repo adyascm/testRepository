@@ -18,7 +18,8 @@ import {
   SET_REDIRECT_PROPS,
   CREATE_TRUSTED_ENTITIES,
   SET_TRUSTED_ENTITIES,
-  UPDATE_TRUSTED_ENTITIES
+  UPDATE_TRUSTED_ENTITIES,
+  GET_ALL_ACTIVITY_EVENTS
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -33,8 +34,9 @@ const defaultState = {
   all_actions_list: undefined,
   datasourceLoading: false,
   entitiy: undefined,
-  trustedEntities: undefined
-
+  trustedEntities: undefined,
+  all_activity_events: undefined,
+  unique_activity_events: undefined
 };
 
 export default (state = defaultState, action) => {
@@ -224,6 +226,22 @@ export default (state = defaultState, action) => {
         ...state,
         currentUrl: action.redirectUrl,
         ...states
+      }
+    case GET_ALL_ACTIVITY_EVENTS:
+      let all_activity_events_map = {}
+      let all_activity_events = []
+      let payload = 'payload' in action ? action.payload : {}
+      for(let k in payload){
+        all_activity_events.push(...Object.keys(payload[k]))
+      } 
+
+      let unique_activity_events = (payload ? Array.from(new Set(all_activity_events.map( event_type => event_type))) : []).sort()
+      
+      return {
+        ...state,
+        all_activity_events: action.error ? [] : all_activity_events,
+        unique_activity_events: unique_activity_events,
+        all_activity_events_map: action.error ? {} : payload
       }
     default:
       return state;

@@ -300,7 +300,7 @@ def get_widget_data(auth_token, widget_id, datasource_id=None, user_email=None, 
             if event_type in series_map:
                 series_map[event_type]["data"][date] = activity["count"]
             else:
-                series_map[event_type] = {"name": event_type, "data": {}}
+                series_map[event_type] = {"name": event_type, "data": {date: activity["count"]}}
         print series_map
         data = series_map.values()
 

@@ -35,7 +35,7 @@ const LoggedInView = props => {
                     <Menu.Item onClick={() => props.handleClick("/apps")} active={props.currLocation.includes('/apps')} >Apps</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/policies")} active={props.currLocation.includes('/policies')} >Policies</Menu.Item>
                     <Menu.Item onClick={() => props.handleClick("/reports")} active={props.currLocation === '/reports'} >Reports</Menu.Item>
-                    {/* <Menu.Item onClick={() => props.handleClick("/activities")} active={props.currLocation.includes('/activities')} >Activity</Menu.Item> */}
+                    {props.enableActivityFeature ? <Menu.Item onClick={() => props.handleClick("/activities")} active={props.currLocation.includes('/activities')} >Activity</Menu.Item> : null}
                     {/* <Menu.Item onClick={() => props.handleClick("/auditlog")} active={props.currLocation === '/auditlog'} >Logs</Menu.Item> */}
                 </Menu.Menu>
 
@@ -99,7 +99,7 @@ class Header extends React.Component {
         return (
             <Menu fixed='top' inverted>
                 <LoggedOutView currentUser={this.props.currentUser} handleClick={this.handleClick} />
-                <LoggedInView currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} openAlertsCount={this.props.openAlertsCount} {...this.props} />
+                <LoggedInView enableActivityFeature={this.props.enableActivityFeature} currentUser={this.props.currentUser} onClickLogout={this.props.onClickLogout} handleClick={this.handleClick} currLocation={this.props.currentUrl} openAlertsCount={this.props.openAlertsCount} {...this.props} />
             </Menu>
         )
     }

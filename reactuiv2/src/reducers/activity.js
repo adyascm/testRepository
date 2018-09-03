@@ -7,7 +7,8 @@ import {
     ACTIVITIES_PAGINATION_DATA,
     ACTIVITIES_FILTER_CHANGE,
     LOGOUT,
-    SET_REDIRECT_PROPS
+    SET_REDIRECT_PROPS,
+    ACTIVITY_COLUMN_SORT
 } from '../constants/actionTypes';
 
 const defaultState = {
@@ -16,13 +17,14 @@ const defaultState = {
     rowData: undefined,
     activitiesDataPayload: undefined,
     activitySearchPayload: undefined,
-    filterConnectorType: '',
-    filterEventType: '',
-    filteractor: '',
-    filterByDate: '',
     pageNumber: 0,
     pageLimit: 100,
-    filterList: {}
+    filterConnectorType:{},
+    filterEventType:{},
+    filteractor:'',
+    filterByDate:'',
+    sortColumnName:'',
+    sortOrder:'desc'
 };
 
 export default (state = defaultState, action) => {
@@ -31,7 +33,7 @@ export default (state = defaultState, action) => {
             return {
                 ...state,
                 isLoadingActivities: true,
-                rowData: undefined
+                rowData: undefined,
             }
         case ACTIVITIES_CHART_LOAD_START:
             return {
@@ -44,7 +46,8 @@ export default (state = defaultState, action) => {
                 ...state,
                 isLoadingActivities: false,
                 activitiesDataPayload: !action.error ? action.payload : [],
-                activitySearchPayload: undefined
+                activitySearchPayload: undefined,
+
             }
         case ACTIVITIES_CHART_LOADED:
             return {
@@ -64,13 +67,16 @@ export default (state = defaultState, action) => {
                 rowData: action.payload
             }
         case ACTIVITIES_FILTER_CHANGE:
-            let newFilter = Object.assign({}, state.filterList);
-            newFilter[action.key] = action.value
-            state[action.property] = action.value
             return {
                 ...state,
-                filterList: newFilter
+                [action.property]: action.value
             }
+        case ACTIVITY_COLUMN_SORT:
+            return {
+                ...state,
+                sortColumnName: action.sortColumnName,
+                sortOrder: action.sortOrder
+            }    
         case LOGOUT:
             return {
                 ...defaultState
