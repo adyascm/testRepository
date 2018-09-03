@@ -188,7 +188,7 @@ class ActivityListTable extends Component {
                 let event_type = rowData["event_type"]
                 let connector_type = rowData["connector_type"]
                 let activity_template = this.props.all_activity_events_map[connector_type] ? this.props.all_activity_events_map[connector_type][event_type]['event_template'] : ''
-                activity_template = Mustache.to_html(activity_template, rowData)
+                activity_template = activity_template ? Mustache.to_html(activity_template, rowData) : ''
 
                 let labelStyle = {
                     'max-width': '200px',
