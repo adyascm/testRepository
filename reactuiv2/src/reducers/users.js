@@ -206,6 +206,7 @@ export default (state = defaultState, action) => {
                         users_email: action.payload.users_email,
                         users_name: action.payload.users_name,
                         datasource_id: action.payload.datasource_id,
+                        users_info: action.payload.users_info
                     }
                 }
             } else {

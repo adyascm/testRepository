@@ -212,6 +212,7 @@ class UserListNew extends Component {
             let users_email = []
             let users_name = []
             let payload = {}
+            let user_info_map = {}
             if(action == 'remove_all_access_for_multiple_users'){
                 for(let i in this.state.selectedFieldColumns){
                     if(this.state.selectedFieldColumns[i]){
@@ -240,6 +241,7 @@ class UserListNew extends Component {
                         if(user_ds_type_is_gsuite && user_obj.type == 'USER'){
                             users_email.push(user_obj["email"]);
                             users_name.push(user_obj["full_name"]);
+
                         }
                         if(!datasource_id && user_ds_type_is_gsuite)
                             datasource_id = user_obj["datasource_id"]
@@ -249,9 +251,33 @@ class UserListNew extends Component {
                     actionType:action,
                     users_name:users_name,
                     users_email:users_email,
-                    datasource_id:datasource_id
+                    datasource_id:datasource_id,
+
                 }
             }
+
+            else if ( action == 'offboard_internal_user') {
+                for(let i in this.state.selectedFieldColumns){
+                    if(this.state.selectedFieldColumns[i]){
+                        let user_obj = this.props.usersList[i];
+                        let user_ds_type = this.props.datasourcesMap[user_obj["datasource_id"]]
+                        if(user_ds_type && user_obj.type == 'USER'){
+                            users_email.push(user_obj["email"])
+                            user_info_map[user_obj["email"]] = user_obj["full_name"]
+                        }
+                        if(!datasource_id && user_ds_type)
+                            datasource_id = user_obj["datasource_id"]
+                    }
+                }
+                payload = {
+                    actionType:action,
+                    users_email:users_email,
+                    datasource_id:datasource_id,
+                    users_info: user_info_map
+                }
+
+            }
+
             this.props.onMultiUsersAction(payload,true)
             this.disableAllRowsSelection()
         }
@@ -388,7 +414,7 @@ class UserListNew extends Component {
                                                 <Dropdown text='GSuite'>
                                                     <Dropdown.Menu>
                                                         <Dropdown.Item disabled={!this.state.showActionBar}>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Offboard Users</span>
+                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('offboard_internal_user')}>Offboard Users</span>
                                                         </Dropdown.Item>
                                                         <Dropdown.Item disabled={!this.state.showActionBar}>
                                                             <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove access for documents</span>
