@@ -430,7 +430,7 @@ class UserListNew extends Component {
                                     </Dropdown>
                             <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                                 <Table celled selectable striped compact='very' sortable>
-                                    <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
+                                    <Table.Header style={{'width': '100%' }}>
                                         <Table.Row>
                                             {tableHeaders}
                                         </Table.Row>

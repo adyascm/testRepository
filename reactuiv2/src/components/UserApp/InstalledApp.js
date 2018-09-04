@@ -338,7 +338,7 @@ class InstalledApp extends Component {
                 </div>
                 <div style={{ position: 'relative', top: '10px', left: '10px', right: '10px', overflowY: 'scroll', height: '70vh' }}>
                     <Table sortable selectable striped celled compact='very'>
-                        <Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
+                        <Table.Header style={{'width': '100%' }}>
                             <Table.Row>
                                 {tableHeaders}
                             </Table.Row>
