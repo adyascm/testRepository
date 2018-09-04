@@ -188,7 +188,7 @@ class AppDetailsSection extends Component {
                 return (<Table.HeaderCell style={headerCellStyle} textAlign="center" key={headerName} sorted={this.state.sortColumnName === mappedColumnName ? (this.state.sortOrder === 'asc' ? 'ascending':'descending') : null} onClick={ isSortable ? () => this.handleColumnSort(mappedColumnName) : null}> { headerName }</Table.HeaderCell>)
             })
             let tableHeader =
-                    (<Table.Header style={{ 'position': 'sticky', 'top': '50px', 'width': '100%' }}>
+                    (<Table.Header style={{'width': '100%' }}>
                         <Table.Row>{appHeader}</Table.Row>
                     </Table.Header>)
             let panes = [
