@@ -48,13 +48,23 @@ def process_activity(payload, event_type):
             # Update the Repository as public in the Resource table
             db_session.query(Resource).filter(Resource.datasource_id == datasource_id, Resource.resource_id == repository["id"]). \
                 update({ Resource.exposure_type: constants.EntityExposureType.PUBLIC.value })
+            repo_new_permission = ResourcePermission()
+            repo_new_permission.datasource_id = datasource_id
+            repo_new_permission.resource_id = repo_model.resource_id
+            repo_new_permission.email = constants.EntityExposureType.PUBLIC.value
+            repo_new_permission.permission_id = constants.EntityExposureType.PUBLIC.value
+            repo_new_permission.permission_type = constants.Role.WRITER.value
+            repo_new_permission.exposure_type = constants.EntityExposureType.PUBLIC.value
+            db_session.add(repo_new_permission)
             db_connection().commit()
             activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'REP_PUBLIC', owner_id, {})
             # Trigger default policy validate
+            new_permissions = []
+            new_permissions.append(repo_new_permission)
             policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.PERMISSION_CHANGE.value}
             permission_change_payload = {}
             permission_change_payload["resource"] = json.dumps(repo_model, cls=alchemy_encoder())
-            permission_change_payload["new_permissions"] = json.dumps(repo_permission_model, cls=alchemy_encoder())
+            permission_change_payload["new_permissions"] = json.dumps(new_permissions, cls=alchemy_encoder())
             permission_change_payload["old_permissions"] = existing_permission
             permission_change_payload["action"] = action
             messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, permission_change_payload, "github")
@@ -95,12 +105,12 @@ def process_activity(payload, event_type):
                 db_connection().commit()
                 #Also need to make an entry to the ResourcePermission table
                 repo_permission = ResourcePermission()
-                repo_permission["datasource_id"] = datasource_id
-                repo_permission["resource_id"] = repository["id"]
-                repo_permission["email"] = existing_user["email"]
-                repo_permission["permission_id"] = member["id"]
-                repo_permission["permission_type"] = member["permission_type"]
-                repo_permission["exposure_type"] = utils.get_highest_exposure_type(existing_user["member_type"], repo["exposure_type"])
+                repo_permission.datasource_id = datasource_id
+                repo_permission.resource_id = repository["id"]
+                repo_permission.email = existing_user.email
+                repo_permission.permission_id = member["id"]
+                repo_permission.permission_type = member["permission_type"] if "permission_type" in member else constants.Role.READER.value
+                repo_permission.exposure_type = utils.get_highest_exposure_type(existing_user.member_type, repo.exposure_type)
                 
                 db_session.add(repo_permission)
                 db_connection().commit()
@@ -109,5 +119,5 @@ def process_activity(payload, event_type):
                 policy_params = {"datasource_id": datasource_id, "policy_trigger": constants.PolicyTriggerType.NEW_USER.value}
                 new_user_payload = {}
                 new_user_payload["user"] = json.dumps(existing_user, cls=alchemy_encoder())
-                new_user_payload["group"] = None
+                new_user_payload["group"] = repository["full_name"]
                 messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, new_user_payload, "github")

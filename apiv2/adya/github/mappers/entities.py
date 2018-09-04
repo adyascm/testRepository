@@ -62,7 +62,7 @@ class GithubRepositoryPermission:
             else:
                 self._repo_permission.permission_type = constants.Role.READER.value
         else:
-            self._repo_permission.permission_type = constants.Role.READER.value
+            self._repo_permission.permission_type = constants.Role.OWNER.value
 
     def get_model(self):
         return self._repo_permission
@@ -78,7 +78,7 @@ class GithubUser:
     def _parse(self):
         self._user = DomainUser()
         self._user.datasource_id = self._datasource_id
-        self._user.full_name = self._payload["name"] if self._payload["name"] else self._payload["login"]
+        self._user.full_name = self._payload["name"] if "name" in self._payload else self._payload["login"]
         name_split = self._user.full_name.split(" ")
         if len(name_split) > 1:
             self._user.first_name = name_split[0]
@@ -86,14 +86,14 @@ class GithubUser:
         else:
             self._user.first_name = name_split[0]
             self._user.last_name = ''
-        self._user.email = self._payload["email"] if self._payload["email"] else github_utils.get_default_github_email(self._payload["id"], self._payload["login"])
-        self._user.creation_time = datetime.strptime(self._payload["created_at"], "%Y-%m-%dT%H:%M:%SZ")
-        self._user.last_updated = datetime.strptime(self._payload["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
+        self._user.email = self._payload["email"] if "email" in self._payload else github_utils.get_default_github_email(self._payload["id"], self._payload["login"])
+        self._user.creation_time = datetime.strptime(self._payload["created_at"], "%Y-%m-%dT%H:%M:%SZ") if "created_at" in self._payload else datetime.now()
+        self._user.last_updated = datetime.strptime(self._payload["updated_at"], "%Y-%m-%dT%H:%M:%SZ") if "updated_at" in self._payload else datetime.now()
         self._user.photo_url = self._payload["avatar_url"]
         self._user.user_id = self._payload["id"]
         self._user.member_type = constants.EntityExposureType.INTERNAL.value
         
-        if github_utils.is_external_user(self._domain_id, self._user["email"]):
+        if github_utils.is_external_user(self._domain_id, self._user.email):
             self._user.member_type = constants.EntityExposureType.EXTERNAL.value
 
     def get_model(self):
