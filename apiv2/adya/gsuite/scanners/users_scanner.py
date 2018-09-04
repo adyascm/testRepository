@@ -51,9 +51,9 @@ def query(auth_token, query_params, scanner):
 
     if results and "users" in results:
         for user in results["users"]:
-            user_email = user.get("primaryEmail")
-            if user_email.endswith(domain_id):
-                users.append(user)
+            # user_email = user.get("primaryEmail")
+            # if user_email.endswith(domain_id):
+            users.append(user)
     next_page_token = results.get('nextPageToken')
     return {"payload": users, "nextPageNumber": next_page_token}
 
@@ -92,25 +92,26 @@ def process(db_session, auth_token, query_params, scanner_data):
         user["member_type"] = constants.EntityExposureType.INTERNAL.value
         user_db_insert_data_dic.append(user)
 
-        channel_id = str(uuid.uuid4())
-        file_scanner = {}
-        file_scanner["datasource_id"] = datasource_id
-        file_scanner["scanner_type"] = gsuite_constants.ScannerTypes.FILES.value
-        file_scanner["channel_id"] = channel_id
-        file_scanner["user_email"] = user_email
-        file_scanner["started_at"] = now
-        file_scanner["in_progress"] = 1
-        scanners_list.append(file_scanner)
+        if user_email.endswith(domain_id):
+            channel_id = str(uuid.uuid4())
+            file_scanner = {}
+            file_scanner["datasource_id"] = datasource_id
+            file_scanner["scanner_type"] = gsuite_constants.ScannerTypes.FILES.value
+            file_scanner["channel_id"] = channel_id
+            file_scanner["user_email"] = user_email
+            file_scanner["started_at"] = now
+            file_scanner["in_progress"] = 1
+            scanners_list.append(file_scanner)
 
-        app_scanner = {}
-        app_scanner["datasource_id"] = datasource_id
-        app_scanner["scanner_type"] = gsuite_constants.ScannerTypes.APPS.value
-        app_scanner["channel_id"] = channel_id
-        app_scanner["user_email"] = user_email
-        app_scanner["started_at"] = now
-        app_scanner["in_progress"] = 1
-        scanners_list.append(app_scanner)
-        scanner_channel_ids.append(channel_id)
+            app_scanner = {}
+            app_scanner["datasource_id"] = datasource_id
+            app_scanner["scanner_type"] = gsuite_constants.ScannerTypes.APPS.value
+            app_scanner["channel_id"] = channel_id
+            app_scanner["user_email"] = user_email
+            app_scanner["started_at"] = now
+            app_scanner["in_progress"] = 1
+            scanners_list.append(app_scanner)
+            scanner_channel_ids.append(channel_id)
 
 
     try:
