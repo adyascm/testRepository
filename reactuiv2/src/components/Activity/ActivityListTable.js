@@ -68,33 +68,32 @@ class ActivityListTable extends Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps !== this.props) {
-            if (nextProps.filterConnectorType !== this.props.filterConnectorType || nextProps.filterEventType !== this.props.filterEventType ||
-                nextProps.pageNumber !== this.props.pageNumber || nextProps.filterActor !== this.props.filterActor || nextProps.filterByDate !== this.props.filterByDate) {
+            if (nextProps.pageNumber !== this.props.pageNumber) {
                 nextProps.onLoadStart()
 
                 let selectedConnectors = []
                 let selectedEventTypes = []
                 let timeStamp = 'filterByDate' in nextProps ? nextProps['filterByDate'] : ''
                 let filteractor = 'filteractor' in nextProps ? nextProps['filteractor'] : ''
-                if('filterEventType' in nextProps){
-                    for(let k in nextProps.filterEventType){
-                        if(nextProps.filterEventType[k]){
+                if ('filterEventType' in nextProps) {
+                    for (let k in nextProps.filterEventType) {
+                        if (nextProps.filterEventType[k]) {
                             selectedEventTypes.push(k)
                         }
                     }
                 }
-                if('filterConnectorType' in nextProps){
-                    for(let k in nextProps.filterConnectorType){
-                        if(nextProps.filterConnectorType[k]){
+                if ('filterConnectorType' in nextProps) {
+                    for (let k in nextProps.filterConnectorType) {
+                        if (nextProps.filterConnectorType[k]) {
                             selectedConnectors.push(k)
                         }
                     }
                 }
-                
+
                 nextProps.onLoad(agent.Activity.getAllActivites({
                     'domain_id': this.state.domain_id, 'timestamp': timeStamp, 'actor': filteractor,
                     'connector_type': selectedConnectors, 'event_type': selectedEventTypes, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit,
-                    'sortColumn':this.state.columnNameClicked,'sortOrder':this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
+                    'sortColumn': this.state.columnNameClicked, 'sortOrder': this.state.sortOrder === 'ascending' ? 'desc' : 'asc'
                 }))
             }
         }

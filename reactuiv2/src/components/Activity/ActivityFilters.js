@@ -5,11 +5,13 @@ import agent from '../../utils/agent';
 import { Checkbox, Menu, Input, Button } from 'semantic-ui-react'
 import DatePicker from 'react-datepicker'
 import moment from 'moment'
+import GroupSearch from '../Search/GroupSearch';
 import {DEFAULT_FILTER_BY_DATE_FOR_ACTIVITY_EVENTS, ACTIVITIES_PAGE_LOAD_START, ACTIVITIES_PAGE_LOADED, ACTIVITIES_FILTER_CHANGE, ACTIVITIES_PAGINATION_DATA, ACTIVITIES_CHART_LOADED} from '../../constants/actionTypes';
 
 const mapStateToProps = state => ({
     ...state.activity,
-    ...state.common
+    ...state.common,
+    filterActor:state.users.selectedUserItem
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -28,7 +30,6 @@ class ActivityFilters extends Component {
             selectedEventTypes: {},
             selectedConnectors: {},
             currentDate: moment(),
-            filterActor: "",
         }
     }
 
@@ -91,11 +92,6 @@ class ActivityFilters extends Component {
         })
     }
 
-    handleFilterActorChange = (event, data) => {
-        this.setState({
-            filterActor:data.value
-        })
-    }
 
     fetchActivityList = (payload) => {
         let currentSelectedConnectors, currentSelectAllEventTypes, currentDateObj, currentFilterActor 
@@ -109,7 +105,7 @@ class ActivityFilters extends Component {
             currentSelectAllEventTypes = this.state.selectedEventTypes
             currentSelectedConnectors = this.state.selectedConnectors
             currentDateObj = this.state.currentDate
-            currentFilterActor = this.state.filterActor.trim()
+            currentFilterActor = this.props.filterActor ? this.props.filterActor.email : ''
         }
         this.props.setPaginationData(0, this.props.pageLimit)
         this.props.changeFilter('filterEventType', currentSelectAllEventTypes)
@@ -177,10 +173,7 @@ class ActivityFilters extends Component {
                         <Menu.Header>Email</Menu.Header>
                         <Menu.Menu>
                             <Menu.Item>
-                                <Input fluid placeholder='Filter by Email...'
-                                onChange={(event, data) => this.handleFilterActorChange(event, data)}
-                                value={this.state.filterActor}  
-                                />
+                                <GroupSearch />
                             </Menu.Item>    
                         </Menu.Menu>
                     </Menu.Item>
