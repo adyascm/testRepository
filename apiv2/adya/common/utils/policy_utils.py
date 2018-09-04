@@ -144,7 +144,8 @@ def check_value_violation(policy_condition, value):
 def validate_new_user_policy(db_session, auth_token, datasource_id, policy, user, group_name):
     Logger().info("validating_policy for new user : {} ".format(user))
     Logger().info("new user is added to group  : {} ".format(group_name))
-
+    datasource_obj = get_datasource(datasource_id, db_session)
+    datasource_type = datasource_obj.datasource_type
     is_violated = 1
     for policy_condition in policy.conditions:
         if policy_condition.match_type == constants.PolicyMatchType.USER_TYPE.value:
@@ -163,7 +164,7 @@ def validate_new_user_policy(db_session, auth_token, datasource_id, policy, user
                 to_address = json.loads(action.config)["to"]
                 # TODO: add proper email template
                 Logger().info("validate_policy : send email")
-                adya_emails.send_new_user_policy_violate_email(to_address, policy, user, group_name)
+                adya_emails.send_new_user_policy_violate_email(to_address, policy, user, group_name, datasource_type)
 
         payload = {}
         payload["datasource_id"] = datasource_id

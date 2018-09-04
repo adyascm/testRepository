@@ -264,22 +264,28 @@ def send_app_install_policy_violate_email(user_email,policy,application, is_reve
         return False
        
 
-def send_new_user_policy_violate_email(user_email, policy, new_user, group_name):
+def send_new_user_policy_violate_email(user_email, policy, new_user, group_name, datasource_type):
     try:
-        datasource_name = (policy.name).split("::")[0] if policy.name else None
-        user_type =  "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
+
+        user_type = "Administrator" if new_user['is_admin'] else ("external_user" if (new_user['member_type'] ==
                                                         constants.EntityExposureType.EXTERNAL.value) else None)
         template_name = "new_administrator_policy_violation" if (user_type == "Administrator") else \
                             ("add_external_user_policy_violation" if (user_type == "external_user") else None)
+        entity_type = "group"
+        if datasource_type == constants.ConnectorTypes.SLACK.value:
+            entity_type = "team"
+        elif datasource_type == constants.ConnectorTypes.GITHUB.value:
+            entity_type = "repository"
+
         template_parameters = {
             "policy_name": policy.name,
             "user_email": new_user["email"],
-            "datasource_name": datasource_name,
+            "datasource_name": datasource_type,
             "group_name": group_name,
-            "added_entity_type": "team" if datasource_name == constants.ConnectorTypes.SLACK.value else "group"
+            "added_entity_type": entity_type
         }
         rendered_html = get_rendered_html(template_name, template_parameters)
-        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_name)
+        email_subject = "[Adya] A policy is violated in your {} account".format(datasource_type)
         aws_utils.send_email([user_email], email_subject, rendered_html)
         return True
     except Exception as e:
