@@ -352,6 +352,10 @@ class ResourcesListTable extends Component {
             return (
                 <div>
                     <ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={resourceData} viewType={'RESOURCES'} gsuiteOptns={gsuiteOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
+                    <div style={{float: 'right', marginTop: '0.7rem'}}>
+                            {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
+                            {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
+                    </div>
                     <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header style={{'width': '100%' }}>
@@ -407,12 +411,6 @@ class ResourcesListTable extends Component {
                             </Table.Body>
                         </Table>
                         {this.props.isLoadingResources ? dimmer : null}
-                    </div>
-                    <div style={{ marginTop: '10px' }} >
-                        <div style={{float: 'right'}}>
-                            {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
-                            {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
-                        </div>
                     </div>
                 </div>
             )
