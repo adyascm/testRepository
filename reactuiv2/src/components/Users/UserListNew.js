@@ -6,6 +6,7 @@ import { IntlProvider, FormattedDate } from 'react-intl'
 import UserStats from "./UserStats";
 import ExportCsvModal from '../ExportCsvModal'
 import agent from '../../utils/agent';
+import ActionsMenuBar from '../ActionsMenuBar'
 
 import {
     USER_ITEM_SELECTED,
@@ -15,8 +16,7 @@ import {
     USERS_FILTER_CHANGE,
     USERS_LIST_PAGINATION_DATA,
     USERS_STATS_UDPATE,
-    USERS_COLUMN_SORT,
-    USERS_RESOURCE_ACTION_LOAD
+    USERS_COLUMN_SORT
 } from '../../constants/actionTypes';
 
 
@@ -37,8 +37,6 @@ const mapDispatchToProps = dispatch => ({
         dispatch({ type: USERS_LIST_PAGINATION_DATA, pageNumber }),
     setSortColumnField: (columnName, sortType) =>
         dispatch({ type: USERS_COLUMN_SORT, columnName, sortType }),
-    onMultiUsersAction: (payload, multiSelectAction) =>
-        dispatch({ type: USERS_RESOURCE_ACTION_LOAD, payload, multiSelectAction}),
 });
 
 
@@ -70,8 +68,8 @@ class UserListNew extends Component {
             columnNameClicked: this.props.sortColumnName,
             sortOrder: this.props.sortType,
             numberAppliedFilter: this.props.listFilters ? Object.keys(this.props.listFilters).length : 0,
-            selectAllColumns:false,
-            selectedFieldColumns:{},
+            selectAllRows:false,
+            selectedRowFields:{},
             showActionBar:false
         }
 
@@ -99,7 +97,7 @@ class UserListNew extends Component {
         let numberAppliedFilter = nextProps.listFilters ? Object.keys(nextProps.listFilters).length : 0
         if (this.props.listFilters !== nextProps.listFilters || this.props.sortColumnName != nextProps.sortColumnName || this.props.sortType != nextProps.sortType ||
             nextProps.usersListPageNumber !== this.props.usersListPageNumber) {
-            this.disableAllRowsSelection()
+            this.disableAllRowsChecked()
             this.props.onLoadStart();
             let emailFilter = nextProps.listFilters.email ? nextProps.listFilters.email.value || "" : "";
             this.props.onLoad(emailFilter, agent.Users.getUsersList(nextProps.listFilters.full_name ? nextProps.listFilters.full_name.value || "" : "",
@@ -116,33 +114,33 @@ class UserListNew extends Component {
         }
     }
 
-    disableAllRowsSelection = () => {
+    disableAllRowsChecked = () => {
         this.setState({
-            selectedFieldColumns : {},
-            selectAllColumns:false,
+            selectedRowFields : {},
+            selectAllRows:false,
             showActionBar:false
         })
     }
 
     handleRowClick = (event, rowData) => {
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
         this.props.selectUserItem(rowData)
     }
 
     handleColumnFilterChange = (event, data, filterType) => {
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
         this.props.changeFilter(filterType, data.value, data.value)
     }
 
     clearFilter = (event, filterType) => {
         event.stopPropagation()
         this.props.changeFilter(filterType, '', '');
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
     }
 
     handleColumnSort = (event, mappedColumnName) => {
         event.stopPropagation()
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.setSortColumnField(mappedColumnName, 'asc')
             this.setState({
@@ -160,48 +158,48 @@ class UserListNew extends Component {
 
     handleStatsClick = (event, statType, statSubTypeDisplay, statSubTypeValue) => {
         this.props.changeFilter(statType, statSubTypeDisplay, statSubTypeValue)
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
     }
 
     handleNextClick = () => {
         this.props.setNextPageNumber(this.props.usersListPageNumber + 1)
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
     }
 
     handlePreviousClick = () => {
         this.props.setNextPageNumber(this.props.usersListPageNumber - 1)
-        this.disableAllRowsSelection()
+        this.disableAllRowsChecked()
     }
 
     handleClick = (event) => {
         event.stopPropagation()
     }
-
-    handleAllRowsSelection = (event, data) => {
-        let selectAllColumns = !this.state.selectAllColumns
-        let selectedFieldColumns = this.state.selectedFieldColumns
+    
+    handleAllRowsChecked = (event, data) => {
+        let selectAllRows = !this.state.selectAllRows
+        let selectedRowFields = this.state.selectedRowFields
         for(var i in this.props.usersList){
-            selectedFieldColumns[i] = selectAllColumns
-        }
+            selectedRowFields[i] = selectAllRows
+        }    
         this.setState({
-            selectAllColumns: selectAllColumns,
-            selectedFieldColumns:selectedFieldColumns,
-            showActionBar:selectAllColumns
+            selectAllRows: selectAllRows,
+            selectedRowFields:selectedRowFields,
+            showActionBar:selectAllRows
         })
     }
 
-    handleRowSelection = (event, data, index) => {
+    handleRowChecked = (event, data, index) => {
         event.stopPropagation()
-        let selectedFieldColumns = this.state.selectedFieldColumns
-        selectedFieldColumns[index] = index in this.state.selectedFieldColumns ? !this.state.selectedFieldColumns[index] : true
-        let showActionBar = Object.values(selectedFieldColumns).some(item => { return item;})
+        let selectedRowFields = this.state.selectedRowFields
+        selectedRowFields[index] = index in selectedRowFields ? !selectedRowFields[index] : true
+        let showActionBar = Object.values(selectedRowFields).some(item => { return item;})
         this.setState({
-            selectedFieldColumns:selectedFieldColumns,
+            selectedRowFields:selectedRowFields,
             showActionBar:showActionBar
         })
-        if (!this.state.selectedFieldColumns[index]) {
+        if (!selectedRowFields[index]) {
             this.setState({
-                selectAllColumns: false
+                selectAllRows: false
             })
         }
     }
@@ -295,7 +293,7 @@ class UserListNew extends Component {
             if(headerName == 'SelectAll'){
                 return (
                     <Table.HeaderCell key={headerName}>
-                        <Checkbox onChange={this.handleAllRowsSelection} checked={this.state.selectAllColumns} />
+                        <Checkbox onChange={this.handleAllRowsChecked} checked={this.state.selectAllRows} />
                     </Table.HeaderCell>
                 )
             }else{
@@ -355,8 +353,8 @@ class UserListNew extends Component {
                     </IntlProvider> : null)
                 return (
                     <Table.Row onClick={(event) => this.handleRowClick(event, rowData)} style={this.props.selectedUserItem === rowData ? { 'backgroundColor': '#2185d0' } : null}>
-                        <Table.Cell>
-                            <Checkbox onChange={(event, data) => this.handleRowSelection(event, data, index)} checked={this.state.selectedFieldColumns[index]} />
+                        <Table.Cell onClick={(event) => {event.stopPropagation()}}>
+                            <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
                         </Table.Cell>
                         <Table.Cell textAlign="center">{dsImage}</Table.Cell>
                         <Table.Cell>{rowData["type"]}</Table.Cell>
@@ -389,6 +387,8 @@ class UserListNew extends Component {
                 "type": this.props.listFilters.type ? this.props.listFilters.type.value || "" : "",
                 "logged_in_user": this.props.currentUser['email']
             }
+            let gsuiteOptns = [{'actionKey':'remove_all_access_for_multiple_users','actionText':'Offboard Users'},{'actionKey':'remove_all_access_for_multiple_users','actionText':'Remove access for documents'},{'actionKey':'notify_multiple_users_for_clean_up','actionText':'Notify users to audit'}]
+
             return (
                 <Grid fluid >
                     <Container fluid textAlign="left">
@@ -399,35 +399,7 @@ class UserListNew extends Component {
                             <UserStats userStats={this.props.userStats} isUserSelected={this.props.selectedUserItem} handleStatsClick={this.handleStatsClick} statSubType={this.props.userStatSubType} />
                         </Grid.Column>
                         <Grid.Column width={this.props.selectedUserItem ? 16 : 13}>
-                                    <Dropdown  button style={{ float:'left'}} item text='Actions'>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item>
-                                                    <Dropdown text='System'>
-                                                            <Dropdown.Menu>
-                                                                <Dropdown.Item>
-                                                                    <ExportCsvModal columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Users.exportToCsv} filterMetadata={filterMetadata} />
-                                                                </Dropdown.Item>
-                                                            </Dropdown.Menu>
-                                                    </Dropdown>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item>
-                                                <Dropdown text='GSuite'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('offboard_internal_user')}>Offboard Users</span>
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('remove_all_access_for_multiple_users')}>Remove access for documents</span>
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item disabled={!this.state.showActionBar}>
-                                                            <span size="mini" onClick={() => this.triggerActionOnMultiSelect('notify_multiple_users_for_clean_up')}>Notify users to audit</span>
-                                                        </Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-
-                                    </Dropdown>
+                                <ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={this.props.usersList} gsuiteOptns={gsuiteOptns}  viewType={'USERS'} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
                             <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                                 <Table celled selectable striped compact='very' sortable>
                                     <Table.Header style={{'width': '100%' }}>
@@ -460,5 +432,6 @@ class UserListNew extends Component {
             )
     }
 }
+
 
 export default connect(mapStateToProps, mapDispatchToProps)(UserListNew);

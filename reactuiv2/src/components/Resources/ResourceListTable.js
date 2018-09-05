@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon, Sticky, Image } from 'semantic-ui-react';
+import { Loader, Dimmer, Button, Table, Dropdown, Input, Icon, Sticky, Image, Checkbox } from 'semantic-ui-react';
 
 import agent from '../../utils/agent';
 import { IntlProvider, FormattedRelative } from 'react-intl';
@@ -9,6 +9,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import ResourceSearch from '../Search/ResourceSearch'
 import GroupSearch from '../Search/GroupSearch';
 import ExportCsvModal from '../ExportCsvModal'
+import ActionsMenuBar from '../ActionsMenuBar'
 
 import {
     RESOURCES_PAGE_LOADED,
@@ -42,6 +43,7 @@ class ResourcesListTable extends Component {
 
         this.state = {
             columnHeaders: [
+                "SelectAll",
                 "Source",
                 "Name",
                 "Type",
@@ -64,7 +66,10 @@ class ResourcesListTable extends Component {
                 "Modified On or Before": "last_modified_time"
             },
             columnNameClicked: undefined,
-            sortOrder: undefined
+            sortOrder: undefined,
+            selectAllColumns:false,
+            selectedRowFields:{},
+            showActionBar:false
         }
 
         this.exposureFilterOptions = [
@@ -117,6 +122,7 @@ class ResourcesListTable extends Component {
                 let ownerEmailId = nextProps.selectedUser ? nextProps.selectedUser.email : ''
                 nextProps.onLoadStart()
                 nextProps.onLoad(agent.Resources.getResources({ 'accessibleBy': "", 'exposureType': nextProps.filterExposureType, 'resourceType': nextProps.filterResourceType, 'pageNumber': nextProps.pageNumber, 'pageSize': nextProps.pageLimit, 'ownerEmailId': ownerEmailId, 'parentFolder': nextProps.filterParentFolder, 'selectedDate': nextProps.filterByDate, 'prefix': nextProps.prefix, 'sortColumn': this.state.columnNameClicked, 'sortType': this.state.sortOrder === 'ascending' ? 'asc' : 'desc', 'sourceType': nextProps.filterSourceType }))
+                this.disableAllRowsChecked()
             }
 
             if (nextProps.filterResourceType !== this.state.filterResourceType)
@@ -133,33 +139,39 @@ class ResourcesListTable extends Component {
     }
 
     handleClick = (event, rowData) => {
+        this.disableAllRowsChecked()
         event.preventDefault()
         this.props.setRowData(rowData)
     }
 
     handleExposureTypeChange = (event, data) => {
+        this.disableAllRowsChecked()
         let value = data.value === 'ALL' ? '' : data.value
         if (value !== this.props.filterExposureType)
             this.props.changeFilter("filterExposureType", value);
     }
 
     handleResourceTypeChange = (event) => {
+        this.disableAllRowsChecked()
         this.setState({
             filterResourceType: event.target.value
         });
     }
 
     handleParentFolderChange = (event) => {
+        this.disableAllRowsChecked()
         this.setState({
             filterParentFolder: event.target.value
         })
     }
 
     handleSourceTypeChange = (event, data) => {
+        this.disableAllRowsChecked()
         this.props.changeFilter("filterSourceType", data.value)
     }
 
     handleDateChange = (date) => {
+        this.disableAllRowsChecked()
         let selectedDate = date ? date.format('YYYY-MM-DD HH:MM:SS') : ''
         this.setState({
             currentDate: date ? date : ''
@@ -168,20 +180,24 @@ class ResourcesListTable extends Component {
     }
 
     handleKeyPress = (event, filterType, filterValue) => {
+        this.disableAllRowsChecked()
         if (event.key === 'Enter') {
             this.props.changeFilter(filterType, filterValue);
         }
     }
 
     handleNextClick = () => {
+        this.disableAllRowsChecked()
         this.props.setPaginationData(this.props.pageNumber + 1, this.props.pageLimit)
     }
 
     handlePreviousClick = () => {
+        this.disableAllRowsChecked()
         this.props.setPaginationData(this.props.pageNumber - 1, this.props.pageLimit)
     }
 
     clearFilterData = (stateKey) => {
+        this.disableAllRowsChecked()
         if (stateKey === 'filterResourceType')
             this.setState({
                 filterResourceType: ''
@@ -199,6 +215,7 @@ class ResourcesListTable extends Component {
     }
 
     handleColumnSort = (mappedColumnName) => {
+        this.disableAllRowsChecked()
         let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
         if (this.state.columnNameClicked !== mappedColumnName) {
             this.props.onLoadStart()
@@ -225,23 +242,73 @@ class ResourcesListTable extends Component {
         }
     }
 
+    disableAllRowsChecked = () => {
+        this.setState({
+            selectedRowFields : {},
+            selectAllColumns:false,
+            showActionBar:false
+        })
+    }
+
+    handleAllRowsChecked = (event, data) => {
+        let selectAllColumns = !this.state.selectAllColumns
+        let selectedRowFields = this.state.selectedRowFields
+        for(var i in this.props.resourceTree){
+            selectedRowFields[i] = selectAllColumns
+        }    
+        this.setState({
+            selectAllColumns: selectAllColumns,
+            selectedRowFields:selectedRowFields,
+            showActionBar:selectAllColumns
+        })
+    }
+
+    handleRowChecked = (event, data, index) => {
+        event.stopPropagation()
+        let selectedRowFields = this.state.selectedRowFields
+        selectedRowFields[index] = index in selectedRowFields ? !selectedRowFields[index] : true
+        let showActionBar = Object.values(selectedRowFields).some(item => { return item;})
+        this.setState({
+            selectedRowFields:selectedRowFields,
+            showActionBar:showActionBar
+        })
+        if (!selectedRowFields[index]) {
+            this.setState({
+                selectAllColumns: false
+            })
+        }
+    }
+
     render() {
+
+        
 
         let tableHeaders = this.state.columnHeaders.map(headerName => {
             let mappedColumnName = this.state.columnHeaderDataNameMap[headerName]
-            return (
-                <Table.HeaderCell key={headerName}
-                    sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
-                    onClick={() => this.handleColumnSort(mappedColumnName)} >
-                    {headerName}
-                </Table.HeaderCell>
-            )
+            if(headerName == 'SelectAll'){
+                return (
+                    <Table.HeaderCell key={headerName}>
+                        <Checkbox onChange={this.handleAllRowsChecked} checked={this.state.selectAllColumns} />
+                    </Table.HeaderCell>
+                )
+            }else{
+                return (
+                    <Table.HeaderCell key={headerName}
+                        sorted={this.state.columnNameClicked === mappedColumnName ? this.state.sortOrder : null}
+                        onClick={() => this.handleColumnSort(mappedColumnName)} >
+                        {headerName}
+                    </Table.HeaderCell>
+                )
+            }
+            
         })
 
         let tableRowData = null
         let resourceData = null
         let dsMap = this.props.datasourcesMap;
         let sourceFilterOptions = [{ "text": "All", "value": "" }];
+        let gsuiteOptns = [{'actionKey':'change_owner_of_multiple_files','actionText':'Transfer Ownership'},{'actionKey':'remove_external_access_to_mutiple_resources','actionText':'Remove external sharing'},
+        {'actionKey':'make_multiple_resources_private','actionText':'Remove all sharing'}]
         for (var index = 0; index < this.props.datasources.length; index++) {
             sourceFilterOptions.push({ "text": this.props.datasources[index].datasource_type, "value": this.props.datasources[index].datasource_id });
         }
@@ -251,13 +318,16 @@ class ResourcesListTable extends Component {
             resourceData = this.props.resourceTree
 
         if (resourceData)
-            tableRowData = resourceData.map(rowData => {
+            tableRowData = resourceData.map((rowData,index) => {
                 var dsImage = null;
                 if (rowData.datasource_id) {
                     dsImage = <Image inline size='mini' src={dsMap[rowData.datasource_id] && dsMap[rowData.datasource_id].logo} circular></Image>
                 }
                 return (
                     <Table.Row key={rowData['resource_id']} onClick={(event) => this.handleClick(event, rowData)} style={this.props.rowData === rowData ? { 'backgroundColor': '#2185d0' } : null}>
+                        <Table.Cell onClick={(event) => {event.stopPropagation()}}>
+                            <Checkbox onChange={(event, data) => this.handleRowChecked(event, data, index)} checked={this.state.selectedRowFields[index]} />
+                        </Table.Cell>
                         <Table.Cell textAlign='center' >{dsImage}</Table.Cell>
                         <Table.Cell width='3' style={{ 'wordBreak': 'break-all' }}>{rowData["resource_name"]}</Table.Cell>
                         <Table.Cell width='3'>{rowData["resource_type"]}</Table.Cell>
@@ -278,9 +348,11 @@ class ResourcesListTable extends Component {
         if (this.props.isLoadingResources || resourceData) {
             let ownerEmailId = this.props.selectedUser ? this.props.selectedUser.email : ''
             let filterMetadata = { 'accessibleBy': "", 'exposureType': this.props.filterExposureType, 'resourceType': this.props.filterResourceType,  'ownerEmailId': ownerEmailId, 'parentFolder': this.props.filterParentFolder, 'selectedDate': this.props.filterByDate, 'resourceName': this.props.prefix !== undefined ? this.props.prefix : '', 'sourceType': this.props.filterSourceType, 'logged_in_user': this.props.currentUser['email'] }
+
             return (
                 <div>
-                    <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer' }}>
+                    <ActionsMenuBar selectedRowFields={this.state.selectedRowFields}  disableAllRowsChecked={this.disableAllRowsChecked} entityList={resourceData} viewType={'RESOURCES'} gsuiteOptns={gsuiteOptns} showActionBar={this.state.showActionBar} columnHeaderDataNameMap={this.state.columnHeaderDataNameMap} filterMetadata={filterMetadata}  />
+                    <div ref="table" style={{ 'minHeight': document.body.clientHeight / 1.25, 'maxHeight': document.body.clientHeight / 1.25, 'overflow': 'auto', 'cursor': 'pointer', 'marginTop':'50px' }}>
                         <Table celled selectable striped compact='very' sortable>
                             <Table.Header style={{'width': '100%' }}>
                                 <Table.Row>
@@ -289,6 +361,8 @@ class ResourcesListTable extends Component {
                             </Table.Header>
                             <Table.Body>
                                 <Table.Row>
+                                    <Table.Cell>
+                                    </Table.Cell>
                                     <Table.Cell width='2'>
                                         <Dropdown
                                             fluid
@@ -339,7 +413,6 @@ class ResourcesListTable extends Component {
                             {this.props.pageNumber > 0 ? (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handlePreviousClick} >Previous</Button>) : null}
                             {(!tableRowData || tableRowData.length < this.props.pageLimit) ? null : (<Button color='green' size="mini" style={{ width: '80px' }} onClick={this.handleNextClick} >Next</Button>)}
                         </div>
-                        <ExportCsvModal isResourceView={true} columnHeaders={this.state.columnHeaderDataNameMap} apiFunction={agent.Resources.exportToCsv} filterMetadata={filterMetadata} />
                     </div>
                 </div>
             )

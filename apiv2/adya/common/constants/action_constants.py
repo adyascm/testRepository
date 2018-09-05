@@ -26,6 +26,10 @@ class ActionNames(Enum):
     REMOVE_ALL_ACCESS_FOR_MULTIPLE_USERS = "remove_all_access_for_multiple_users"
     NOTIFY_MULTIPLE_USERS_FOR_CLEANUP = "notify_multiple_users_for_clean_up"
     OFFBOARD_INTERNAL_USER = "offboard_internal_user"
+    CHANGE_OWNER_OF_MULIPLE_FILES = "change_owner_of_multiple_files"
+    REMOVE_EXTERNAL_ACCESS_TO_MULIPLE_RESOURCES = "remove_external_access_to_mutiple_resources"
+    MAKE_MULTIPLE_RESOURCES_PRIVATE = "make_multiple_resources_private"
+    REMOVE_MULTIPLE_APPS_FOR_DOMAIN = "remove_multiple_apps_for_domain"
 
 
 class ActionStatus(Enum):
