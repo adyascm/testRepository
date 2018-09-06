@@ -30,7 +30,8 @@ def get_handler(event_type):
     if event_type == github_constants.GithubNativeEventTypes.REPOSITORY.value or \
         event_type == github_constants.GithubNativeEventTypes.REPOSITORY_VULNERABILITY_ALERT.value or \
         event_type == github_constants.GithubNativeEventTypes.FORK.value or \
-        event_type == github_constants.GithubNativeEventTypes.MEMBER.value:
+        event_type == github_constants.GithubNativeEventTypes.MEMBER.value or \
+        event_type == github_constants.GithubNativeEventTypes.COMMITCOMMENT.value:
         handler = repository_notifications
 
     elif event_type == github_constants.GithubNativeEventTypes.ORGANIZATION.value:

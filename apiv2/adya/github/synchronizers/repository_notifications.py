@@ -121,3 +121,34 @@ def process_activity(payload, event_type):
                 new_user_payload["user"] = json.dumps(existing_user, cls=alchemy_encoder())
                 new_user_payload["group"] = repository["full_name"]
                 messaging.trigger_post_event(urls.GITHUB_POLICIES_VALIDATE_PATH, constants.INTERNAL_SECRET, policy_params, new_user_payload, "github")
+    
+    elif event_type == github_constants.GithubNativeEventTypes.COMMITCOMMENT.value:
+        Logger().info("Commit Comment notification received with body: {}".format(payload))
+        action = payload["action"]
+        comment = payload["comment"]
+        repository = payload["repository"]
+
+        if action == "created":
+            tags = {
+                "comment": comment,
+                "repository": repository,
+                "action": action
+            }
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'COMMIT_COMMENT', None, tags)
+    
+    elif event_type == github_constants.GithubNativeEventTypes.PULLREQUEST.value:
+        Logger().info("Pull request notification received with body: {}".format(payload))
+        action = payload["action"]
+        pull_request = payload["pull_request"]
+        tags = { "action": action, "pull_request": pull_request }
+
+        if action == "opened":
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'PULL_REQUEST_OPENED', None, tags)
+        elif action == "edited":
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'PULL_REQUEST_EDITED', None, tags)
+        elif action == "closed":
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'PULL_REQUEST_CLOSED', None, tags)
+        elif action == "assigned":
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'PULL_REQUEST_ASSIGNED', None, tags)
+        elif action == "unassigned":
+            activity_db().add_event(domain_id, constants.ConnectorTypes.GITHUB.value, 'PULL_REQUEST_UNASSIGNED', None, tags)

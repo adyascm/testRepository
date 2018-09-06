@@ -58,6 +58,12 @@ GITHUB_EVENT_TYPES = {
     "USER_BLOCKED": {"datasource_type": "GITHUB", "display_name": "User blocked", "desc": "A user is blocked from organisation", "event_template": ""},
     "USER_UNBLOCKED": {"datasource_type": "GITHUB", "display_name": "User unblocked", "desc": "A user is unblocked from organisation", "event_template": ""},
     "REP_PUSH": {"datasource_type": "GITHUB", "display_name": "Code pushed", "desc": "Code is pushed to repository", "event_template": ""},
+    "COMMIT_COMMENT": {"datasource_type": "GITHUB", "display_name": "Commit comment is created", "desc": "Commit comment is created for repository", "event_template": ""},
+    "PULL_REQUEST_OPENED": {"datasource_type": "GITHUB", "display_name": "Pull request is opened", "desc": "Pull request is opened", "event_template": ""},
+    "PULL_REQUEST_EDITED": {"datasource_type": "GITHUB", "display_name": "Pull request is edited", "desc": "Pull request is edited", "event_template": ""},
+    "PULL_REQUEST_CLOSED": {"datasource_type": "GITHUB", "display_name": "Pull request is closed", "desc": "Pull request is closed", "event_template": ""},
+    "PULL_REQUEST_ASSIGNED": {"datasource_type": "GITHUB", "display_name": "Pull request is assigned", "desc": "Pull request is assigned", "event_template": ""},
+    "PULL_REQUEST_UNASSIGNED": {"datasource_type": "GITHUB", "display_name": "Pull request is unassigned", "desc": "Pull request is unassigned", "event_template": ""}
 }
 
 datasource_event_types_map = {

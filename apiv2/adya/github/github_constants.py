@@ -18,3 +18,5 @@ class GithubNativeEventTypes(Enum):
     REPOSITORY_VULNERABILITY_ALERT = "repository_vulnerability_alert"
     FORK = "fork"
     MEMBER = "member"
+    COMMITCOMMENT = "commit_comment"
+    PULLREQUEST = "pull_request"

@@ -33,7 +33,7 @@ def query(auth_token, query_params, scanner):
                     "url": urls.GITHUB_NOTIFICATIONS_URL,
                     "content_type": "json" 
                 }
-                events = ["repository","repository_vulnerability_alert","fork","member","public","push","create"]
+                events = ["repository","repository_vulnerability_alert","fork","member","public","push","create", "commit_comment", "pull_request"]
                 repo.create_hook(name="web", config=config, events=events, active=True)
             except github.GithubException as ex:
                 if ex.status == 422:
